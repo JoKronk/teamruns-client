@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { GoalService } from './services/goal.service';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +7,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'teamrun-client';
+  title = 'TeamRun';
+
+  constructor(public _goal: GoalService) {
+
+  }
 }
