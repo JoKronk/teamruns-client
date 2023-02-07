@@ -1,3 +1,25 @@
-button {
-    margin: 5px;
+#fake-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 30px;
+    background: rgba(0, 0, 0, 0);
+    width: 100%;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+}
+.sidenav {
+    width: 15%;
+    max-width: 220px;
+    min-width: 190px;
+}
+
+mat-sidenav-container {
+    overflow: hidden;
+    background-color: #3e3e3e;
+    border-radius: 4px;
+}
+
+.containter {
+    background-color: red;
 }

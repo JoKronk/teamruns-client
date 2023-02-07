@@ -8,14 +8,25 @@ function createWindow() {
        
   //configs
 	win = new BrowserWindow({
-    width: 900, 
-    height: 900, 
+    width: 1000, 
+    height: 800,
+    x: 10,
+    y: 10,
     webPreferences: {
         allowRunningInsecureContent: (devServe),
         preload: path.join(__dirname, "preload.js")
     },
     autoHideMenuBar: true,
-    //frame: false
+    resizable: false,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: 'rgba(0, 0, 0, 0)',
+      symbolColor: '#74b1be',
+      height: 30
+    },
+    fullscreenable: false,
+    transparent: true,
+    frame: false
   });
 
   if (devServe) {

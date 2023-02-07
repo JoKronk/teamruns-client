@@ -1,5 +1,13 @@
-<div>--- TEAM RUN CLIENT 0.1 ---</div>
-
-<br />
-<button mat-raised-button (click)="_goal.startGame()">Start Game</button>
-<button mat-raised-button (click)="_goal.startRun()">Start Run</button>
+<div class="containter">
+    <mat-sidenav-container fullscreen>
+      <mat-sidenav *ngIf="true" [mode]="!_nav.show ? 'over' : 'side'" class="sidenav" [opened]="_nav.show">
+          <app-nav-board></app-nav-board>
+      </mat-sidenav>
+  
+      <mat-sidenav-content>
+        <div id="fake-header"></div>
+          <router-outlet></router-outlet>
+      </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>
+  
