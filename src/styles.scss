@@ -37,3 +37,13 @@ $teamrun-client-theme: mat.define-light-theme((
 
 html, body { height: 100%; }
 body { margin: 0 !important; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+@font-face {
+  font-family: jak;
+  src: url(assets/fonts/JAK.TTF) format("truetype");
+}
+
+@font-face {
+  font-family: precursor;
+  src: url(assets/fonts/PRECURSOR.TTF) format("truetype");
+}
