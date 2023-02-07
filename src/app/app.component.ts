@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { GoalService } from './services/goal.service';
+import { NavToggleService } from './services/nav-toggle.service';
+import { UserService } from './services/user.service';
 
 @Component({
   selector: 'app-root',
@@ -9,7 +11,7 @@ import { GoalService } from './services/goal.service';
 export class AppComponent {
   title = 'TeamRun';
 
-  constructor(public _goal: GoalService) {
+  constructor(public _nav: NavToggleService, public _user: UserService) {
 
   }
 }
