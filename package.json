@@ -2,15 +2,15 @@
   "name": "teamrun-client",
   "version": "0.0.0",
   "description": "OpenGOAL TeamRun client.",
-  "main": "main.js",
+  "main": "app/main.js",
   "scripts": {
     "ng": "ng",
     "start": "npm-run-all -p electron:serve ng:serve",
     "ng:serve": "ng serve -c development",
     "electron:serve": "wait-on tcp:4200 && npm run electron . --serve dev",
     "electron": "ng build && electron .",
-    "publish": "electron-builder",
-    "publish:unpacked": "electron-builder --dir",
+    "pack": "ng build && electron-builder --dir",
+    "dist": "ng build && electron-builder",
     "test": "ng test",
     "build": "ng build",
     "watch": "ng build --watch --configuration development"

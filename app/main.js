@@ -1,5 +1,4 @@
 const {app, BrowserWindow, ipcMain } = require('electron');
-const url = require('url');
 const path = require('path');   
 	
 let win = null;
@@ -20,6 +19,7 @@ function createWindow() {
   });
 
   if (devServe) {
+    const url = require('url');
     const debug = require('electron-debug');
     debug();
 
@@ -29,8 +29,9 @@ function createWindow() {
     win.webContents.openDevTools();
   } 
   else {
+    const url = require('url');
     win.loadURL(url.format({      
-        pathname: path.join( __dirname, 'dist/teamrun-client/index.html'),       
+        pathname: path.join( __dirname, 'teamrun-client/index.html'),       
         protocol: 'file:',      
         slashes: true
     }));
@@ -81,7 +82,6 @@ app.on('activate', () => {
 
 
 
-var http = require('http'); // 1 - Import Node.js core module
 const net = require('node:net');
 var client = new net.Socket();
 
