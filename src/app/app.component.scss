@@ -1,12 +1,14 @@
-#fake-header {
+#draggable-header {
     position: fixed;
     top: 0;
     left: 0;
-    height: 30px;
+    height: 45px;
     background: rgba(0, 0, 0, 0);
     width: 100%;
+    z-index: 10;
     -webkit-user-select: none;
     -webkit-app-region: drag;
+
 }
 .sidenav {
     width: 15%;
@@ -15,8 +17,6 @@
 }
 
 mat-sidenav-container {
-    overflow: hidden;
-    background-color: #3e3e3e;
     border-radius: 4px;
 }
 

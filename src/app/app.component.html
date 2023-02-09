@@ -1,11 +1,11 @@
 <div class="containter">
     <mat-sidenav-container fullscreen>
-      <mat-sidenav *ngIf="true" [mode]="!_nav.show ? 'over' : 'side'" class="sidenav" [opened]="_nav.show">
+      <mat-sidenav mode="over" class="sidenav" [opened]="_user.viewSettings">
           <app-nav-board></app-nav-board>
       </mat-sidenav>
   
       <mat-sidenav-content>
-        <div id="fake-header"></div>
+        <div id="draggable-header"></div>
           <router-outlet></router-outlet>
       </mat-sidenav-content>
   </mat-sidenav-container>

@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { IpcMain } from 'electron';
 
 @Injectable({
   providedIn: 'root'
@@ -7,8 +6,9 @@ import { IpcMain } from 'electron';
 export class GoalService {
 
   constructor() { 
-
+    
   }
+
   closeAll(): void {
     (window as any).electron.send('window-close');
   }
