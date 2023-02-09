@@ -38,6 +38,15 @@ $teamrun-client-theme: mat.define-light-theme((
 html, body { height: 100%; }
 body { margin: 0 !important; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+.mdc-snackbar__label {
+  padding: 0 !important;
+}
+
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: transparent !important;
+}
+
+
 @font-face {
   font-family: jak;
   src: url(assets/fonts/JAK.TTF) format("truetype");
