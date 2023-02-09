@@ -10,6 +10,7 @@ import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
 
 import { NavBoardComponent } from './nav-board/nav-board.component';
+import { StartScreenComponent } from './start-screen/start-screen.component';
 import { LobbyComponent } from './lobby/lobby.component';
 import { SnackbarComponent } from './snackbar/snackbar.component';
 
@@ -17,6 +18,7 @@ import { SnackbarComponent } from './snackbar/snackbar.component';
   declarations: [
     AppComponent,
     NavBoardComponent,
+    StartScreenComponent,
     LobbyComponent,
     SnackbarComponent
   ],

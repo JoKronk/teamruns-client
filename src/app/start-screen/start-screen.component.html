@@ -1,0 +1,29 @@
+<div #blackscreen class="blackscreen"></div>
+<div class="logo">
+    <img src="./assets/teamrun-logo.png" alt="image">
+    <p>TeamRun</p>
+</div>
+
+<div class="login-options">
+    <div class="login-container">
+        <div class="input-container">
+            <p>Username</p>
+            <input [(ngModel)]="_user.player.displayName">
+        </div>
+        <div class="input-container">
+            <p>Twitch Username (optional)</p>
+            <input [(ngModel)]="_user.player.twitchName">
+        </div>
+        <button (click)="_user._goal.startGame()">Launch Game</button>
+        <button (click)="sendToLobby()">Find Run</button>
+    </div>
+</div>
+
+<div class="info">
+    <h1>{{ infoText }}</h1>
+</div>
+
+<video #video autoplay muted loop id="bg-video">
+    <source src="./assets/startup-bg.mp4" type="video/mp4">
+</video>
+

@@ -1,0 +1,126 @@
+.blackscreen {
+    position: fixed;
+    z-index: 10;
+    padding:0;
+    margin:0;
+    top:0;
+    left:0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    transition: 0.3s;
+    &-fade {
+        background-color: rgb(255, 255, 255, 0);
+        z-index: -1;
+        visibility: hidden;
+    }
+}
+
+#bg-video {
+    position: fixed;
+    z-index: -1;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 100%;
+}
+
+.logo {
+    position: fixed;
+    width: 170px;
+    height: 200px;
+    top: 40px;
+    right: 80px;
+    & img {
+        user-drag: none;
+        -webkit-user-drag: none;
+        user-select: none;
+        -webkit-user-select: none;
+        max-width:100%;
+        max-height:100%;
+    }
+    & p {
+        -webkit-user-select: none;
+        margin: 0;
+        margin-top: -20px;
+        margin-left: -8px;
+        font-family: 'jak';
+        font-size: 52px;
+        color: #6c4700;
+        text-shadow: -3px -2px #380000;
+    }
+}
+
+.login {
+    &-options {
+        position: fixed;
+        background: rgba(0, 0, 0, 0.5);
+        width: 385px;
+        height: 440px;
+        border-radius: 10px;
+        left: 15%;
+        top: 50%;
+        transform: translateX(-15%) translateY(-50%);
+    }
+    &-container {
+        margin: 50px 10px 20px;
+        & button {
+            font-family: 'jak';
+            font-size: 24px;
+            color: #cccccc;
+            margin: 30px 10px;
+            height: 76px;
+            width: 160px;
+            background-color: #3e3e3e;
+            border: 1px solid #636363;
+            border-radius: 6px;
+            outline: none;
+            cursor: pointer;
+            transition: 0.3s;
+            &:hover {
+                color: rgb(204, 204, 204, 0.8);
+                background-color: rgba(85, 85, 85, 0.8);
+                border: 1px solid rgb(99, 99, 99, 0.6);
+            }
+        }
+    }
+}
+
+.input-container {
+    margin: 10px 10px 30px;
+    font-family: 'jak';
+    & p {
+        font-size: 22px;
+        margin: 4px;
+        color: #cccccc;
+    }
+    & input {
+        border: 2px solid rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 4px;
+        height: 36px;
+        width: 280px;
+        transition: 0.3s;
+        transition-timing-function: ease;
+        color: #ffffff;
+        font-size: 22px;
+        font-family: 'jak';
+    }
+    & textarea:focus, input:focus{
+        outline: none;
+        border: 2px solid rgba(0, 0, 0, 1);
+        background: rgba(24, 24, 24, 0.5);
+    }
+}
+
+.info {
+    -webkit-user-select: none;
+    position: fixed;
+    font-family: 'precursor';
+    font-size: 30px;
+    color: #d49012;
+    text-shadow: 5px 5px #000000;
+    bottom: 30px;
+    left: 85%;
+    transform: translateX(-85%) rotate(-8deg);
+}
