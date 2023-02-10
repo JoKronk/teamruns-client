@@ -1,17 +1,20 @@
 const { contextBridge, ipcRenderer } = require("electron");
    
-const validIpcMessageChannels = ["og-start-game", "og-start-run", "og-command", "window-close"];
+const validIpcChannelsIn = ["og-start-game", "og-start-run", "og-command", "window-close", "settings-read", "settings-write"];
+const validIpcChannelsOut = ["og-task-update", "og-state-update", "backend-message", "backend-error", "settings-read"];
 
 
 contextBridge.exposeInMainWorld("electron", {
     send: (channel, data) => {
-        console.log("channel: ", channel);
-        console.log("data: ", data);
-        
-        if (validIpcMessageChannels.includes(channel)) {
+        if (validIpcChannelsIn.includes(channel)) {
             ipcRenderer.send(channel, data);
         }
+    },
+    receive: (channel, func) => {
+        if (validIpcChannelsOut.includes(channel)) {
+            // Deliberately strip event as it includes `sender` 
+            ipcRenderer.on(channel, (event, ...args) => func(...args));
+        }
     }
-    }
-);
+});
     
