@@ -7,7 +7,7 @@
     "ng": "ng",
     "start": "npm-run-all -p electron:serve ng:serve",
     "ng:serve": "ng serve -c development",
-    "electron:serve": "wait-on tcp:4200 && npm run electron . --serve dev",
+    "electron:serve": "wait-on tcp:4200 && electron . --serve",
     "electron": "ng build && electron .",
     "pack": "ng build && electron-builder --dir",
     "dist": "ng build && electron-builder",
@@ -40,10 +40,8 @@
     "@angular/platform-browser": "^15.1.0",
     "@angular/platform-browser-dynamic": "^15.1.0",
     "@angular/router": "^15.1.0",
-    "bytebuffer": "^5.0.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "winax": "^3.3.4",
     "zone.js": "~0.12.0"
   },
   "devDependencies": {

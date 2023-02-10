@@ -5,5 +5,7 @@
     "main": "main.js",
     "private": true,
     "dependencies": {
+        "bytebuffer": "^5.0.1",
+        "winax": "^3.3.4"
     }
-  }
+}

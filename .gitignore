@@ -43,3 +43,4 @@ Thumbs.db
 
 #TeamRun Client
 /app/teamrun-client
+/app/node_modules
