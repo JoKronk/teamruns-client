@@ -8,6 +8,7 @@ let win = null;
 
 var openGoalGk = null;
 var openGoalTracker = null;
+var openGoalWatcher = null;
 
 
 class OpenGoal {
@@ -20,8 +21,10 @@ class OpenGoal {
     // --- GOAL COMUNICATION ---
     async runGameSetup() {
         
+        let ogPath = await getOpenGoalPath();
+        
         sendClientMessage("(1/3) Starting OpenGOAL!");
-        if (openGoalGk != null) {
+        if (openGoalGk) {
             openGoalGk.end();
             openGoalGk.destroy();
         }
@@ -30,14 +33,14 @@ class OpenGoal {
 
         this.killOG();
         await sleep(1000);
-        this.startOG();
+        this.startOG(ogPath);
         await sleep(2000);
         
         openGoalGk.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
         openGoalGk.on('connect', () => {
             this.setupOG();
         });
-
+        
     }
 
 
@@ -50,11 +53,11 @@ class OpenGoal {
         catch (e) { sendClientMessage(e.message); }
     }
 
-    startOG() {
+    startOG(ogPath) {
         try {
             var shell = new winax.Object('Shell.Application');
-            shell.ShellExecute("C:\\Projects\\opengoal-mod-base\\gk.exe", "-boot -fakeiso -debug", "", "open", 1);
-            shell.ShellExecute("C:\\Projects\\opengoal-mod-base\\goalc.exe", "", "", "open", 1);
+            shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 1);
+            shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open", 1);
         }
         catch (e) { sendClientMessage(e.message); }
     }
@@ -77,14 +80,20 @@ class OpenGoal {
         console.log("writing ", args);
         openGoalGk.write(bb);
     }
-
-
 }
 
 function sleep(ms) {
     return new Promise(
         resolve => setTimeout(resolve, ms)
     );
+}
+
+function getOpenGoalPath() {
+    return new Promise(function(resolve) {
+        fs.readFile("./settings.json", 'utf8', function(err, data) {
+            resolve(JSON.parse(data).ogFolderpath);
+        });
+    });
 }
 
 // --- FRONTEND COM ---

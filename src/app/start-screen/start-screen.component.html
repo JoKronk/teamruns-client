@@ -8,13 +8,13 @@
     <div class="login-container">
         <div class="input-container">
             <p>Username</p>
-            <input [(ngModel)]="_user.player.displayName">
+            <input [(ngModel)]="_user.player.displayName" (keyup.enter)="sendToLobby()">
         </div>
         <div class="input-container">
             <p>Twitch Username (optional)</p>
-            <input [(ngModel)]="_user.player.twitchName">
+            <input [(ngModel)]="_user.player.twitchName" (keyup.enter)="sendToLobby()">
         </div>
-        <button (click)="_user._goal.startGame()">Launch Game</button>
+        <button (click)="startGame()">Launch Game</button>
         <button (click)="sendToLobby()">Find Run</button>
     </div>
 </div>

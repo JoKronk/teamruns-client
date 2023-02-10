@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
    
-const validIpcChannelsIn = ["og-start-game", "og-start-run", "og-command", "window-close", "settings-read", "settings-write"];
-const validIpcChannelsOut = ["og-task-update", "og-state-update", "backend-message", "backend-error", "settings-read"];
+const validIpcChannelsIn = ["og-start-game", "og-start-run", "og-command", "window-close", "settings-read", "settings-write", "settings-select-path"];
+const validIpcChannelsOut = ["og-task-update", "og-state-update", "backend-message", "backend-error", "settings-get", "settings-get-path"];
 
 
 contextBridge.exposeInMainWorld("electron", {

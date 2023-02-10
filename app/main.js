@@ -1,6 +1,7 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const url = require('url');
+const fs = require('fs');
 const { OpenGoal } = require('./opengoal');
 	
 let win = null;
@@ -65,6 +66,18 @@ function createWindow() {
   ipcMain.on('og-command', (event, command) => {
     openGoal.writeGoalCommand(command);
   });
+
+  ipcMain.on('settings-write', (event, settings) => {
+    writeSettings(settings);
+  });
+    
+  ipcMain.on('settings-read', () => {
+    readSettings();
+  });
+    
+  ipcMain.on('settings-select-path', () => {
+    selectFolderPath();
+  });
     
   ipcMain.on('window-close', () => {
     win = null;
@@ -96,11 +109,27 @@ app.on('activate', () => {
 })
 
 
-// --- FRONTEND COMMUNICATION ---
-function sendClientSettings(settings) {
-  win.webContents.send("setting-get", settings);
+// --- SETTINGS ---
+function writeSettings(settings) {
+  fs.writeFile('./settings.json', JSON.stringify(settings), (err) => {
+    if (err) sendClientMessage("Failed to update user data!");
+  });
 }
 
+function readSettings() {
+  fs.readFile("./settings.json", 'utf8', function (err, data) {
+    err ? console.log(err) : win.webContents.send("settings-get", JSON.parse(data));
+  });
+}
+
+function selectFolderPath() {
+  dialog.showOpenDialog({title: 'Select a folder', properties: ['openDirectory']}).then(result => {
+    if (result.filePaths[0] !== undefined)
+      win.webContents.send("settings-get-path", result.filePaths[0]);
+  });
+}
+
+// --- FRONTEND COMMUNICATION ---
 function sendClientMessage(msg) {
   win.webContents.send("backend-message", msg);
 }

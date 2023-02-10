@@ -1,5 +1,8 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
+import { PlayerData } from '../common/player/player-data';
+import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { GoalService } from '../services/goal.service';
 import { UserService } from '../services/user.service';
 
@@ -13,7 +16,7 @@ export class StartScreenComponent {
   @ViewChild('video') video: ElementRef;
   @ViewChild('blackscreen') blackscreen: ElementRef;
   
-  infoTexts: String[] = [
+  infoTexts: string[] = [
     "Thanks Barg",
     "Thanks Mortis",
     "Thanks Kuitar",
@@ -22,17 +25,27 @@ export class StartScreenComponent {
     "speed run",
     "OpenGOAL"
   ];
-  infoText = this.infoTexts[Math.floor(Math.random() * this.infoTexts.length)];
+  infoText: string = this.infoTexts[Math.floor(Math.random() * this.infoTexts.length)];
 
-  constructor(public _user: UserService, private router: Router) {
+  initUserData: PlayerData;
+
+  constructor(public _user: UserService, private router: Router, private dialog: MatDialog) {
     this.checkVideoLoad();
   }
 
   sendToLobby() {
+    this._user.checkWritePlayerDataHasChanged();
     this.blackscreen.nativeElement.classList.remove('blackscreen-fade');
     setTimeout(() => {
       this.router.navigate(['/lobby']);
     }, 300);
+  }
+
+  startGame() {
+    if (!this._user.player.ogFolderpath)
+      this.dialog.open(SetPathComponent);
+    else
+    this._user._goal.startGame();
   }
 
   checkVideoLoad() {

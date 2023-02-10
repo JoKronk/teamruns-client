@@ -8,11 +8,13 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
+import {MatDialogModule} from '@angular/material/dialog';
 
 import { NavBoardComponent } from './nav-board/nav-board.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
 import { LobbyComponent } from './lobby/lobby.component';
 import { SnackbarComponent } from './snackbar/snackbar.component';
+import { SetPathComponent } from './dialogs/set-path/set-path.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +22,8 @@ import { SnackbarComponent } from './snackbar/snackbar.component';
     NavBoardComponent,
     StartScreenComponent,
     LobbyComponent,
-    SnackbarComponent
+    SnackbarComponent,
+    SetPathComponent
   ],
   imports: [
     BrowserModule,
@@ -28,7 +31,8 @@ import { SnackbarComponent } from './snackbar/snackbar.component';
     AppRoutingModule,
     BrowserAnimationsModule,
     MatSidenavModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatDialogModule
   ],
   providers: [],
   bootstrap: [AppComponent]

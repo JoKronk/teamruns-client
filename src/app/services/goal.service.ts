@@ -9,10 +9,6 @@ export class GoalService {
     
   }
 
-  closeAll(): void {
-    (window as any).electron.send('window-close');
-  }
-
   startGame(): void {
     (window as any).electron.send('og-start-game');
   }
