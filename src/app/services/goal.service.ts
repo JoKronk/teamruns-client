@@ -18,7 +18,7 @@ export class GoalService {
   }
 
   runCommand(command: string): void {
-    (window as any).electron.send('og-start-game', command);
+    (window as any).electron.send('og-command', command);
   }
   
 }
