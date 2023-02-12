@@ -1,0 +1,48 @@
+.container {
+}
+#title {
+    margin: 8px 8px 30px;
+    color: #380000;
+    font-family: 'precursor';
+    font-size: 32px;
+}
+
+.list {
+    &-container {
+        margin-left: 10px;
+        margin-top: 40px;
+    }
+    &-item {
+        font-family: 'Segoe UI';
+        font-size: 18px;
+        font-weight: bold;
+        border-left: 2px solid #380000;
+        padding: 10px 4px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+        &:hover {
+            color: #d49012;
+        }
+        & p {
+            margin: 0;
+        }
+    }
+}
+
+.backtext {
+    font-family: 'precursor';
+    transform: rotate(90deg);
+    font-size: 80px;
+    margin-left: 10px;
+    opacity: 0.55;
+}
+
+#name {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    font-family: 'jak';
+    font-size: 30px;
+    margin: 0;
+}

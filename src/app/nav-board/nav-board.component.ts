@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { SetPathComponent } from '../dialogs/set-path/set-path.component';
+import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-nav-board',
@@ -7,4 +10,11 @@ import { Component } from '@angular/core';
 })
 export class NavBoardComponent {
 
+  constructor(public _user: UserService, private dialog: MatDialog) {
+
+  }
+
+  openPathConfig() {
+    this.dialog.open(SetPathComponent);
+  }
 }

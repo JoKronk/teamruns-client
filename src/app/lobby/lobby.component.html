@@ -9,10 +9,10 @@
           <div class="header">
             <div class="info">
               <p id="version" class="text-in-background" [title]="buildVersion">{{ buildVersion }}</p>
+              <p class="settings" (click)="_user.viewSettings = !_user.viewSettings">Settings</p>
             </div>
             <div class="options-container">
               <div class="options">
-                <button (click)="_user.viewSettings = !_user.viewSettings">Settings</button>
                 <button (click)="startGame()">Launch</button>
                 <button (click)="createLobby()">New Run</button>
               </div>

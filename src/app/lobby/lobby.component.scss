@@ -20,7 +20,7 @@
     & .info {
         display: inline-block;
         display: flex;
-        flex: 4;
+        flex: 5;
         height: 100%;
         & #version {
             font-family: 'precursor';
@@ -30,6 +30,18 @@
             margin: 0;
             margin-left: -8px;
         }
+        & .settings {
+            font-family: 'Segoe UI';
+            font-size: 16px;
+            margin-top: 40px;
+            text-decoration: underline;
+            color: #a56d06;
+            transition: 0.12s;
+            &:hover {
+                cursor: pointer;
+                color: #380000;
+            }
+        }
     }
     & .options {
         position: absolute;
@@ -38,7 +50,7 @@
         &-container {
             position: relative;
             display: flex;
-            flex: 9;
+            flex: 8;
             height: 100%;
         }
         & button {
