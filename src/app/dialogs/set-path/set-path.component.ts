@@ -16,8 +16,8 @@ export class SetPathComponent {
   }
 
   setPath() {
-    this._user.player.ogFolderpath = this.path;
-    this._user.checkWritePlayerDataHasChanged();
+    this._user.user.ogFolderpath = this.path;
+    this._user.checkWriteUserDataHasChanged();
     this.dialogRef.close();
   }
 

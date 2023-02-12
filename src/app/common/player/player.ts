@@ -1,13 +1,15 @@
-import { PlayerData } from "./player-data";
 import { State } from "./state";
-import { Task } from "./task";
+import { Task } from "../run/task";
 
-export class Player extends PlayerData {
+export class Player {
+    name: string;
     state: State;
-    tasks: Task[];
+    ready: boolean;
 
-    constructor() {
-        super();
+    constructor(name: string) {
+        this.name = name;
+        this.ready = false;
+        this.state = new State();
     }
 
 

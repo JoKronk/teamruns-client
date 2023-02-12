@@ -1,1 +1,32 @@
-<p>lobby works!</p>
+<div>
+    <mat-sidenav-container fullscreen>
+      <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="players">
+        <app-online-players></app-online-players>
+      </mat-sidenav>
+  
+      <mat-sidenav-content class="lobby-container">
+        <div class="lobby">
+          <div class="header">
+            <div class="info">
+              <p id="version" class="text-in-background" title="0.4.1">0.4.1</p>
+            </div>
+            <div class="options-container">
+              <div class="options">
+                <button (click)="_user.viewSettings = !_user.viewSettings">Settings</button>
+                <button (click)="startGame()">Launch</button>
+                <button (click)="createLobby()">New Run</button>
+              </div>
+            </div>
+            <div class="logo-container">
+              <div class="logo">
+                <img src="./assets/teamrun-logo.png" alt="image">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="backtext"><h1>Lobby</h1></div>
+        <p id="name" class="text-in-background" [title]="_user.getName()">{{ _user.getName() }}</p>
+      </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

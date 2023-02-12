@@ -1,13 +1,11 @@
-<div class="containter">
-    <mat-sidenav-container fullscreen>
-      <mat-sidenav mode="over" class="sidenav" [opened]="_user.viewSettings">
-          <app-nav-board></app-nav-board>
-      </mat-sidenav>
-  
-      <mat-sidenav-content>
-        <div id="draggable-header"></div>
-          <router-outlet></router-outlet>
-      </mat-sidenav-content>
-  </mat-sidenav-container>
-</div>
-  
+
+<mat-sidenav-container fullscreen>
+  <mat-sidenav mode="over" [opened]="_user.viewSettings" (closedStart)="_user.viewSettings = false">
+      <app-nav-board></app-nav-board>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <div id="draggable-header"></div>
+      <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

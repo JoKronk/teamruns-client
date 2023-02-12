@@ -1,7 +1,7 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { PlayerData } from '../common/player/player-data';
+import { User } from '../common/player/user';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { GoalService } from '../services/goal.service';
 import { UserService } from '../services/user.service';
@@ -27,14 +27,14 @@ export class StartScreenComponent {
   ];
   infoText: string = this.infoTexts[Math.floor(Math.random() * this.infoTexts.length)];
 
-  initUserData: PlayerData;
+  initUserData: User;
 
   constructor(public _user: UserService, private router: Router, private dialog: MatDialog) {
     this.checkVideoLoad();
   }
 
   sendToLobby() {
-    this._user.checkWritePlayerDataHasChanged();
+    this._user.checkWriteUserDataHasChanged();
     this.blackscreen.nativeElement.classList.remove('blackscreen-fade');
     setTimeout(() => {
       this.router.navigate(['/lobby']);
@@ -42,7 +42,7 @@ export class StartScreenComponent {
   }
 
   startGame() {
-    if (!this._user.player.ogFolderpath)
+    if (!this._user.user.ogFolderpath)
       this.dialog.open(SetPathComponent);
     else
     this._user._goal.startGame();
