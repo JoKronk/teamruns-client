@@ -27,6 +27,7 @@ export class CreateRunComponent {
   createRun() {
     let player = new Player(this._user.getName());
     let run = new Run(this.runName, this.numberOfTeams, this.runnersPerTeam, player);
+    this._user.setLocalRunStorage(run);
     this.router.navigate(['/run']);
     this.dialogRef.close();
   }

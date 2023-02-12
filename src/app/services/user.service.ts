@@ -3,6 +3,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { SnackbarComponent } from '../snackbar/snackbar.component';
 import { GoalService } from './goal.service';
 import { User } from '../common/player/user';
+import { Run } from '../common/run/run';
 
 @Injectable({
   providedIn: 'root'
@@ -11,16 +12,28 @@ export class UserService {
 
   user: User = new User();
   private UserCopy: User = new User();
+  private localRunStorage: Run | null;
   
   viewSettings: boolean = false;
+  trackerConnected: boolean = false;
 
   constructor(public _goal: GoalService, private _snackbar: MatSnackBar, private zone: NgZone) { 
     this.setupReceiver();
     this.readSettings();
+    this.checkTrackerConnection();
   }
 
   public getName() {
     return this.user.displayName;
+  }
+
+  public setLocalRunStorage(run: Run) {
+    this.localRunStorage = run;
+  }
+  public getLocalRunStorage() {
+    let run = this.localRunStorage;
+    this.localRunStorage = null;
+    return run;
   }
 
   public checkWriteUserDataHasChanged() {
@@ -47,6 +60,10 @@ export class UserService {
   }
 
   private setupReceiver(): void {
+    //tracker update
+    (window as any).electron.receive("og-tracker-connected", (connected: true) => {
+      this.trackerConnected = connected;
+    });
     
     //settings get
     (window as any).electron.receive("settings-get", (data: User) => {
@@ -70,6 +87,11 @@ export class UserService {
   //does nothing atm, should probably be moved
   closeAll(): void {
     (window as any).electron.send('window-close');
+  }
+
+  //settings read
+  checkTrackerConnection(): void {
+    (window as any).electron.send('og-tracker-connected-read');
   }
 
   //settings write

@@ -1,0 +1,100 @@
+<mat-sidenav-container fullscreen>
+  <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="sidenav">
+
+    <!-- TIMER -->
+    <div class="timer" *ngIf="run">
+      <p class="timer-title text-in-background" title="Timer">Timer</p>
+      <time class="timer-clock text-in-background">
+        {{ run.timer.time }}<span class="timer-ms">{{ run.timer.timeMs }}</span>
+      </time>
+    </div>
+
+    <app-online-players></app-online-players>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="run">
+    <!-- HEADER -->
+    <div class="run-header">
+      <div class="info">
+        <p id="version" class="text-in-background" [title]="buildVersion">{{ buildVersion }}</p>
+        <p class="settings" (click)="_user.viewSettings = !_user.viewSettings">Settings</p>
+        <p class="settings back" [routerLink]='["/lobby"]'>Back</p>
+      </div>
+      <div class="title">
+        <div>
+          <p class="text-in-background" [title]="run?.name">{{ run?.name }}</p>
+        </div>
+      </div>
+      <div class="logo-container">
+        <div class="logo">
+          <img src="./assets/teamrun-logo.png" alt="image">
+        </div>
+      </div>
+    </div>
+
+    <div class="run-body" *ngIf="run">
+      <!-- TEAMS -->
+      <div class="run-info">
+        <div class="run-info-teams">
+          <div *ngFor="let team of run.teams" class="team-cont">
+            <p class="team-name">{{ team.name }}</p>
+            <button *ngIf="!team.isPlayersCurrentTeam && !ready"
+              (click)="run.switchTeam(_user.getName(), team.name, _user.getName())">Join</button>
+            <div *ngFor="let player of team.players">
+              <p [class.team-player-ready]="player.ready && !run.timer.runHasStarted" [class.team-player-reset]="player.wantsToReset">
+                <span *ngIf="!_user.trackerConnected">X</span>
+                <span *ngIf="player.state?.currentLevel">{{ player.state.currentLevel }}</span>
+                <span *ngIf="player.state?.onZoomer">Zoom</span>
+                <span>{{ player.name }}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- READY -->
+        <div class="run-info-details">
+          <button [class.run-info-details-ready]="ready"
+            [disabled]="run.timer.timerHasStarted || !_user.trackerConnected"
+            [class.run-info-details-started]="run.timer.timerHasStarted" 
+            (click)="toggleReady()">Ready</button>
+
+            <button class="run-info-details-reset" 
+            [disabled]="!run.timer.runHasStarted"
+            [class.run-info-details-reset-ready]="wantsToReset"
+            (click)="toggleReset()">Vote Reset</button>
+
+          <div class="run-info-details-owner">
+            <p>Owner:<span>{{ run.owner }}</span></p>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- RUN STATS -->
+      <div class="prog">
+        <div *ngFor="let team of run.teams; let i = index" class="prog-team" [class.prog-team-splitter]="i !== 0">
+          <div class="prog-team-header">
+            <h2>{{ team.name }}</h2>
+            <div class="prog-team-cells">
+              <img src="./assets/icons/cell_counter.png">
+              <span>{{ team.tasks.length }}</span>
+            </div>
+          </div>
+          <div class="prog-tasks-container" [id]="'team-' + i">
+            <div *ngFor="let task of team.tasks" class="prog-tasks">
+              <img [src]="'./assets/icons/' + task.gameTask + '.png'">
+              <span class="prog-tasks-player"> {{ task.obtainedBy }}</span>
+              <span class="prog-tasks-time"> {{ task.obtainedAt }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="!run" id="error">
+      <h1 class="text-in-background">Run not found!</h1>
+    </div>
+
+    <div class="backtext">
+      <h1>theurn</h1>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

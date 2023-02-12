@@ -1,0 +1,321 @@
+.sidenav {
+    background-color: rgb(0, 0, 0, 0);
+    width: 300px;
+}
+
+.run {
+    padding: 0px 20px 30px;
+    height: 760px;
+    overflow: hidden;
+    &-header {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+        height: 80px;
+        top: 40px;
+        right: 80px;
+        & .info {
+            display: inline-block;
+            display: flex;
+            flex: 1;
+            height: 100%;
+            & #version {
+                font-family: 'precursor';
+                font-size: 30px;
+                width: 4px;
+                display: block;
+                margin: 0;
+                margin-left: -8px;
+            }
+            & .settings {
+                font-family: 'Segoe UI';
+                font-size: 16px;
+                margin-top: 40px;
+                text-decoration: underline;
+                color: #a56d06;
+                transition: 0.12s;
+                &:hover {
+                    cursor: pointer;
+                    color: #380000;
+                }
+            }
+            & .back {
+                margin-left: 6px;
+            }
+        }
+        & .logo {
+            margin-left: auto;
+            &-container {
+                display: flex;
+                flex: 1;
+                height: 100%;
+            }
+            & img {
+                user-drag: none;
+                -webkit-user-drag: none;
+                user-select: none;
+                -webkit-user-select: none;
+                max-width:100%;
+                max-height:100%;
+                border-bottom: 1px solid #6c4700;
+            }
+        }
+        & .title {
+            flex: 3;
+            & div {
+                margin: auto;
+                display: inline-block;
+                overflow: hidden;
+                max-width: 450px;
+            }
+            & p {
+                -webkit-user-select: none;
+                margin: 0;
+                font-family: 'precursor';
+                font-weight: bold;
+                font-size: 42px;
+            }
+        }
+    }
+    &-body {
+        height: 705px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    &-info {
+        flex: 2;
+        display: flex;
+        border-bottom: 3px solid #494949;
+        &-teams {
+            flex: 7;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        &-details {
+            flex: 2;
+            border-left: 3px solid #494949;
+            margin-bottom: 20px;
+            margin-left: 10px;
+            & button {
+                float: right;
+                font-family: 'jak';
+                font-size: 32px;
+                color: #636363;
+                margin: 12px 0px 2px;
+                height: 66px;
+                width: 120px;
+                background-color: #3e3e3e;
+                border: 2px solid #636363;
+                border-radius: 12px;
+                outline: none;
+                transition: 0.2s;
+                &:hover:enabled {
+                    color: rgba(204, 204, 204, 0.9);
+                    background-color: rgba(85, 85, 85, 0.8);
+                    cursor: pointer;
+                }
+            }
+            &-ready:enabled {
+                background-color: rgb(212, 144, 18, 0.7) !important;
+                color: #3e3e3e !important;
+            }
+            &-reset {
+                font-size: 24px !important;
+                font-weight: bold;
+                height: 62px !important;
+                &:hover:enabled {
+                    background-color: rgb(56, 0, 0, 0.9) !important;
+                    color: rgba(204, 204, 204, 0.8) !important;
+                    cursor: pointer;
+                }
+                &-ready {
+                    background-color: rgb(56, 0, 0, 0.7) !important;
+                    color: rgba(204, 204, 204, 0.8) !important;
+                }
+            }
+            &-owner {
+                float: right;
+                width: 130px;
+                overflow: hidden;
+                position: relative;
+                & p {
+                    margin-top: 12px;
+                    color: #cccccccc;
+                    text-decoration: underline;
+                }
+                & span {
+                    position: absolute;
+                    bottom: 0;
+                    left: 25px;
+                    padding-top: 122px;
+                }
+            }
+        }
+    }
+}
+
+.team {
+    &-cont {
+        position: relative;
+        flex-basis: 48%;
+        margin-bottom: 10px;
+        padding-left: 5px;
+        border-left: 2px solid rgba(29, 29, 29, 0.2);
+        & p {
+            margin: 0;
+            color: #cccccccc;
+        }
+        & button {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+        }
+    }
+    &-name {
+        text-decoration: underline;
+    }
+    &-player {
+        &-ready {
+        color: rgb(212, 144, 18, 0.7) !important;
+        }
+        &-reset {
+            color: #380000!important;
+        }
+    }
+}
+
+.prog {
+    display: flex;
+    margin: 5px 0px 5px;
+    &-team{
+        flex: 1;
+        height: 460px;
+        padding: 5px 10px 0px;
+        &-splitter {
+            border-left: 2px solid rgba(29, 29, 29, 0.2);
+        }
+        &-header {
+            margin: 0px 0px 10px;
+            & h2 {
+                display: inline;
+                float: left;
+                margin: 0;
+                margin-right: 14px;
+                font-family: 'jak';
+                font-weight: normal;
+                font-size: 32px;
+                color: rgb(212, 144, 18, 0.7) !important;
+            }
+        }
+        &-cells {
+            display: inline-block;
+            height: 30px;
+            & img {
+                height: inherit;
+                display: inline;
+            }
+            & span {
+                font-family: 'precursor';
+                font-size: 32px;
+                color: rgb(212, 144, 18, 0.7) !important;
+            }
+        }
+    }
+    &-tasks {
+        width: 100%;
+        display: inline-block;
+        padding: 4px 0px;
+        border-top: 2px solid rgba(29, 29, 29, 0.2);
+        &-container {
+            max-height: 420px;
+            height: auto;
+            overflow: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            &::-webkit-scrollbar {
+                display: none;
+              }
+        }
+        & img {
+            height: 40px;
+            float: left;
+            margin-right: 12px;
+        }
+        &-player {
+            font-family: 'Segoe UI';
+            display: block;
+        }
+        &-time {
+            display: block;
+            font-family: 'Segoe UI';
+            font-weight: bold;
+        }
+        & span {
+            color: #cccccccc;
+        }
+    }
+}
+
+
+.timer {
+    border: 5px solid #494949;
+    border-radius: 12px;
+    margin: 30px 10px 0px;
+    padding: 5px;
+    height: 90px;
+    &-title {
+        margin: 0;
+        -webkit-user-select: none;
+        font-family: 'jak';
+        font-size: 24px;
+    }
+    &-clock {
+        font-family: 'Segoe UI';
+        font-weight: bold;
+        font-size: 52px;
+        float: right;
+        margin-right: 10px;
+        margin-top: -15px;
+        width: auto;
+        position: relative;
+        display: block;
+        text-align: center;
+    }
+    &-ms {
+        font-size: 42px;
+    }
+}
+
+
+.backtext {
+    -webkit-user-select: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'precursor';
+    font-size: 40px;
+    z-index: -1;
+    color: rgba(61, 61, 61, 0.9);
+    text-shadow: 0px 2px 3px rgba(51, 51, 51, 0.8);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+#error h1 {
+    margin: 40px;
+    font-family: 'jak';
+    font-size: 52px;
+}
+
+#name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    font-family: 'jak';
+    font-size: 30px;
+    margin: 0;
+    margin-left: 5px;
+}

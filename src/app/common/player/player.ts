@@ -5,10 +5,12 @@ export class Player {
     name: string;
     state: State;
     ready: boolean;
+    wantsToReset: boolean;
 
     constructor(name: string) {
         this.name = name;
         this.ready = false;
+        this.wantsToReset = false;
         this.state = new State();
     }
 
