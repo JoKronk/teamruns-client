@@ -34,7 +34,6 @@ function createWindow() {
   });
 
 
-
   if (devServe) {
     const debug = require('electron-debug');
     debug();
@@ -52,19 +51,28 @@ function createWindow() {
   }
 
   openGoal = new OpenGoal(win);
+  openGoal.readGameState();
     
 // --- FRONTEND COM ---
-  ipcMain.on('og-start-game', (event, command) => {
+  ipcMain.on('og-start-game', () => {
     sendClientMessage("Got to backend!");
     openGoal.runGameSetup();
   });
 
-  ipcMain.on('og-start-run', (event, command) => {
+  ipcMain.on('og-start-run', () => {
     openGoal.writeGoalCommand("(progress-fast-save-and-start-speedrun (speedrun-category full-game))");
   });
 
   ipcMain.on('og-command', (event, command) => {
     openGoal.writeGoalCommand(command);
+  });
+
+  ipcMain.on('og-state-read', () => {
+    openGoal.sendClientStateUpdate();
+  });
+
+  ipcMain.on('og-tracker-connected-read', () => {
+    openGoal.sendClientTrackerState();
   });
 
   ipcMain.on('settings-write', (event, settings) => {

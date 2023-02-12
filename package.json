@@ -17,6 +17,9 @@
   },
   "build": {
     "appId": "teamrun-client",
+    "extraResources": [
+      "./tracker/*"
+    ],
     "linux": {
       "target": [
         "AppImage",
