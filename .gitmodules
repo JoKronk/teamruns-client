@@ -1,0 +1,6 @@
+[submodule "tracker/jak-tracker"]
+	path = tracker/jak-tracker
+	url = https://github.com/JoKronk/jak-tracker.git
+[submodule "jak-tracker"]
+	path = jak-tracker
+	url = https://github.com/JoKronk/jak-tracker.git
