@@ -3,6 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { CreateRunComponent } from '../dialogs/create-run/create-run.component';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { UserService } from '../services/user.service';
+import pkg from 'app/package.json';
 
 @Component({
   selector: 'app-lobby',
@@ -11,6 +12,7 @@ import { UserService } from '../services/user.service';
 })
 export class LobbyComponent {
 
+  buildVersion: string = pkg.version;
   showPlayers: boolean = true;
 
   constructor(public _user: UserService, private dialog: MatDialog) {
