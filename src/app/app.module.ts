@@ -18,6 +18,9 @@ import { OnlinePlayersComponent } from './online-players/online-players.componen
 import { CreateRunComponent } from './dialogs/create-run/create-run.component';
 import { SetPathComponent } from './dialogs/set-path/set-path.component';
 import { RunComponent } from './run/run.component';
+import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
+import { AngularFireModule } from '@angular/fire/compat';
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -38,7 +41,9 @@ import { RunComponent } from './run/run.component';
     BrowserAnimationsModule,
     MatSidenavModule,
     MatSnackBarModule,
-    MatDialogModule
+    MatDialogModule,
+    AngularFireModule.initializeApp(environment.firebase),
+    AngularFirestoreModule
   ],
   providers: [],
   bootstrap: [AppComponent]
