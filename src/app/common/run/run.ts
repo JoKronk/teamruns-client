@@ -139,8 +139,10 @@ export class Run {
         if (this.timer.runState === RunState.Waiting)
             this.data = run.data;
         //handle timer
-        if (this.timer.runState === RunState.Waiting && run.timer.runState === RunState.Countdown && run.timer.startDateMs)
+        if (this.timer.runState === RunState.Waiting && run.timer.runState === RunState.Countdown && run.timer.startDateMs) {
             this.timer.startTimer(run.timer.startDateMs);
+            localPlayer.state = PlayerState.Neutral;
+        }
 
         //handle team events
         this.teams.forEach(team => {

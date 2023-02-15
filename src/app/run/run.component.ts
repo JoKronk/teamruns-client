@@ -78,7 +78,7 @@ export class RunComponent implements OnDestroy {
   }
 
   toggleReady() {
-    this.localPlayer.state = this.localPlayer.state === PlayerState.Neutral ? PlayerState.Ready : PlayerState.Neutral;
+    this.localPlayer.state = this.localPlayer.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
     this.run!.toggleReady(this._user.getName(), this.localPlayer.state);
     
     //check if everyone is ready, send start call if so
@@ -91,7 +91,9 @@ export class RunComponent implements OnDestroy {
   }
 
   toggleReset() {
-    this.localPlayer.state = this.localPlayer.state === PlayerState.Neutral ? PlayerState.WantsToReset : PlayerState.Neutral;
+    console.log("prevopis state! ", this.localPlayer.state);
+    this.localPlayer.state = this.localPlayer.state === PlayerState.WantsToReset ? PlayerState.Neutral : PlayerState.WantsToReset;
+    console.log("state! ", this.localPlayer.state);
     if (this.run!.toggleVoteReset(this._user.getName(), this.localPlayer.state)) {
       this._user._goal.runCommand("(send-event *target* 'loading)");
       this.localPlayer.state = PlayerState.Neutral;
