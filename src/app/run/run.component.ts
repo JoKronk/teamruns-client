@@ -6,8 +6,10 @@ import { Task } from '../common/run/task';
 import { UserService } from '../services/user.service';
 import pkg from 'app/package.json';
 import { FireStoreService } from '../services/fire-store.service';
+import { Subscription } from 'rxjs';
 import { LocalPlayerData } from '../common/user/local-player-data';
 import { RunMode } from '../common/run/run-mode';
+import { Timer } from '../common/run/timer';
 import { PlayerState } from '../common/player/player-state';
 import { RunState } from '../common/run/run-state';
 
@@ -24,6 +26,8 @@ export class RunComponent implements OnDestroy {
   playerState = PlayerState;
   runState = RunState;
 
+  runSubscription: Subscription;
+
   constructor(public _user: UserService, private _firestore: FireStoreService, private route: ActivatedRoute, private zone: NgZone) {
     this.setupListeners();
 
@@ -33,7 +37,23 @@ export class RunComponent implements OnDestroy {
       let runId = params.get('id');
       //handle online run
       if (runId) {
-        console.log("run ID", runId)
+        //handle run updates
+        this.runSubscription = _firestore.getRun(runId).subscribe((runDoc) => {
+          //skip local change call
+          if (runDoc.payload.metadata.hasPendingWrites)
+            return;
+          let run = runDoc.payload.data();
+          if (run) {
+            if (!this.run) {
+              this.run = Object.assign(new Run(run.data, run.teams.length), run);
+              this.run.timer = Object.assign(new Timer(run.timer.countdownSeconds), run.timer);
+              this.onRunFound();
+            }
+            else
+              this.run.importChanges(this.localPlayer, run, _user._goal);
+          }
+          return;
+        });
       }
       
       //handle local run
@@ -53,6 +73,10 @@ export class RunComponent implements OnDestroy {
     this.getInitPlayerState();
   }
 
+  sendRunUpdate() {
+    this._firestore.updateRun(this.run);
+  }
+
   toggleReady() {
     this.localPlayer.state = this.localPlayer.state === PlayerState.Neutral ? PlayerState.Ready : PlayerState.Neutral;
     this.run!.toggleReady(this._user.getName(), this.localPlayer.state);
@@ -62,6 +86,8 @@ export class RunComponent implements OnDestroy {
       this._firestore.deleteLobby(this.run!.id);
       this.run!.start(new Date());
     }
+    
+    this.sendRunUpdate();
   }
 
   toggleReset() {
@@ -70,11 +96,13 @@ export class RunComponent implements OnDestroy {
       this._user._goal.runCommand("(send-event *target* 'loading)");
       this.localPlayer.state = PlayerState.Neutral;
     }
+    this.sendRunUpdate();
   }
 
   switchTeam(teamName: string) {
     if (this.run?.switchTeam(this._user.getName(), teamName)) {
       this.localPlayer.team = teamName;
+      this.sendRunUpdate();
     }
 
   }
@@ -86,6 +114,7 @@ export class RunComponent implements OnDestroy {
         if (this.run && state && this.localPlayer.gameState.hasChanged(state)) {
           this.localPlayer.gameState = Object.assign(new GameState(), state);
           this.run.updateState(this._user.getName(), state);
+          this.sendRunUpdate();
         }
       });
     });
@@ -95,7 +124,7 @@ export class RunComponent implements OnDestroy {
       this.zone.run(() => {
         if (!this.run)
         return;
-        
+
         if (this.shouldAddTask(task)) {  
           if (task === "int-finalboss-movies") {
             this.localPlayer.state = PlayerState.Finished;
@@ -104,6 +133,7 @@ export class RunComponent implements OnDestroy {
 
           var cell = new Task(task, this._user.getName(), this.run.getTimerShortenedFormat());
           this.run.addSplit(cell);
+          this.sendRunUpdate();
         }
       });
     });
@@ -119,20 +149,25 @@ export class RunComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.runSubscription)
+      this.runSubscription.unsubscribe();
     
     this.run?.removePlayer(this.localPlayer.name);
+    this.sendRunUpdate();
   }
   
   @HostListener('window:unload', [ '$event' ])
   unloadHandler(event: any) {
     //event.returnValue = false; !TODO: Add once custom close button is added!
     this.run?.removePlayer(this.localPlayer.name);
+    this.sendRunUpdate();
   }
 
   @HostListener('window:beforeunload', [ '$event' ])
   beforeUnloadHandler(event: any) {
     //event.returnValue = false; !TODO: Add once custom close button is added!
     this.run?.removePlayer(this.localPlayer.name);
+    this.sendRunUpdate();
   }
 
 }

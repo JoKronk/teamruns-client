@@ -127,4 +127,92 @@ export class Run {
     getPlayer(playerName: string): Player | undefined {
         return this.getPlayerTeam(playerName)?.players.find(x => x.name === playerName);
     }
+
+
+    // A bit of a chaotic import check,
+    // this isn't split up into smaller functions as the client originally (and hopefully in the future) was 
+    // planned to use websockets or webRTC which the functions in run.ts are more pre built for.
+    importChanges(localPlayer: LocalPlayerData, run: Run, goal: GoalService) {
+        if (this.id !== run.id)
+            return;
+        //handle run metedata
+        if (this.timer.runState === RunState.Waiting)
+            this.data = run.data;
+        //handle timer
+        if (this.timer.runState === RunState.Waiting && run.timer.runState === RunState.Countdown && run.timer.startDateMs)
+            this.timer.startTimer(run.timer.startDateMs);
+
+        //handle team events
+        this.teams.forEach(team => {
+            let importTeam = run.teams.find(x => x.name === team.name);
+            if (importTeam) {
+                //checks to do before run start
+                if (this.timer.runState === RunState.Waiting) {
+                    team.owner = importTeam.owner;
+                    team.players = importTeam.players;
+                }
+                //checks to do after run start
+                else {
+                    //get new player states
+                    team.players.forEach(player => {
+                        let importPlayer = importTeam!.players.find(x => x.name === player.name);
+                        if (importPlayer) {
+                            player.state = importPlayer.state;
+                            player.gameState = importPlayer.gameState;
+                        }
+                    });
+
+                    //localPlayer player class, use to check if this is curernt players TEAM
+                    let localPlayerImportPlayer = team.players.find(x => x.name === localPlayer.name);
+                    //check for new tasks to give player
+                    if (localPlayerImportPlayer || this.data.mode === RunMode.CtC) {
+                        importTeam.tasks.filter(x => !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
+                            if (task.gameTask !== "int-finalboss-movies") {
+                                if (localPlayerImportPlayer?.gameState.currentLevel.includes(task.gameTask.substring(0, task.gameTask.indexOf("-")))) {
+                                    let fuelCell = Task.getEnameMap().get(task.gameTask);
+                                    if (fuelCell) {
+                                        console.log("SEND CLIENT HIDE CELL!");
+                                        goal.runCommand('(+! (-> (the fuel-cell (process-by-ename "' + fuelCell + '")) base y) (meters -200.0))');
+                                    }
+                                }
+                                console.log("SEND CLIENT CELL PICKUP!");
+                                goal.runCommand("(dm-give-cell (game-task " + task.gameTask + "))");
+                            }
+                        });
+                    }
+
+                    //transfer tasks
+                    team.tasks = importTeam.tasks;
+
+                    if (localPlayerImportPlayer) {
+                        let levelToCheck = team.players[0]?.gameState.currentLevel;
+                        let player = team.players.find
+                        //if all on same level hub zoomer
+                        if (!this.data.allowSoloHubZoomers) {
+                            if (!localPlayer.restrictedZoomerLevels.includes(localPlayerImportPlayer.gameState.currentLevel) || team.players.every(x => x.gameState.onZoomer && x.gameState.currentLevel === levelToCheck)) {
+                                console.log("ALLOW ZOOMER USE!");
+                                goal.runCommand("(set-zoomer-full-mode)");
+                                localPlayer.restrictedZoomerLevels = localPlayer.restrictedZoomerLevels.filter(x => x !== localPlayerImportPlayer!.gameState.currentLevel);
+                            }
+                            else {
+                                console.log("DISALLOW ZOOMER USE!");
+                                goal.runCommand("(set-zoomer-wait-mode)");
+                            }
+                        }
+                        if (this.data.requireSameLevel) {
+                            if (team.players.every(x => x.gameState.currentLevel === levelToCheck)) {
+                                console.log("ALLOW CELL PICKUP!");
+                                goal.runCommand("(set! *allow-cell-pickup?* #t)");
+                            }
+                            else {
+                                console.log("DISALLOW CELL PICKUP!");
+                                goal.runCommand("(set! *allow-cell-pickup?* #f)");
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+    }
 }
