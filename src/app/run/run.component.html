@@ -45,7 +45,7 @@
                 <img *ngIf="player.name == localPlayer.name && !_user.trackerConnected" class="run-info-teams-disconnected" [src]="'./assets/other/disconnected.png'">
                 <img *ngIf="player.gameState?.onZoomer && _user.trackerConnected" class="run-info-teams-zoomer" [src]="'./assets/other/zoomer.png'">
                 <img *ngIf="player.gameState?.currentLevel && _user.trackerConnected" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">
-                <span *ngIf="player.gameState?.currentLevel">{{ player.gameState?.currentLevel  }}</span>
+                <span>{{ player.name }}</span>
               </p>
             </div>
           </div>
