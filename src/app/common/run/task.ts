@@ -1,6 +1,5 @@
 export class Task {
     gameTask: string;
-    ename: string;
     obtainedBy: string;
     obtainedAt: string;
 
@@ -8,7 +7,35 @@ export class Task {
         this.gameTask = task;
         this.obtainedBy = obtainedBy;
         this.obtainedAt = timerTime;
-        this.ename = "";
+    }
+
+    public static getEnameMap(): Map<string, string> {
+        return new Map([
+            ["training-gimmie", "55"],
+            ["training-door", "53"],
+            ["training-climb", "54"],
+            ["beach-gimmie", "40"],
+            ["beach-sentinel", "42"],
+            ["jungle-canyon-end", "46"],
+            ["jungle-temple-door", "49"],
+            ["jungle-tower", "1"],
+            ["misty-warehouse", "11"],
+            ["misty-boat", "12"],
+            ["misty-bike-jump", "51"],
+            ["rolling-lake", "45"],
+            ["sunken-platforms", "24"],
+            ["sunken-sharks", "26"],
+            ["sunken-top-of-helix", "25"],
+            ["sunken-spinning-room", "52"],
+            ["swamp-flutflut", "15"],
+            ["ogre-secret", "62"],
+            ["snow-fort", "30"],
+            ["cave-platforms", "60"],
+            ["cave-dark-climb", "59"],
+            ["cave-spider-tunnel", "58"],
+            ["cave-robot-climb", "57"],
+            ["cave-swing-poles", "56"],
+        ]);
     }
 
     public static isCell(gameTask: string) {

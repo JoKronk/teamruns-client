@@ -2,7 +2,7 @@ import { Injectable, NgZone } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SnackbarComponent } from '../snackbar/snackbar.component';
 import { GoalService } from './goal.service';
-import { User } from '../common/player/user';
+import { User } from '../common/user/user';
 import { Run } from '../common/run/run';
 
 @Injectable({
@@ -12,7 +12,7 @@ export class UserService {
 
   user: User = new User();
   private UserCopy: User = new User();
-  private localRunStorage: Run | null;
+  private localRunStorage: Run | undefined;
   
   viewSettings: boolean = false;
   trackerConnected: boolean = false;
@@ -32,7 +32,7 @@ export class UserService {
   }
   public getLocalRunStorage() {
     let run = this.localRunStorage;
-    this.localRunStorage = null;
+    this.localRunStorage = undefined;
     return run;
   }
 
@@ -40,12 +40,7 @@ export class UserService {
     if (!this.user.isEqualToDataCopy(this.UserCopy))
       this.writeSettings();
     
-      this.UserCopy = this.user.getBaseCopy();
-  }
-
-  public updateUser(data: User) {
-    this.user.setBase(data);
-    this.writeSettings();
+    this.UserCopy = this.user.getBaseCopy();
   }
 
   public sendNotification(message: string) {
@@ -67,7 +62,7 @@ export class UserService {
     
     //settings get
     (window as any).electron.receive("settings-get", (data: User) => {
-      this.user.setBase(data);
+      this.user = Object.assign(new User(), data);
       this.UserCopy = data;
     });
     

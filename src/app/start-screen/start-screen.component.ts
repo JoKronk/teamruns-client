@@ -1,7 +1,7 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { User } from '../common/player/user';
+import { User } from '../common/user/user';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { GoalService } from '../services/goal.service';
 import { UserService } from '../services/user.service';

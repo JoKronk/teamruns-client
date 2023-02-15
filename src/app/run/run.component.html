@@ -22,7 +22,7 @@
       </div>
       <div class="title">
         <div>
-          <p class="text-in-background" [title]="run?.name">{{ run?.name }}</p>
+          <p class="text-in-background" [title]="run?.data?.name">{{ run?.data?.name }}</p>
         </div>
       </div>
       <div class="logo-container">
@@ -38,32 +38,32 @@
         <div class="run-info-teams">
           <div *ngFor="let team of run.teams" class="team-cont">
             <p class="team-name">{{ team.name }}</p>
-            <button *ngIf="!team.isPlayersCurrentTeam && !ready"
-              (click)="run.switchTeam(_user.getName(), team.name, _user.getName())">Join</button>
+            <button *ngIf="team.name !== localPlayer.team && localPlayer.state !== playerState.Ready"
+              (click)="switchTeam(team.name)">Join</button>
             <div *ngFor="let player of team.players">
-              <p [class.team-player-ready]="player.ready && !run.timer.runHasStarted" [class.team-player-reset]="player.wantsToReset">
-                <span *ngIf="!_user.trackerConnected">X</span>
-                <span *ngIf="player.state?.currentLevel">{{ player.state.currentLevel }}</span>
-                <span *ngIf="player.state?.onZoomer">Zoom</span>
-                <span>{{ player.name }}</span>
+              <p [class.team-player-ready]="player.state === playerState.Ready && (run.timer.runState === runState.Countdown || run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">
+                <img *ngIf="player.name == localPlayer.name && !_user.trackerConnected" class="run-info-teams-disconnected" [src]="'./assets/other/disconnected.png'">
+                <img *ngIf="player.gameState?.onZoomer && _user.trackerConnected" class="run-info-teams-zoomer" [src]="'./assets/other/zoomer.png'">
+                <img *ngIf="player.gameState?.currentLevel && _user.trackerConnected" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">
+                <span *ngIf="player.gameState?.currentLevel">{{ player.gameState?.currentLevel  }}</span>
               </p>
             </div>
           </div>
         </div>
         <!-- READY -->
         <div class="run-info-details">
-          <button [class.run-info-details-ready]="ready"
-            [disabled]="run.timer.timerHasStarted || !_user.trackerConnected"
-            [class.run-info-details-started]="run.timer.timerHasStarted" 
+          <button [class.run-info-details-ready]="localPlayer.state == playerState.Ready"
+            [disabled]="run.timer.runState !== runState.Waiting || !_user.trackerConnected"
+            [class.run-info-details-started]="run.timer.runState === runState.Started || run.timer.runState === runState.Countdown" 
             (click)="toggleReady()">Ready</button>
 
             <button class="run-info-details-reset" 
-            [disabled]="!run.timer.runHasStarted"
-            [class.run-info-details-reset-ready]="wantsToReset"
+            [disabled]="run.timer.runState !== runState.Started"
+            [class.run-info-details-reset-ready]="localPlayer.state === playerState.WantsToReset"
             (click)="toggleReset()">Vote Reset</button>
 
           <div class="run-info-details-owner">
-            <p>Owner:<span>{{ run.owner }}</span></p>
+            <p>Owner:<span>{{ run.data.owner }}</span></p>
           </div>
         </div>
       </div>

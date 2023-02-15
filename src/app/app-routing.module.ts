@@ -7,7 +7,6 @@ import { StartScreenComponent } from './start-screen/start-screen.component';
 const routes: Routes = [
   { path: 'lobby', component: LobbyComponent },
   { path: 'run', component: RunComponent },
-  { path: 'run/:name', component: RunComponent },
   { path: '', component: StartScreenComponent, pathMatch: 'full' }
 ];
 

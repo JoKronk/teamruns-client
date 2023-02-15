@@ -92,6 +92,22 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
+            &-zoomer {
+                float: left;
+                height: 17px;
+                margin-top: 2px;
+                margin-right: 4px;
+            }
+            &-level {
+                float: left;
+                height: 19px;
+                margin-right: 4px;
+            }
+            &-disconnected {
+                float: left;
+                height: 19px;
+                margin-right: 4px;
+            }
         }
         &-details {
             flex: 2;
@@ -308,14 +324,4 @@
     margin: 40px;
     font-family: 'jak';
     font-size: 52px;
-}
-
-#name {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    font-family: 'jak';
-    font-size: 30px;
-    margin: 0;
-    margin-left: 5px;
 }

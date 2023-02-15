@@ -11,18 +11,6 @@ export class User {
         this.darkMode = true;
     }
 
-    setBase(data: User) {
-        //!TODO: Replace with something less manual
-        this.displayName = data.displayName;
-        this.twitchName = data.twitchName;
-        this.ogFolderpath = data.ogFolderpath;
-        this.darkMode = data.darkMode;
-    }
-
-    getBase(): User {
-        return this;
-    }
-
     getBaseCopy(): User {
         return JSON.parse(JSON.stringify(this));
     }

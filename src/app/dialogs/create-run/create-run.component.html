@@ -2,7 +2,14 @@
     <h2>Create Run</h2>
     <div class="option">
         <p>Run Name</p>
-        <input [(ngModel)]="runName">
+        <input [(ngModel)]="rundata.name">
+    </div>
+    <div class="option">
+        <p>Mode</p>
+        <select [(ngModel)]="rundata.mode">
+            <option [ngValue]="runMode.Speedrun">Speedrun</option>
+            <option [ngValue]="runMode.CtC">CtC Speedrun</option>
+        </select>
     </div>
     <div class="option">
         <p>Teams (for races)</p>
@@ -12,13 +19,16 @@
     </div>
     <div class="option">
         <p>Runners Per Team</p>
-        <select [(ngModel)]="runnersPerTeam" (change)="updateRunSize()">
+        <select [(ngModel)]="rundata.teamCap" (change)="updateRunSize()">
             <option *ngFor="let runners of runnersOptions" [ngValue]="runners">{{ runners }}</option>
         </select>
     </div>
 
-    <p>Run size: {{ runSize }}</p>
-
+    <p>Run size: {{ rundata.maxSize }}</p>
+    
+    <label><input type="checkbox" [(ngModel)]="rundata.requireSameLevel">Require same level for cell pickup</label>
+    <label><input type="checkbox" [(ngModel)]="rundata.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
+    
     <button (click)="createRun()">Create Run</button>
 
 </div>

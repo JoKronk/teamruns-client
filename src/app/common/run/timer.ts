@@ -1,12 +1,12 @@
+import { RunState } from "./run-state";
+
 export class Timer {
-    startDate: Date | null;
-    startDateMs: number | null;
-    countdownSeconds: number;
     time: string;
     timeMs: string;
+    startDateMs: number | null;
+    countdownSeconds: number;
 
-    timerHasStarted: boolean;
-    runHasStarted: boolean;
+    runState: RunState;
 
     private resetEverything: boolean = false; //used to flag a reset to the update cycle
 
@@ -20,47 +20,51 @@ export class Timer {
     }
 
     private resetTimer() {
-        this.startDate = null;
         this.startDateMs = null;
-        this.runHasStarted = false;
-        this.timerHasStarted = false;
+        this.runState = RunState.Waiting;
         this.time = "-0:00:" + ("0" + this.countdownSeconds).slice(-2);
         this.timeMs = ".0";
         this.resetEverything = false;
     }
 
-    startTimer(startDate: Date) {
-        this.startDate = startDate;
-        this.startDate.setSeconds(this.startDate.getSeconds() + this.countdownSeconds);
-        this.startDateMs = startDate.getTime();
-        this.timerHasStarted = true;
-        this.runHasStarted = false;
+    startTimer(startMs: number) {
+        this.startDateMs = startMs;
+        this.runState = RunState.Countdown;
         this.updateTimer();
     }
 
 
 
-    private updateTimer() {
+    updateTimer() {
         setTimeout(() => {
+            if (this.runState === RunState.Ended)
+                return;
+
             var currentTimeMs = new Date().getTime();
 
             //start run check
-            if (!this.runHasStarted && this.startDateMs! <= currentTimeMs)
-                this.startRun();
+            if (this.runState === RunState.Countdown) {
+                //!TODO: Could find a smoother implementation for this one..
+                if (this.startDateMs! <= currentTimeMs + 1400 && this.startDateMs! >= currentTimeMs + 1300) {
+                    (window as any).electron.send('og-start-run');
+                }
+                if (this.startDateMs! <= currentTimeMs)
+                this.runState = RunState.Started;
+            }
 
 
             var difference = currentTimeMs - this.startDateMs!;
 
-                this.time = this.runHasStarted 
+                this.time = this.runState === RunState.Started 
                 ? (this.getHour(difference) + ":" + this.getMinutes(difference) + ":" + this.getSecond(difference))
                 : ("-0:00:" + this.getSecond(difference));
 
             this.timeMs = "." + this.getMs(difference);
             
-            if (!this.resetEverything)
-                this.updateTimer();
-            else
+            if (this.resetEverything)
                 this.resetTimer();
+            else
+                this.updateTimer();
         }, 100);
     }
 
@@ -76,11 +80,6 @@ export class Timer {
     }
 
     private getMs(difference: number): number {
-        return this.runHasStarted ? Math.trunc(Math.floor((difference % 1000)) / 100) : Math.trunc(Math.abs(Math.floor((difference % 1000)) / 100));
-    }
-
-    private startRun() {
-        this.runHasStarted = true;
-        (window as any).electron.send('og-start-run');
+        return this.runState === RunState.Started ? Math.trunc(Math.floor((difference % 1000)) / 100) : Math.trunc(Math.abs(Math.floor((difference % 1000)) / 100));
     }
 }
