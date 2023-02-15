@@ -45,4 +45,8 @@ Thumbs.db
 /app/teamrun-client
 /app/node_modules
 /settings.json
-/src/assets/levels
+
+# Firebase
+.firebase
+*-debug.log
+.runtimeconfig.json
