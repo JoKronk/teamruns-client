@@ -1,34 +1,48 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateRunComponent } from '../dialogs/create-run/create-run.component';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { UserService } from '../services/user.service';
 import pkg from 'app/package.json';
+import { FireStoreService } from '../services/fire-store.service';
+import { Run } from '../common/run/run';
+import { Subscription } from 'rxjs';
+import { Router } from '@angular/router';
+import { Lobby } from '../common/lobby/lobby';
 
 @Component({
   selector: 'app-lobby',
   templateUrl: './lobby.component.html',
   styleUrls: ['./lobby.component.scss']
 })
-export class LobbyComponent {
+export class LobbyComponent implements OnDestroy {
 
   buildVersion: string = pkg.version;
   showPlayers: boolean = true;
+  lobbies: Lobby[] = [];
+  lobbiesSubscription: Subscription;
 
-  constructor(public _user: UserService, private dialog: MatDialog) {
+  constructor(public _user: UserService, private _firestore: FireStoreService, private router: Router, private dialog: MatDialog) {
+    //Check if path is set
     setTimeout(() => {
       if (!_user.user.ogFolderpath)
         this.dialog.open(SetPathComponent);
-    }, 500)
+    }, 300);
+
+    this.lobbiesSubscription = this._firestore.getLobbies().subscribe((lobbies) => {
+      this.lobbies = lobbies;
+    });
   }
 
   startGame() {
     if (!this._user.user.ogFolderpath)
       this.dialog.open(SetPathComponent);
-    else {
-      console.log("has path: " + this._user.user.ogFolderpath);
+    else
       this._user._goal.startGame();
-    }
+  }
+
+  routeToRun(runId: string) {
+    this.router.navigate(['/run' ], { queryParams: { id: runId } });
   }
 
   createLobby(): void {
@@ -41,6 +55,10 @@ export class LobbyComponent {
 
   toggleSetting(): void {
     this._user.viewSettings = !this._user.viewSettings;
+  }
+
+  ngOnDestroy() {
+    this.lobbiesSubscription.unsubscribe();
   }
 
 }

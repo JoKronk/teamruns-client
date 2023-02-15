@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument } from '@angular/fire/compat/firestore';
 import { Observable } from 'rxjs';
+import { Lobby } from '../common/lobby/lobby';
 import { Run } from '../common/run/run';
 
 @Injectable({
@@ -9,17 +10,28 @@ import { Run } from '../common/run/run';
 export class FireStoreService {
 
   runs: AngularFirestoreCollection<Run>;
+  lobbies: AngularFirestoreCollection<Lobby>;
 
   constructor(private firestore: AngularFirestore) { 
     this.runs = firestore.collection<Run>('runs');
+    this.lobbies = firestore.collection<Lobby>('lobbies');
   }
 
-  getRuns() {
-    return this.runs.valueChanges();
+  getLobbies() {
+    return this.lobbies.valueChanges();
+  }
+
+  addLobby(lobby: Lobby) {
+    console.log("creating lobby", lobby);
+    this.lobbies.doc<Lobby>(lobby.id).set(JSON.parse(JSON.stringify(lobby)));
+  }
+
+  deleteLobby(lobbyId: string) {
+    this.lobbies.doc<Lobby>(lobbyId).delete();
   }
 
   getRun(id: string) {
-    return this.runs.doc(id).valueChanges();
+    return this.runs.doc(id).snapshotChanges();
   }
 
   addRun(run:Run) {

@@ -92,6 +92,50 @@
     }
 }
 
+.run {
+    position: relative;
+    border: 3px solid #d49012;
+    background-color: #383838;
+    border-radius: 16px;
+    margin: 16px 96px 16px 0px;
+    padding: 6px;
+    height: 60px;
+    font-family: 'jak';
+    color: #b4b4b4;
+    &-cont {
+        margin: 0px 24px;
+        border-top: 2px solid rgba(29, 29, 29, 0.2);
+    }
+    & h2 {
+        margin: 0;
+        padding: 0;
+        font-size: 24px;
+    }
+    & span {
+        margin-right: 12px;
+    }
+    & button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-family: 'jak';
+        font-size: 32px;
+        color: #636363;
+        height: 52px;
+        width: 92px;
+        background-color: #3e3e3e;
+        border: 2px solid #636363;
+        border-radius: 12px;
+        outline: none;
+        transition: 0.2s;
+        &:hover:enabled {
+            color: rgba(204, 204, 204, 0.9);
+            background-color: rgba(85, 85, 85, 0.8);
+            cursor: pointer;
+        }
+    }
+}
+
 .backtext {
     -webkit-user-select: none;
     position: absolute;
