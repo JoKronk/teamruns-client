@@ -6,7 +6,7 @@ const fs = require('fs');
 const spawn = require('child_process').spawn;
 let win = null;
 
-var modStatePath = "/data/mods";
+var modStatePath = "/data";
 
 var openGoalGk = null;
 var openGoalTracker = null;
@@ -96,8 +96,12 @@ class OpenGoal {
             openGoalTracker.kill();
 
         console.log("Running Tracker!");
-        openGoalTracker = spawn('python', [path.join(__dirname, '../tracker/JakTracker.py'), path.join(__dirname, '../tracker/')]);
-        
+        try {
+            openGoalTracker = spawn('python', [path.join(__dirname, '../tracker/JakTracker.py'), path.join(__dirname, '../tracker/')]);     
+        }
+        catch (err) {
+            this.sendClientMessage("Error: " + err);
+        }
         //On error
         openGoalTracker.stderr.on('data', (data) => {
             console.log(data.toString());
@@ -149,10 +153,18 @@ class OpenGoal {
             openGoalWatcher.close();
 
         let path = ogPath + modStatePath;
+        this.checkCreateGameStateFileExists(path);
         openGoalWatcher = fs.watch(path, (event, filename) => {
             if (event == "change" && filename == "mod-states.json")
                 this.readGameState(path + "/" + filename);
         });
+    }
+
+    checkCreateGameStateFileExists(path) {
+        let file = path + "/mod-states.json";
+        if (!fs.existsSync(file)) {
+            fs.writeFileSync(file, "");
+        }
     }
 
     async readGameState(path) {
