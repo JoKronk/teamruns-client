@@ -70,6 +70,11 @@ export class RunComponent implements OnDestroy {
       this.run.timer.updateTimer();
       
     this.localPlayer = new LocalPlayerData(this._user.getName(), this.run!.data.mode);
+
+    let playerTeam = this.run?.getPlayerTeam(this.localPlayer.name);
+    if (playerTeam)
+      this.localPlayer.team = playerTeam.name;
+    
     this.getInitPlayerState();
   }
 
@@ -147,6 +152,7 @@ export class RunComponent implements OnDestroy {
     if (task === "int-finalboss-movies")
       return true;
     if (Task.isCell(task)) {
+      console.log(this.run)
       if (this.run?.data.mode === RunMode.Speedrun && !this.run.runHasCell(task))
         return true;
       else if (!this.run?.playerTeamHasCell(task, this.localPlayer.name))
