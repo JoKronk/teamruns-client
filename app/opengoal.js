@@ -75,6 +75,7 @@ class OpenGoal {
         this.writeGoalCommand("(set! *debug-segment* #f)");
         this.writeGoalCommand("(mi)");
         this.writeGoalCommand("(set! *cheat-mode* #f)");
+        this.writeGoalCommand("(set! (-> *pc-settings* speedrunner-mode?) #t)");
         this.writeGoalCommand("(send-event *target* 'loading)");
         this.writeGoalCommand("(send-event *target* 'get-pickup (pickup-type eco-red) 1.0)");
         console.log(".done");
