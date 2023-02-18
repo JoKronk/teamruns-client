@@ -77,7 +77,7 @@ export class Run {
     }
 
     addSplit(task: Task): void {
-        this.getPlayerTeam(task.obtainedBy)?.tasks.unshift(task);
+            this.getPlayerTeam(task.obtainedBy)?.tasks.unshift(task);
     }
 
     toggleReady(playerName: string, state: PlayerState): void {
@@ -126,6 +126,14 @@ export class Run {
 
     getPlayer(playerName: string): Player | undefined {
         return this.getPlayerTeam(playerName)?.players.find(x => x.name === playerName);
+    }
+
+    playerTeamHasCell(task: string, playerName: string): boolean {
+        return this.getPlayerTeam(playerName)?.tasks.some(x => x.gameTask === task) ?? false;
+    }
+
+    runHasCell(task: string): boolean {
+        return this.teams.some(x => x.tasks.some(y => y.gameTask === task));
     }
 
 

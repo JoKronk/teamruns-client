@@ -141,8 +141,18 @@ export class RunComponent implements OnDestroy {
     });
   }
 
-  private shouldAddTask(task: string) {
-    return (Task.isCell(task) || task === "int-finalboss-movies") && this.run!.timer.runState == RunState.Started && this.localPlayer.state !== PlayerState.Finished && this.localPlayer.state !== this.playerState.Forfeit;
+  private shouldAddTask(task: string): boolean {
+    if (this.run!.timer.runState !== RunState.Started || this.localPlayer.state === PlayerState.Finished || this.localPlayer.state === this.playerState.Forfeit)
+      return false;
+    if (task === "int-finalboss-movies")
+      return true;
+    if (Task.isCell(task)) {
+      if (this.run?.data.mode === RunMode.Speedrun && !this.run.runHasCell(task))
+        return true;
+      else if (!this.run?.playerTeamHasCell(task, this.localPlayer.name))
+        return true;
+    }
+    return false;
   }
 
   //state read
