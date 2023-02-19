@@ -9,6 +9,7 @@ import { Timer } from "./timer";
 import { PlayerState } from "../player/player-state";
 import { GoalService } from "src/app/services/goal.service";
 import { RunState } from "./run-state";
+import { MultiLevel } from "./mutli-levels";
 
 export class Run {
     id: string;
@@ -194,6 +195,7 @@ export class Run {
                     //transfer tasks
                     team.tasks = importTeam.tasks;
 
+                    //state update checks
                     if (localPlayerImportPlayer) {
                         let levelToCheck = team.players[0]?.gameState.currentLevel;
                         let player = team.players.find
@@ -210,7 +212,7 @@ export class Run {
                             }
                         }
                         if (this.data.requireSameLevel) {
-                            if (team.players.every(x => x.gameState.currentLevel === levelToCheck)) {
+                            if (team.players.every(x => this.isSameLevel(x.gameState.currentLevel, levelToCheck))) {
                                 console.log("ALLOW CELL PICKUP!");
                                 goal.runCommand("(set! *allow-cell-pickup?* #t)");
                             }
@@ -223,6 +225,18 @@ export class Run {
                 }
             }
         });
-        
+    }
+
+    private isSameLevel(currentLevel: string, checkAgainst: string) {
+        if (MultiLevel.spiderCave().includes(currentLevel) && MultiLevel.spiderCave().includes(checkAgainst))
+            return true;
+        if (MultiLevel.jungle().includes(currentLevel) && MultiLevel.jungle().includes(checkAgainst))
+            return true;
+        if (MultiLevel.sunken().includes(currentLevel) && MultiLevel.sunken().includes(checkAgainst))
+            return true;
+        if (currentLevel === checkAgainst)
+            return true;
+
+        return false;
     }
 }
