@@ -118,7 +118,7 @@ export class RunComponent implements OnDestroy {
     //state update
     (window as any).electron.receive("og-state-update", (state: GameState) => {
       this.zone.run(() => {
-        if (this.run && state && this.localPlayer.gameState.hasChanged(state)) {
+        if (this.run && state && this.localPlayer.gameState.hasChanged(state) && this.run.timer.runState !== RunState.Waiting && this.localPlayer.state !== PlayerState.Finished) {
           this.localPlayer.gameState = Object.assign(new GameState(), state);
           this.run.updateState(this._user.getName(), state);
           this.sendRunUpdate();
