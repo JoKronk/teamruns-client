@@ -38,7 +38,7 @@
         <div class="run-info-teams">
           <div *ngFor="let team of run.teams" class="team-cont">
             <p class="team-name">{{ team.name }}</p>
-            <button *ngIf="team.name !== localPlayer.team && localPlayer.state !== playerState.Ready"
+            <button *ngIf="team.name !== localPlayer.team && localPlayer.state !== playerState.Ready && run.timer.runState === runState.Waiting"
               (click)="switchTeam(team.name)">Join</button>
             <div *ngFor="let player of team.players">
               <p [class.team-player-ready]="player.state === playerState.Ready && (run.timer.runState === runState.Countdown || run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">
