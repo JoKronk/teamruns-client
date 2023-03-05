@@ -8,7 +8,8 @@ import { FireStoreService } from '../services/fire-store.service';
 import { Run } from '../common/run/run';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
-import { Lobby } from '../common/lobby/lobby';
+import { Lobby } from '../common/firestore/lobby';
+import { RunMode } from '../common/run/run-mode';
 
 @Component({
   selector: 'app-lobby',
@@ -16,6 +17,8 @@ import { Lobby } from '../common/lobby/lobby';
   styleUrls: ['./lobby.component.scss']
 })
 export class LobbyComponent implements OnDestroy {
+
+  runMode = RunMode;
 
   buildVersion: string = pkg.version;
   showPlayers: boolean = true;
@@ -29,7 +32,7 @@ export class LobbyComponent implements OnDestroy {
         this.dialog.open(SetPathComponent);
     }, 300);
 
-    this.lobbiesSubscription = this._firestore.getLobbies().subscribe((lobbies) => {
+    this.lobbiesSubscription = this._firestore.getOpenLobbies().subscribe((lobbies) => {
       this.lobbies = lobbies;
     });
   }

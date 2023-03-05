@@ -4,6 +4,7 @@ import { SnackbarComponent } from '../snackbar/snackbar.component';
 import { GoalService } from './goal.service';
 import { User } from '../common/user/user';
 import { Run } from '../common/run/run';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,6 @@ export class UserService {
 
   user: User = new User();
   private UserCopy: User = new User();
-  private localRunStorage: Run | undefined;
   
   viewSettings: boolean = false;
   trackerConnected: boolean = false;
@@ -25,15 +25,6 @@ export class UserService {
 
   public getName() {
     return this.user.displayName;
-  }
-
-  public setLocalRunStorage(run: Run) {
-    this.localRunStorage = run;
-  }
-  public getLocalRunStorage() {
-    let run = this.localRunStorage;
-    this.localRunStorage = undefined;
-    return run;
   }
 
   public checkWriteUserDataHasChanged() {
@@ -58,6 +49,8 @@ export class UserService {
     //tracker update
     (window as any).electron.receive("og-tracker-connected", (connected: true) => {
       this.trackerConnected = connected;
+      if (connected)
+         (window as any).electron.send('og-state-read');
     });
     
     //settings get

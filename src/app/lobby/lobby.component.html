@@ -28,7 +28,12 @@
         <div class="run-cont">
           <div *ngFor="let lobby of lobbies" class="run">
             <h2 class="run-title">{{ lobby.runData.name }}</h2>
-            <p><span>Teams: {{ lobby.teams }} X {{ lobby.runData.maxSize / lobby.teams }} Players</span> <span>Creator: {{ lobby.runData.owner }}</span> <span>Mode: {{ lobby.runData.mode }}</span> </p>
+            <p>
+              <span>Teams: {{ lobby.runData.teams }} X {{ lobby.runData.teamSize }}</span> 
+              <span>Host: {{ lobby.host }}</span> 
+              <span>In Lobby: {{ lobby.spectators.length + lobby.runners.length }}</span> 
+              <span>Mode: {{ runMode[lobby.runData.mode] }}</span> 
+            </p>
             <button (click)="routeToRun(lobby.id)">Join</button>
           </div>
         </div>

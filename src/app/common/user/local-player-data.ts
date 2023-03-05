@@ -10,10 +10,10 @@ export class LocalPlayerData {
   state: PlayerState;
   restrictedZoomerLevels: string[];
 
-  constructor(name: string, mode: RunMode) {
-    this.name = name;
+  constructor() {
+    this.name = "";
     this.team = "";
-    this.mode = mode;
+    this.mode = RunMode.Speedrun;
     this.gameState = new GameState();
     this.state = PlayerState.Neutral;
     this.restrictedZoomerLevels = ['firecanyon', 'ogre', 'lavatube'];

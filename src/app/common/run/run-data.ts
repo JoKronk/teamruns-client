@@ -1,12 +1,11 @@
 import { RunMode } from "./run-mode";
 
-//made to seperate the data a bit and to make creating new run from db obj easier
+//used to create base run from lobby
 export class RunData {
     //metadata
     name: string;
-    owner: string;
-    teamCap: number;
-    maxSize: number;
+    teamSize: number;
+    teams: number;
     buildVersion: string;
 
     //run settings
@@ -16,9 +15,8 @@ export class RunData {
 
     constructor(version: string) {
         this.name = "";
-        this.owner = "";
-        this.teamCap = 3;
-        this.maxSize = 0;
+        this.teamSize = 3;
+        this.teams = 1;
         this.buildVersion = version;
         this.mode = RunMode.Speedrun;
         this.requireSameLevel = false;

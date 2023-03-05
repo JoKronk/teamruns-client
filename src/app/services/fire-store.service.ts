@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument } from '@angular/fire/compat/firestore';
 import { Observable } from 'rxjs';
-import { Lobby } from '../common/lobby/lobby';
+import { CollectionName } from '../common/firestore/collection-name';
+import { Lobby } from '../common/firestore/lobby';
 import { Run } from '../common/run/run';
 
 @Injectable({
@@ -11,37 +12,32 @@ export class FireStoreService {
 
   runs: AngularFirestoreCollection<Run>;
   lobbies: AngularFirestoreCollection<Lobby>;
+  openLobbies: AngularFirestoreCollection<Lobby>;
 
   constructor(private firestore: AngularFirestore) { 
-    this.runs = firestore.collection<Run>('runs');
-    this.lobbies = firestore.collection<Lobby>('lobbies');
+    this.runs = firestore.collection<Run>(CollectionName.runs);
+    this.lobbies = firestore.collection<Lobby>(CollectionName.lobbies);
+    this.openLobbies = firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('visible', '==', true));
   }
 
-  getLobbies() {
-    return this.lobbies.valueChanges();
+  getOpenLobbies() {
+    return this.openLobbies.valueChanges();
   }
 
-  addLobby(lobby: Lobby) {
-    console.log("creating lobby", lobby);
-    this.lobbies.doc<Lobby>(lobby.id).set(JSON.parse(JSON.stringify(lobby)));
+  async addLobby(lobby: Lobby) {
+    await this.lobbies.doc<Lobby>(lobby.id).set(JSON.parse(JSON.stringify(lobby)));
   }
 
-  deleteLobby(lobbyId: string) {
-    this.lobbies.doc<Lobby>(lobbyId).delete();
+  async deleteLobby(lobbyId: string) {
+    await this.lobbies.doc<Lobby>(lobbyId).delete();
   }
 
-  getRun(id: string) {
-    return this.runs.doc(id).snapshotChanges();
+  async getRun(id: string) {
+    return (await this.runs.doc(id).ref.get()).data();
   }
 
-  addRun(run:Run) {
+  async addRun(run:Run) {
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
-    this.runs.doc<Run>(run.id).set(JSON.parse(JSON.stringify(run)));
-  }
-
-  updateRun(run: Run | undefined) {
-    if (run) {
-      this.runs.doc<Run>(run.id).set(JSON.parse(JSON.stringify(run)), {merge: true});
-    }
+    await this.runs.doc<Run>().set(JSON.parse(JSON.stringify(run)));
   }
 }
