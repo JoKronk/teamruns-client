@@ -23,6 +23,7 @@ import { AngularFireModule } from '@angular/fire/compat';
 import { environment } from '../environments/environment';
 import { RunTeamComponent } from './run-team/run-team.component';
 import { RunTimerComponent } from './run-timer/run-timer.component';
+import { RunSpectatorsComponent } from './run-spectators/run-spectators.component';
 
 @NgModule({
   declarations: [
@@ -36,7 +37,8 @@ import { RunTimerComponent } from './run-timer/run-timer.component';
     SetPathComponent,
     RunComponent,
     RunTeamComponent,
-    RunTimerComponent
+    RunTimerComponent,
+    RunSpectatorsComponent
   ],
   imports: [
     BrowserModule,
