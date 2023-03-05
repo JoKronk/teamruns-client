@@ -1,0 +1,29 @@
+
+.timer {
+    border: 5px solid #494949;
+    border-radius: 12px;
+    margin: 30px 10px 0px;
+    padding: 5px;
+    height: 90px;
+    &-title {
+        margin: 0;
+        -webkit-user-select: none;
+        font-family: 'jak';
+        font-size: 24px;
+    }
+    &-clock {
+        font-family: 'Segoe UI';
+        font-weight: bold;
+        font-size: 52px;
+        float: right;
+        margin-right: 10px;
+        margin-top: -15px;
+        width: auto;
+        position: relative;
+        display: block;
+        text-align: center;
+    }
+    &-ms {
+        font-size: 42px;
+    }
+}

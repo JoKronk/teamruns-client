@@ -1,0 +1,6 @@
+<div class="timer" *ngIf="run">
+    <p class="timer-title text-in-background" title="Timer">Timer</p>
+    <time class="timer-clock text-in-background">
+      {{ run.timer.time }}<span class="timer-ms">{{ run.timer.timeMs }}</span>
+    </time>
+  </div>

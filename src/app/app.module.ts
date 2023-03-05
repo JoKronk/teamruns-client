@@ -22,6 +22,7 @@ import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 import { AngularFireModule } from '@angular/fire/compat';
 import { environment } from '../environments/environment';
 import { RunTeamComponent } from './run-team/run-team.component';
+import { RunTimerComponent } from './run-timer/run-timer.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { RunTeamComponent } from './run-team/run-team.component';
     CreateRunComponent,
     SetPathComponent,
     RunComponent,
-    RunTeamComponent
+    RunTeamComponent,
+    RunTimerComponent
   ],
   imports: [
     BrowserModule,
