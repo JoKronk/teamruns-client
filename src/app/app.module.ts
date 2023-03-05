@@ -21,6 +21,7 @@ import { RunComponent } from './run/run.component';
 import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 import { AngularFireModule } from '@angular/fire/compat';
 import { environment } from '../environments/environment';
+import { RunTeamComponent } from './run-team/run-team.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +33,8 @@ import { environment } from '../environments/environment';
     OnlinePlayersComponent,
     CreateRunComponent,
     SetPathComponent,
-    RunComponent
+    RunComponent,
+    RunTeamComponent
   ],
   imports: [
     BrowserModule,
