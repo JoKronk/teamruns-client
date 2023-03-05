@@ -1,45 +1,58 @@
 <div>
-    <mat-sidenav-container fullscreen>
-      <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="players">
-        <app-online-players></app-online-players>
-      </mat-sidenav>
-  
-      <mat-sidenav-content class="lobby-container">
-        <div class="lobby">
-          <div class="header">
-            <div class="info">
-              <p id="version" class="text-in-background" [title]="buildVersion">{{ buildVersion }}</p>
-              <p class="settings" (click)="_user.viewSettings = !_user.viewSettings">Settings</p>
-            </div>
-            <div class="options-container">
-              <div class="options">
-                <button (click)="startGame()">Launch</button>
-                <button (click)="createLobby()">New Run</button>
-              </div>
-            </div>
-            <div class="logo-container">
-              <div class="logo">
-                <img src="./assets/teamrun-logo.png" alt="image">
-              </div>
+  <mat-sidenav-container fullscreen>
+    <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="players">
+      <app-online-players></app-online-players>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="lobby-container">
+      <div class="lobby">
+        <div class="header">
+          <div class="info">
+            <p id="version" class="text-in-background" [title]="buildVersion">{{ buildVersion }}</p>
+            <p class="settings" (click)="_user.viewSettings = !_user.viewSettings">Settings</p>
+          </div>
+          <div class="options-container">
+            <div class="options">
+              <button (click)="startGame()">Launch</button>
+              <button (click)="createLobby()">New Run</button>
             </div>
           </div>
+          <div class="logo-container">
+            <div class="logo">
+              <img src="./assets/teamrun-logo.png" alt="image">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="run-cont">
+        <div *ngFor="let lobby of avaliableLobbies" class="run">
+          <h2 class="run-title">{{ lobby.runData.name }}</h2>
+          <p>
+            <span>Teams: {{ lobby.runData.teams }} X {{ lobby.runData.teamSize }}</span>
+            <span>Host: {{ lobby.host }}</span>
+            <span>In Lobby: {{ lobby.spectators.length + lobby.runners.length }}</span>
+            <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
+          </p>
+          <button (click)="routeToRun(lobby.id)">Join</button>
         </div>
 
-        <div class="run-cont">
-          <div *ngFor="let lobby of lobbies" class="run">
-            <h2 class="run-title">{{ lobby.runData.name }}</h2>
-            <p>
-              <span>Teams: {{ lobby.runData.teams }} X {{ lobby.runData.teamSize }}</span> 
-              <span>Host: {{ lobby.host }}</span> 
-              <span>In Lobby: {{ lobby.spectators.length + lobby.runners.length }}</span> 
-              <span>Mode: {{ runMode[lobby.runData.mode] }}</span> 
-            </p>
-            <button (click)="routeToRun(lobby.id)">Join</button>
-          </div>
+        <div *ngFor="let lobby of unavaliableLobbies" class="run">
+          <h2 class="run-title">{{ lobby.runData.name }}</h2>
+          <p>
+            <span>Teams: {{ lobby.runData.teams }} X {{ lobby.runData.teamSize }}</span>
+            <span>Host: {{ lobby.host }}</span>
+            <span>In Lobby: {{ lobby.spectators.length + lobby.runners.length }}</span>
+            <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
+          </p>
+          <button (click)="routeToRun(lobby.id)" disabled>Join</button>
         </div>
-        
-        <div class="backtext"><h1>Lobby</h1></div>
-        <p id="name" class="text-in-background" [title]="_user.getName()">{{ _user.getName() }}</p>
-      </mat-sidenav-content>
+      </div>
+
+      <div class="backtext">
+        <h1>Lobby</h1>
+      </div>
+      <p id="name" class="text-in-background" [title]="_user.getName()">{{ _user.getName() }}</p>
+    </mat-sidenav-content>
   </mat-sidenav-container>
 </div>

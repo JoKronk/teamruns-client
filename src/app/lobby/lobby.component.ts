@@ -22,7 +22,8 @@ export class LobbyComponent implements OnDestroy {
 
   buildVersion: string = pkg.version;
   showPlayers: boolean = true;
-  lobbies: Lobby[] = [];
+  avaliableLobbies: Lobby[] = [];
+  unavaliableLobbies: Lobby[] = [];
   lobbiesSubscription: Subscription;
 
   constructor(public _user: UserService, private _firestore: FireStoreService, private router: Router, private dialog: MatDialog) {
@@ -33,7 +34,9 @@ export class LobbyComponent implements OnDestroy {
     }, 300);
 
     this.lobbiesSubscription = this._firestore.getOpenLobbies().subscribe((lobbies) => {
-      this.lobbies = lobbies;
+      const version = this.buildVersion.slice(0, -2);
+      this.avaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) === version);
+      this.unavaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) !== version);
     });
   }
 
