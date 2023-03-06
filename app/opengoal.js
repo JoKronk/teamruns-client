@@ -27,7 +27,6 @@ class OpenGoal {
     async runGameSetup() {
         
         let ogPath = await getOpenGoalPath();
-        this.runGameStateWatcher(ogPath);
         
         this.sendClientMessage("(1/3) Starting OpenGOAL!");
         if (openGoalGk) {
@@ -41,6 +40,8 @@ class OpenGoal {
         await sleep(1000);
         this.startOG(ogPath);
         await sleep(2000);
+        
+        this.runGameStateWatcher(ogPath);
         
         openGoalGk.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
         openGoalGk.on('connect', () => {
