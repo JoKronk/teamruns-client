@@ -131,9 +131,12 @@ function readSettings() {
 }
 
 function selectFolderPath() {
-  dialog.showOpenDialog({title: 'Select a folder', properties: ['openDirectory']}).then(result => {
-    if (result.filePaths[0] !== undefined)
-      win.webContents.send("settings-get-path", result.filePaths[0]);
+  dialog.showOpenDialog({title: 'Select a folder', properties: ['openFile'], filters: [{ name: 'Executables', extensions: ['exe'] },{ name: 'All Types', extensions: ['*'] }]}).then(result => {
+    let file = result.filePaths[0];
+    if (file !== undefined && file.endsWith("gk.exe") && file.length > 6 && fs.existsSync(file.slice(0, -6) + "data"))
+      win.webContents.send("settings-get-path", file.slice(0, -7));
+    else
+      sendClientMessage("File does not seem to be OpenGoal gk.exe!");
   });
 }
 

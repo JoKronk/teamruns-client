@@ -36,7 +36,7 @@ h2 {
 }
 
 #select {
-    width: 150px;
+    width: 136px;
     margin-bottom: 20px;
 }
 
@@ -52,9 +52,13 @@ button {
     outline: none;
     cursor: pointer;
     transition: 0.3s;
-    &:hover {
+    &:hover:enabled {
         color: rgb(156, 156, 156);
         background-color: #380000;
         border: 1px solid rgba(32, 32, 32, 0.6);
+    }
+    &:disabled {
+        opacity: 0.6;
+        cursor: default;
     }
 }
