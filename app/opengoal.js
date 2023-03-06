@@ -13,7 +13,7 @@ var openGoalTracker = null;
 var openGoalWatcher = null;
 var openGoalGameState = null;
 var trackerConnectedState = false;
-
+var openGoalHasStarted = false;
 
 class OpenGoal {
 
@@ -51,11 +51,13 @@ class OpenGoal {
     }
 
 
-    killOG() {
+    killOG(spareGk = false) {
         try {
             var shell = new winax.Object('WScript.Shell');
-            shell.Exec("taskkill /F /IM gk.exe");
+            if (!spareGk)
+                shell.Exec("taskkill /F /IM gk.exe");
             shell.Exec("taskkill /F /IM goalc.exe");
+            openGoalHasStarted = false;
         }
         catch (e) { this.sendClientMessage(e.message); }
     }
@@ -63,8 +65,9 @@ class OpenGoal {
     startOG(ogPath) {
         try {
             var shell = new winax.Object('Shell.Application');
-            shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 1);
-            shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open", 1);
+            shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 0);
+            shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open", 0);
+            openGoalHasStarted = true;
         }
         catch (e) { this.sendClientMessage(e.message); }
     }
@@ -82,6 +85,8 @@ class OpenGoal {
     }
 
     writeGoalCommand(args) {
+        if (!openGoalHasStarted) return;
+
         let utf8Encode = new TextEncoder();
         var data = utf8Encode.encode(args);
         var bb = new ByteBuffer().LE().writeInt(data.length).writeInt(10).writeString(args).flip().toBuffer();
@@ -122,6 +127,7 @@ class OpenGoal {
             trackerConnectedState = false;
             this.sendClientTrackerState();
             this.sendClientMessage("Tracker Disconneted!");
+            this.killOG(true);
         });
         
         this.sendClientMessage("(2/3) Startup successful! Connecting...");
