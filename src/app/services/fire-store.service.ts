@@ -10,26 +10,31 @@ import { Run } from '../common/run/run';
 })
 export class FireStoreService {
 
-  runs: AngularFirestoreCollection<Run>;
-  lobbies: AngularFirestoreCollection<Lobby>;
-  openLobbies: AngularFirestoreCollection<Lobby>;
+  private runs: AngularFirestoreCollection<Run>;
+  private lobbies: AngularFirestoreCollection<Lobby>;
 
-  constructor(private firestore: AngularFirestore) { 
+  constructor(public firestore: AngularFirestore) {
     this.runs = firestore.collection<Run>(CollectionName.runs);
     this.lobbies = firestore.collection<Lobby>(CollectionName.lobbies);
-    this.openLobbies = firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('visible', '==', true));
   }
 
   getOpenLobbies() {
-    return this.openLobbies.valueChanges();
+    return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('visible', '==', true)).valueChanges();
   }
 
   async addLobby(lobby: Lobby) {
     await this.lobbies.doc<Lobby>(lobby.id).set(JSON.parse(JSON.stringify(lobby)));
   }
 
-  async deleteLobby(lobbyId: string) {
-    await this.lobbies.doc<Lobby>(lobbyId).delete();
+  async deleteOldLobbies() {
+    const expireDate = new Date();
+    expireDate.setDate(expireDate.getDate() - 1);
+
+    (await this.lobbies.ref.get()).forEach((lobbySnapshot) => {
+      let lobby = lobbySnapshot.data();
+      if (new Date(lobby.creationDate) < expireDate)
+        this.lobbies.doc<Lobby>(lobbySnapshot.id).delete();
+    });
   }
 
   async getRun(id: string) {

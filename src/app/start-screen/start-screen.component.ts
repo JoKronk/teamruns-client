@@ -3,7 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { User } from '../common/user/user';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
-import { GoalService } from '../services/goal.service';
+import { FireStoreService } from '../services/fire-store.service';
 import { UserService } from '../services/user.service';
 
 @Component({
@@ -29,8 +29,9 @@ export class StartScreenComponent {
 
   initUserData: User;
 
-  constructor(public _user: UserService, private router: Router, private dialog: MatDialog) {
+  constructor(public _user: UserService, private router: Router, private dialog: MatDialog, private _firestore: FireStoreService) {
     this.checkVideoLoad();
+    this._firestore.deleteOldLobbies();
   }
 
   sendToLobby() {

@@ -9,6 +9,7 @@ export class Lobby {
     runners: string[];
     spectators: string[];
     visible: boolean;
+    creationDate: string; //firestore saves it as string if Date and fetches it as string
 
     constructor(runData: RunData) {
         this.id = crypto.randomUUID();
@@ -18,5 +19,6 @@ export class Lobby {
         this.runners = [];
         this.spectators = [];
         this.visible = true;
+        this.creationDate = new Date().toUTCString();
     }
 }
