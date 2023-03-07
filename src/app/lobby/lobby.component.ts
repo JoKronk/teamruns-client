@@ -35,8 +35,8 @@ export class LobbyComponent implements OnDestroy {
 
     this.lobbiesSubscription = this._firestore.getOpenLobbies().subscribe((lobbies) => {
       const version = this.buildVersion.slice(0, -2);
-      this.avaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) === version);
-      this.unavaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) !== version);
+      this.avaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) === version).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
+      this.unavaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) !== version).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
     });
   }
 
