@@ -27,7 +27,6 @@ function createWindow() {
     },
     autoHideMenuBar: true,
     resizable: false,
-    titleBarStyle: 'hidden',
     fullscreenable: false,
     transparent: true,
     frame: false
@@ -40,7 +39,7 @@ function createWindow() {
     require('electron-reloader')(module);
 
     win.loadURL('http://localhost:4200');
-    win.webContents.openDevTools();
+    win.webContents.openDevTools({mode: "detach"});
   } 
   else {
     win.loadURL(url.format({      
@@ -87,8 +86,12 @@ function createWindow() {
     selectFolderPath();
   });
     
+  ipcMain.on('window-minimize', () => {
+    win.minimize();
+  });
+    
   ipcMain.on('window-close', () => {
-    win = null;
+    win.close();
   });
 
     return win;
