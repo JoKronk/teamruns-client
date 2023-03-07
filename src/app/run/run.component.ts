@@ -94,6 +94,9 @@ export class RunComponent implements OnDestroy {
         if (this.localPlayer.gameState.hasChanged(state) && this.localPlayer.state !== PlayerState.Finished) {
           this.localPlayer.gameState = Object.assign(new GameState(), state);
           this.runHandler.sendEvent(EventType.NewPlayerState, state);
+          
+          //handle klaww kill
+          this.localPlayer.checkKillKlaww(this._user._goal);
         }
       });
     });
@@ -104,6 +107,7 @@ export class RunComponent implements OnDestroy {
         if (!this.runHandler.run || this.isSpectatorOrNull()) return;
 
         if (this.shouldAddTask(task)) {  
+          //run end
           if (task === "int-finalboss-movies") {
             this.localPlayer.state = PlayerState.Finished;
             this.runHandler.sendEvent(EventType.EndPlayerRun);

@@ -14,6 +14,7 @@ import { RunState } from "./run-state";
 import { CollectionName } from "../firestore/collection-name";
 import { NgZone } from "@angular/core";
 import { Timer } from "./timer";
+import { Task } from "./task";
 
 export class RunHandler {
     
@@ -246,6 +247,12 @@ export class RunHandler {
 
                 if (event.user !== userId) {
                     this.run.giveCellToUser(this.userService._goal, event.value, this.run.getPlayer(userId));
+                    
+                    //handle klaww kill
+                    if ((event.value as Task).gameTask === "ogre-boss") {
+                        this.localPlayer.killKlawwOnSpot = true;
+                        this.localPlayer.checkKillKlaww(this.userService._goal);
+                    }
                 }
                 break;
 
