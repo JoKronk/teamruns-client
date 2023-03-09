@@ -97,6 +97,17 @@ export class Run {
         this.timer.startTimer(startDate.getTime());
     }
 
+    setOrbCosts(playerTeam: string) {
+        if ((this.getPlayerTeam(playerTeam)?.players.length ?? 0) > 1) {
+            OG.runCommand("(set! (-> *GAME-bank* money-task-inc) 180.0)");
+            OG.runCommand("(set! (-> *GAME-bank* money-oracle-inc) 240.0)");
+        }
+        else {
+            OG.runCommand("(set! (-> *GAME-bank* money-task-inc) 90.0)");
+            OG.runCommand("(set! (-> *GAME-bank* money-oracle-inc) 120.0)");
+        }
+    }
+
     changeTeam(playerName: string, teamName: string) {
       let newTeam = this.getTeam(teamName);
       if (!newTeam) return;
