@@ -1,0 +1,27 @@
+span {
+    display: block;
+}
+
+.viewer {
+    padding: 14px;
+    font-family: 'jak';
+    color: #b4b4b4;
+    transition: 0.2s ease-in-out;
+    &-group {
+        margin: 32px 24px 62px 0px;
+    }
+    p {
+        margin: 0;
+        border-bottom: 1px solid #b4b4b4;
+    }
+}
+
+.backtext {
+    font-family: 'precursor';
+    transform: rotate(90deg);
+    font-size: 80px;
+    margin-left: 150px;
+    position: absolute;
+    top: 250px;
+    right: -150px;
+}

@@ -1,7 +1,7 @@
 <div>
   <mat-sidenav-container fullscreen>
     <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="players">
-      <app-lobby-viewer [lobby]="selectedLobby"></app-lobby-viewer>
+      <app-lobby-viewer [lobby]="selectedLobby" [hide]="hideViewer"></app-lobby-viewer>
     </mat-sidenav>
 
     <mat-sidenav-content class="lobby-container">
@@ -26,18 +26,24 @@
       </div>
 
       <div class="run-cont">
-        <div *ngFor="let lobby of avaliableLobbies" class="run">
-          <h2 class="run-title">{{ lobby.runData.name }}</h2>
-          <p>
-            <span>Teams: {{ lobby.runData.teams }} X {{ lobby.runData.teamSize }}</span>
-            <span>Host: {{ lobby.host }}</span>
-            <span>In Lobby: {{ lobby.spectators.length + lobby.runners.length }}</span>
-            <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
-          </p>
+        <div *ngFor="let lobby of avaliableLobbies" class="run" (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)">
+          <div class="run-info">
+            <h2 class="run-title">{{ lobby.runData.name }}</h2>
+            <div>
+              <span>Teams: {{ lobby.runData.teams }} X {{ lobby.runData.teamSize }}</span>
+              <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
+            </div>
+          </div>
+          <div class="run-info">
+            <div>
+              <span>In Lobby: {{ lobby.spectators.length + lobby.runners.length }}</span>
+              <span>Version: {{ lobby.runData.buildVersion }}</span>
+            </div>
+          </div>
           <button (click)="routeToRun(lobby.id)">Join</button>
         </div>
 
-        <div *ngFor="let lobby of unavaliableLobbies" class="run">
+        <div *ngFor="let lobby of unavaliableLobbies" class="run" (mouseleave)="hideLobbyViewer()"  (mouseenter)="selectLobby(lobby)">
           <h2 class="run-title">{{ lobby.runData.name }}</h2>
           <p>
             <span>Teams: {{ lobby.runData.teams }} X {{ lobby.runData.teamSize }}</span>

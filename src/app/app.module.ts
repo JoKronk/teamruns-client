@@ -24,6 +24,7 @@ import { RunTeamComponent } from './run-team/run-team.component';
 import { RunTimerComponent } from './run-timer/run-timer.component';
 import { RunSpectatorsComponent } from './run-spectators/run-spectators.component';
 import { CloseScreenComponent } from './close-screen/close-screen.component';
+import { LobbyViewerComponent } from './lobby-viewer/lobby-viewer.component';
 
 @NgModule({
   declarations: [
@@ -38,7 +39,8 @@ import { CloseScreenComponent } from './close-screen/close-screen.component';
     RunTeamComponent,
     RunTimerComponent,
     RunSpectatorsComponent,
-    CloseScreenComponent
+    CloseScreenComponent,
+    LobbyViewerComponent
   ],
   imports: [
     BrowserModule,

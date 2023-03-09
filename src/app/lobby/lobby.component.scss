@@ -94,17 +94,32 @@
 
 .run {
     position: relative;
+    display: flex;
     border: 3px solid #d49012;
     background-color: #383838;
     border-radius: 16px;
     margin: 16px 96px 16px 0px;
     padding: 6px;
-    height: 60px;
+    height: 65px;
     font-family: 'jak';
     color: #b4b4b4;
+    transition: 0.2s;
+    &:hover {
+        border: 3px solid #a56d06;
+        background-color: #3e3e3e;
+    }
     &-cont {
         margin: 0px 24px;
         border-top: 2px solid rgba(29, 29, 29, 0.2);
+    }
+    &-info {
+        flex: 1;
+        position: relative;
+        & div {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
     }
     & h2 {
         margin: 0;
@@ -113,11 +128,10 @@
     }
     & span {
         margin-right: 12px;
+        display: block;
     }
     & button {
-        position: absolute;
-        top: 10px;
-        right: 10px;
+        flex-shrink: 1;
         font-family: 'jak';
         font-size: 32px;
         color: #636363;
@@ -127,6 +141,8 @@
         border: 2px solid #636363;
         border-radius: 12px;
         outline: none;
+        margin: auto;
+        margin-right: 8px;
         transition: 0.2s;
         &:hover:enabled {
             color: rgba(204, 204, 204, 0.9);

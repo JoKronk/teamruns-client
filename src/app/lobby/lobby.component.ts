@@ -26,6 +26,9 @@ export class LobbyComponent implements OnDestroy {
   avaliableLobbies: Lobby[] = [];
   unavaliableLobbies: Lobby[] = [];
 
+  selectedLobby: Lobby | null = null;
+  hideViewer: boolean = true;
+
   lobbiesSubscription: Subscription;
 
   constructor(public _user: UserService, private _firestore: FireStoreService, private router: Router, private dialog: MatDialog) {
@@ -39,6 +42,7 @@ export class LobbyComponent implements OnDestroy {
       const version = this.buildVersion.slice(0, -2);
       this.avaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) === version).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
       this.unavaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) !== version).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
+      this.selectedLobby = this.avaliableLobbies[0];
     });
   }
 
@@ -51,6 +55,15 @@ export class LobbyComponent implements OnDestroy {
 
   routeToRun(runId: string) {
     this.router.navigate(['/run' ], { queryParams: { id: runId } });
+  }
+
+  selectLobby(lobby: Lobby) {
+    this.selectedLobby = lobby;
+    this.hideViewer = false;
+  }
+
+  hideLobbyViewer() {
+    this.hideViewer = true;
   }
 
   createLobby(): void {
