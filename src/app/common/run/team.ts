@@ -1,5 +1,5 @@
 import { Player } from "../player/player";
-import { Task } from "./task";
+import { Task } from "../opengoal/task";
 
 
 export class Team {

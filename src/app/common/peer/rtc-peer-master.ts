@@ -102,10 +102,10 @@ export class RTCPeerMaster {
 
         //answer slave
         peer.masterDescription = masterDescription;
-        console.log("Setting connection in db: ", peer);
 
         //!TODO: should setup a better solution for this, check slave side equivalent for further comments on it
         setTimeout(() => {
+            console.log("Setting connection in db: ", peer);
             this.lobbyDoc.collection(CollectionName.peerConnections).doc(peer.user).set(JSON.parse(JSON.stringify(peer)));
         }, 500);
     }

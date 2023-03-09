@@ -1,3 +1,4 @@
+import { OG } from "../opengoal/og";
 import { RunState } from "./run-state";
 
 export class Timer {
@@ -44,7 +45,8 @@ export class Timer {
         //start run check
         if (this.runState === RunState.Countdown) {
             if (!hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
-                (window as any).electron.send('og-start-run');
+                OG.startRun();
+                OG.resetTaskStatus();
                 hasSpawnedPlayer = true;
             }
             if (this.startDateMs! <= currentTimeMs)

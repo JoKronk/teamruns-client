@@ -70,6 +70,14 @@ function createWindow() {
     openGoal.sendClientStateUpdate();
   });
 
+  ipcMain.on('og-task-status-read', () => {
+    openGoal.sendClientTaskStatusUpdate();
+  });
+
+  ipcMain.on('og-task-status-reset', () => {
+    openGoal.resetTaskStatus();
+  });
+
   ipcMain.on('og-tracker-connected-read', () => {
     openGoal.sendClientTrackerState();
   });

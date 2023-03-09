@@ -8,6 +8,7 @@ export enum EventType {
     StartRun,
     NewCell,
     NewPlayerState,
+    NewTaskStatusUpdate,
     ChangeTeam,
     ToggleReset,
     EndPlayerRun,

@@ -2,7 +2,7 @@ import { Component, HostListener, NgZone, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { GameState } from '../common/player/game-state';
 import { Run } from '../common/run/run';
-import { Task } from '../common/run/task';
+import { Task } from '../common/opengoal/task';
 import { UserService } from '../services/user.service';
 import pkg from 'app/package.json';
 import { FireStoreService } from '../services/fire-store.service';
@@ -96,7 +96,7 @@ export class RunComponent implements OnDestroy {
           this.runHandler.sendEvent(EventType.NewPlayerState, state);
           
           //handle klaww kill
-          this.localPlayer.checkKillKlaww(this._user._goal);
+          this.localPlayer.checkKillKlaww();
         }
       });
     });
@@ -114,10 +114,14 @@ export class RunComponent implements OnDestroy {
           }
 
           var cell = new Task(task, this._user.getName(), this.runHandler.run.getTimerShortenedFormat());
-          console.log("sending cell pickup", cell)
           this.runHandler.sendEvent(EventType.NewCell, cell);
         }
       });
+    });
+
+    (window as any).electron.receive("og-task-status-update", (tasks: any) => {
+      if (!this.runHandler.run || this.isSpectatorOrNull() || this.runHandler.run.timer.runState === RunState.Waiting) return;
+      this.runHandler.sendEvent(EventType.NewTaskStatusUpdate, tasks);
     });
   }
 

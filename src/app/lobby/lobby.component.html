@@ -1,6 +1,7 @@
 <div>
   <mat-sidenav-container fullscreen>
     <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="players">
+      <app-lobby-viewer [lobby]="selectedLobby"></app-lobby-viewer>
     </mat-sidenav>
 
     <mat-sidenav-content class="lobby-container">

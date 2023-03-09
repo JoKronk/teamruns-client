@@ -14,7 +14,8 @@ import { RunState } from "./run-state";
 import { CollectionName } from "../firestore/collection-name";
 import { NgZone } from "@angular/core";
 import { Timer } from "./timer";
-import { Task } from "./task";
+import { Task } from "../opengoal/task";
+import { OG } from "../opengoal/og";
 
 export class RunHandler {
     
@@ -127,7 +128,8 @@ export class RunHandler {
     }
 
     getPlayerState(): void {
-      (window as any).electron.send('og-state-read');
+        if ((window as any).electron)
+            (window as any).electron.send('og-state-read');
     }
 
     sendEvent(type: EventType, value: any = null) {
@@ -224,7 +226,7 @@ export class RunHandler {
 
                     }
                     
-                    this.run!.importChanges(this.localPlayer, event.value, this.userService._goal);
+                    this.run!.importChanges(this.localPlayer, event.value);
                     
                 });
                 break;
@@ -246,13 +248,15 @@ export class RunHandler {
                 });
 
                 if (event.user !== userId) {
-                    this.run.giveCellToUser(this.userService._goal, event.value, this.run.getPlayer(userId));
+                    this.run.giveCellToUser(event.value, this.run.getPlayer(userId));
                     
                     //handle klaww kill
                     if ((event.value as Task).gameTask === "ogre-boss") {
                         this.localPlayer.killKlawwOnSpot = true;
-                        this.localPlayer.checkKillKlaww(this.userService._goal);
+                        this.localPlayer.checkKillKlaww();
                     }
+                    else //check if orb buy
+                        this.localPlayer.checkForFirstOrbCellFromMultiSeller((event.value as Task).gameTask)
                 }
                 break;
 
@@ -263,7 +267,16 @@ export class RunHandler {
                 });
                 
                 const player = this.run.getPlayer(userId);
-                if (player) this.run.onUserStateChange(this.userService._goal, this.localPlayer, player);
+                if (player) {
+                    this.run.onUserStateChange(this.localPlayer, player);
+                    if (event.user !== userId)
+                        this.localPlayer.checkForZoomerTalkSkip(event.value);
+                } 
+                break;
+
+            case EventType.NewTaskStatusUpdate:
+                if (!this.run || this.run.getPlayerTeam(event.user)?.name !== this.localPlayer.team) return;
+                this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.user === userId);
                 break;
 
             case EventType.ChangeTeam:
@@ -288,9 +301,13 @@ export class RunHandler {
             
             case EventType.StartRun:
                 this.zone.run(() => { 
-                    this.run!.start((new Date().valueOf() - new Date(event.value).valueOf()) > 1000 ? new Date() : new Date(event.value));
+                    this.run!.start(new Date(event.value));
                     this.getPlayerState();
                 });  
+                //!TODO: could be done in some more elegant way
+                setTimeout(() => {
+                    this.localPlayer.resetRunDependentProperties();
+                }, this.run!.timer.countdownSeconds * 1000)
                 break;
             
             case EventType.CheckRemoveRunner:
@@ -304,7 +321,7 @@ export class RunHandler {
             case EventType.ToggleReset:
                 this.zone.run(() => { 
                     if (this.run!.toggleVoteReset(event.user, event.value)) {
-                        this.userService._goal.runCommand("(send-event *target* 'loading)");
+                        OG.runCommand("(send-event *target* 'loading)");
                         this.localPlayer.state = PlayerState.Neutral;
                     }
                 });  

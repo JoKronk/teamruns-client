@@ -1,6 +1,6 @@
 import { GameState } from "./game-state";
 import { PlayerState } from "./player-state";
-import { Task } from "../run/task";
+import { Task } from "../opengoal/task";
 
 export class Player {
     name: string;

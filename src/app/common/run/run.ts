@@ -3,13 +3,13 @@ import { Player } from "../player/player";
 import { RunMode } from "./run-mode";
 import { RunData } from "./run-data";
 import { GameState } from "../player/game-state";
-import { Task } from "./task";
+import { Task } from "../opengoal/task";
 import { Team } from "./team";
 import { Timer } from "./timer";
 import { PlayerState } from "../player/player-state";
-import { GoalService } from "src/app/services/goal.service";
 import { RunState } from "./run-state";
 import { MultiLevel } from "./mutli-levels";
+import { OG } from "../opengoal/og";
 
 export class Run {
     data: RunData;
@@ -90,6 +90,9 @@ export class Run {
     }
 
     start(startDate: Date) {
+        const diff = (new Date().valueOf() - startDate.valueOf());
+        startDate = diff > 1000 || diff < 0 ? new Date() : startDate;
+
         startDate.setSeconds(startDate.getSeconds() + this.timer.countdownSeconds - 1);
         this.timer.startTimer(startDate.getTime());
     }
@@ -142,7 +145,7 @@ export class Run {
     // --- RUN METHODS INVOLVING OPENGOAL ---
 
     //used to sync runs between players for user join or in case of desync
-    importChanges(localPlayer: LocalPlayerData, run: Run, goal: GoalService) {
+    importChanges(localPlayer: LocalPlayerData, run: Run) {
 
         //handle run metedata
         if (this.timer.runState === RunState.Waiting)
@@ -178,7 +181,7 @@ export class Run {
                     //check for new tasks to give player
                     if (localPlayerImportedPlayer || this.data.mode === RunMode.CtC) {
                         importTeam.tasks.filter(x => !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
-                            this.giveCellToUser(goal, task, localPlayerImportedPlayer);
+                            this.giveCellToUser(task, localPlayerImportedPlayer);
                         });
                     }
 
@@ -187,14 +190,14 @@ export class Run {
 
                     //state update checks
                     if (localPlayerImportedPlayer) {
-                        this.onUserStateChange(goal, localPlayer, localPlayerImportedPlayer);
+                        this.onUserStateChange(localPlayer, localPlayerImportedPlayer);
                     }
                 }
             }
         });
     }
 
-    giveCellToUser(goal: GoalService, task: Task, player: Player | undefined) {
+    giveCellToUser(task: Task, player: Player | undefined) {
         if (!player) return;
 
         if (task.gameTask !== "int-finalboss-movies" && (this.getPlayerTeam(task.obtainedBy)?.name === this.getPlayerTeam(player.name)?.name || this.data.mode === RunMode.CtC)) {
@@ -202,39 +205,39 @@ export class Run {
                 let fuelCell = Task.getEnameMap().get(task.gameTask);
                 if (fuelCell) {
                     console.log("SENDING OG HIDE CELL!");
-                    goal.runCommand('(+! (-> (the fuel-cell (process-by-ename "' + fuelCell + '")) base y) (meters -200.0))');
+                    OG.runCommand('(+! (-> (the fuel-cell (process-by-ename "' + fuelCell + '")) base y) (meters -200.0))');
                 }
             }
             console.log("SENDING OG CELL PICKUP!");
-            goal.runCommand("(dm-give-cell (game-task " + task.gameTask + "))");
+            OG.runCommand("(dm-give-cell (game-task " + task.gameTask + "))");
         }
     }
 
-    onUserStateChange(goal: GoalService, localPlayer: LocalPlayerData, player: Player) {
+    onUserStateChange(localPlayer: LocalPlayerData, player: Player) {
         const team = this.getPlayerTeam(player.name);
         if (!team) return;
 
         let levelToCheck = team.players[0]?.gameState.currentLevel;
+
         //if all on same level hub zoomer
-        if (!this.data.allowSoloHubZoomers) {
-            if (!localPlayer.restrictedZoomerLevels.includes(player.gameState.currentLevel) || team.players.every(x => x.gameState.onZoomer && x.gameState.currentLevel === levelToCheck)) {
-                console.log("ALLOW ZOOMER USE!");
-                goal.runCommand("(set-zoomer-full-mode)");
-                localPlayer.restrictedZoomerLevels = localPlayer.restrictedZoomerLevels.filter(x => x !== player!.gameState.currentLevel);
-            }
-            else {
-                console.log("DISALLOW ZOOMER USE!");
-                goal.runCommand("(set-zoomer-wait-mode)");
-            }
+        if (!localPlayer.restrictedZoomerLevels.includes(player.gameState.currentLevel) || team.players.every(x => x.gameState.onZoomer && x.gameState.currentLevel === levelToCheck)) {
+            console.log("ALLOW ZOOMER USE!");
+            OG.runCommand("(set-zoomer-full-mode)");
+            localPlayer.restrictedZoomerLevels = localPlayer.restrictedZoomerLevels.filter(x => x !== player!.gameState.currentLevel);
         }
+        else if (!this.data.allowSoloHubZoomers) {
+            console.log("DISALLOW ZOOMER USE!");
+            OG.runCommand("(set-zoomer-wait-mode)");
+        }
+
         if (this.data.requireSameLevel) {
             if (team.players.every(x => this.isSameLevel(x.gameState.currentLevel, levelToCheck))) {
                 console.log("ALLOW CELL PICKUP!");
-                goal.runCommand("(set! *allow-cell-pickup?* #t)");
+                OG.runCommand("(set! *allow-cell-pickup?* #t)");
             }
             else {
                 console.log("DISALLOW CELL PICKUP!");
-                goal.runCommand("(set! *allow-cell-pickup?* #f)");
+                OG.runCommand("(set! *allow-cell-pickup?* #f)");
             }
         }
     }

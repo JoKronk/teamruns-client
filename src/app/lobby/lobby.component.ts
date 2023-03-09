@@ -10,6 +10,7 @@ import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { Lobby } from '../common/firestore/lobby';
 import { RunMode } from '../common/run/run-mode';
+import { OG } from '../common/opengoal/og';
 
 @Component({
   selector: 'app-lobby',
@@ -24,6 +25,7 @@ export class LobbyComponent implements OnDestroy {
   showPlayers: boolean = true;
   avaliableLobbies: Lobby[] = [];
   unavaliableLobbies: Lobby[] = [];
+
   lobbiesSubscription: Subscription;
 
   constructor(public _user: UserService, private _firestore: FireStoreService, private router: Router, private dialog: MatDialog) {
@@ -44,7 +46,7 @@ export class LobbyComponent implements OnDestroy {
     if (!this._user.user.ogFolderpath)
       this.dialog.open(SetPathComponent);
     else
-      this._user._goal.startGame();
+      OG.startGame();
   }
 
   routeToRun(runId: string) {

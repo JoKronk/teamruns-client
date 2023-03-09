@@ -1,6 +1,7 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
+import { OG } from '../common/opengoal/og';
 import { User } from '../common/user/user';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { FireStoreService } from '../services/fire-store.service';
@@ -46,7 +47,7 @@ export class StartScreenComponent {
     if (!this._user.user.ogFolderpath)
       this.dialog.open(SetPathComponent);
     else
-    this._user._goal.startGame();
+      OG.startGame();
   }
 
   checkVideoLoad() {

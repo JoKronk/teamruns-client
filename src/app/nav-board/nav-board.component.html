@@ -3,12 +3,13 @@
 
     <div class="list-container">
         <div class="list-item">
-            <p (click)="_user._goal.startGame()">Relaunch Game</p>
+            <p (click)="startGame()">Relaunch Game</p>
         </div>
         <div class="list-item">
             <p (click)="openPathConfig()">Config Path</p>
         </div>
     </div>
+    
     <h1 class="backtext text-in-background" title="Settings">Settings</h1>
     <p id="name" class="text-in-background" [title]="_user.getName()">{{ _user.getName() }}</p>
 </div>

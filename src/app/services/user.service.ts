@@ -1,10 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SnackbarComponent } from '../snackbar/snackbar.component';
-import { GoalService } from './goal.service';
 import { User } from '../common/user/user';
-import { Run } from '../common/run/run';
-import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +14,7 @@ export class UserService {
   viewSettings: boolean = false;
   trackerConnected: boolean = false;
 
-  constructor(public _goal: GoalService, private _snackbar: MatSnackBar, private zone: NgZone) { 
+  constructor(private _snackbar: MatSnackBar, private zone: NgZone) { 
     this.setupReceiver();
     this.readSettings();
     this.checkTrackerConnection();
@@ -70,11 +67,6 @@ export class UserService {
       console.log(message);
       this.sendNotification(message);
     });
-  }
-
-  //does nothing atm, should probably be moved
-  closeAll(): void {
-    (window as any).electron.send('window-close');
   }
 
   //settings read

@@ -6,12 +6,13 @@ const fs = require('fs');
 const spawn = require('child_process').spawn;
 let win = null;
 
-var modStatePath = "/data";
+var modFilesPath = "/data";
 
 var openGoalGk = null;
 var openGoalTracker = null;
 var openGoalWatcher = null;
 var openGoalGameState = null;
+var openGoalTaskStatus = null;
 var trackerConnectedState = false;
 var openGoalHasStarted = false;
 
@@ -41,7 +42,7 @@ class OpenGoal {
         this.startOG(ogPath);
         await sleep(2000);
         
-        this.runGameStateWatcher(ogPath);
+        this.runModWatchers(ogPath);
         
         openGoalGk.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
         openGoalGk.on('connect', () => {
@@ -156,36 +157,66 @@ class OpenGoal {
         }
     }
 
-    runGameStateWatcher(ogPath) {
+    runModWatchers(ogPath) {
         if (openGoalWatcher)
             openGoalWatcher.close();
 
-        let path = ogPath + modStatePath;
-        this.checkCreateGameStateFileExists(path);
+        let path = ogPath + modFilesPath;
+        this.checkCreateFileExists(path + "/mod-states.json");
+        this.checkCreateFileExists(path + "/task-status.json");
+
         openGoalWatcher = fs.watch(path, (event, filename) => {
-            if (event == "change" && filename == "mod-states.json")
+            if (event != "change") return;
+
+            if (filename == "mod-states.json")
                 this.readGameState(path + "/" + filename);
+            else if (filename == "task-status.json")
+                this.readTasksStatus(path + "/" + filename);
         });
     }
 
-    checkCreateGameStateFileExists(path) {
-        let file = path + "/mod-states.json";
+    checkCreateFileExists(file) {
         if (!fs.existsSync(file)) {
             fs.writeFileSync(file, "");
         }
     }
 
     async readGameState(path) {
-        path ??= await getOpenGoalPath() + modStatePath + "/mod-states.json";
+        path ??= await getOpenGoalPath() + modFilesPath + "/mod-states.json";
         console.log("reading from " + path);
         fs.readFile(path, 'utf8', (err, data) => {
             if (err) {
                 console.log(err);
                 return;
             }
-            openGoalGameState = JSON.parse(data);
-            this.sendClientStateUpdate();
+            let gameState = JSON.parse(data);
+            if (JSON.stringify(openGoalGameState) !== JSON.stringify(gameState)) {
+                openGoalGameState = gameState;
+                console.log("STATE UPDATE!");
+                this.sendClientStateUpdate();
+            }
         });
+    }
+
+    async readTasksStatus(path) {
+        path ??= await getOpenGoalPath() + modFilesPath + "/task-status.json";
+        console.log("reading from " + path);
+        fs.readFile(path, 'utf8', (err, data) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            let taskStatus = JSON.parse(data);
+            if (JSON.stringify(openGoalTaskStatus) !== JSON.stringify(taskStatus)) {
+                openGoalTaskStatus = taskStatus;
+                console.log("TASK UPDATE!");
+                this.sendClientTaskStatusUpdate();
+            }
+        });
+    }
+
+    resetTaskStatus() {
+        openGoalTaskStatus = null;
     }
 
     sendClientTrackerState() {
@@ -194,6 +225,10 @@ class OpenGoal {
 
     sendClientStateUpdate() {
         win.webContents.send("og-state-update", openGoalGameState);
+    }
+
+    sendClientTaskStatusUpdate() {
+        win.webContents.send("og-task-status-update", openGoalTaskStatus);
     }
 
     sendClientMessage(msg) {

@@ -9,6 +9,19 @@ export class Task {
         this.obtainedAt = timerTime;
     }
 
+    public static getTaskStatusValues(): Map<string, number> {
+        return new Map([
+            ["invalid", 8], //is 0 in game but making it 8 here as it's set last
+            ["unknown", 1],
+            ["need-hint", 2],
+            ["need-introduction", 3],
+            ["need-reminder-a", 4],
+            ["need-reminder", 5],
+            ["need-reward-speech", 6],
+            ["need-resolution", 7]
+        ])
+    }
+
     public static getEnameMap(): Map<string, string> {
         return new Map([
             ["training-gimmie", "fuel-cell-55"],
