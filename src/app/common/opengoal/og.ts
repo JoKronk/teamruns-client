@@ -14,9 +14,4 @@ export class OG {
     if (!(window as any).electron) return;
       (window as any).electron.send('og-command', command);
   }
-
-  static resetTaskStatus(): void {
-    if (!(window as any).electron) return;
-      (window as any).electron.send('og-task-status-reset');
-  }
 }

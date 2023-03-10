@@ -46,7 +46,6 @@ export class Timer {
         if (this.runState === RunState.Countdown) {
             if (!hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
                 OG.startRun();
-                OG.resetTaskStatus();
                 hasSpawnedPlayer = true;
             }
             if (this.startDateMs! <= currentTimeMs)
