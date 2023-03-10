@@ -1,10 +1,12 @@
 export class Task {
     gameTask: string;
+    isCell: boolean;
     obtainedBy: string;
     obtainedAt: string;
 
     constructor(task: string, obtainedBy: string, timerTime: string) {
         this.gameTask = task;
+        this.isCell = Task.isCell(task);
         this.obtainedBy = obtainedBy;
         this.obtainedAt = timerTime;
     }

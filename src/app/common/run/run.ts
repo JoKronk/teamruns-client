@@ -49,10 +49,7 @@ export class Run {
         
         this.timer.reset();
         this.teams.forEach(team => {
-            team.tasks = [];
-            team.players.forEach(player => {
-                player.state = PlayerState.Neutral;
-            })
+            team.resetForRun();
         });
         return true;
     }
@@ -76,7 +73,7 @@ export class Run {
     }
 
     addSplit(task: Task): void {
-            this.getPlayerTeam(task.obtainedBy)?.tasks.unshift(task);
+            this.getPlayerTeam(task.obtainedBy)?.addTask(task);
     }
 
     toggleReady(playerName: string, state: PlayerState): void {
@@ -191,13 +188,14 @@ export class Run {
                     let localPlayerImportedPlayer = team.players.find(x => x.name === localPlayer.name);
                     //check for new tasks to give player
                     if (localPlayerImportedPlayer || this.data.mode === RunMode.CtC) {
-                        importTeam.tasks.filter(x => !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
+                        importTeam.tasks.filter(x => x.isCell && !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
                             this.giveCellToUser(task, localPlayerImportedPlayer);
                         });
                     }
 
                     //transfer tasks
                     team.tasks = importTeam.tasks;
+                    team.cellCount = importTeam.cellCount;
 
                     //state update checks
                     if (localPlayerImportedPlayer) {
@@ -220,7 +218,7 @@ export class Run {
                 }
             }
             console.log("SENDING OG CELL PICKUP!");
-            OG.runCommand("(dm-give-cell (game-task " + task.gameTask + "))");
+            OG.giveCell(task.gameTask);
         }
     }
 
