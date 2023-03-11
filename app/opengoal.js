@@ -46,19 +46,25 @@ class OpenGoal {
         openGoalGk.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
         openGoalGk.on('connect', () => {
             this.setupOG();
+            this.runTracker();
         });
-
-        this.runTracker();
+        openGoalGk.on('error', function(ex) {
+            this.sendClientMessage("Failed to start the client properly, please relaunch!");
+        });
     }
 
 
     killOG(spareGk = false) {
         try {
+            openGoalHasStarted = false;
+            
             var shell = new winax.Object('WScript.Shell');
             if (!spareGk)
                 shell.Exec("taskkill /F /IM gk.exe");
             shell.Exec("taskkill /F /IM goalc.exe");
-            openGoalHasStarted = false;
+
+            if (openGoalTracker) 
+                spawn("taskkill", ["/pid", openGoalTracker.pid, '/f', '/t']);
         }
         catch (e) { this.sendClientMessage(e.message); }
     }
@@ -99,9 +105,6 @@ class OpenGoal {
     
     // --- TRACKING ---
    runTracker() {
-        if (openGoalTracker) 
-            spawn("taskkill", ["/pid", openGoalTracker.pid, '/f', '/t']);
-
         console.log("Running Tracker!");
         try {
             openGoalTracker = spawn(path.join(__dirname, '../tracker/JakTracker.exe'), [path.join(__dirname, '../tracker/')]);     
