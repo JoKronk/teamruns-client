@@ -60,7 +60,6 @@ function createWindow() {
 
   ipcMain.on('og-start-run', () => {
     openGoal.writeGoalCommand("(progress-fast-save-and-start-speedrun (speedrun-category full-game))");
-    openGoal.resetTaskStatus();
   });
 
   ipcMain.on('og-command', (event, command) => {
@@ -69,10 +68,6 @@ function createWindow() {
 
   ipcMain.on('og-state-read', () => {
     openGoal.sendClientStateUpdate();
-  });
-
-  ipcMain.on('og-task-status-read', () => {
-    openGoal.sendClientTaskStatusUpdate();
   });
 
   ipcMain.on('og-tracker-connected-read', () => {

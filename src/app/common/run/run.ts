@@ -207,9 +207,9 @@ export class Run {
     }
 
     giveCellToUser(task: Task, player: Player | undefined) {
-        if (!player) return;
+        if (!player || !task.isCell) return;
 
-        if (task.gameTask !== "int-finalboss-movies" && (this.getPlayerTeam(task.obtainedBy)?.name === this.getPlayerTeam(player.name)?.name || this.data.mode === RunMode.CtC)) {
+        if ((this.getPlayerTeam(task.obtainedBy)?.name === this.getPlayerTeam(player.name)?.name || this.data.mode === RunMode.CtC)) {
             if (player?.gameState.currentLevel.includes(task.gameTask.substring(0, task.gameTask.indexOf("-"))) || !player.gameState.currentLevel) {
                 let fuelCell = Task.getEnameMap().get(task.gameTask);
                 if (fuelCell) {

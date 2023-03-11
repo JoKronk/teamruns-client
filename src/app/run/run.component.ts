@@ -91,8 +91,17 @@ export class RunComponent implements OnDestroy {
       this.zone.run(() => {
         if (!this.runHandler.run || !state || this.isSpectatorOrNull()) return;
 
-        if (this.localPlayer.gameState.hasChanged(state) && this.localPlayer.state !== PlayerState.Finished) {
-          this.localPlayer.gameState = Object.assign(new GameState(), state);
+        this.localPlayer.gameState.cellCount = state.cellCount;
+
+        //handle task status updates
+        if (this.localPlayer.gameState.hasSharedTaskChange(state) && this.runHandler.run.timer.runState === RunState.Waiting) {
+          this.runHandler.sendEvent(EventType.NewTaskStatusUpdate, state.sharedTasks);
+        }
+
+        //handle state change
+        if (this.localPlayer.gameState.hasPlayerStateChange(state) && this.localPlayer.state !== PlayerState.Finished) {
+          this.localPlayer.gameState.currentLevel = state.currentLevel;
+          this.localPlayer.gameState.onZoomer = state.onZoomer;
           this.runHandler.sendEvent(EventType.NewPlayerState, state);
           
           //handle klaww kill
@@ -117,11 +126,6 @@ export class RunComponent implements OnDestroy {
           this.runHandler.sendEvent(EventType.NewCell, cell);
         }
       });
-    });
-
-    (window as any).electron.receive("og-task-status-update", (tasks: any) => {
-      if (!this.runHandler.run || this.isSpectatorOrNull() || this.runHandler.run.timer.runState === RunState.Waiting) return;
-      this.runHandler.sendEvent(EventType.NewTaskStatusUpdate, tasks);
     });
   }
 

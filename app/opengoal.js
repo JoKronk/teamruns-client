@@ -12,7 +12,6 @@ var openGoalGk = null;
 var openGoalTracker = null;
 var openGoalWatcher = null;
 var openGoalGameState = null;
-var openGoalTaskStatus = null;
 var trackerConnectedState = false;
 var openGoalHasStarted = false;
 
@@ -42,7 +41,7 @@ class OpenGoal {
         this.startOG(ogPath);
         await sleep(2000);
         
-        this.runModWatchers(ogPath);
+        this.runStateWatcher(ogPath);
         
         openGoalGk.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
         openGoalGk.on('connect', () => {
@@ -99,18 +98,18 @@ class OpenGoal {
 
     
     // --- TRACKING ---
-    runTracker() {
-        if (openGoalTracker) 
-            openGoalTracker.kill();
+   runTracker() {
+    if (openGoalTracker) 
+        openGoalTracker.kill();
 
-        console.log("Running Tracker!");
-        try {
-            openGoalTracker = spawn('python', [path.join(__dirname, '../tracker/JakTracker.py'), path.join(__dirname, '../tracker/')]);     
-        }
-        catch (err) {
-            this.sendClientMessage("Error: " + err);
-        }
-        //On error
+    console.log("Running Tracker!");
+    try {
+        openGoalTracker = spawn('python', [path.join(__dirname, '../tracker/JakTracker.py'), path.join(__dirname, '../tracker/')]);     
+    }
+    catch (err) {
+        this.sendClientMessage("Error: " + err);
+    }
+    //On error
         openGoalTracker.stderr.on('data', (data) => {
             console.log(data.toString());
             this.sendClientMessage("Tracker Error!: " + data.toString());
@@ -157,21 +156,18 @@ class OpenGoal {
         }
     }
 
-    runModWatchers(ogPath) {
+    runStateWatcher(ogPath) {
         if (openGoalWatcher)
             openGoalWatcher.close();
 
         let path = ogPath + modFilesPath;
         this.checkCreateFileExists(path + "/mod-states.json");
-        this.checkCreateFileExists(path + "/task-status.json");
 
         openGoalWatcher = fs.watch(path, (event, filename) => {
             if (event != "change") return;
 
             if (filename == "mod-states.json")
                 this.readGameState(path + "/" + filename);
-            else if (filename == "task-status.json")
-                this.readTasksStatus(path + "/" + filename);
         });
     }
 
@@ -198,37 +194,12 @@ class OpenGoal {
         });
     }
 
-    async readTasksStatus(path) {
-        path ??= await getOpenGoalPath() + modFilesPath + "/task-status.json";
-        console.log("reading from " + path);
-        fs.readFile(path, 'utf8', (err, data) => {
-            if (err) {
-                console.log(err);
-                return;
-            }
-            let taskStatus = JSON.parse(data);
-            if (JSON.stringify(openGoalTaskStatus) !== JSON.stringify(taskStatus)) {
-                openGoalTaskStatus = taskStatus;
-                console.log("TASK UPDATE!");
-                this.sendClientTaskStatusUpdate();
-            }
-        });
-    }
-
-    resetTaskStatus() {
-        openGoalTaskStatus = null;
-    }
-
     sendClientTrackerState() {
       win.webContents.send("og-tracker-connected", trackerConnectedState);
     }
 
     sendClientStateUpdate() {
         win.webContents.send("og-state-update", openGoalGameState);
-    }
-
-    sendClientTaskStatusUpdate() {
-        win.webContents.send("og-task-status-update", openGoalTaskStatus);
     }
 
     sendClientMessage(msg) {
