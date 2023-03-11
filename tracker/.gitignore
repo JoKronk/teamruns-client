@@ -1,8 +1,0 @@
-
-*.exe
-__pycache__/*
-*.pyc
-*.pyo
-icons/*.psd
-*.psd
-out/*

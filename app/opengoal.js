@@ -99,17 +99,18 @@ class OpenGoal {
     
     // --- TRACKING ---
    runTracker() {
-    if (openGoalTracker) 
-        openGoalTracker.kill();
+        if (openGoalTracker) 
+            spawn("taskkill", ["/pid", openGoalTracker.pid, '/f', '/t']);
 
-    console.log("Running Tracker!");
-    try {
-        openGoalTracker = spawn('python', [path.join(__dirname, '../tracker/JakTracker.py'), path.join(__dirname, '../tracker/')]);     
-    }
-    catch (err) {
-        this.sendClientMessage("Error: " + err);
-    }
-    //On error
+        console.log("Running Tracker!");
+        try {
+            openGoalTracker = spawn(path.join(__dirname, '../tracker/JakTracker.exe'), [path.join(__dirname, '../tracker/')]);     
+        }
+        catch (err) {
+            this.sendClientMessage("Error: " + err);
+        }
+
+        //On error
         openGoalTracker.stderr.on('data', (data) => {
             console.log(data.toString());
             this.sendClientMessage("Tracker Error!: " + data.toString());
