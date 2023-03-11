@@ -92,6 +92,7 @@ export class RunComponent implements OnDestroy {
         if (!this.runHandler.run || !state || this.isSpectatorOrNull()) return;
 
         this.localPlayer.gameState.cellCount = state.cellCount;
+        this.localPlayer.checkDesync(this.runHandler.run);
 
         //handle task status updates
         if (this.localPlayer.gameState.hasSharedTaskChange(state) && this.runHandler.run.timer.runState === RunState.Waiting) {

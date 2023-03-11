@@ -3,6 +3,7 @@ import { GameState } from "../player/game-state";
 import { PlayerState } from "../player/player-state";
 import { RunMode } from "../run/run-mode";
 import { Task } from "../opengoal/task";
+import { Run } from "../run/run";
 
 export class LocalPlayerData {
   name: string;
@@ -13,6 +14,7 @@ export class LocalPlayerData {
   restrictedZoomerLevels: string[];
   tasksStatus: Map<string, number>;
   killKlawwOnSpot: boolean;
+  isSyncing: boolean = false;
 
   constructor() {
     this.name = "";
@@ -40,6 +42,33 @@ export class LocalPlayerData {
     OG.runCommand("(reset-actors 'life)");
     OG.runCommand("(process-release? *target*)");
     this.killKlawwOnSpot = false;
+  }
+
+
+
+  checkDesync(run: Run) {
+    if (this.isSyncing) return;
+    let team = run.getPlayerTeam(this.name);
+    if (!team) return;
+
+    if (team.cellCount > this.gameState.cellCount) {
+      const player = run.getPlayer(this.name);
+      if (!player) return;
+
+      this.isSyncing = true;
+      setTimeout(() => {  //give the player some time to spawn in
+        team!.tasks.filter(x => x.isCell && x.obtainedBy !== this.name).forEach(cell => {
+          run.giveCellToUser(cell, player);
+        });
+
+        setTimeout(() => {
+          this.isSyncing = false;
+        }, 1000);
+      }, 300);
+    }
+    //thought of adding a check for if you have more cells than others but this would instantly mess up a run for everyone 
+    //if you accidentally loaded a file with more cells than the run in it, and even though low I think the chance for that is higher than a desync this way
+
   }
 
 
