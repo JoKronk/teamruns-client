@@ -6,9 +6,9 @@
     </div>
     <div class="option">
         <p>Mode</p>
-        <select [(ngModel)]="runData.mode">
+        <select [(ngModel)]="runData.mode" (change)="changeMode()">
             <option [ngValue]="runMode.Speedrun">Speedrun</option>
-            <option [ngValue]="runMode.CtC">CtC Speedrun</option>
+            <option [ngValue]="runMode.SCR">Shared Cells Race</option>
         </select>
     </div>
     <div class="option">

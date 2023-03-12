@@ -58,7 +58,7 @@ export class Run {
         let player = this.getPlayer(playerName);
         if (!player) return;
         player.state = PlayerState.Finished;
-        if (this.everyoneHasFinished())
+        if (this.everyoneHasFinished() || this.data.mode === RunMode.SCR)
             this.timer.runState = RunState.Ended;
     }
 
@@ -187,7 +187,7 @@ export class Run {
                     //localPlayer player class, use to check if this is curernt players TEAM
                     let localPlayerImportedPlayer = team.players.find(x => x.name === localPlayer.name);
                     //check for new tasks to give player
-                    if (localPlayerImportedPlayer || this.data.mode === RunMode.CtC) {
+                    if (localPlayerImportedPlayer || this.data.mode === RunMode.SCR) {
                         importTeam.tasks.filter(x => x.isCell && !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
                             this.giveCellToUser(task, localPlayerImportedPlayer);
                         });
@@ -209,7 +209,7 @@ export class Run {
     giveCellToUser(task: Task, player: Player | undefined) {
         if (!player || !task.isCell) return;
 
-        if ((this.getPlayerTeam(task.obtainedBy)?.name === this.getPlayerTeam(player.name)?.name || this.data.mode === RunMode.CtC)) {
+        if ((this.getPlayerTeam(task.obtainedBy)?.name === this.getPlayerTeam(player.name)?.name || this.data.mode === RunMode.SCR)) {
             if (player?.gameState.currentLevel.includes(task.gameTask.substring(0, task.gameTask.indexOf("-"))) || !player.gameState.currentLevel) {
                 let fuelCell = Task.getEnameMap().get(task.gameTask);
                 if (fuelCell) {

@@ -54,12 +54,13 @@ function createWindow() {
     
 // --- FRONTEND COM ---
   ipcMain.on('og-start-game', () => {
-    sendClientMessage("Got to backend!");
     openGoal.runGameSetup();
   });
 
   ipcMain.on('og-start-run', () => {
     openGoal.writeGoalCommand("(progress-fast-save-and-start-speedrun (speedrun-category full-game))");
+    openGoal.writeGoalCommand("(set! *allow-cell-pickup?* #t)");
+    openGoal.writeGoalCommand("(set! *allow-final-boss?* #t)");
   });
 
   ipcMain.on('og-command', (event, command) => {

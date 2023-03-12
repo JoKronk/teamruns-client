@@ -57,9 +57,18 @@ export class LocalPlayerData {
 
       this.isSyncing = true;
       setTimeout(() => {  //give the player some time to spawn in
-        team!.tasks.filter(x => x.isCell && x.obtainedBy !== this.name).forEach(cell => {
-          run.giveCellToUser(cell, player);
-        });
+        if (run.data.mode !== RunMode.SCR) {
+          team!.tasks.filter(x => x.isCell).forEach(cell => {
+            run.giveCellToUser(cell, player);
+          });
+        }
+        else {
+          run.teams.forEach(team => {
+            team.tasks.filter(x => x.isCell).forEach(cell => {
+              run.giveCellToUser(cell, player);
+            });
+          });
+        }
 
         setTimeout(() => {
           this.isSyncing = false;

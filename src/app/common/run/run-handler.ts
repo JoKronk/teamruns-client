@@ -138,18 +138,19 @@ export class RunHandler {
             this.localSlave.peer.sendEvent(event);
             this.onDataChannelEvent(event, false); //to run on a potentially safer but slower mode disable this and send back the event from master/host
         }
-        else if (this.localMaster)
+        else if (this.localMaster) {
             this.onDataChannelEvent(event, true);
+
+            //send updates from master to all slaves
+            if (event.type !== EventType.Connect && event.type !== EventType.Disconnect && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
+                this.localMaster.relayToSlaves(event);
+        }
     }
 
 
 
     onDataChannelEvent(event: DataChannelEvent, isMaster: boolean) {
         const userId = this.userService.getName();
-
-        //send updates to master to all slaves
-        if (isMaster && event.type !== EventType.Connect && event.type !== EventType.Disconnect && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
-            this.localMaster?.relayToSlaves(event);
 
         switch (event.type) {
             case EventType.Connect: //rtc stuff on connection is setup individually in rtc-peer-master/slave
@@ -159,6 +160,7 @@ export class RunHandler {
                     this.sendEvent(EventType.RequestRunSync);
                 }
                 break;
+
 
             case EventType.Disconnect:
                 if(!this.lobby) return;
@@ -185,12 +187,14 @@ export class RunHandler {
                 }
                 break;
 
+
             case EventType.RequestRunSync:
                 if (isMaster)
                     console.log("Got run request, responding!");
                     this.localMaster?.respondToSlave(new DataChannelEvent(userId, EventType.RunSync, this.run), event.user);
                 break;
             
+
             case EventType.RunSync:       
                 this.zone.run(() => { 
                     console.log("Got run from request!", event.value);
@@ -223,13 +227,12 @@ export class RunHandler {
                             //clean out collectables so that missed ones are given on import
                             playerTeam.tasks = [];
                         }
-
                     }
-                    
+
                     this.run!.importChanges(this.localPlayer, event.value);
-                    
                 });
                 break;
+
 
 
             case EventType.EndPlayerRun:  
@@ -241,12 +244,14 @@ export class RunHandler {
                 });
                 break;
 
+
             case EventType.NewCell: 
                 if (!this.run) return;
                 this.zone.run(() => { 
                     this.run!.addSplit(event.value);
                 });
 
+                //handle none current user things
                 if (event.user !== userId) {
                     this.run.giveCellToUser(event.value, this.run.getPlayer(userId));
                     
@@ -258,7 +263,18 @@ export class RunHandler {
                     else //check if orb buy
                         this.localPlayer.checkForFirstOrbCellFromMultiSeller((event.value as Task).gameTask)
                 }
+
+                //handle SCR
+                if (this.run.data.mode === RunMode.SCR) {
+                    const playerTeam = this.run.getPlayerTeam(this.localPlayer.name);
+                    if (!playerTeam) break;
+                    if (this.run.teams.some(team => team.name !== playerTeam.name && team.cellCount > playerTeam.cellCount))
+                        OG.removeFinalBossAccess(this.localPlayer.gameState.currentLevel);
+                    else
+                        OG.giveFinalBossAccess(this.localPlayer.gameState.currentLevel);
+                }
                 break;
+
 
             case EventType.NewPlayerState: 
                 if (!this.run) return;
@@ -274,16 +290,19 @@ export class RunHandler {
                 } 
                 break;
 
+
             case EventType.NewTaskStatusUpdate:
                 if (!this.run || this.run.getPlayerTeam(event.user)?.name !== this.localPlayer.team) return;
                 this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.user === userId);
                 break;
 
+                
             case EventType.ChangeTeam:
                 this.zone.run(() => { 
                     this.run?.changeTeam(event.user, event.value);
                 });
                 break;
+
 
             case EventType.Ready:
                 this.zone.run(() => { 
@@ -299,6 +318,7 @@ export class RunHandler {
                 }     
                 break;
             
+
             case EventType.StartRun:
                 this.zone.run(() => { 
                     this.run!.start(new Date(event.value));
@@ -311,6 +331,7 @@ export class RunHandler {
                 }, this.run!.timer.countdownSeconds * 1000)
                 break;
             
+
             case EventType.CheckRemoveRunner:
                 if(this.run?.timer.runState === RunState.Waiting) {
                     this.zone.run(() => { 
@@ -318,6 +339,7 @@ export class RunHandler {
                     });  
                 }
                 break;
+
 
             case EventType.ToggleReset:
                 this.zone.run(() => { 
@@ -327,6 +349,7 @@ export class RunHandler {
                     }
                 });  
                 break;
+
 
             default:
                 console.log("MISSING EVENT TYPE IMPLEMENTATION!");

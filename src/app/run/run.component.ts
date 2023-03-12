@@ -140,6 +140,8 @@ export class RunComponent implements OnDestroy {
   private shouldAddTask(task: string): boolean {
     if (this.runHandler.run!.timer.runState !== RunState.Started || this.localPlayer.state === PlayerState.Finished || this.localPlayer.state === PlayerState.Forfeit)
       return false;
+    if (this.runHandler.run!.data.mode === RunMode.SCR && this.runHandler.run!.teams.some(team => team.tasks.some(x => x.gameTask === task)))
+      return false;
     if (task === "int-finalboss-movies")
       return true;
     if (Task.isCell(task)) {

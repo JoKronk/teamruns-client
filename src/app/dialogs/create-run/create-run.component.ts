@@ -33,4 +33,14 @@ export class CreateRunComponent {
     this.router.navigate(['/run'], { queryParams: { id: lobby.id } });
     this.dialogRef.close();
   }
+
+  changeMode() {
+    if (this.runData.mode === RunMode.Speedrun)
+      this.teamsOptions = [1, 2, 3, 4];
+    else if (this.runData.mode === RunMode.SCR) {
+      this.teamsOptions = [2, 3, 4];
+      if (this.runData.teams === 1)
+        this.runData.teams = 2;
+    }
+  }
 }
