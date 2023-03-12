@@ -30,7 +30,7 @@
           <div class="run-info">
             <h2 class="run-title">{{ lobby.runData.name }}</h2>
             <div>
-              <span>Teams: {{ lobby.runData.teams }} X {{ lobby.runData.teamSize }}</span>
+              <span>Teams: {{ lobby.runData.teams }}</span>
               <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
             </div>
           </div>
@@ -46,7 +46,7 @@
         <div *ngFor="let lobby of unavaliableLobbies" class="run" (mouseleave)="hideLobbyViewer()"  (mouseenter)="selectLobby(lobby)">
           <h2 class="run-title">{{ lobby.runData.name }}</h2>
           <p>
-            <span>Teams: {{ lobby.runData.teams }} X {{ lobby.runData.teamSize }}</span>
+            <span>Teams: {{ lobby.runData.teams }}</span>
             <span>Host: {{ lobby.host }}</span>
             <span>In Lobby: {{ lobby.spectators.length + lobby.runners.length }}</span>
             <span>Mode: {{ runMode[lobby.runData.mode] }}</span>

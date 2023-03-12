@@ -13,19 +13,11 @@
     </div>
     <div class="option">
         <p>Teams (for races)</p>
-        <select [(ngModel)]="runData.teams" (change)="updateRunSize()">
+        <select [(ngModel)]="runData.teams">
             <option *ngFor="let teams of teamsOptions" [ngValue]="teams">{{ teams }}</option>
         </select>
     </div>
-    <div class="option">
-        <p>Runners Per Team</p>
-        <select [(ngModel)]="runData.teamSize" (change)="updateRunSize()">
-            <option *ngFor="let runners of runnersOptions" [ngValue]="runners">{{ runners }}</option>
-        </select>
-    </div>
-
-    <p>Run size: {{ maxSize }}</p>
-    
+    <br />
     <label><input type="checkbox" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
     <label><input type="checkbox" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
     

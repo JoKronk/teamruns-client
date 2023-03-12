@@ -4,7 +4,6 @@ import { RunMode } from "./run-mode";
 export class RunData {
     //metadata
     name: string;
-    teamSize: number;
     teams: number;
     buildVersion: string;
 
@@ -15,7 +14,6 @@ export class RunData {
 
     constructor(version: string) {
         this.name = "";
-        this.teamSize = 3;
         this.teams = 1;
         this.buildVersion = version;
         this.mode = RunMode.Speedrun;

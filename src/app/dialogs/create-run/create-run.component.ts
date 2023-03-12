@@ -18,15 +18,12 @@ import { Lobby } from 'src/app/common/firestore/lobby';
 export class CreateRunComponent {
 
   runData: RunData = new RunData(pkg.version);
-  maxSize: number = 1;
-
   teamsOptions: number[] = [1, 2, 3, 4];
-  runnersOptions: number[] = [1, 2, 3, 4];
 
   runMode = RunMode;
 
   constructor(private _user: UserService, private _firestore: FireStoreService, private router: Router, private dialogRef: MatDialogRef<CreateRunComponent>) {
-    this.updateRunSize();
+    
   }
 
   createRun() {
@@ -35,9 +32,5 @@ export class CreateRunComponent {
     this._firestore.addLobby(lobby);
     this.router.navigate(['/run'], { queryParams: { id: lobby.id } });
     this.dialogRef.close();
-  }
-
-  updateRunSize() {
-    this.maxSize = this.runData.teams * this.runData.teamSize;
   }
 }
