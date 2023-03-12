@@ -33,6 +33,9 @@ export class RunComponent implements OnDestroy {
   localPlayer: LocalPlayerData = new LocalPlayerData();
   runHandler: RunHandler;
 
+  private stateListener: any;
+  private taskListener: any;
+
 
   constructor(public _user: UserService, private firestore: AngularFirestore, private route: ActivatedRoute, private zone: NgZone) {
     this.setupListeners();
@@ -87,7 +90,7 @@ export class RunComponent implements OnDestroy {
 
   setupListeners() {
     //state update
-    (window as any).electron.receive("og-state-update", (state: GameState) => {
+    this.stateListener = (window as any).electron.receive("og-state-update", (state: GameState) => {
       this.zone.run(() => {
         if (!this.runHandler.run || !state || this.isSpectatorOrNull()) return;
 
@@ -112,7 +115,7 @@ export class RunComponent implements OnDestroy {
     });
 
     //on task get
-    (window as any).electron.receive("og-task-update", (task: string) => {
+    this.taskListener = (window as any).electron.receive("og-task-update", (task: string) => {
       this.zone.run(() => {
         if (!this.runHandler.run || this.isSpectatorOrNull()) return;
 
@@ -150,6 +153,8 @@ export class RunComponent implements OnDestroy {
 
 
   destory() {
+    this.stateListener();
+    this.taskListener();
     this.runHandler.destroy();
   }
 

@@ -1,4 +1,4 @@
-import { Component, NgZone } from '@angular/core';
+import { Component, NgZone, OnDestroy } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { UserService } from 'src/app/services/user.service';
 
@@ -7,9 +7,10 @@ import { UserService } from 'src/app/services/user.service';
   templateUrl: './set-path.component.html',
   styleUrls: ['./set-path.component.scss']
 })
-export class SetPathComponent {
+export class SetPathComponent implements OnDestroy {
 
   path: string;
+  private pathListener: any;
 
   constructor (public _user: UserService, private dialogRef: MatDialogRef<SetPathComponent>, private zone: NgZone) {
     this.setPathListener();
@@ -26,10 +27,14 @@ export class SetPathComponent {
   }
 
   setPathListener() {
-    (window as any).electron.receive("settings-get-path", (path: string) => {
+    this.pathListener = (window as any).electron.receive("settings-get-path", (path: string) => {
       this.zone.run(() => {
         this.path = path;
       });
     });
+  }
+
+  ngOnDestroy(): void {
+    this.pathListener();
   }
 }

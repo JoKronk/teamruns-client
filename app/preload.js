@@ -12,8 +12,12 @@ contextBridge.exposeInMainWorld("electron", {
     },
     receive: (channel, func) => {
         if (validIpcChannelsOut.includes(channel)) {
+            const subscription = (event, ...args) => func(...args);
             // Deliberately strip event as it includes `sender` 
-            ipcRenderer.on(channel, (event, ...args) => func(...args));
+            ipcRenderer.on(channel, subscription);
+            return () => {
+                ipcRenderer.removeListener(channel, subscription);
+            };
         }
     }
 });
