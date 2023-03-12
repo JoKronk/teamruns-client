@@ -22,6 +22,8 @@ export class RunHandler {
     lobby: Lobby | undefined;
     run: Run | undefined;
 
+    loaded: boolean = false;
+
     localMaster: RTCPeerMaster | undefined;
     localSlave: RTCPeerSlave | undefined;
 
@@ -89,6 +91,7 @@ export class RunHandler {
             
             this.updateFirestoreLobby();
             this.setupMaster(userId);
+            this.loaded = true;
         }
 
         //become slave if master exists
@@ -230,6 +233,7 @@ export class RunHandler {
                     }
 
                     this.run!.importChanges(this.localPlayer, event.value);
+                    this.loaded = true;
                 });
                 break;
 
