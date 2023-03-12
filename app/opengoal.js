@@ -37,9 +37,9 @@ class OpenGoal {
         openGoalGk = new net.Socket();
 
         this.killOG();
-        await sleep(1000);
+        await sleep(1500);
         this.startOG(ogPath);
-        await sleep(2000);
+        await sleep(2500);
         
         this.runStateWatcher(ogPath);
         
@@ -48,7 +48,7 @@ class OpenGoal {
             this.setupOG();
             this.runTracker();
         });
-        openGoalGk.on('error', function(ex) {
+        openGoalGk.on('error', (ex) => {
             this.sendClientMessage("Failed to start the client properly, please relaunch!");
         });
     }
@@ -66,7 +66,7 @@ class OpenGoal {
             if (openGoalTracker) 
                 spawn("taskkill", ["/pid", openGoalTracker.pid, '/f', '/t']);
         }
-        catch (e) { this.sendClientMessage(e.message); }
+        catch (e) { this.sendClientMessage(e); }
     }
 
     startOG(ogPath) {
@@ -76,7 +76,7 @@ class OpenGoal {
             shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open", 0);
             openGoalHasStarted = true;
         }
-        catch (e) { this.sendClientMessage(e.message); }
+        catch (e) { this.sendClientMessage(e); }
     }
 
     setupOG() {
@@ -189,11 +189,16 @@ class OpenGoal {
                 console.log(err);
                 return;
             }
-            let gameState = JSON.parse(data);
-            if (JSON.stringify(openGoalGameState) !== JSON.stringify(gameState)) {
-                openGoalGameState = gameState;
-                console.log("STATE UPDATE!");
-                this.sendClientStateUpdate();
+            try {
+                let gameState = JSON.parse(data);
+                if (JSON.stringify(openGoalGameState) !== JSON.stringify(gameState)) {
+                    openGoalGameState = gameState;
+                    console.log("STATE UPDATE!");
+                    this.sendClientStateUpdate();
+                }
+            }
+            catch (ex) {
+                this.sendClientMessage("Failed to parse: " + data);
             }
         });
     }
