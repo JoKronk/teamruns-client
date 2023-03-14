@@ -258,13 +258,15 @@ export class RunHandler {
                 if (event.user !== userId) {
                     this.run.giveCellToUser(event.value, this.run.getPlayer(userId));
                     
-                    //handle klaww kill
-                    if ((event.value as Task).gameTask === "ogre-boss") {
-                        this.localPlayer.killKlawwOnSpot = true;
-                        this.localPlayer.checkKillKlaww();
+                    if (this.run.getPlayerTeam(event.user)?.name === this.localPlayer.team) {
+                        //handle klaww kill
+                        if ((event.value as Task).gameTask === "ogre-boss") {
+                            this.localPlayer.killKlawwOnSpot = true;
+                            this.localPlayer.checkKillKlaww();
+                        }
+                        else //check if orb buy
+                            this.localPlayer.checkForFirstOrbCellFromMultiSeller((event.value as Task).gameTask);
                     }
-                    else //check if orb buy
-                        this.localPlayer.checkForFirstOrbCellFromMultiSeller((event.value as Task).gameTask)
                 }
 
                 //handle SCR
