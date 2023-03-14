@@ -98,7 +98,8 @@ export class RunComponent implements OnDestroy {
         this.localPlayer.checkDesync(this.runHandler.run);
 
         //handle task status updates
-        if (this.localPlayer.gameState.hasSharedTaskChange(state) && this.runHandler.run.timer.runState === RunState.Waiting) {
+        if (this.localPlayer.gameState.hasSharedTaskChange(state) && this.runHandler.run.timer.runState !== RunState.Waiting) {
+          this.localPlayer.gameState.sharedTasks = state.sharedTasks;
           this.runHandler.sendEvent(EventType.NewTaskStatusUpdate, state.sharedTasks);
         }
 
