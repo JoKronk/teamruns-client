@@ -141,19 +141,18 @@ export class RunHandler {
             this.localSlave.peer.sendEvent(event);
             this.onDataChannelEvent(event, false); //to run on a potentially safer but slower mode disable this and send back the event from master/host
         }
-        else if (this.localMaster) {
+        else if (this.localMaster)
             this.onDataChannelEvent(event, true);
-
-            //send updates from master to all slaves
-            if (event.type !== EventType.Connect && event.type !== EventType.Disconnect && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
-                this.localMaster.relayToSlaves(event);
-        }
     }
 
 
 
     onDataChannelEvent(event: DataChannelEvent, isMaster: boolean) {
         const userId = this.userService.getName();
+
+        //send updates to master to all slaves | this should be here and not moved up to sendEvent as it's not the only method triggering this
+        if (isMaster && event.type !== EventType.Connect && event.type !== EventType.Disconnect && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
+            this.localMaster?.relayToSlaves(event);
 
         switch (event.type) {
             case EventType.Connect: //rtc stuff on connection is setup individually in rtc-peer-master/slave
