@@ -333,7 +333,7 @@ export class RunHandler {
             case EventType.StartRun:
                 this.zone.run(() => { 
                     this.run!.start(new Date());
-                    this.run!.setOrbCosts(this.localPlayer.team);
+                    this.run!.setOrbCosts(this.localPlayer.name);
                     this.getPlayerState();
                 });  
                 //!TODO: could be done in some more elegant way
