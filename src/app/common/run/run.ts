@@ -87,9 +87,6 @@ export class Run {
     }
 
     start(startDate: Date) {
-        const diff = (new Date().valueOf() - startDate.valueOf());
-        startDate = diff > 1000 || diff < 0 ? new Date() : startDate;
-
         startDate.setSeconds(startDate.getSeconds() + this.timer.countdownSeconds - 1);
         this.timer.startTimer(startDate.getTime());
     }
