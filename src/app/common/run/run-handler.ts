@@ -16,6 +16,7 @@ import { NgZone } from "@angular/core";
 import { Timer } from "./timer";
 import { Task } from "../opengoal/task";
 import { OG } from "../opengoal/og";
+import { Team } from "./team";
 
 export class RunHandler {
     
@@ -197,7 +198,7 @@ export class RunHandler {
                 break;
             
 
-            case EventType.RunSync:       
+            case EventType.RunSync:
                 this.zone.run(() => { 
                     console.log("Got run from request!", event.value);
 
@@ -206,6 +207,11 @@ export class RunHandler {
                         //update run
                         let run: Run = JSON.parse(JSON.stringify(event.value)); //to not cause referece so that import can run properly on the run after
                         this.run = Object.assign(new Run(run.data), run);
+                        let teams: Team[] = [];
+                        for (let team of this.run.teams) {
+                            teams.push(Object.assign(new Team(team.name), team));
+                        }
+                        this.run.teams = teams;
                         this.run.timer = Object.assign(new Timer(run.timer.countdownSeconds), run.timer);
                         this.run.timer.updateTimer();
 
