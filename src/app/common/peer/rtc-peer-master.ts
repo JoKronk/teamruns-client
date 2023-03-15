@@ -7,17 +7,17 @@ import { RTCPeer, RTCPeerSlaveConnection } from "./rtc-peer";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
 
 export class RTCPeerMaster {
-    user: string;
+    userId: string;
 
     lobbyDoc: AngularFirestoreDocument<Lobby>;
-    dataChannel: Subject<DataChannelEvent>;
+    eventChannel: Subject<DataChannelEvent>;
 
     peerSubscriptions: Subscription[];
     peers: RTCPeerSlaveConnection[];
 
-    constructor(user: string, doc: AngularFirestoreDocument<Lobby>) {
-        this.user = user;
-        this.dataChannel = new Subject();
+    constructor(userId: string, doc: AngularFirestoreDocument<Lobby>) {
+        this.userId = userId;
+        this.eventChannel = new Subject();
         this.lobbyDoc = doc;
         this.peers = [];
         this.peerSubscriptions = [];
@@ -27,8 +27,8 @@ export class RTCPeerMaster {
             if (!lobbyData.exists) return;
             let lobby = lobbyData.data();
 
-            if (lobby && !lobby.spectators.concat(lobby.runners).includes(user)) {
-                lobby.spectators.push(user);
+            if (lobby && !lobby.spectators.concat(lobby.runners).includes(userId)) {
+                lobby.spectators.push(userId);
                 doc.set(JSON.parse(JSON.stringify(lobby)));
             }
         });
@@ -36,11 +36,11 @@ export class RTCPeerMaster {
 
     onLobbyChange(lobby: Lobby) {
         //check if new users
-        lobby.spectators.concat(lobby.runners).filter(x => x !== this.user && !this.peers.some(({ user: user }) => user === x)).forEach(user => {
+        lobby.spectators.concat(lobby.runners).filter(x => x !== this.userId && !this.peers.some(({ userId: userId }) => userId === x)).forEach(userId => {
 
-            console.log("master: GOT NEW USER!", user);
+            console.log("master: GOT NEW USER!", userId);
             //setup user handling
-            const peerSubscription = this.lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(user).snapshotChanges().subscribe(snapshot => {
+            const peerSubscription = this.lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(userId).snapshotChanges().subscribe(snapshot => {
                 if (snapshot.payload.metadata.hasPendingWrites) return;
                 const peer = snapshot.payload.data();
                 if (!peer) return;
@@ -55,7 +55,7 @@ export class RTCPeerMaster {
 
     handlePeerConnectionChanges(peer: RTCPeer) {
 
-        let existingSlave = this.peers.find(x => x.user === peer.user);
+        let existingSlave = this.peers.find(x => x.userId === peer.userId);
         if (!existingSlave) {
             this.setupNewPeerConnection(peer);
         }
@@ -80,7 +80,7 @@ export class RTCPeerMaster {
 
 
         //setup master connection to peer
-        slave.peer = new RTCPeerDataConnection(this.dataChannel, slave.user);
+        slave.peer = new RTCPeerDataConnection(this.eventChannel, slave.userId, true);
         
         slave.peer.connection.onicecandidate = (event) => {
             if (event.candidate) {
@@ -106,19 +106,19 @@ export class RTCPeerMaster {
         //!TODO: should setup a better solution for this, check slave side equivalent for further comments on it
         setTimeout(() => {
             console.log("Setting connection in db: ", peer);
-            this.lobbyDoc.collection(CollectionName.peerConnections).doc(peer.user).set(JSON.parse(JSON.stringify(peer)));
+            this.lobbyDoc.collection(CollectionName.peerConnections).doc(peer.userId).set(JSON.parse(JSON.stringify(peer)));
         }, 500);
     }
 
     relayToSlaves(event: DataChannelEvent) {
         this.peers.forEach(slave => {
-            if (slave.user !== event.user)
+            if (slave.userId !== event.user)
                 slave.peer.sendEvent(event);
         });
     }
 
-    respondToSlave(event: DataChannelEvent, user: string) {
-        const peer = this.peers.find(x => x.user === user);
+    respondToSlave(event: DataChannelEvent, userId: string) {
+        const peer = this.peers.find(x => x.userId === userId);
         if (!peer) return;
 
         peer.peer.sendEvent(event);

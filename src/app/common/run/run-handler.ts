@@ -114,7 +114,7 @@ export class RunHandler {
     setupMaster(userId: string) {
         console.log("Setting up master!");
         this.localMaster = new RTCPeerMaster(userId, this.lobbyDoc);
-        this.dataSubscription = this.localMaster.dataChannel.subscribe(event => {
+        this.dataSubscription = this.localMaster.eventChannel.subscribe(event => {
             this.onDataChannelEvent(event, true);
         });
     }
@@ -122,7 +122,7 @@ export class RunHandler {
     setupSlave(userId: string) {
         console.log("Setting up slave!");
         this.localSlave = new RTCPeerSlave(userId, this.lobbyDoc);
-        this.dataSubscription = this.localSlave.dataChannel.subscribe(event => {
+        this.dataSubscription = this.localSlave.eventChannel.subscribe(event => {
             this.onDataChannelEvent(event, false);
         });
     }
@@ -169,10 +169,10 @@ export class RunHandler {
                 if(!this.lobby) return;
 
                 if (isMaster) {
-                    let peer = this.localMaster!.peers.find(x => x.user === event.user);
+                    let peer = this.localMaster!.peers.find(x => x.userId === event.user);
                     peer?.peer.destory();
                     if (peer)
-                        this.localMaster!.peers = this.localMaster!.peers.filter(x => x.user !== event.user)
+                        this.localMaster!.peers = this.localMaster!.peers.filter(x => x.userId !== event.user)
 
                     this.lobby.runners = this.lobby.runners.filter(user => user !== event.user);
                     this.lobby.spectators = this.lobby.spectators.filter(user => user !== event.user);

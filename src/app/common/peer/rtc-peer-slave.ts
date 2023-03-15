@@ -14,19 +14,19 @@ export class RTCPeerSlave {
     peerDoc: AngularFirestoreDocument<RTCPeer>;
     peerDocSubscription: Subscription;
     
-    dataChannel: Subject<DataChannelEvent>;
+    eventChannel: Subject<DataChannelEvent>;
 
     peerData: RTCPeer;
 
     constructor(user: string, doc: AngularFirestoreDocument<Lobby>) {
-        this.dataChannel = new Subject();
+        this.eventChannel = new Subject();
         this.peerDoc = doc.collection<RTCPeer>(CollectionName.peerConnections).doc(user);
         this.peerData = new RTCPeer(user);
 
         this.preCreationCleanup(user, doc, this.peerDoc);
     }
 
-    private async preCreationCleanup(user: string, lobbyDoc: AngularFirestoreDocument<Lobby>, peerDoc: AngularFirestoreDocument<RTCPeer>) {
+    private async preCreationCleanup(userId: string, lobbyDoc: AngularFirestoreDocument<Lobby>, peerDoc: AngularFirestoreDocument<RTCPeer>) {
         //add user to spectate list (await this.runs.doc(id).ref.get()).data()
         let lobbyData = await lobbyDoc.ref.get();
         if (!lobbyData.exists) return;
@@ -41,27 +41,27 @@ export class RTCPeerSlave {
             await peerDoc.delete();
             
             //make sure user is not reconnecting from a disconnect, temp removal is needed if so to let host know that user needs a new connection
-            if (lobby.runners.includes(user)) {
-                lobby.runners = lobby.runners.filter(x => x !== user);
+            if (lobby.runners.includes(userId)) {
+                lobby.runners = lobby.runners.filter(x => x !== userId);
                 await this.updateFirestoreLobby(lobbyDoc, lobby);
 
-                lobby!.runners.push(user);
+                lobby!.runners.push(userId);
                 this.updateFirestoreLobby(lobbyDoc, lobby!);
                 pushUserToSpectators = false;
             }
 
-            if (lobby.spectators.includes(user)) {
-                lobby.spectators = lobby.spectators.filter(x => x !== user);
+            if (lobby.spectators.includes(userId)) {
+                lobby.spectators = lobby.spectators.filter(x => x !== userId);
                 await this.updateFirestoreLobby(lobbyDoc, lobby);
             }
         }
 
         if (pushUserToSpectators) {
-            lobby!.spectators.push(user);
+            lobby!.spectators.push(userId);
             await this.updateFirestoreLobby(lobbyDoc, lobby);
         }
 
-        this.createPeerConnection(user);
+        this.createPeerConnection(userId);
     }
 
     private async updateFirestoreLobby(doc: AngularFirestoreDocument<Lobby>, lobby: Lobby) {
@@ -69,7 +69,7 @@ export class RTCPeerSlave {
     }
 
     private async createPeerConnection(user: string) {
-        this.peer = new RTCPeerDataConnection(this.dataChannel, user);
+        this.peer = new RTCPeerDataConnection(this.eventChannel, user, false);
 
         //listen for slave candidates to be created, might need to be done before .createOffer() according to some unlisted documentation
         this.peer.connection.onicecandidate = (event) => {

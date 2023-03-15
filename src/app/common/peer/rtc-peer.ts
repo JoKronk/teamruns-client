@@ -1,7 +1,7 @@
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
 
 export class RTCPeer{
-    user: string;
+    userId: string;
 
     masterDescription: RTCSessionDescriptionInit;
     masterCandidates: RTCIceCandidate[];
@@ -10,7 +10,7 @@ export class RTCPeer{
     slaveCandidates: RTCIceCandidate[];
 
     constructor (user: string) {
-        this.user = user;
+        this.userId = user;
         this.masterCandidates = [];
         this.slaveCandidates = [];
     }
