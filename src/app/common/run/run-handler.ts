@@ -62,11 +62,24 @@ export class RunHandler {
                 let playerTeam = this.run.getPlayerTeam(this.localPlayer.name);
                 if (playerTeam) 
                     this.localPlayer.team = playerTeam;
+                else
+                    this.checkCleanSelfRemains();
             }
 
             this.onLobbyChange();
         });
 
+    }
+
+
+    checkCleanSelfRemains() {
+        const userId = this.userService.getName();
+        if (this.lobby?.runners.includes(userId)) {
+            this.lobby.runners = this.lobby.runners.filter(x => x !== userId);
+            if (!this.lobby.spectators.includes(userId))
+                this.lobby.spectators.push(userId);
+            this.updateFirestoreLobby();
+        }
     }
 
 
