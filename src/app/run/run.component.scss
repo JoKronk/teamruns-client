@@ -28,19 +28,22 @@
                 margin-left: -8px;
             }
             & .settings {
-                font-family: 'Segoe UI';
-                font-size: 16px;
-                margin-top: 40px;
-                text-decoration: underline;
-                color: #a56d06;
-                transition: 0.12s;
+                height: 22px;
+                margin-right: 8px;
+                margin-top: 44px;
+                & g {
+                    fill: #929292;
+                    transition: 0.22s;
+                }
                 &:hover {
                     cursor: pointer;
-                    color: #380000;
+                    & g {
+                        fill: #a56d06;
+                    }
                 }
-            }
-            & .back {
-                margin-left: 6px;
+                &:focus {
+                    outline: none;
+                }
             }
         }
         & .logo {

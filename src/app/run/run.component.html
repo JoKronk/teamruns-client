@@ -12,8 +12,23 @@
     <div class="run-header">
       <div class="info">
         <p id="version" class="text-in-background" [title]="buildVersion">{{ buildVersion }}</p>
-        <p class="settings" (click)="_user.viewSettings = !_user.viewSettings">Settings</p>
-        <p class="settings back" [routerLink]='["/lobby"]'>Back</p>
+        
+        <!-- Menu -->
+        <svg class="settings" matTooltip="Open menu" matTooltipPosition="above" (click)="_user.viewSettings = !_user.viewSettings" version="1.0" viewBox="0 0 119.000000 99.000000" preserveAspectRatio="xMidYMid meet">
+          <g transform="translate(0.000000,99.000000) scale(0.100000,-0.100000)" stroke="none">
+            <path d="M190 905 l0 -85 445 0 445 0 0 85 0 85 -445 0 -445 0 0 -85z"/>
+            <path d="M90 505 l0 -85 495 0 495 0 0 85 0 85 -495 0 -495 0 0 -85z"/>
+            <path d="M290 105 l0 -85 395 0 395 0 0 85 0 85 -395 0 -395 0 0 -85z"/>
+          </g>
+        </svg>
+
+        <!-- Back -->
+        <svg class="settings" matTooltip="Back to lobby" matTooltipPosition="above" [routerLink]='["/lobby"]' version="1.0" viewBox="0 0 111.000000 104.000000" preserveAspectRatio="xMidYMid meet">
+          <g transform="translate(0.000000,104.000000) scale(0.100000,-0.100000)" stroke="none">
+            <path d="M285 788 c-148 -139 -270 -257 -270 -263 0 -11 527 -506 546 -513 5 -2 9 80 9 187 l0 191 265 0 265 0 0 135 0 135 -265 0 -265 0 0 190 c0 105 -3 190 -7 190 -5 -1 -129 -114 -278 -252z"/>
+          </g>
+        </svg>
+
       </div>
       <div class="title">
         <div>

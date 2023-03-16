@@ -9,6 +9,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {MatDialogModule} from '@angular/material/dialog';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 import { NavBoardComponent } from './nav-board/nav-board.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
@@ -52,6 +53,7 @@ import { LobbyViewerComponent } from './lobby-viewer/lobby-viewer.component';
     MatSidenavModule,
     MatSnackBarModule,
     MatDialogModule,
+    MatTooltipModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule
   ],
