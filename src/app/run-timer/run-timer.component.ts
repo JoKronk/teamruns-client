@@ -9,5 +9,8 @@ import { Run } from '../common/run/run';
 export class RunTimerComponent {
   
   @Input() run: Run | undefined;
+  @Input() hideText: boolean = false;
+  @Input() hideBorder: boolean = false;
 
+  height: number = 80;
 }

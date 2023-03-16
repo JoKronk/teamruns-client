@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RunTeamComponent } from './run-team.component';
+import { RunSplitsComponent } from './run-splits.component';
 
-describe('RunTeamComponent', () => {
-  let component: RunTeamComponent;
-  let fixture: ComponentFixture<RunTeamComponent>;
+describe('RunSplitsComponent', () => {
+  let component: RunSplitsComponent;
+  let fixture: ComponentFixture<RunSplitsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ RunTeamComponent ]
+      declarations: [ RunSplitsComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(RunTeamComponent);
+    fixture = TestBed.createComponent(RunSplitsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

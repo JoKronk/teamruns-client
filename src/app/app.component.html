@@ -6,7 +6,7 @@
 
   <mat-sidenav-content>
 
-    <div id="draggable-header-container">
+    <div *ngIf="!_user.isBrowser" id="draggable-header-container">
       <div id="draggable-header"></div>
       <div id="draggable-header-buttons">
         <span (click)="minimize()">&mdash;</span>

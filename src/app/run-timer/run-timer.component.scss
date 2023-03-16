@@ -5,7 +5,14 @@
     margin: 30px 10px 0px;
     padding: 5px;
     height: 90px;
+    position: relative;
+    &-no-border {
+        border: 0;
+    }
     &-title {
+        position: absolute;
+        top: 0;
+        left: 0;
         margin: 0;
         -webkit-user-select: none;
         font-family: 'jak';
@@ -16,8 +23,9 @@
         font-weight: bold;
         font-size: 52px;
         float: right;
+        color: #191919;
         margin-right: 10px;
-        margin-top: -15px;
+        margin-top: 15px;
         width: auto;
         position: relative;
         display: block;

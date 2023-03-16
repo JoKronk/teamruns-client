@@ -10,6 +10,7 @@ export class Lobby {
     spectators: string[];
     visible: boolean;
     creationDate: string; //firestore saves it as string if Date and fetches it as string
+    lastUpdateDate: string;
 
     constructor(runData: RunData) {
         this.id = crypto.randomUUID();
@@ -20,5 +21,6 @@ export class Lobby {
         this.spectators = [];
         this.visible = true;
         this.creationDate = new Date().toUTCString();
+        this.lastUpdateDate = new Date().toUTCString();
     }
 }

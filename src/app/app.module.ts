@@ -20,9 +20,10 @@ import { RunComponent } from './run/run.component';
 import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 import { AngularFireModule } from '@angular/fire/compat';
 import { environment } from '../environments/environment';
-import { RunTeamComponent } from './run-team/run-team.component';
+import { RunSplitsComponent } from './run-splits/run-splits.component';
 import { RunTimerComponent } from './run-timer/run-timer.component';
 import { RunSpectatorsComponent } from './run-spectators/run-spectators.component';
+import { ObsRunComponent } from './obs-run/obs-run.component';
 import { CloseScreenComponent } from './close-screen/close-screen.component';
 import { LobbyViewerComponent } from './lobby-viewer/lobby-viewer.component';
 
@@ -36,9 +37,10 @@ import { LobbyViewerComponent } from './lobby-viewer/lobby-viewer.component';
     CreateRunComponent,
     SetPathComponent,
     RunComponent,
-    RunTeamComponent,
+    RunSplitsComponent,
     RunTimerComponent,
     RunSpectatorsComponent,
+    ObsRunComponent,
     CloseScreenComponent,
     LobbyViewerComponent
   ],

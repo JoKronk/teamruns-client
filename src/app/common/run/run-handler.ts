@@ -32,17 +32,19 @@ export class RunHandler {
     runDoc: AngularFirestoreDocument<Run>;
     userService: UserService;
     private localPlayer: LocalPlayerData;
+    private obsUserId: string | null;
 
     zone: NgZone;
     dataSubscription: Subscription;
     lobbySubscription: Subscription;
 
-    constructor(lobbyId: string, firestore: AngularFirestore, userService: UserService, localUser: LocalPlayerData, zone: NgZone) {
+    constructor(lobbyId: string, firestore: AngularFirestore, userService: UserService, localUser: LocalPlayerData, zone: NgZone, obsUserId: string | null = null) {
         this.lobbyDoc = firestore.collection<Lobby>(CollectionName.lobbies).doc(lobbyId);
         this.runDoc = firestore.collection<Run>(CollectionName.runs).doc();
         this.userService = userService;
         this.localPlayer = localUser;
         this.zone = zone;
+        this.obsUserId = obsUserId;
 
         //when loaded listen on lobby
         this.lobbySubscription = this.lobbyDoc.snapshotChanges().subscribe(snapshot => {
@@ -56,10 +58,11 @@ export class RunHandler {
                 console.log("Creating Run!");
                 this.run = new Run(this.lobby.runData);
 
+
                 //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
                 this.localPlayer.name = this.userService.getName();
                 this.localPlayer.mode = this.run.data.mode;
-                let playerTeam = this.run.getPlayerTeam(this.localPlayer.name);
+                let playerTeam = this.run.getPlayerTeam(obsUserId ? obsUserId : this.localPlayer.name);
                 if (playerTeam) 
                     this.localPlayer.team = playerTeam;
                 else
@@ -89,7 +92,7 @@ export class RunHandler {
 
         console.log("Got Lobby Change!");
         //become master if needed (for example host disconnect or no host at start)
-        if ((!this.lobby.host || (this.lobby.host === userId && !this.localMaster)) && (!this.lobby.backupHost || this.lobby.backupHost === userId)) {
+        if ((!this.lobby.host || (this.lobby.host === userId && !this.localMaster)) && (!this.lobby.backupHost || this.lobby.backupHost === userId) && !this.localPlayer.isObs()) {
             console.log("Becomming host!");
             //cleanup own slave connection if previously slave (in for example host disconnect)
             if (this.localSlave) {
@@ -142,6 +145,7 @@ export class RunHandler {
     }
 
     updateFirestoreLobby() {
+        this.lobby!.lastUpdateDate = new Date().toUTCString();
         this.lobbyDoc.set(JSON.parse(JSON.stringify(this.lobby)));
     }
 
@@ -170,6 +174,7 @@ export class RunHandler {
             this.localMaster?.relayToSlaves(event);
 
         switch (event.type) {
+
             case EventType.Connect: //rtc stuff on connection is setup individually in rtc-peer-master/slave
                 console.log(event.user + " connected!");
                 if (!isMaster) {
@@ -222,15 +227,16 @@ export class RunHandler {
                     
                     //update player and team
                     this.localPlayer.mode = this.run.data.mode;
-                    let playerTeam = this.run?.getPlayerTeam(this.localPlayer.name);
+                    let playerTeam = this.run?.getPlayerTeam(this.obsUserId ? this.obsUserId : this.localPlayer.name);
                     if (playerTeam) {
                         //clean out collectables so that potentially missed ones are given on import
-                        playerTeam.tasks = [];
+                        if (!this.obsUserId)
+                            playerTeam.tasks = [];
                         this.localPlayer.team = playerTeam;
                     }
                     
                     //update lobby
-                    if (this.lobby) {
+                    if (!this.obsUserId && this.lobby) {
                         let updateDb = false;
                         if (this.lobby.spectators.includes(userId)) {
                             this.lobby.spectators = this.lobby.spectators.filter(x => x !== userId);
@@ -314,10 +320,14 @@ export class RunHandler {
                 this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.user === userId);
                 break;
 
-              
+                
             case EventType.ChangeTeam:
                 this.zone.run(() => { 
                     this.run?.changeTeam(event.user, event.value);
+
+                    if (this.obsUserId && this.obsUserId === event.user) { //set otherwise from run component if normal user
+                        this.localPlayer.team = this.run?.getPlayerTeam(this.obsUserId);
+                    }
                 });
                 break;
 
@@ -386,9 +396,11 @@ export class RunHandler {
         this.dataSubscription?.unsubscribe();
         this.lobbySubscription?.unsubscribe();
 
-        if (wasHost && this.lobby) { //host removes user from lobby otherwise but host has to the job for himself
-            console.log("Removing host!")
-            this.lobby.host = null;
+        if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself
+            if (wasHost) {
+                console.log("Removing host!")
+                this.lobby.host = null;
+            }
             this.lobby.runners = this.lobby.runners.filter(user => user !== this.localPlayer.name);
             this.lobby.spectators = this.lobby.spectators.filter(user => user !== this.localPlayer.name);
             this.updateFirestoreLobby();

@@ -37,8 +37,8 @@
     padding: 4px 0px;
     border-top: 2px solid rgba(29, 29, 29, 0.2);
     &-container {
-        max-height: 420px;
-        height: auto;
+        height: auto; //!TODO: give cell list height a cleaner solution, just not feeling it atm
+        max-height: 90%;
         overflow: auto;
         display: flex;
         flex-direction: column-reverse;

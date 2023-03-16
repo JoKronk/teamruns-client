@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument } from '@angular/fire/compat/firestore';
-import { Observable } from 'rxjs';
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { CollectionName } from '../common/firestore/collection-name';
 import { Lobby } from '../common/firestore/lobby';
 import { Run } from '../common/run/run';
@@ -22,18 +21,27 @@ export class FireStoreService {
     return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('visible', '==', true)).valueChanges();
   }
 
+  getUserLobby(userId: string) {
+    return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('runners', 'array-contains', userId)).valueChanges();
+  }
+
   async addLobby(lobby: Lobby) {
     await this.lobbies.doc<Lobby>(lobby.id).set(JSON.parse(JSON.stringify(lobby)));
+  }
+
+  async updateLobby(lobby: Lobby) {
+    await this.addLobby(lobby); //they happen to be the same command, just trying to avoid confusion when looking for an update method
   }
 
   async deleteOldLobbies() {
     const expireDate = new Date();
     expireDate.setDate(expireDate.getDate() - 1);
 
-    (await this.lobbies.ref.get()).forEach((lobbySnapshot) => {
+    (await this.lobbies.ref.get()).forEach(async (lobbySnapshot) => {
       let lobby = lobbySnapshot.data();
-      if (new Date(lobby.creationDate) < expireDate)
-        this.lobbies.doc<Lobby>(lobbySnapshot.id).delete();
+      if (new Date(lobby.creationDate) < expireDate) {
+        await this.deleteLobby(lobbySnapshot.id);
+      }
     });
   }
 

@@ -66,7 +66,7 @@
 
       <!-- RUN STATS -->
       <div class="prog">
-        <app-run-team *ngFor="let team of runHandler.run.teams; let i = index" [team]="team" class="prog-team" [class.prog-team-splitter]="i !== 0"></app-run-team>
+        <app-run-splits *ngFor="let team of runHandler.run.teams; let i = index" [team]="team" class="prog-team" [class.prog-team-splitter]="i !== 0"></app-run-splits>
       </div>
     </div>
     <div *ngIf="!runHandler.run" id="error">

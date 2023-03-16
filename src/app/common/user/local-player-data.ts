@@ -167,4 +167,8 @@ export class LocalPlayerData {
       }
     };
   }
+
+  isObs() {
+    return this.name.startsWith("obs-");
+  }
 }
