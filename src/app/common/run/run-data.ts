@@ -11,6 +11,7 @@ export class RunData {
     mode: RunMode;
     requireSameLevel: boolean;
     allowSoloHubZoomers: boolean;
+    normalCellCost: boolean;
 
     constructor(version: string) {
         this.name = "";
@@ -19,5 +20,6 @@ export class RunData {
         this.mode = RunMode.Speedrun;
         this.requireSameLevel = false;
         this.allowSoloHubZoomers = false;
+        this.normalCellCost = false;
     }
 }
