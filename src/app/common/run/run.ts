@@ -102,14 +102,14 @@ export class Run {
         }
     }
 
-    changeTeam(playerName: string, teamName: string) {
+    changeTeam(playerName: string, teamName: string, twitchName: string | null) {
       let newTeam = this.getTeam(teamName);
       if (!newTeam) return;
   
       let oldTeam = this.teams.find(x => x.players.some(player => player.name === playerName));
       
   
-      let player = oldTeam ? oldTeam.players.find(x => x.name === playerName) : new Player(playerName);
+      let player = oldTeam ? oldTeam.players.find(x => x.name === playerName) : new Player(playerName, twitchName);
       newTeam.players.push(player!);
       //cheap method of forcing screen to re-render old team
       if (oldTeam) {

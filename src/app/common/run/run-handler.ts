@@ -323,7 +323,7 @@ export class RunHandler {
                 
             case EventType.ChangeTeam:
                 this.zone.run(() => { 
-                    this.run?.changeTeam(event.user, event.value);
+                    this.run?.changeTeam(event.user, event.value, this.localPlayer.name === event.user ? this.userService.user.twitchName : null);
 
                     if (this.obsUserId && this.obsUserId === event.user) { //set otherwise from run component if normal user
                         this.localPlayer.team = this.run?.getPlayerTeam(this.obsUserId);
