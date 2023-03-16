@@ -20,19 +20,7 @@ export class NavBoardComponent {
   }
 
   getObsLink() {
-    const selBox = document.createElement('textarea');
-    selBox.style.position = 'fixed';
-    selBox.style.left = '0';
-    selBox.style.top = '0';
-    selBox.style.opacity = '0';
-    selBox.value = window.location.host + "/obs?user=" + this._user.getName() + "&height=800&bgColor=4e4e4e&timerBorder=true";
-    document.body.appendChild(selBox);
-    selBox.focus();
-    selBox.select();
-    document.execCommand('copy');
-    document.body.removeChild(selBox);
-
-    this._user.sendNotification("Link Copied!");
+    this._user.copyLink(window.location.host + "/obs?user=" + this._user.getName() + "&height=800&bgColor=4e4e4e&timerBorder=true");
   }
 
   openPathConfig() {

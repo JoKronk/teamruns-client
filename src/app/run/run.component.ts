@@ -88,6 +88,20 @@ export class RunComponent implements OnDestroy {
     });
   }
 
+  copyMultiTwitchLink() {
+    const twitchLinks: string[] | undefined = this.runHandler.run?.teams.flatMap(team => team.players.filter(x => x.twitchName !== null).flatMap(x => x.twitchName!));
+    if (!twitchLinks || twitchLinks.length === 0) {
+      this._user.sendNotification("No players with twitch links found!");
+    }
+    else {
+      let link = "https://www.multitwitch.tv";
+      twitchLinks.forEach(user => {
+        link += "/" + user;
+      });
+      this._user.copyLink(link);
+    }
+  }
+
   setupListeners() {
     //state update
     this.stateListener = (window as any).electron.receive("og-state-update", (state: GameState) => {
