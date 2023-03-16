@@ -60,7 +60,8 @@ export class RunHandler {
                 this.localPlayer.name = this.userService.getName();
                 this.localPlayer.mode = this.run.data.mode;
                 let playerTeam = this.run.getPlayerTeam(this.localPlayer.name);
-                if (playerTeam) this.localPlayer.team = playerTeam.name;
+                if (playerTeam) 
+                    this.localPlayer.team = playerTeam;
             }
 
             this.onLobbyChange();
@@ -202,39 +203,32 @@ export class RunHandler {
                 this.zone.run(() => { 
                     console.log("Got run from request!", event.value);
 
-                    //handle reconnect
-                    if (this.run?.timer.runState === RunState.Waiting && (event.value as Run).timer.runState !== RunState.Waiting) {   
-                        //update run
-                        let run: Run = JSON.parse(JSON.stringify(event.value)); //to not cause referece so that import can run properly on the run after
-                        this.run = Object.assign(new Run(run.data), run);
-                        let teams: Team[] = [];
-                        for (let team of this.run.teams) {
-                            teams.push(Object.assign(new Team(team.name), team));
+                    //update run
+                    let run: Run = JSON.parse(JSON.stringify(event.value)); //to not cause referece so that import can run properly on the run after
+                    this.run = Object.assign(new Run(run.data), run).reconstructRun();
+                    
+                    //update player and team
+                    this.localPlayer.mode = this.run.data.mode;
+                    let playerTeam = this.run?.getPlayerTeam(this.localPlayer.name);
+                    if (playerTeam) {
+                        //clean out collectables so that potentially missed ones are given on import
+                        playerTeam.tasks = [];
+                        this.localPlayer.team = playerTeam;
+                    }
+                    
+                    //update lobby
+                    if (this.lobby) {
+                        let updateDb = false;
+                        if (this.lobby.spectators.includes(userId)) {
+                            this.lobby.spectators = this.lobby.spectators.filter(x => x !== userId);
+                            updateDb = true;
                         }
-                        this.run.teams = teams;
-                        this.run.timer = Object.assign(new Timer(run.timer.countdownSeconds), run.timer);
-                        this.run.timer.updateTimer();
-
-                        //update player and lobby
-                        this.localPlayer.mode = this.run.data.mode;
-                        let playerTeam = this.run?.getPlayerTeam(this.localPlayer.name);
-                        if (playerTeam && this.lobby) {
-                            this.localPlayer.team = playerTeam.name;
-                            let updateDb = false;
-                            if (this.lobby.spectators.includes(userId)) {
-                                this.lobby.spectators = this.lobby.spectators.filter(x => x !== userId);
-                                updateDb = true;
-                            }
-                            if (!this.lobby.runners.includes(userId)) {
-                                this.lobby.runners.push(userId);
-                                updateDb = true;
-                            }
-                            if (updateDb)
-                                this.updateFirestoreLobby();
-
-                            //clean out collectables so that missed ones are given on import
-                            playerTeam.tasks = [];
+                        if (!this.lobby.runners.includes(userId)) {
+                            this.lobby.runners.push(userId);
+                            updateDb = true;
                         }
+                        if (updateDb)
+                            this.updateFirestoreLobby();
                     }
 
                     this.run!.importChanges(this.localPlayer, event.value);
@@ -264,7 +258,7 @@ export class RunHandler {
                 if (event.user !== userId) {
                     this.run.giveCellToUser(event.value, this.run.getPlayer(userId));
                     
-                    if (this.run.getPlayerTeam(event.user)?.name === this.localPlayer.team) {
+                    if (this.run.getPlayerTeam(event.user)?.name === this.localPlayer.team?.name) {
                         //handle klaww kill
                         if ((event.value as Task).gameTask === "ogre-boss") {
                             this.localPlayer.killKlawwOnSpot = true;
@@ -303,11 +297,11 @@ export class RunHandler {
 
 
             case EventType.NewTaskStatusUpdate:
-                if (!this.run || this.run.getPlayerTeam(event.user)?.name !== this.localPlayer.team) return;
+                if (!this.run || this.run.getPlayerTeam(event.user)?.name !== this.localPlayer.team?.name) return;
                 this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.user === userId);
                 break;
 
-                
+              
             case EventType.ChangeTeam:
                 this.zone.run(() => { 
                     this.run?.changeTeam(event.user, event.value);

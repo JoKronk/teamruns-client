@@ -67,7 +67,7 @@ export class RunComponent implements OnDestroy {
       this.movePlayerOutOfSpectators();
 
     this.runHandler.sendEvent(EventType.ChangeTeam, teamName);
-    this.localPlayer.team = teamName;
+    this.localPlayer.team = this.runHandler.run?.getTeam(teamName) ?? undefined;
     this.runHandler.getPlayerState();
   }
 

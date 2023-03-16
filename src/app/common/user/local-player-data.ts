@@ -4,10 +4,11 @@ import { PlayerState } from "../player/player-state";
 import { RunMode } from "../run/run-mode";
 import { Task } from "../opengoal/task";
 import { Run } from "../run/run";
+import { Team } from "../run/team";
 
 export class LocalPlayerData {
   name: string;
-  team: string;
+  team: Team | undefined;
   mode: RunMode;
   gameState: GameState;
   state: PlayerState;
@@ -18,7 +19,7 @@ export class LocalPlayerData {
 
   constructor() {
     this.name = "";
-    this.team = "";
+    this.team = undefined;
     this.mode = RunMode.Speedrun;
     this.gameState = new GameState();
     this.state = PlayerState.Neutral;

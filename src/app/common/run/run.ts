@@ -260,4 +260,18 @@ export class Run {
 
         return false;
     }
+
+    reconstructRun() {
+        //update run
+        let teams: Team[] = [];
+        for (let team of this.teams) {
+            teams.push(Object.assign(new Team(team.name), team));
+        }
+        this.teams = teams;
+        this.timer = Object.assign(new Timer(this.timer.countdownSeconds), this.timer);
+        if (this.timer.runState !== RunState.Waiting)
+            this.timer.updateTimer();
+
+        return this;
+    }
 }
