@@ -37,6 +37,14 @@ export class FireStoreService {
     });
   }
 
+  async deleteLobby(id: string) {
+    let lobbyConnections = this.lobbies.doc<Lobby>(id).collection(CollectionName.peerConnections);
+    (await lobbyConnections.ref.get()).forEach(conSnapshot => {
+      lobbyConnections.doc<Lobby>(conSnapshot.id).delete();
+    });
+    this.lobbies.doc<Lobby>(id).delete();
+  }
+
   async getRun(id: string) {
     return (await this.runs.doc(id).ref.get()).data();
   }
