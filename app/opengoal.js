@@ -36,6 +36,7 @@ class OpenGoal {
 
         openGoalGk = new net.Socket();
 
+        let startSuccessful = false;
         this.killOG();
         await sleep(1500);
         this.startOG(ogPath);
@@ -43,13 +44,19 @@ class OpenGoal {
         
         this.runStateWatcher(ogPath);
         
+
         openGoalGk.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
-        openGoalGk.on('connect', () => {
+        openGoalGk.on('connect', async () => {
             this.setupOG();
             this.runTracker();
+
+            await sleep(2000);
+            startSuccessful = true;
         });
+
         openGoalGk.on('error', (ex) => {
-            this.sendClientMessage("Failed to start the client properly, please relaunch!");
+            if (!startSuccessful)
+                this.sendClientMessage("Failed to start the client properly, please relaunch!");
         });
     }
 
@@ -115,8 +122,8 @@ class OpenGoal {
 
         //On error
         openGoalTracker.stderr.on('data', (data) => {
-            console.log(data.toString());
-            this.sendClientMessage("Tracker Error!: " + data.toString());
+            console.log("Tracker Error!: " + data.toString());
+            //this.sendClientMessage("Tracker Error!: " + data.toString());
         });
 
         //On data
@@ -131,7 +138,8 @@ class OpenGoal {
         openGoalTracker.stdout.on('end', () => {
             trackerConnectedState = false;
             this.sendClientTrackerState();
-            this.sendClientMessage("Tracker Disconneted!");
+            if (openGoalHasStarted);
+                this.sendClientMessage("Tracker Disconneted!");
             this.killOG(true);
         });
         
@@ -189,6 +197,7 @@ class OpenGoal {
                 console.log(err);
                 return;
             }
+            if (!data) return;
             try {
                 let gameState = JSON.parse(data);
                 if (JSON.stringify(openGoalGameState) !== JSON.stringify(gameState)) {
