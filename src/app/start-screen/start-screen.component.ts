@@ -36,7 +36,8 @@ export class StartScreenComponent {
 
   constructor(public _user: UserService, private router: Router, private dialog: MatDialog, private _firestore: FireStoreService) {
     this.checkVideoLoad();
-    this._firestore.deleteOldLobbies();
+    if (new Date().getHours() % 4 === 0) //saving some reads on the free plan db
+      this._firestore.deleteOldLobbies();
   }
 
   sendToLobby() {
