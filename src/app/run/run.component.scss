@@ -136,7 +136,7 @@
                     cursor: pointer;
                 }
             }
-            &-ready:enabled {
+            &-ready {
                 background-color: rgb(212, 144, 18, 0.7) !important;
                 color: #3e3e3e !important;
             }
@@ -148,10 +148,6 @@
                     background-color: rgb(56, 0, 0, 0.9) !important;
                     color: rgba(204, 204, 204, 0.8) !important;
                     cursor: pointer;
-                }
-                &-ready {
-                    background-color: rgb(56, 0, 0, 0.7) !important;
-                    color: rgba(204, 204, 204, 0.8) !important;
                 }
             }
             &-owner {

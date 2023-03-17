@@ -71,10 +71,9 @@
         </div>
         <!-- READY -->
         <div class="run-info-details">
-          <button [class.run-info-details-ready]="localPlayer.state == playerState.Ready"
-            [disabled]="runHandler.run.timer.runState !== runState.Waiting || !_user.trackerConnected || !localPlayer.team"
-            [class.run-info-details-started]="runHandler.run.timer.runState === runState.Started || runHandler.run.timer.runState === runState.Countdown" 
-            (click)="toggleReady()">Ready</button>
+          <button [class.run-info-details-ready]="localPlayer.state == playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
+            [disabled]="runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Ended || !_user.trackerConnected || !localPlayer.team"
+            (click)="runHandler.run.timer.runState === runState.Started ? forfeit() : toggleReady()">{{ runHandler.run.timer.runState === runState.Started ? "Forfeit" : "Ready" }}</button>
 
             <button class="run-info-details-reset" 
             [disabled]="runHandler.run.timer.runState !== runState.Started"

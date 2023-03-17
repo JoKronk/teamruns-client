@@ -259,7 +259,7 @@ export class RunHandler {
 
             case EventType.EndPlayerRun:  
                 this.zone.run(() => { 
-                    this.run?.endPlayerRun(event.user);
+                    this.run?.endPlayerRun(event.user, event.value);
 
                     if (this.run?.timer.runState === RunState.Ended)
                         this.runDoc.set(JSON.parse(JSON.stringify(this.run)));

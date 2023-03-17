@@ -54,11 +54,11 @@ export class Run {
         return true;
     }
 
-    endPlayerRun(playerName: string): void {
+    endPlayerRun(playerName: string, forfeit: boolean): void {
         let player = this.getPlayer(playerName);
         if (!player) return;
-        player.state = PlayerState.Finished;
-        if (this.everyoneHasFinished() || this.data.mode === RunMode.SCR)
+        player.state = forfeit ? PlayerState.Forfeit : PlayerState.Finished;
+        if (this.everyoneHasFinished() || (!forfeit && this.data.mode === RunMode.SCR))
             this.timer.runState = RunState.Ended;
     }
 

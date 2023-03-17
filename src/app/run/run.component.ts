@@ -49,6 +49,13 @@ export class RunComponent implements OnDestroy {
     });
   }
 
+  forfeit() {
+    if (!this.runHandler.run) return;
+    this.localPlayer.state = PlayerState.Forfeit;
+    this.runHandler.sendEvent(EventType.EndPlayerRun, true);
+    this.runHandler.sendEvent(EventType.NewCell, new Task("int-finalboss-forfeit", this._user.getName(), this.runHandler.run.getTimerShortenedFormat()));
+  }
+
   toggleReady() {
     this.localPlayer.state = this.localPlayer.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
     this.runHandler.sendEvent(EventType.Ready, this.localPlayer.state);
@@ -138,7 +145,7 @@ export class RunComponent implements OnDestroy {
           //run end
           if (task === "int-finalboss-movies") {
             this.localPlayer.state = PlayerState.Finished;
-            this.runHandler.sendEvent(EventType.EndPlayerRun);
+            this.runHandler.sendEvent(EventType.EndPlayerRun, false);
           }
 
           var cell = new Task(task, this._user.getName(), this.runHandler.run.getTimerShortenedFormat());
