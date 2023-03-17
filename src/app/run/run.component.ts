@@ -1,5 +1,5 @@
 import { Component, HostListener, NgZone, OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { GameState } from '../common/player/game-state';
 import { Run } from '../common/run/run';
 import { Task } from '../common/opengoal/task';
@@ -16,6 +16,8 @@ import { RunHandler } from '../common/run/run-handler';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { DataChannelEvent } from '../common/peer/data-channel-event';
 import { EventType } from '../common/peer/event-type';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
 
 @Component({
   selector: 'app-run',
@@ -37,7 +39,7 @@ export class RunComponent implements OnDestroy {
   private taskListener: any;
 
 
-  constructor(public _user: UserService, private firestore: AngularFirestore, private route: ActivatedRoute, private zone: NgZone) {
+  constructor(public _user: UserService, private firestore: AngularFirestore, private route: ActivatedRoute, private zone: NgZone, private dialog: MatDialog, private router: Router) {
     this.setupListeners();
     
     //on parameter get (was swapped from route as electon had issues getting routes containing more than one (/) path)
@@ -51,9 +53,16 @@ export class RunComponent implements OnDestroy {
 
   forfeit() {
     if (!this.runHandler.run) return;
-    this.localPlayer.state = PlayerState.Forfeit;
-    this.runHandler.sendEvent(EventType.EndPlayerRun, true);
-    this.runHandler.sendEvent(EventType.NewCell, new Task("int-finalboss-forfeit", this._user.getName(), this.runHandler.run.getTimerShortenedFormat()));
+
+    const dialogRef = this.dialog.open(ConfirmComponent, { data: "Are you sure you want to forfeit the run?" });
+    const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
+      dialogSubscription.unsubscribe();
+      if (confirmed) {
+        this.localPlayer.state = PlayerState.Forfeit;
+        this.runHandler.sendEvent(EventType.EndPlayerRun, true);
+        this.runHandler.sendEvent(EventType.NewCell, new Task("int-finalboss-forfeit", this._user.getName(), this.runHandler.run!.getTimerShortenedFormat()));
+      }
+    });
   }
 
   toggleReady() {
@@ -107,6 +116,20 @@ export class RunComponent implements OnDestroy {
       });
       this._user.copyLink(link);
     }
+  }
+
+  routeToLobby() {
+    if (!this.localPlayer.team || this.runHandler.run?.timer.runState === RunState.Waiting || this.runHandler.run?.timer.runState === RunState.Ended) {
+      this.router.navigate(['/lobby' ]);
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmComponent, { data: "Are you sure you want to leave the run in progress?" });
+    const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
+      dialogSubscription.unsubscribe();
+      if (confirmed)
+        this.router.navigate(['/lobby' ]);
+    });
   }
 
   setupListeners() {

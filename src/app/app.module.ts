@@ -27,6 +27,7 @@ import { RunSpectatorsComponent } from './run-spectators/run-spectators.componen
 import { ObsRunComponent } from './obs-run/obs-run.component';
 import { CloseScreenComponent } from './close-screen/close-screen.component';
 import { LobbyViewerComponent } from './lobby-viewer/lobby-viewer.component';
+import { ConfirmComponent } from './dialogs/confirm/confirm.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +44,8 @@ import { LobbyViewerComponent } from './lobby-viewer/lobby-viewer.component';
     RunSpectatorsComponent,
     ObsRunComponent,
     CloseScreenComponent,
-    LobbyViewerComponent
+    LobbyViewerComponent,
+    ConfirmComponent
   ],
   imports: [
     BrowserModule,
