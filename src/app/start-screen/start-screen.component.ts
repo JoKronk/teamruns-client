@@ -21,10 +21,14 @@ export class StartScreenComponent {
     "Thanks Barg",
     "Thanks Mortis",
     "Thanks Kuitar",
-    "TriFecto",
+    "Thanks Ricky",
+    "Thanks SixRock",
+    "Thanks Stellar",
+    "Thanks Tombo",
     "LowResKui",
     "speed run",
-    "OpenGOAL"
+    "OpenGOAL",
+    "goonin3"
   ];
   infoText: string = this.infoTexts[Math.floor(Math.random() * this.infoTexts.length)];
 
