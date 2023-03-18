@@ -92,7 +92,7 @@ export class Run {
     }
 
     setOrbCosts(playerTeam: string) {
-        if (!this.data.normalCellCost && (this.getPlayerTeam(playerTeam)?.players.length ?? 0) > 1) {
+        if (!this.data.normalCellCost && (this.data.mode === RunMode.SCR || (this.getPlayerTeam(playerTeam)?.players.length ?? 0) > 1)) {
             OG.runCommand("(set! (-> *GAME-bank* money-task-inc) 180.0)");
             OG.runCommand("(set! (-> *GAME-bank* money-oracle-inc) 240.0)");
         }
