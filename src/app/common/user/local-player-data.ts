@@ -167,6 +167,11 @@ export class LocalPlayerData {
     };
   }
 
+  checkNoLTS() {
+    if (this.gameState.currentLevel === Level.lavaTube && this.gameState.onZoomer && this.gameState.cellCount < 72)
+      OG.runCommand("(start 'play (get-continue-by-name *game-info* \"lavatube-start\"))")
+  }
+
   isObs() {
     return this.name.startsWith("obs-");
   }

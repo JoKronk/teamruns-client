@@ -156,6 +156,10 @@ export class RunComponent implements OnDestroy {
           //handle klaww kill
           this.localPlayer.checkKillKlaww();
         }
+
+        //handle no LTS
+        if (this.runHandler.run.data.noLTS)
+          this.localPlayer.checkNoLTS();
       });
     });
 
