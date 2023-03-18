@@ -288,8 +288,8 @@ export class RunHandler {
                     }
                 }
 
-                //handle SCR
-                if (this.run.data.mode === RunMode.SCR) {
+                //handle Lockout
+                if (this.run.data.mode === RunMode.Lockout) {
                     const playerTeam = this.run.getPlayerTeam(this.localPlayer.name);
                     if (!playerTeam) break;
                     if (this.run.teams.some(team => team.name !== playerTeam.name && team.cellCount > playerTeam.cellCount))

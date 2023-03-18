@@ -58,7 +58,7 @@ export class Run {
         let player = this.getPlayer(playerName);
         if (!player) return;
         player.state = forfeit ? PlayerState.Forfeit : PlayerState.Finished;
-        if (this.everyoneHasFinished() || (!forfeit && this.data.mode === RunMode.SCR))
+        if (this.everyoneHasFinished() || (!forfeit && this.data.mode === RunMode.Lockout))
             this.timer.runState = RunState.Ended;
     }
 
@@ -92,7 +92,7 @@ export class Run {
     }
 
     setOrbCosts(playerTeam: string) {
-        if (!this.data.normalCellCost && (this.data.mode === RunMode.SCR || (this.getPlayerTeam(playerTeam)?.players.length ?? 0) > 1)) {
+        if (!this.data.normalCellCost && (this.data.mode === RunMode.Lockout || (this.getPlayerTeam(playerTeam)?.players.length ?? 0) > 1)) {
             OG.runCommand("(set! (-> *GAME-bank* money-task-inc) 180.0)");
             OG.runCommand("(set! (-> *GAME-bank* money-oracle-inc) 240.0)");
         }
@@ -184,7 +184,7 @@ export class Run {
                     //localPlayer player class, use to check if this is curernt players TEAM
                     let localPlayerImportedPlayer = team.players.find(x => x.name === localPlayer.name);
                     //check for new tasks to give player
-                    if (localPlayerImportedPlayer || this.data.mode === RunMode.SCR) {
+                    if (localPlayerImportedPlayer || this.data.mode === RunMode.Lockout) {
                         importTeam.tasks.filter(x => x.isCell && !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
                             this.giveCellToUser(task, localPlayerImportedPlayer);
                         });
@@ -206,7 +206,7 @@ export class Run {
     giveCellToUser(task: Task, player: Player | undefined) {
         if (!player || !task.isCell) return;
 
-        if ((this.getPlayerTeam(task.obtainedBy)?.name === this.getPlayerTeam(player.name)?.name || this.data.mode === RunMode.SCR)) {
+        if ((this.getPlayerTeam(task.obtainedBy)?.name === this.getPlayerTeam(player.name)?.name || this.data.mode === RunMode.Lockout)) {
             if (player?.gameState.currentLevel.includes(task.gameTask.substring(0, task.gameTask.indexOf("-"))) || !player.gameState.currentLevel) {
                 let fuelCell = Task.getEnameMap().get(task.gameTask);
                 if (fuelCell) {

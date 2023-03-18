@@ -52,13 +52,13 @@ export class LocalPlayerData {
     let team = run.getPlayerTeam(this.name);
     if (!team) return;
 
-    if (team.cellCount > this.gameState.cellCount || (run.data.mode == RunMode.SCR && run.teams.reduce((a, b) => a + (b["cellCount"] || 0), 0) > this.gameState.cellCount)) {
+    if (team.cellCount > this.gameState.cellCount || (run.data.mode == RunMode.Lockout && run.teams.reduce((a, b) => a + (b["cellCount"] || 0), 0) > this.gameState.cellCount)) {
       const player = run.getPlayer(this.name);
       if (!player) return;
 
       this.isSyncing = true;
       setTimeout(() => {  //give the player some time to spawn in
-        if (run.data.mode !== RunMode.SCR) {
+        if (run.data.mode !== RunMode.Lockout) {
           team!.tasks.filter(x => x.isCell).forEach(cell => {
             run.giveCellToUser(cell, player);
           });
