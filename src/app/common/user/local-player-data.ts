@@ -122,13 +122,12 @@ export class LocalPlayerData {
 
       if ((this.tasksStatus.get(key) ?? 0) < taskValue) {
         this.tasksStatus.set(key, taskValue);
-        if (isLocalPlayer || taskValue < taskStatusValues.get("need-reminder-a")!)
-          continue;
+        if (isLocalPlayer || taskValue < taskStatusValues.get("need-reminder-a")!) continue;
 
         switch (key) {
           //handle hub warp gates
           case "village2-levitator":
-            OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder))");
+            OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder-a))");
             if (this.gameState.currentLevel !== "village1") break;
             OG.runCommand("(reset-actors 'life)");
             OG.runCommand("(process-release? *target*)");
