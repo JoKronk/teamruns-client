@@ -50,6 +50,10 @@ body { margin: 0 !important; font-family: Roboto, "Helvetica Neue", sans-serif; 
   --mdc-snackbar-container-color: transparent !important;
 }
 
+.tooltip {
+  max-width: unset !important;
+  white-space: pre-line;
+}
 
 .text-in-background {
   -webkit-user-select: none;

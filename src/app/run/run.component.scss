@@ -15,7 +15,6 @@
         top: 40px;
         right: 80px;
         & .info {
-            display: inline-block;
             display: flex;
             flex-shrink: 1;
             height: 100%;
@@ -44,6 +43,11 @@
                 &:focus {
                     outline: none;
                 }
+            }
+            &-tooltip {
+                position: absolute;
+                top: 0;
+                right: 160px;
             }
         }
         & .logo {

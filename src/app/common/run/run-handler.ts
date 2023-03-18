@@ -24,6 +24,7 @@ export class RunHandler {
     run: Run | undefined;
 
     loaded: boolean = false;
+    info: string = "";
 
     localMaster: RTCPeerMaster | undefined;
     localSlave: RTCPeerSlave | undefined;
@@ -58,7 +59,6 @@ export class RunHandler {
                 console.log("Creating Run!");
                 this.run = new Run(this.lobby.runData);
 
-
                 //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
                 this.localPlayer.name = this.userService.getName();
                 this.localPlayer.mode = this.run.data.mode;
@@ -67,6 +67,8 @@ export class RunHandler {
                     this.localPlayer.team = playerTeam;
                 else
                     this.checkCleanSelfRemains();
+
+                this.info = RunMode[this.run.data.mode] + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\n\nNo LTS: " + this.run.data.noLTS;
             }
 
             this.onLobbyChange();
