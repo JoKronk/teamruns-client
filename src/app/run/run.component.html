@@ -55,18 +55,20 @@
       <!-- TEAMS -->
       <div class="run-info">
         <div class="run-info-teams">
-          <div *ngFor="let team of runHandler.run.teams" class="team-cont">
+          <div *ngFor="let team of runHandler.run.teams; let i = index" class="team-cont" [class.team-cont-1row]="runHandler.run.teams.length < 3"[class.team-cont-2row]="runHandler.run.teams.length >= 3">
             <p class="team-name">{{ team.name }}</p>
             <button *ngIf="runHandler.loaded && team.name !== localPlayer.team?.name && localPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
               (click)="switchTeam(team.name)">Join</button>
-            <div *ngFor="let player of team.players">
-              <p [class.team-player-ready]="player.state === playerState.Ready && (runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">
-                <img *ngIf="player.name == localPlayer.name && !_user.trackerConnected" class="run-info-teams-disconnected" [src]="'./assets/other/disconnected.png'">
-                <img *ngIf="player.gameState?.onZoomer && _user.trackerConnected" class="run-info-teams-zoomer" [src]="'./assets/other/zoomer.png'">
-                <img *ngIf="player.gameState?.currentLevel && _user.trackerConnected" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">
-                <span>{{ player.name }}</span>
-              </p>
-            </div>
+              <div class="team-players">
+                <div *ngFor="let player of team.players">
+                  <p [class.team-player-ready]="player.state === playerState.Ready && (runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">
+                    <img *ngIf="player.name == localPlayer.name && !_user.trackerConnected" class="run-info-teams-disconnected" [src]="'./assets/other/disconnected.png'">
+                    <img *ngIf="player.gameState?.onZoomer && _user.trackerConnected" class="run-info-teams-zoomer" [src]="'./assets/other/zoomer.png'">
+                    <img *ngIf="player.gameState?.currentLevel && _user.trackerConnected" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">
+                    <span>{{ player.name }}</span>
+                  </p>
+                </div>
+              </div>
           </div>
         </div>
         <!-- READY -->
@@ -88,8 +90,8 @@
 
 
       <!-- RUN STATS -->
-      <div class="prog">
-        <app-run-splits *ngFor="let team of runHandler.run.teams; let i = index" [team]="team" class="prog-team" [class.prog-team-splitter]="i !== 0"></app-run-splits>
+      <div class="progress">
+        <app-run-splits *ngFor="let team of runHandler.run.teams; let i = index" [team]="team" class="progress-team" [class.progress-team-splitter]="i !== 0"></app-run-splits>
       </div>
     </div>
     <div *ngIf="!runHandler.run" id="error">

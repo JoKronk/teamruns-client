@@ -17,7 +17,7 @@
         & .info {
             display: inline-block;
             display: flex;
-            flex: 1;
+            flex-shrink: 1;
             height: 100%;
             & #version {
                 font-family: 'precursor';
@@ -81,13 +81,14 @@
         }
     }
     &-body {
-        height: 705px;
         display: flex;
         flex-direction: column;
+        height: 700px;
+        min-height: 0;
     }
 
     &-info {
-        flex: 2;
+        flex-shrink: 1;
         display: flex;
         border-bottom: 3px solid #494949;
         &-teams {
@@ -173,12 +174,22 @@
 
 .team {
     &-cont {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
         position: relative;
         flex-basis: 48%;
         margin-bottom: 10px;
         padding-left: 5px;
         border-left: 2px solid rgba(29, 29, 29, 0.2);
+        &-1row {
+            max-height: 210px;
+        }
+        &-2row {
+            max-height: 130px;
+        }
         & p {
+            flex-shrink: 1;
             margin: 0;
             color: #cccccccc;
         }
@@ -191,6 +202,14 @@
     &-name {
         text-decoration: underline;
     }
+    &-players {
+        flex-shrink: 1;
+        min-height: 0;
+        overflow: auto;
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
     &-player {
         &-ready {
         color: rgb(212, 144, 18, 0.7) !important;
@@ -201,12 +220,14 @@
     }
 }
 
-.prog {
+.progress {
+    flex-grow: 1;
     display: flex;
     margin: 5px 0px 5px;
+    min-height: 0;
     &-team{
         flex: 1;
-        height: 460px;
+        position: relative;
         padding: 5px 10px 0px;
         &-splitter {
             border-left: 2px solid rgba(29, 29, 29, 0.2);

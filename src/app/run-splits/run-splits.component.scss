@@ -1,9 +1,15 @@
 
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
 .team {
     &-splitter {
         border-left: 2px solid rgba(29, 29, 29, 0.2);
     }
     &-header {
+        flex-shrink: 1;
         margin: 0px 0px 10px;
         & h2 {
             display: inline;
@@ -37,14 +43,13 @@
     padding: 4px 0px;
     border-top: 2px solid rgba(29, 29, 29, 0.2);
     &-container {
-        height: auto; //!TODO: give cell list height a cleaner solution, just not feeling it atm
-        max-height: 90%;
+        flex: 1;
         overflow: auto;
         display: flex;
         flex-direction: column-reverse;
         &::-webkit-scrollbar {
             display: none;
-            }
+        }
     }
     & img {
         height: 40px;
