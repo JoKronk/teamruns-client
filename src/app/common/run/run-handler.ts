@@ -292,7 +292,7 @@ export class RunHandler {
                 if (this.run.data.mode === RunMode.Lockout) {
                     const playerTeam = this.run.getPlayerTeam(this.localPlayer.name);
                     if (!playerTeam) break;
-                    if (this.run.teams.some(team => team.name !== playerTeam.name && team.cellCount > playerTeam.cellCount))
+                    if (this.localPlayer.gameState.cellCount < 73 || this.run.teams.some(team => team.name !== playerTeam.name && team.cellCount > playerTeam.cellCount))
                         OG.removeFinalBossAccess(this.localPlayer.gameState.currentLevel);
                     else
                         OG.giveFinalBossAccess(this.localPlayer.gameState.currentLevel);
