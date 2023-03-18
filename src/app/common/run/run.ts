@@ -8,7 +8,7 @@ import { Team } from "./team";
 import { Timer } from "./timer";
 import { PlayerState } from "../player/player-state";
 import { RunState } from "./run-state";
-import { MultiLevel } from "./mutli-levels";
+import { MultiLevel } from "../opengoal/levels";
 import { OG } from "../opengoal/og";
 
 export class Run {
@@ -253,7 +253,7 @@ export class Run {
             return true;
         if (MultiLevel.jungle().includes(currentLevel) && MultiLevel.jungle().includes(checkAgainst))
             return true;
-        if (MultiLevel.sunken().includes(currentLevel) && MultiLevel.sunken().includes(checkAgainst))
+        if (MultiLevel.lpc().includes(currentLevel) && MultiLevel.lpc().includes(checkAgainst))
             return true;
         if (currentLevel === checkAgainst)
             return true;

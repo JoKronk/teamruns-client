@@ -5,6 +5,7 @@ import { RunMode } from "../run/run-mode";
 import { Task } from "../opengoal/task";
 import { Run } from "../run/run";
 import { Team } from "../run/team";
+import { Level } from "../opengoal/levels";
 
 export class LocalPlayerData {
   name: string;
@@ -27,7 +28,7 @@ export class LocalPlayerData {
   }
 
   resetRunDependentProperties() {
-    this.restrictedZoomerLevels = ['firecanyon', 'ogre', 'lavatube'];
+    this.restrictedZoomerLevels = [Level.fireCanyon, Level.mountainPass, Level.lavaTube];
     this.tasksStatus = new Map();
     this.killKlawwOnSpot = false;
   }
@@ -44,7 +45,6 @@ export class LocalPlayerData {
     OG.runCommand("(process-release? *target*)");
     this.killKlawwOnSpot = false;
   }
-
 
 
   checkDesync(run: Run) {
@@ -107,9 +107,9 @@ export class LocalPlayerData {
 
 
   checkForZoomerTalkSkip(playerGameState: GameState) {
-    if (playerGameState.currentLevel === "firecanyon" && playerGameState.onZoomer && this.restrictedZoomerLevels.includes("firecanyon"))
+    if (playerGameState.currentLevel === Level.fireCanyon && playerGameState.onZoomer && this.restrictedZoomerLevels.includes(Level.fireCanyon))
       OG.runCommand("(close-specific-task! (game-task firecanyon-assistant) (task-status need-reward-speech))");
-    if (playerGameState.currentLevel === "lavatube" && playerGameState.onZoomer && this.restrictedZoomerLevels.includes("lavatube"))
+    if (playerGameState.currentLevel === Level.lavaTube && playerGameState.onZoomer && this.restrictedZoomerLevels.includes(Level.lavaTube))
       OG.runCommand("(close-specific-task! (game-task lavatube-start) (task-status need-reward-speech))");
   }
 
