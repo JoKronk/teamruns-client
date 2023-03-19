@@ -21,17 +21,22 @@ export class NavBoardComponent {
       this.dialog.open(SetPathComponent);
     else
       OG.startGame();
+
+    this._user.viewSettings = false;
   }
 
   getObsLink() {
     this._user.copyLink(window.location.host + "/obs?user=" + this._user.getName() + "&height=800&bgColor=4e4e4e&timerBorder=true");
+    this._user.viewSettings = false;
   }
 
   openPathConfig() {
     this.dialog.open(SetPathComponent);
+    this._user.viewSettings = false;
   }
 
   openInfo() {
     this.dialog.open(InfoComponent, {maxWidth: "100vw"});
+    this._user.viewSettings = false;
   }
 }
