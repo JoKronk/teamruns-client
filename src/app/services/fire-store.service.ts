@@ -35,7 +35,7 @@ export class FireStoreService {
 
   async deleteOldLobbies() {
     const expireDate = new Date();
-    expireDate.setDate(expireDate.getDate() - 1);
+    expireDate.setHours(expireDate.getHours() - 4);
 
     (await this.lobbies.ref.get()).forEach(async (lobbySnapshot) => {
       let lobby = lobbySnapshot.data();

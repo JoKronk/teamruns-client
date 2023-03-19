@@ -39,7 +39,7 @@ export class LobbyComponent implements OnDestroy {
 
     this.lobbiesSubscription = this._firestore.getOpenLobbies().subscribe((lobbies) => {
       const expireDate = new Date();
-      expireDate.setDate(expireDate.getDate() - 1);
+      expireDate.setHours(expireDate.getHours() - 4);
       //remove old lobbies
       lobbies.filter(x => new Date(x.creationDate) < expireDate).forEach(lobby => {
         _firestore.deleteLobby(lobby.id);
