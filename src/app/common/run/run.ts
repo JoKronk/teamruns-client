@@ -207,14 +207,9 @@ export class Run {
         if (!player || !task.isCell) return;
 
         if ((this.getPlayerTeam(task.obtainedBy)?.name === this.getPlayerTeam(player.name)?.name || this.data.mode === RunMode.Lockout)) {
-            if (player?.gameState.currentLevel.includes(task.gameTask.substring(0, task.gameTask.indexOf("-"))) || !player.gameState.currentLevel) {
-                let fuelCell = Task.getEnameMap().get(task.gameTask);
-                if (fuelCell) {
-                    console.log("SENDING OG HIDE CELL!");
-                    OG.runCommand('(+! (-> (the fuel-cell (process-by-ename "' + fuelCell + '")) base y) (meters -200.0))');
-                }
-            }
-            console.log("SENDING OG CELL PICKUP!");
+            let fuelCell = Task.getEnameMap().get(task.gameTask);
+            if (fuelCell)
+                OG.runCommand('(+! (-> (the fuel-cell (process-by-ename "' + fuelCell + '")) base y) (meters -200.0))');
             OG.giveCell(task.gameTask);
         }
     }
@@ -227,24 +222,17 @@ export class Run {
 
         //if all on same level hub zoomer
         if (!localPlayer.restrictedZoomerLevels.includes(player.gameState.currentLevel) || team.players.every(x => x.gameState.onZoomer && x.gameState.currentLevel === levelToCheck)) {
-            console.log("ALLOW ZOOMER USE!");
             OG.runCommand("(set-zoomer-full-mode)");
             localPlayer.restrictedZoomerLevels = localPlayer.restrictedZoomerLevels.filter(x => x !== player!.gameState.currentLevel);
         }
-        else if (!this.data.allowSoloHubZoomers) {
-            console.log("DISALLOW ZOOMER USE!");
+        else if (!this.data.allowSoloHubZoomers)
             OG.runCommand("(set-zoomer-wait-mode)");
-        }
 
         if (this.data.requireSameLevel) {
-            if (team.players.every(x => this.isSameLevel(x.gameState.currentLevel, levelToCheck))) {
-                console.log("ALLOW CELL PICKUP!");
+            if (team.players.every(x => this.isSameLevel(x.gameState.currentLevel, levelToCheck)))
                 OG.runCommand("(set! *allow-cell-pickup?* #t)");
-            }
-            else {
-                console.log("DISALLOW CELL PICKUP!");
+            else 
                 OG.runCommand("(set! *allow-cell-pickup?* #f)");
-            }
         }
     }
 
