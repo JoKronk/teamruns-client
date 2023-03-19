@@ -43,7 +43,7 @@
     padding: 4px 0px;
     border-top: 2px solid rgba(29, 29, 29, 0.2);
     &-container {
-        flex: 1;
+        flex-shrink: 1;
         overflow: auto;
         display: flex;
         flex-direction: column-reverse;
