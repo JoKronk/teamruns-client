@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { OG } from '../common/opengoal/og';
+import { InfoComponent } from '../dialogs/info/info.component';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { UserService } from '../services/user.service';
 
@@ -16,7 +17,10 @@ export class NavBoardComponent {
   }
 
   startGame() {
-    OG.startGame();
+    if (!this._user.user.ogFolderpath)
+      this.dialog.open(SetPathComponent);
+    else
+      OG.startGame();
   }
 
   getObsLink() {
@@ -25,5 +29,9 @@ export class NavBoardComponent {
 
   openPathConfig() {
     this.dialog.open(SetPathComponent);
+  }
+
+  openInfo() {
+    this.dialog.open(InfoComponent, {maxWidth: "100vw"});
   }
 }

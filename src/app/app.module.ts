@@ -28,6 +28,7 @@ import { ObsRunComponent } from './obs-run/obs-run.component';
 import { CloseScreenComponent } from './close-screen/close-screen.component';
 import { LobbyViewerComponent } from './lobby-viewer/lobby-viewer.component';
 import { ConfirmComponent } from './dialogs/confirm/confirm.component';
+import { InfoComponent } from './dialogs/info/info.component';
 
 @NgModule({
   declarations: [
@@ -45,7 +46,8 @@ import { ConfirmComponent } from './dialogs/confirm/confirm.component';
     ObsRunComponent,
     CloseScreenComponent,
     LobbyViewerComponent,
-    ConfirmComponent
+    ConfirmComponent,
+    InfoComponent
   ],
   imports: [
     BrowserModule,

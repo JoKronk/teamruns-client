@@ -5,12 +5,11 @@ import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { UserService } from '../services/user.service';
 import pkg from 'app/package.json';
 import { FireStoreService } from '../services/fire-store.service';
-import { Run } from '../common/run/run';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { Lobby } from '../common/firestore/lobby';
 import { RunMode } from '../common/run/run-mode';
-import { OG } from '../common/opengoal/og';
+import { InfoComponent } from '../dialogs/info/info.component';
 
 @Component({
   selector: 'app-lobby',
@@ -54,11 +53,8 @@ export class LobbyComponent implements OnDestroy {
     });
   }
 
-  startGame() {
-    if (!this._user.user.ogFolderpath)
-      this.dialog.open(SetPathComponent);
-    else
-      OG.startGame();
+  openInfo() {
+    this.dialog.open(InfoComponent, {maxWidth: "100vw"});
   }
 
   routeToRun(runId: string) {
@@ -75,11 +71,7 @@ export class LobbyComponent implements OnDestroy {
   }
 
   createLobby(): void {
-    const dialogRef = this.dialog.open(CreateRunComponent);
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
-    });
+    this.dialog.open(CreateRunComponent);
   }
 
   toggleSetting(): void {
