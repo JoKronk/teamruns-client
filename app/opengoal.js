@@ -164,7 +164,7 @@ class OpenGoal {
             }
         }
         catch (err) {
-            this.sendClientMessage("Tracker Error!: " + jsonString);
+            //this.sendClientMessage("Tracker Error!: " + jsonString);
         }
     }
 
