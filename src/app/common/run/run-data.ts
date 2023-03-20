@@ -12,7 +12,9 @@ export class RunData {
     requireSameLevel: boolean;
     allowSoloHubZoomers: boolean;
     normalCellCost: boolean;
+
     noLTS: boolean;
+    noCitadelSkip: boolean;
 
     constructor(version: string) {
         this.name = "";
@@ -22,6 +24,8 @@ export class RunData {
         this.requireSameLevel = false;
         this.allowSoloHubZoomers = false;
         this.normalCellCost = false;
+
         this.noLTS = true;
+        this.noCitadelSkip = false;
     }
 }

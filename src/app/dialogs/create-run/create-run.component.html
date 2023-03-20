@@ -23,8 +23,9 @@
     <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.normalCellCost">Normal cell costs</label>
     <br />
     <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noLTS">No LTS</label>
+    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noCitadelSkip">No Citadel Skip</label>
     
     <button (click)="createRun()">Create Run</button>
-    <button *ngIf="tournamentPreset.presetIsVisible && !usingPreset" (click)="usePreset()">{{ tournamentPreset.presetButtonText }}</button>
+    <button *ngIf="tournamentPreset && tournamentPreset.presetIsVisible && !usingPreset" (click)="usePreset()">{{ tournamentPreset.presetButtonText }}</button>
 
 </div>

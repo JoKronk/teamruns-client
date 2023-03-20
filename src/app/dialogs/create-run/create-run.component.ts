@@ -1,11 +1,8 @@
 import { Component } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { Player } from 'src/app/common/player/player';
-import { Run } from 'src/app/common/run/run';
 import { RunData } from 'src/app/common/run/run-data';
 import { FireStoreService } from 'src/app/services/fire-store.service';
-import { UserService } from 'src/app/services/user.service';
 import pkg from 'app/package.json';
 import { RunMode } from 'src/app/common/run/run-mode';
 import { Lobby } from 'src/app/common/firestore/lobby';

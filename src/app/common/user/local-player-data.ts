@@ -172,7 +172,21 @@ export class LocalPlayerData {
 
   checkNoLTS() {
     if (this.gameState.currentLevel === Level.lavaTube && this.gameState.onZoomer && this.gameState.cellCount < 72)
-      OG.runCommand("(start 'play (get-continue-by-name *game-info* \"lavatube-start\"))")
+      OG.runCommand("(start 'play (get-continue-by-name *game-info* \"lavatube-start\"))");
+  }
+
+  checkNoCitadelSkip(run: Run) {
+    if (!this.team) return;
+    const hasAllCitadelCells: boolean = (run.data.mode !== RunMode.Lockout ? this.team.tasks : run.getAllTask()).filter(x => x.gameTask.startsWith("citadel-sage-")).length === 4;
+    if (hasAllCitadelCells) return;
+
+    if (this.gameState.currentCheckpoint === "citadel-elevator") {
+      OG.runCommand('(set-continue! *game-info* "citadel-start")');
+    }
+    if (this.gameState.currentLevel === Level.finalBoss) {
+      OG.runCommand('(set-continue! *game-info* "citadel-start")');
+      OG.runCommand("(start 'play (get-continue-by-name *game-info* \"citadel-elevator\"))");
+    }
   }
 
   isObs() {

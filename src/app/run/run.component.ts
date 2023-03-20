@@ -150,6 +150,7 @@ export class RunComponent implements OnDestroy {
         //handle state change
         if (this.localPlayer.gameState.hasPlayerStateChange(state) && this.localPlayer.state !== PlayerState.Finished) {
           this.localPlayer.gameState.currentLevel = state.currentLevel;
+          this.localPlayer.gameState.currentCheckpoint = state.currentCheckpoint;
           this.localPlayer.gameState.onZoomer = state.onZoomer;
           this.runHandler.sendEvent(EventType.NewPlayerState, state);
           
@@ -160,6 +161,10 @@ export class RunComponent implements OnDestroy {
         //handle no LTS
         if (this.runHandler.run.data.noLTS)
           this.localPlayer.checkNoLTS();
+
+        //handle no Citadel Skip
+        if (this.runHandler.run.data.noCitadelSkip)
+          this.localPlayer.checkNoCitadelSkip(this.runHandler.run);
       });
     });
 
