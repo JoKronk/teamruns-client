@@ -19,6 +19,7 @@ export class GameState {
 
     hasPlayerStateChange(state: GameState): boolean {
         return this.currentLevel != state.currentLevel 
+        || this.currentCheckpoint != state.currentCheckpoint
         || this.onZoomer != state.onZoomer;
     }
 }

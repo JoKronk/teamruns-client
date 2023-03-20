@@ -139,6 +139,11 @@ export class Run {
         return this.getPlayerTeam(playerName)?.players.find(x => x.name === playerName);
     }
 
+    getAllTask(): Task[] {
+        return this.teams.flatMap(x => x.tasks);
+    }
+
+
     playerTeamHasCell(task: string, playerName: string): boolean {
         return this.getPlayerTeam(playerName)?.tasks.some(x => x.gameTask === task) ?? false;
     }
