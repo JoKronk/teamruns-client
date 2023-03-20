@@ -63,12 +63,13 @@ class OpenGoal {
 
     killOG(spareGk = false) {
         try {
+            if (openGoalHasStarted) {
+                var shell = new winax.Object('WScript.Shell');
+                if (!spareGk)
+                    shell.Exec("taskkill /F /IM gk.exe");
+                shell.Exec("taskkill /F /IM goalc.exe");
+            }
             openGoalHasStarted = false;
-            
-            var shell = new winax.Object('WScript.Shell');
-            if (!spareGk)
-                shell.Exec("taskkill /F /IM gk.exe");
-            shell.Exec("taskkill /F /IM goalc.exe");
 
             if (openGoalTracker) 
                 spawn("taskkill", ["/pid", openGoalTracker.pid, '/f', '/t']);

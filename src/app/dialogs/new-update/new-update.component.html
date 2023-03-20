@@ -1,0 +1,13 @@
+<div class="container">
+    <p id="title">Update</p>
+    <div *ngIf="!updateWhenReady">
+        <h2>New Update Available!</h2>
+        <p>The client will automatically close itself and install the update when the download is complete.</p>
+        <button (click)="update()">Update</button>
+        <button class="cancel" (click)="close()">Cancel</button>
+    </div>
+    <div *ngIf="updateWhenReady">
+        <h2 class="center-text">Downloading Update</h2>
+        <mat-progress-spinner class="spinner" color="primary" mode="determinate" [value]="progress"></mat-progress-spinner>
+    </div>
+</div>

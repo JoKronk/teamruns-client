@@ -124,6 +124,18 @@ export class UserService implements OnDestroy {
     (window as any).electron.send('settings-read');
   }
 
+  //check for new update
+  checkForUpdate(): void {
+    if (this.isBrowser) return;
+    (window as any).electron.send('update-check');
+  }
+
+  //install new update
+  installUpdate(): void {
+    if (this.isBrowser) return;
+    (window as any).electron.send('update-install');
+  }
+
   ngOnDestroy(): void {
     this.trackerListener();
     this.settingsListener();

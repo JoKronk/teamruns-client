@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
@@ -94,6 +95,28 @@ function createWindow() {
   ipcMain.on('window-close', () => {
     openGoal.killOG();
     win.close();
+  });
+    
+  ipcMain.on('update-check', () => {
+    autoUpdater.checkForUpdatesAndNotify();
+  });
+    
+  ipcMain.on('update-install', () => {
+    openGoal.killOG();
+    autoUpdater.quitAndInstall();
+  });
+
+  // --- AUTO UPDATE LISTENERS ---
+  autoUpdater.on('update-available', () => {
+    win.webContents.send('update-available');
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    win.webContents.send('update-progress', progress.percent);
+  });
+  
+  autoUpdater.on('update-downloaded', () => {
+    win.webContents.send('update-downloaded');
   });
 
     return win;

@@ -10,26 +10,39 @@
     "electron:serve": "wait-on tcp:4200 && electron . --serve",
     "electron": "ng build && electron .",
     "pack": "ng build && electron-builder --dir",
-    "dist": "ng build && electron-builder",
+    "dist": "ng build && electron-builder build --win --publish never",
+    "deploy": "ng build && electron-builder build --win --publish always",
     "test": "ng test",
     "build": "ng build",
     "watch": "ng build --watch --configuration development"
   },
   "build": {
     "appId": "teamrun-client",
+    "productName": "TeamRun",
     "extraResources": [
       "./tracker/*"
     ],
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ]
+    "nsis": {
+        "artifactName": "${name}-${version}-installer.${ext}",
+        "allowToChangeInstallationDirectory": true,
+        "oneClick": false,
+        "installerIcon": "build/icon.ico",
+        "uninstallerIcon": "build/icon.ico",
+        "uninstallDisplayName": "TeamRun",
+        "shortcutName": "TeamRun"
     },
     "win": {
-      "target": "portable",
+      "artifactName": "${name}-${version}-portable.${ext}",
+      "target": [
+        "NSIS",
+        "portable"
+      ],
       "icon": "build/icon.ico"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JoKronk/TeamRun-Client.git"
   },
   "private": true,
   "dependencies": {

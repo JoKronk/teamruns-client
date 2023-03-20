@@ -10,6 +10,7 @@ import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 
 import { NavBoardComponent } from './nav-board/nav-board.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
@@ -29,6 +30,7 @@ import { CloseScreenComponent } from './close-screen/close-screen.component';
 import { LobbyViewerComponent } from './lobby-viewer/lobby-viewer.component';
 import { ConfirmComponent } from './dialogs/confirm/confirm.component';
 import { InfoComponent } from './dialogs/info/info.component';
+import { NewUpdateComponent } from './dialogs/new-update/new-update.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +49,8 @@ import { InfoComponent } from './dialogs/info/info.component';
     CloseScreenComponent,
     LobbyViewerComponent,
     ConfirmComponent,
-    InfoComponent
+    InfoComponent,
+    NewUpdateComponent
   ],
   imports: [
     BrowserModule,
@@ -58,6 +61,7 @@ import { InfoComponent } from './dialogs/info/info.component';
     MatSnackBarModule,
     MatDialogModule,
     MatTooltipModule,
+    MatProgressSpinnerModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule
   ],
