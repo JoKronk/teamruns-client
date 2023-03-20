@@ -115,8 +115,13 @@
         background-color: #3e3e3e;
     }
     &-cont {
+        overflow: auto;
+        max-height: 610px;
         margin: 0px 24px;
         border-top: 2px solid rgba(29, 29, 29, 0.2);
+        &::-webkit-scrollbar {
+            display: none;
+        }
     }
     &-info {
         flex: 1;
