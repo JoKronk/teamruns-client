@@ -6,7 +6,7 @@
     </div>
     <div class="option">
         <p>Mode</p>
-        <select [(ngModel)]="runData.mode" (change)="changeMode()">
+        <select [disabled]="usingPreset" [(ngModel)]="runData.mode" (change)="changeMode()">
             <option [ngValue]="runMode.Speedrun">Speedrun</option>
             <option [ngValue]="runMode.Lockout">Lockout</option>
         </select>
@@ -18,12 +18,13 @@
         </select>
     </div>
     <br />
-    <label><input type="checkbox" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
-    <label><input type="checkbox" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
-    <label><input type="checkbox" [(ngModel)]="runData.normalCellCost">Normal cell costs</label>
+    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
+    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
+    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.normalCellCost">Normal cell costs</label>
     <br />
-    <label><input type="checkbox" [(ngModel)]="runData.noLTS">No LTS</label>
+    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noLTS">No LTS</label>
     
     <button (click)="createRun()">Create Run</button>
+    <button *ngIf="tournamentPreset.presetIsVisible && !usingPreset" (click)="usePreset()">{{ tournamentPreset.presetButtonText }}</button>
 
 </div>

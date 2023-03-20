@@ -9,6 +9,7 @@ import { UserService } from 'src/app/services/user.service';
 import pkg from 'app/package.json';
 import { RunMode } from 'src/app/common/run/run-mode';
 import { Lobby } from 'src/app/common/firestore/lobby';
+import { Preset } from 'src/app/common/firestore/preset';
 
 @Component({
   selector: 'app-create-run',
@@ -22,8 +23,11 @@ export class CreateRunComponent {
 
   runMode = RunMode;
 
-  constructor(private _user: UserService, private _firestore: FireStoreService, private router: Router, private dialogRef: MatDialogRef<CreateRunComponent>) {
-    
+  tournamentPreset: Preset;
+  usingPreset: boolean;
+
+  constructor(private _firestore: FireStoreService, private router: Router, private dialogRef: MatDialogRef<CreateRunComponent>) {
+    this.getPreset();
   }
 
   createRun() {
@@ -34,6 +38,15 @@ export class CreateRunComponent {
     this.dialogRef.close();
   }
 
+  async getPreset() {
+    this.tournamentPreset = await this._firestore.getPreset("tournament") ?? new Preset(this.runData);
+  }
+
+  usePreset() {
+    this.usingPreset = true;
+    this.runData = this.tournamentPreset.runData;
+  }
+
   changeMode() {
     if (this.runData.mode === RunMode.Speedrun)
       this.teamsOptions = [1, 2, 3, 4];
@@ -41,6 +54,11 @@ export class CreateRunComponent {
       this.teamsOptions = [2, 3, 4];
       if (this.runData.teams === 1)
         this.runData.teams = 2;
+    }
+    else if (this.runData.mode === RunMode.Elimination) {
+      this.teamsOptions = [1];
+      if (this.runData.teams !== 1)
+        this.runData.teams = 1;
     }
   }
 }

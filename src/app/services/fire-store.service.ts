@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { CollectionName } from '../common/firestore/collection-name';
 import { Lobby } from '../common/firestore/lobby';
+import { Preset } from '../common/firestore/preset';
 import { Run } from '../common/run/run';
 
 @Injectable({
@@ -60,5 +61,9 @@ export class FireStoreService {
   async addRun(run:Run) {
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
     await this.runs.doc<Run>().set(JSON.parse(JSON.stringify(run)));
+  }
+
+  async getPreset(id: string) {
+    return (await this.firestore.collection<Preset>(CollectionName.presets).doc<Preset>(id).ref.get()).data();
   }
 }
