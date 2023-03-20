@@ -14,6 +14,7 @@ export class SetPathComponent implements OnDestroy {
 
   constructor (public _user: UserService, private dialogRef: MatDialogRef<SetPathComponent>, private zone: NgZone) {
     this.setPathListener();
+    this.path = _user.user.ogFolderpath;
   }
 
   setPath() {
