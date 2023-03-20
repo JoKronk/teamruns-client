@@ -1,11 +1,13 @@
 export class GameState {
     currentLevel: string;
+    currentCheckpoint: string;
     onZoomer: boolean;
     cellCount: number;
     sharedTasks: any;
 
     constructor() {
         this.currentLevel = "";
+        this.currentCheckpoint = "";
         this.onZoomer = false;
         this.cellCount = 0;
         this.sharedTasks = null;
