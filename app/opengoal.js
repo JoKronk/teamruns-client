@@ -13,6 +13,7 @@ var openGoalTracker = null;
 var openGoalWatcher = null;
 var openGoalGameState = null;
 var trackerConnectedState = false;
+var openGoalIsRunning = false;
 var openGoalHasStarted = false;
 
 class OpenGoal {
@@ -62,12 +63,13 @@ class OpenGoal {
 
     killOG(spareGk = false) {
         try {
-            if (openGoalHasStarted) {
+            if (openGoalIsRunning) {
                 var shell = new winax.Object('WScript.Shell');
                 if (!spareGk)
                     shell.Exec("taskkill /F /IM gk.exe");
                 shell.Exec("taskkill /F /IM goalc.exe");
             }
+            openGoalIsRunning = false;
             openGoalHasStarted = false;
 
             if (openGoalTracker) 
@@ -81,6 +83,7 @@ class OpenGoal {
             var shell = new winax.Object('Shell.Application');
             shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 0);
             shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open", 0);
+            openGoalIsRunning = true;
         }
         catch (e) { this.sendClientMessage(e); }
     }
