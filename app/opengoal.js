@@ -36,7 +36,6 @@ class OpenGoal {
 
         openGoalGk = new net.Socket();
 
-        let startSuccessful = false;
         this.killOG();
         await sleep(1500);
         this.startOG(ogPath);
@@ -51,11 +50,11 @@ class OpenGoal {
             this.runTracker();
 
             await sleep(2000);
-            startSuccessful = true;
+            openGoalHasStarted = true;
         });
 
         openGoalGk.on('error', (ex) => {
-            if (!startSuccessful)
+            if (!openGoalHasStarted)
                 this.sendClientMessage("Failed to start the client properly, please relaunch!");
         });
     }
@@ -82,25 +81,24 @@ class OpenGoal {
             var shell = new winax.Object('Shell.Application');
             shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 0);
             shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open", 0);
-            openGoalHasStarted = true;
         }
         catch (e) { this.sendClientMessage(e); }
     }
 
     setupOG() {
         console.log("Writing setup commands!")
-        this.writeGoalCommand("(lt)");
-        this.writeGoalCommand("(set! *debug-segment* #f)");
-        this.writeGoalCommand("(mi)");
-        this.writeGoalCommand("(set! *cheat-mode* #f)");
-        this.writeGoalCommand("(set! (-> *pc-settings* speedrunner-mode?) #t)");
-        this.writeGoalCommand("(send-event *target* 'loading)");
-        this.writeGoalCommand("(send-event *target* 'get-pickup (pickup-type eco-red) 1.0)");
+        this.writeGoalCommand("(lt)", true);
+        this.writeGoalCommand("(set! *debug-segment* #f)", true);
+        this.writeGoalCommand("(mi)", true);
+        this.writeGoalCommand("(set! *cheat-mode* #f)", true);
+        this.writeGoalCommand("(set! (-> *pc-settings* speedrunner-mode?) #t)", true);
+        this.writeGoalCommand("(send-event *target* 'loading)", true);
+        this.writeGoalCommand("(send-event *target* 'get-pickup (pickup-type eco-red) 1.0)", true);
         console.log(".done");
     }
 
-    writeGoalCommand(args) {
-        if (!openGoalHasStarted) return;
+    writeGoalCommand(args, isStartupCommand = false) {
+        if (!openGoalHasStarted && !isStartupCommand) return;
 
         let utf8Encode = new TextEncoder();
         var data = utf8Encode.encode(args);
