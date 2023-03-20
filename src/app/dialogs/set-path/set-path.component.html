@@ -1,9 +1,9 @@
 <div class="container">
     <p id="title">Set Path</p>
-    <h2>Please select the path to your OpenGOAL folder</h2>
-    <button id="select" (click)="selectPath()">Select Path</button>
+    <h2>Please select the gk(. exe) file in your OpenGOAL folder</h2>
+    <button id="select" (click)="selectPath()">Select file</button>
     <p>Selected Path: {{ path }}</p>
 
-    <button (click)="setPath()">Save</button>
+    <button (click)="setPath()" [disabled]="!path">Save</button>
 
 </div>

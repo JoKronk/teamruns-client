@@ -3,7 +3,13 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { Player } from 'src/app/common/player/player';
 import { Run } from 'src/app/common/run/run';
+import { RunData } from 'src/app/common/run/run-data';
+import { FireStoreService } from 'src/app/services/fire-store.service';
 import { UserService } from 'src/app/services/user.service';
+import pkg from 'app/package.json';
+import { RunMode } from 'src/app/common/run/run-mode';
+import { Lobby } from 'src/app/common/firestore/lobby';
+import { Preset } from 'src/app/common/firestore/preset';
 
 @Component({
   selector: 'app-create-run',
@@ -12,27 +18,47 @@ import { UserService } from 'src/app/services/user.service';
 })
 export class CreateRunComponent {
 
-  runName: string;
-  numberOfTeams: number = 1;
-  runnersPerTeam: number = 3;
-  runSize: number;
-
+  runData: RunData = new RunData(pkg.version);
   teamsOptions: number[] = [1, 2, 3, 4];
-  runnersOptions: number[] = [1, 2, 3, 4];
 
-  constructor(private _user: UserService, private router: Router, private dialogRef: MatDialogRef<CreateRunComponent>) {
-    this.updateRunSize();
+  runMode = RunMode;
+
+  tournamentPreset: Preset;
+  usingPreset: boolean;
+
+  constructor(private _firestore: FireStoreService, private router: Router, private dialogRef: MatDialogRef<CreateRunComponent>) {
+    this.getPreset();
   }
 
   createRun() {
-    let player = new Player(this._user.getName());
-    let run = new Run(this.runName, this.numberOfTeams, this.runnersPerTeam, player);
-    this._user.setLocalRunStorage(run);
-    this.router.navigate(['/run']);
+    this.runData.buildVersion = pkg.version;
+    const lobby = new Lobby(this.runData);
+    this._firestore.addLobby(lobby);
+    this.router.navigate(['/run'], { queryParams: { id: lobby.id } });
     this.dialogRef.close();
   }
 
-  updateRunSize() {
-    this.runSize = this.numberOfTeams * this.runnersPerTeam;
+  async getPreset() {
+    this.tournamentPreset = await this._firestore.getPreset("tournament") ?? new Preset(this.runData);
+  }
+
+  usePreset() {
+    this.usingPreset = true;
+    this.runData = this.tournamentPreset.runData;
+  }
+
+  changeMode() {
+    if (this.runData.mode === RunMode.Speedrun)
+      this.teamsOptions = [1, 2, 3, 4];
+    else if (this.runData.mode === RunMode.Lockout) {
+      this.teamsOptions = [2, 3, 4];
+      if (this.runData.teams === 1)
+        this.runData.teams = 2;
+    }
+    else if (this.runData.mode === RunMode.Elimination) {
+      this.teamsOptions = [1];
+      if (this.runData.teams !== 1)
+        this.runData.teams = 1;
+    }
   }
 }

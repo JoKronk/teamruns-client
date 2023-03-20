@@ -8,7 +8,7 @@
     <div class="login-container">
         <div class="input-container">
             <p>Username</p>
-            <input [(ngModel)]="_user.user.displayName" (keyup.enter)="sendToLobby()">
+            <input [(ngModel)]="_user.user.displayName" (keyup.enter)="sendToLobby()" maxlength="20">
         </div>
         <div class="input-container">
             <p>Twitch Username (optional)</p>

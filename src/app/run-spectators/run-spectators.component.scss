@@ -1,0 +1,30 @@
+.container {
+    max-height: 100%;
+    padding: 20px 10px;
+    position: relative;
+}
+
+.title {
+    -webkit-user-select: none;
+    font-family: 'jak';
+    font-size: 22px;
+    margin: 4px;
+    color: #d49012;
+}
+
+.spectators {
+    & p {
+        margin: 3px;
+        color: #cccccccc;
+    }
+}
+
+.backtext {
+    font-family: 'precursor';
+    transform: rotate(90deg);
+    font-size: 80px;
+    margin-left: 150px;
+    position: absolute;
+    top: 330px;
+    right: -150px;
+}

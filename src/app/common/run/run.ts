@@ -1,54 +1,42 @@
+import { LocalPlayerData } from "../user/local-player-data";
 import { Player } from "../player/player";
-import { State } from "../player/state";
-import { Task } from "./task";
+import { RunMode } from "./run-mode";
+import { RunData } from "./run-data";
+import { GameState } from "../player/game-state";
+import { Task } from "../opengoal/task";
 import { Team } from "./team";
 import { Timer } from "./timer";
+import { PlayerState } from "../player/player-state";
+import { RunState } from "./run-state";
+import { MultiLevel } from "../opengoal/levels";
+import { OG } from "../opengoal/og";
 
 export class Run {
-    name: string;
+    data: RunData;
     teams: Team[];
     timer: Timer;
-    owner: string;
-    maxSize: number;
 
-    started: boolean;
-
-    constructor(name: string, teamsCount: number, teamCap: number, creator: Player) {
-        this.name = name;
+    constructor(runData: RunData) {
+        this.data = runData;
         this.teams = [];
-        this.owner = creator.name;
-        this.maxSize = teamsCount * teamCap;
         this.timer = new Timer(15);
 
-        for (let i = 0; i < teamsCount; i++) {
-            let team = new Team("Team " + (i + 1), teamCap);
-
-            if (i === 0) {
-                team.owner = creator.name;
-                team.isPlayersCurrentTeam = true;
-                team.players.push(creator);
-            }
-            
-            this.teams.push(team);
-        } 
+        for (let i = 0; i < this.data.teams; i++)
+            this.teams.push(new Team("Team " + (i + 1)));
     }
 
-    addNewPlayer(player: Player): void {
-        this.teams.forEach(team => {
-            if (team.players.length < team.playerCap) {
-                team.players.push(player);
-                return;
-            }
-
-        })
+    removePlayer(playerName: string): void {
+        let team = this.getPlayerTeam(playerName);
+        if (!team) return;
+        team.players = team.players.filter(x => x.name !== playerName);
     }
 
-    toggleVoteReset(playerName: string, reset:boolean): boolean {
+    toggleVoteReset(playerName: string, state: PlayerState): boolean {
         let player = this.getPlayer(playerName);
         if (!player) return false;
-        player.wantsToReset = reset;
+        player.state = state;
 
-        if (reset)
+        if (state === PlayerState.WantsToReset)
             return this.checkForRunReset();
 
         return false;
@@ -56,61 +44,79 @@ export class Run {
 
     checkForRunReset(): boolean {
         let players = this.teams.flatMap(x => x.players);
-        if (players.filter(x => x.wantsToReset).length / players.length <= 0.65)
+        if (players.filter(x => x.state === PlayerState.WantsToReset).length / players.length <= 0.65)
             return false;
         
         this.timer.reset();
         this.teams.forEach(team => {
-            team.tasks = [];
-            team.players.forEach(player => {
-                player.ready = false;
-                player.wantsToReset = false;
-            })
+            team.resetForRun();
         });
         return true;
     }
 
-    updateState(playerName: string, state: State): void {
+    endPlayerRun(playerName: string, forfeit: boolean): void {
+        let player = this.getPlayer(playerName);
+        if (!player) return;
+        player.state = forfeit ? PlayerState.Forfeit : PlayerState.Finished;
+        if (this.everyoneHasFinished() || (!forfeit && this.data.mode === RunMode.Lockout))
+            this.timer.runState = RunState.Ended;
+    }
+
+    everyoneHasFinished(): boolean {
+        return this.teams.every(x => x.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit));
+    }
+
+    updateState(playerName: string, state: GameState): void {
+        let player = this.getPlayer(playerName);
+        if (!player) return;
+        player.gameState = state;
+    }
+
+    addSplit(task: Task): void {
+            this.getPlayerTeam(task.obtainedBy)?.addTask(task);
+    }
+
+    toggleReady(playerName: string, state: PlayerState): void {
         let player = this.getPlayer(playerName);
         if (!player) return;
         player.state = state;
     }
 
-    addSplit(task: Task): void {
-        this.getPlayerTeam(task.obtainedBy)?.tasks.unshift(task);
-    }
-
-    toggleReady(playerName: string, setTo: boolean): void {
-        let player = this.getPlayer(playerName);
-        if (!player) return;
-        player.ready = setTo;
-    }
-
-    everyIsReady(): boolean {
-        return !this.teams.some(x => x.players.some(y => !y.ready));
+    everyoneIsReady(): boolean {
+        return this.teams.every(x => x.players.every(y => y.state === PlayerState.Ready));
     }
 
     start(startDate: Date) {
-        this.timer.startTimer(startDate);
+        startDate.setSeconds(startDate.getSeconds() + this.timer.countdownSeconds - 1);
+        this.timer.startTimer(startDate.getTime());
     }
 
-    switchTeam(playerName: string, teamName: string, userName: string): void {
-      let newTeam = this.teams.find(x => x.name === teamName);
+    setOrbCosts(playerTeam: string) {
+        if (!this.data.normalCellCost && (this.data.mode === RunMode.Lockout || (this.getPlayerTeam(playerTeam)?.players.length ?? 0) > 1)) {
+            OG.runCommand("(set! (-> *GAME-bank* money-task-inc) 180.0)");
+            OG.runCommand("(set! (-> *GAME-bank* money-oracle-inc) 240.0)");
+        }
+        else {
+            OG.runCommand("(set! (-> *GAME-bank* money-task-inc) 90.0)");
+            OG.runCommand("(set! (-> *GAME-bank* money-oracle-inc) 120.0)");
+        }
+    }
+
+    changeTeam(playerName: string, teamName: string, twitchName: string | null) {
+      let newTeam = this.getTeam(teamName);
       if (!newTeam) return;
   
       let oldTeam = this.teams.find(x => x.players.some(player => player.name === playerName));
-      if (!oldTeam) return;
+      
   
-      let player = oldTeam.players.find(x => x.name === playerName)!;
-      if (player.name === userName) {
-        oldTeam.isPlayersCurrentTeam = false;
-        newTeam.isPlayersCurrentTeam = true;
-      }
-      newTeam.players.push(player);
+      let player = oldTeam ? oldTeam.players.find(x => x.name === playerName) : new Player(playerName, twitchName);
+      newTeam.players.push(player!);
       //cheap method of forcing screen to re-render old team
-      let players = oldTeam.players.filter(x => x.name !== playerName);
-      oldTeam.players = [];
-      oldTeam.players = players;
+      if (oldTeam) {
+        let players = oldTeam.players.filter(x => x.name !== playerName);
+        oldTeam.players = [];
+        oldTeam.players = players;
+      }
     }
     
     getTimerShortenedFormat(): string {
@@ -120,11 +126,140 @@ export class Run {
         return time;
     }
 
-    private getPlayerTeam(playerName: string): Team | undefined {
+    getTeam(teamName: string): Team | undefined {
+        return this.teams.find(x => x.name === teamName);
+    }
+
+    getPlayerTeam(playerName: string): Team | undefined {
         return this.teams.find(x => x.players.some(player => player.name === playerName));
     }
 
-    private getPlayer(playerName: string): Player | undefined {
+    getPlayer(playerName: string): Player | undefined {
         return this.getPlayerTeam(playerName)?.players.find(x => x.name === playerName);
+    }
+
+    playerTeamHasCell(task: string, playerName: string): boolean {
+        return this.getPlayerTeam(playerName)?.tasks.some(x => x.gameTask === task) ?? false;
+    }
+
+    runHasCell(task: string): boolean {
+        return this.teams.some(x => x.tasks.some(y => y.gameTask === task));
+    }
+
+
+    // --- RUN METHODS INVOLVING OPENGOAL ---
+
+    //used to sync runs between players for user join or in case of desync
+    importChanges(localPlayer: LocalPlayerData, run: Run) {
+
+        //handle run metedata
+        if (this.timer.runState === RunState.Waiting)
+            this.data = run.data;
+        //handle timer
+        if (this.timer.runState === RunState.Waiting && run.timer.runState === RunState.Countdown && run.timer.startDateMs) {
+            this.timer.startTimer(run.timer.startDateMs);
+            localPlayer.state = PlayerState.Neutral;
+        }
+
+        //handle team events
+        this.teams.forEach(team => {
+            let importTeam = run.teams.find(x => x.name === team.name);
+            if (importTeam) {
+                //checks to do before run start
+                if (this.timer.runState === RunState.Waiting) {
+                    team.owner = importTeam.owner;
+                    team.players = importTeam.players;
+                }
+                //checks to do after run start
+                else {
+                    //get new player states
+                    team.players.forEach(player => {
+                        let importPlayer = importTeam!.players.find(x => x.name === player.name);
+                        if (importPlayer) {
+                            player.state = importPlayer.state;
+                            player.gameState = importPlayer.gameState;
+                        }
+                    });
+
+                    //localPlayer player class, use to check if this is curernt players TEAM
+                    let localPlayerImportedPlayer = team.players.find(x => x.name === localPlayer.name);
+                    //check for new tasks to give player
+                    if (localPlayerImportedPlayer || this.data.mode === RunMode.Lockout) {
+                        importTeam.tasks.filter(x => x.isCell && !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
+                            this.giveCellToUser(task, localPlayerImportedPlayer);
+                        });
+                    }
+
+                    //transfer tasks
+                    team.tasks = importTeam.tasks;
+                    team.cellCount = importTeam.cellCount;
+
+                    //state update checks
+                    if (localPlayerImportedPlayer) {
+                        this.onUserStateChange(localPlayer, localPlayerImportedPlayer);
+                    }
+                }
+            }
+        });
+    }
+
+    giveCellToUser(task: Task, player: Player | undefined) {
+        if (!player || !task.isCell) return;
+
+        if ((this.getPlayerTeam(task.obtainedBy)?.name === this.getPlayerTeam(player.name)?.name || this.data.mode === RunMode.Lockout)) {
+            let fuelCell = Task.getEnameMap().get(task.gameTask);
+            if (fuelCell)
+                OG.runCommand('(+! (-> (the fuel-cell (process-by-ename "' + fuelCell + '")) base y) (meters -200.0))');
+            OG.giveCell(task.gameTask);
+        }
+    }
+
+    onUserStateChange(localPlayer: LocalPlayerData, player: Player) {
+        const team = this.getPlayerTeam(player.name);
+        if (!team) return;
+
+        let levelToCheck = team.players[0]?.gameState.currentLevel;
+
+        //if all on same level hub zoomer
+        if (!localPlayer.restrictedZoomerLevels.includes(player.gameState.currentLevel) || team.players.every(x => x.gameState.onZoomer && x.gameState.currentLevel === levelToCheck)) {
+            OG.runCommand("(set-zoomer-full-mode)");
+            localPlayer.restrictedZoomerLevels = localPlayer.restrictedZoomerLevels.filter(x => x !== player!.gameState.currentLevel);
+        }
+        else if (!this.data.allowSoloHubZoomers)
+            OG.runCommand("(set-zoomer-wait-mode)");
+
+        if (this.data.requireSameLevel) {
+            if (team.players.every(x => this.isSameLevel(x.gameState.currentLevel, levelToCheck)))
+                OG.runCommand("(set! *allow-cell-pickup?* #t)");
+            else 
+                OG.runCommand("(set! *allow-cell-pickup?* #f)");
+        }
+    }
+
+    private isSameLevel(currentLevel: string, checkAgainst: string) {
+        if (MultiLevel.spiderCave().includes(currentLevel) && MultiLevel.spiderCave().includes(checkAgainst))
+            return true;
+        if (MultiLevel.jungle().includes(currentLevel) && MultiLevel.jungle().includes(checkAgainst))
+            return true;
+        if (MultiLevel.lpc().includes(currentLevel) && MultiLevel.lpc().includes(checkAgainst))
+            return true;
+        if (currentLevel === checkAgainst)
+            return true;
+
+        return false;
+    }
+
+    reconstructRun() {
+        //update run
+        let teams: Team[] = [];
+        for (let team of this.teams) {
+            teams.push(Object.assign(new Team(team.name), team));
+        }
+        this.teams = teams;
+        this.timer = Object.assign(new Timer(this.timer.countdownSeconds), this.timer);
+        if (this.timer.runState !== RunState.Waiting)
+            this.timer.updateTimer();
+
+        return this;
     }
 }

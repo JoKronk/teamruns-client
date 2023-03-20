@@ -1,20 +1,36 @@
 import { Player } from "../player/player";
-import { Task } from "./task";
+import { Task } from "../opengoal/task";
+import { PlayerState } from "../player/player-state";
+
 
 export class Team {
     name: string;
-    playerCap: number;
     players: Player[];
     tasks: Task[];
-    isPlayersCurrentTeam: boolean;
+    cellCount: number;
     owner: string;
 
-    constructor(name: string, cap: number) {
+    constructor(name: string) {
         this.name = name;
-        this.playerCap = cap;
-        this.isPlayersCurrentTeam = false;
-        this.players = [ ];
-        this.tasks = [ ];
+        this.players = [];
         this.owner = "";
+        this.resetForRun();
+    }
+
+    resetForRun() {
+        this.tasks = [ ];
+        this.cellCount = 0;
+
+        if (this.players.length === 0) return;
+        this.players.forEach(player => {
+            player.state = PlayerState.Neutral;
+        })
+    }
+    
+    addTask(task: Task) {
+        if (task.isCell)
+            this.cellCount++;
+            
+        this.tasks.unshift(task);
     }
 }

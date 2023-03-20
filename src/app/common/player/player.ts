@@ -1,17 +1,18 @@
-import { State } from "./state";
-import { Task } from "../run/task";
+import { GameState } from "./game-state";
+import { PlayerState } from "./player-state";
+import { Task } from "../opengoal/task";
 
 export class Player {
     name: string;
-    state: State;
-    ready: boolean;
-    wantsToReset: boolean;
+    twitchName: string | null;
+    gameState: GameState;
+    state: PlayerState;
 
-    constructor(name: string) {
+    constructor(name: string, twitchName: string | null) {
         this.name = name;
-        this.ready = false;
-        this.wantsToReset = false;
-        this.state = new State();
+        this.twitchName = twitchName;
+        this.state = PlayerState.Neutral;
+        this.gameState = new GameState();
     }
 
 

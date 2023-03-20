@@ -1,0 +1,44 @@
+.container {
+    padding: 10px 20px 30px;
+    width: 312px;
+    font-family: 'jak';
+    font-weight: bold;
+    font-size: 22px;
+    color: #a56d06;
+    border: 2px solid #1f1f1f;
+    border-radius: 4px;
+    background-color: rgba(34, 34, 34, 0.8);
+}
+::ng-deep mat-dialog-container  {
+  background-color: transparent !important;
+}
+::ng-deep .mat-mdc-dialog-container .mdc-dialog__surface {
+    background-color: transparent !important;
+}
+
+button {
+    margin-top: 26px;
+    font-family: 'jak';
+    font-size: 20px;
+    color: #cccccc;
+    height: 40px;
+    width: 125px;
+    background-color: #3e3e3e;
+    border: 1px solid #636363;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+    transition: 0.3s;
+    &:hover {
+        color: rgba(255, 255, 255, 1);
+        background-color: #a56d06;
+        border: 1px solid rgb(99, 99, 99, 0.6);
+    }
+}
+
+.cancel {
+    float: right;
+    &:hover {
+        background-color: #380000;
+    }
+}

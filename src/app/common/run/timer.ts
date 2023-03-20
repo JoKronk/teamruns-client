@@ -1,12 +1,13 @@
+import { OG } from "../opengoal/og";
+import { RunState } from "./run-state";
+
 export class Timer {
-    startDate: Date | null;
-    startDateMs: number | null;
-    countdownSeconds: number;
     time: string;
     timeMs: string;
+    startDateMs: number | null;
+    countdownSeconds: number;
 
-    timerHasStarted: boolean;
-    runHasStarted: boolean;
+    runState: RunState;
 
     private resetEverything: boolean = false; //used to flag a reset to the update cycle
 
@@ -20,48 +21,52 @@ export class Timer {
     }
 
     private resetTimer() {
-        this.startDate = null;
         this.startDateMs = null;
-        this.runHasStarted = false;
-        this.timerHasStarted = false;
+        this.runState = RunState.Waiting;
         this.time = "-0:00:" + ("0" + this.countdownSeconds).slice(-2);
         this.timeMs = ".0";
         this.resetEverything = false;
     }
 
-    startTimer(startDate: Date) {
-        this.startDate = startDate;
-        this.startDate.setSeconds(this.startDate.getSeconds() + this.countdownSeconds);
-        this.startDateMs = startDate.getTime();
-        this.timerHasStarted = true;
-        this.runHasStarted = false;
+    startTimer(startMs: number) {
+        this.startDateMs = startMs;
+        this.runState = RunState.Countdown;
         this.updateTimer();
     }
 
 
 
-    private updateTimer() {
-        setTimeout(() => {
-            var currentTimeMs = new Date().getTime();
+    async updateTimer(hasSpawnedPlayer: boolean = false) { //parameter as we can't store local player data in run model currently
+        if (this.runState === RunState.Ended)
+            return;
 
-            //start run check
-            if (!this.runHasStarted && this.startDateMs! <= currentTimeMs)
-                this.startRun();
+        var currentTimeMs = new Date().getTime();
+
+        //start run check
+        if (this.runState === RunState.Countdown) {
+            if (!hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
+                OG.startRun();
+                hasSpawnedPlayer = true;
+            }
+            if (this.startDateMs! <= currentTimeMs)
+            this.runState = RunState.Started;
+        }
 
 
-            var difference = currentTimeMs - this.startDateMs!;
+        var difference = currentTimeMs - this.startDateMs!;
 
-                this.time = this.runHasStarted 
-                ? (this.getHour(difference) + ":" + this.getMinutes(difference) + ":" + this.getSecond(difference))
-                : ("-0:00:" + this.getSecond(difference));
+            this.time = this.runState === RunState.Started 
+            ? (this.getHour(difference) + ":" + this.getMinutes(difference) + ":" + this.getSecond(difference))
+            : ("-0:00:" + this.getSecond(difference));
 
-            this.timeMs = "." + this.getMs(difference);
-            
-            if (!this.resetEverything)
-                this.updateTimer();
-            else
-                this.resetTimer();
-        }, 100);
+        this.timeMs = "." + this.getMs(difference);
+
+        await sleep(100);
+        
+        if (this.resetEverything)
+            this.resetTimer();
+        else
+            this.updateTimer(hasSpawnedPlayer);
     }
 
     private getHour(difference: number): number {
@@ -76,11 +81,12 @@ export class Timer {
     }
 
     private getMs(difference: number): number {
-        return this.runHasStarted ? Math.trunc(Math.floor((difference % 1000)) / 100) : Math.trunc(Math.abs(Math.floor((difference % 1000)) / 100));
+        return this.runState === RunState.Started ? Math.trunc(Math.floor((difference % 1000)) / 100) : Math.trunc(Math.abs(Math.floor((difference % 1000)) / 100));
     }
+}
 
-    private startRun() {
-        this.runHasStarted = true;
-        (window as any).electron.send('og-start-run');
-    }
+function sleep(ms: number) {
+    return new Promise(
+        resolve => setTimeout(resolve, ms)
+    );
 }

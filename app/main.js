@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
@@ -27,7 +28,6 @@ function createWindow() {
     },
     autoHideMenuBar: true,
     resizable: false,
-    titleBarStyle: 'hidden',
     fullscreenable: false,
     transparent: true,
     frame: false
@@ -40,7 +40,7 @@ function createWindow() {
     require('electron-reloader')(module);
 
     win.loadURL('http://localhost:4200');
-    win.webContents.openDevTools();
+    win.webContents.openDevTools({mode: "detach"});
   } 
   else {
     win.loadURL(url.format({      
@@ -55,12 +55,13 @@ function createWindow() {
     
 // --- FRONTEND COM ---
   ipcMain.on('og-start-game', () => {
-    sendClientMessage("Got to backend!");
     openGoal.runGameSetup();
   });
 
   ipcMain.on('og-start-run', () => {
     openGoal.writeGoalCommand("(progress-fast-save-and-start-speedrun (speedrun-category full-game))");
+    openGoal.writeGoalCommand("(set! *allow-cell-pickup?* #t)");
+    openGoal.writeGoalCommand("(set! *allow-final-boss?* #t)");
   });
 
   ipcMain.on('og-command', (event, command) => {
@@ -87,8 +88,35 @@ function createWindow() {
     selectFolderPath();
   });
     
+  ipcMain.on('window-minimize', () => {
+    win.minimize();
+  });
+    
   ipcMain.on('window-close', () => {
-    win = null;
+    openGoal.killOG();
+    win.close();
+  });
+    
+  ipcMain.on('update-check', () => {
+    autoUpdater.checkForUpdatesAndNotify();
+  });
+    
+  ipcMain.on('update-install', () => {
+    openGoal.killOG();
+    autoUpdater.quitAndInstall();
+  });
+
+  // --- AUTO UPDATE LISTENERS ---
+  autoUpdater.on('update-available', () => {
+    win.webContents.send('update-available');
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    win.webContents.send('update-progress', progress.percent);
+  });
+  
+  autoUpdater.on('update-downloaded', () => {
+    win.webContents.send('update-downloaded');
   });
 
     return win;
@@ -131,9 +159,12 @@ function readSettings() {
 }
 
 function selectFolderPath() {
-  dialog.showOpenDialog({title: 'Select a folder', properties: ['openDirectory']}).then(result => {
-    if (result.filePaths[0] !== undefined)
-      win.webContents.send("settings-get-path", result.filePaths[0]);
+  dialog.showOpenDialog({title: 'Select a folder', properties: ['openFile'], filters: [{ name: 'Executables', extensions: ['exe'] },{ name: 'All Types', extensions: ['*'] }]}).then(result => {
+    let file = result.filePaths[0];
+    if (file !== undefined && file.endsWith("gk.exe") && file.length > 6 && fs.existsSync(file.slice(0, -6) + "data"))
+      win.webContents.send("settings-get-path", file.slice(0, -7));
+    else
+      sendClientMessage("File does not seem to be OpenGoal gk.exe!");
   });
 }
 

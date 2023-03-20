@@ -1,6 +1,6 @@
 .container {
     padding: 10px 20px 30px;
-    width: 300px;
+    width: 312px;
     font-family: 'jak';
     font-weight: bold;
     font-size: 22px;
@@ -51,6 +51,8 @@ h2 {
 }
 
 button {
+    margin-top: 26px;
+    margin-right: 12px;
     font-family: 'jak';
     font-size: 20px;
     color: #cccccc;
@@ -67,4 +69,10 @@ button {
         background-color: #a56d06;
         border: 1px solid rgb(99, 99, 99, 0.6);
     }
+}
+
+label {
+    display: block;
+    font-size:16px;
+    color: #a8a8a8;
 }

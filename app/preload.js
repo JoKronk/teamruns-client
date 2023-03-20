@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
    
-const validIpcChannelsIn = ["og-start-game", "og-start-run", "og-command", "og-state-read", "og-tracker-connected-read", "window-close", "settings-read", "settings-write", "settings-select-path"];
-const validIpcChannelsOut = ["og-task-update", "og-state-update", "og-tracker-connected", "backend-message", "backend-error", "settings-get", "settings-get-path"];
+const validIpcChannelsIn = ["og-start-game", "og-start-run", "og-command", "og-state-read", "og-tracker-connected-read", "window-close", "window-minimize", "settings-read", "settings-write", "settings-select-path", "update-check", "update-install"];
+const validIpcChannelsOut = ["og-task-update", "og-state-update", "og-tracker-connected", "backend-message", "backend-error", "settings-get", "settings-get-path", "update-available", "update-progress", "update-downloaded"];
 
 
 contextBridge.exposeInMainWorld("electron", {
@@ -12,8 +12,12 @@ contextBridge.exposeInMainWorld("electron", {
     },
     receive: (channel, func) => {
         if (validIpcChannelsOut.includes(channel)) {
+            const subscription = (event, ...args) => func(...args);
             // Deliberately strip event as it includes `sender` 
-            ipcRenderer.on(channel, (event, ...args) => func(...args));
+            ipcRenderer.on(channel, subscription);
+            return () => {
+                ipcRenderer.removeListener(channel, subscription);
+            };
         }
     }
 });

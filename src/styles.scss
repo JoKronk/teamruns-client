@@ -41,7 +41,7 @@ body { margin: 0 !important; font-family: Roboto, "Helvetica Neue", sans-serif; 
 .mdc-snackbar__label {
   padding: 0 !important;
 }
-.mat-drawer-container {
+.mat-sidenav-container {
   overflow: hidden;
   background-color: #3e3e3e; // For light mode use #eeeeee
 }
@@ -50,6 +50,10 @@ body { margin: 0 !important; font-family: Roboto, "Helvetica Neue", sans-serif; 
   --mdc-snackbar-container-color: transparent !important;
 }
 
+.tooltip {
+  max-width: unset !important;
+  white-space: pre-line;
+}
 
 .text-in-background {
   -webkit-user-select: none;

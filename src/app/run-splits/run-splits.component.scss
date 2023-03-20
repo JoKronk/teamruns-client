@@ -1,0 +1,71 @@
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.team {
+    &-splitter {
+        border-left: 2px solid rgba(29, 29, 29, 0.2);
+    }
+    &-header {
+        flex-shrink: 1;
+        margin: 0px 0px 10px;
+        & h2 {
+            display: inline;
+            float: left;
+            margin: 0;
+            margin-right: 14px;
+            font-family: 'jak';
+            font-weight: normal;
+            font-size: 32px;
+            color: rgb(212, 144, 18, 0.7) !important;
+        }
+    }
+    &-cells {
+        display: inline-block;
+        height: 30px;
+        & img {
+            height: inherit;
+            display: inline;
+        }
+        & span {
+            font-family: 'precursor';
+            font-size: 32px;
+            color: rgb(212, 144, 18, 0.7) !important;
+        }
+    }
+}
+
+.tasks {
+    width: 100%;
+    display: inline-block;
+    padding: 4px 0px;
+    border-top: 2px solid rgba(29, 29, 29, 0.2);
+    &-container {
+        flex-shrink: 1;
+        overflow: auto;
+        display: flex;
+        flex-direction: column-reverse;
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+    & img {
+        height: 40px;
+        float: left;
+        margin-right: 12px;
+    }
+    &-player {
+        font-family: 'Segoe UI';
+        display: block;
+    }
+    &-time {
+        display: block;
+        font-family: 'Segoe UI';
+        font-weight: bold;
+    }
+    & span {
+        color: #cccccccc;
+    }
+}

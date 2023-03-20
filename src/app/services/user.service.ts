@@ -1,23 +1,37 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SnackbarComponent } from '../snackbar/snackbar.component';
-import { GoalService } from './goal.service';
-import { User } from '../common/player/user';
-import { Run } from '../common/run/run';
+import { User } from '../common/user/user';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
 })
-export class UserService {
+export class UserService implements OnDestroy {
 
   user: User = new User();
   private UserCopy: User = new User();
-  private localRunStorage: Run | null;
   
   viewSettings: boolean = false;
   trackerConnected: boolean = false;
 
-  constructor(public _goal: GoalService, private _snackbar: MatSnackBar, private zone: NgZone) { 
+  isBrowser: boolean;
+
+  private trackerListener: any;
+  private settingsListener: any;
+  private messageListener: any;
+  private errorListener: any;
+
+  constructor(private _snackbar: MatSnackBar, private zone: NgZone, private router: Router) { 
+    this.isBrowser = !(window as any).electron;
+    if (this.isBrowser) {
+      this.user.displayName = "obs-" + new Date().valueOf();
+      //scuffed but works, url is always "/" otherwise..
+      setTimeout(() => {
+        if (!router.url.startsWith("/obs"))
+          router.navigate(['/obs']);
+      }, 1);
+    }
     this.setupReceiver();
     this.readSettings();
     this.checkTrackerConnection();
@@ -27,28 +41,16 @@ export class UserService {
     return this.user.displayName;
   }
 
-  public setLocalRunStorage(run: Run) {
-    this.localRunStorage = run;
-  }
-  public getLocalRunStorage() {
-    let run = this.localRunStorage;
-    this.localRunStorage = null;
-    return run;
-  }
-
   public checkWriteUserDataHasChanged() {
     if (!this.user.isEqualToDataCopy(this.UserCopy))
       this.writeSettings();
     
-      this.UserCopy = this.user.getBaseCopy();
-  }
-
-  public updateUser(data: User) {
-    this.user.setBase(data);
-    this.writeSettings();
+    this.UserCopy = this.user.getBaseCopy();
   }
 
   public sendNotification(message: string) {
+    if (this.isBrowser) return;
+
     this.zone.run(() => {
       this._snackbar.openFromComponent(SnackbarComponent, {
         duration: 5000,
@@ -59,48 +61,85 @@ export class UserService {
     });
   }
 
+  public copyLink(link: string) {
+    const selBox = document.createElement('textarea');
+    selBox.style.position = 'fixed';
+    selBox.style.left = '0';
+    selBox.style.top = '0';
+    selBox.style.opacity = '0';
+    selBox.value = link;
+    document.body.appendChild(selBox);
+    selBox.focus();
+    selBox.select();
+    document.execCommand('copy');
+    document.body.removeChild(selBox);
+
+    this.sendNotification("Link Copied!");
+  }
+
   private setupReceiver(): void {
+    if (this.isBrowser) return;
+
     //tracker update
-    (window as any).electron.receive("og-tracker-connected", (connected: true) => {
+    this.trackerListener = (window as any).electron.receive("og-tracker-connected", (connected: true) => {
       this.trackerConnected = connected;
+      if (connected)
+         (window as any).electron.send('og-state-read');
     });
     
     //settings get
-    (window as any).electron.receive("settings-get", (data: User) => {
-      this.user.setBase(data);
+    this.settingsListener = (window as any).electron.receive("settings-get", (data: User) => {
+      this.user = Object.assign(new User(), data);
       this.UserCopy = data;
     });
     
     //backend messages
-    (window as any).electron.receive("backend-message", (message: string) => {
+    this.messageListener = (window as any).electron.receive("backend-message", (message: string) => {
       console.log(message);
       this.sendNotification(message);
     });
 
     //backend errors
-    (window as any).electron.receive("backend-error", (message: string) => {
+    this.errorListener = (window as any).electron.receive("backend-error", (message: string) => {
       console.log(message);
       this.sendNotification(message);
     });
   }
 
-  //does nothing atm, should probably be moved
-  closeAll(): void {
-    (window as any).electron.send('window-close');
-  }
-
   //settings read
   checkTrackerConnection(): void {
+    if (this.isBrowser) return;
     (window as any).electron.send('og-tracker-connected-read');
   }
 
   //settings write
   writeSettings(): void {
+    if (this.isBrowser) return;
     (window as any).electron.send('settings-write', this.user);
   }
 
   //settings read
   readSettings(): void {
+    if (this.isBrowser) return;
     (window as any).electron.send('settings-read');
+  }
+
+  //check for new update
+  checkForUpdate(): void {
+    if (this.isBrowser) return;
+    (window as any).electron.send('update-check');
+  }
+
+  //install new update
+  installUpdate(): void {
+    if (this.isBrowser) return;
+    (window as any).electron.send('update-install');
+  }
+
+  ngOnDestroy(): void {
+    this.trackerListener();
+    this.settingsListener();
+    this.messageListener();
+    this.errorListener();
   }
 }

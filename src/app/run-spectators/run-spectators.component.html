@@ -1,0 +1,9 @@
+<div class="container">
+    <p class="title">Spectators</p>
+
+    <div *ngIf="lobby" class="spectators">
+        <p *ngFor="let spectator of lobby.spectators">{{ spectator }}</p>
+    </div>
+</div>
+
+<h1 class="backtext text-in-background" title="Viewers">Viewers</h1>

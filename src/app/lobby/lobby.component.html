@@ -1,32 +1,79 @@
 <div>
-    <mat-sidenav-container fullscreen>
-      <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="players">
-        <app-online-players></app-online-players>
-      </mat-sidenav>
-  
-      <mat-sidenav-content class="lobby-container">
-        <div class="lobby">
-          <div class="header">
-            <div class="info">
-              <p id="version" class="text-in-background" [title]="buildVersion">{{ buildVersion }}</p>
-              <p class="settings" (click)="_user.viewSettings = !_user.viewSettings">Settings</p>
+  <mat-sidenav-container fullscreen>
+    <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="players">
+      <app-lobby-viewer [lobby]="selectedLobby" [hide]="hideViewer"></app-lobby-viewer>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="lobby-container">
+      <div class="lobby">
+        <div class="header">
+          <div class="info">
+            <p id="version" class="text-in-background" [title]="buildVersion">{{ buildVersion }}</p>
+
+            <!-- Menu -->
+            <svg class="settings" matTooltip="Open menu" matTooltipPosition="above" (click)="_user.viewSettings = !_user.viewSettings" version="1.0" viewBox="0 0 119.000000 99.000000" preserveAspectRatio="xMidYMid meet">
+              <g transform="translate(0.000000,99.000000) scale(0.100000,-0.100000)" stroke="none">
+                <path d="M90 905 l0 -85 445 0 445 0 0 85 0 85 -445 0 -445 0 0 -85z"/>
+                <path d="M90 505 l0 -85 495 0 495 0 0 85 0 85 -495 0 -495 0 0 -85z"/>
+                <path d="M90 105 l0 -85 395 0 395 0 0 85 0 85 -395 0 -395 0 0 -85z"/>
+              </g>
+            </svg>
+
+          </div>
+          <div class="options-container">
+            <div class="options">
+              <button (click)="openInfo()">Help/Info</button>
+              <button (click)="createLobby()">New Run</button>
             </div>
-            <div class="options-container">
-              <div class="options">
-                <button (click)="startGame()">Launch</button>
-                <button (click)="createLobby()">New Run</button>
-              </div>
-            </div>
-            <div class="logo-container">
-              <div class="logo">
-                <img src="./assets/teamrun-logo.png" alt="image">
-              </div>
+          </div>
+          <div class="logo-container">
+            <div class="logo">
+              <img src="./assets/teamrun-logo.png" alt="image">
             </div>
           </div>
         </div>
-        
-        <div class="backtext"><h1>Lobby</h1></div>
-        <p id="name" class="text-in-background" [title]="_user.getName()">{{ _user.getName() }}</p>
-      </mat-sidenav-content>
+      </div>
+
+      <div class="run-cont">
+        <div *ngFor="let lobby of avaliableLobbies" class="run" (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)">
+          <div class="run-info">
+            <h2 class="run-title">{{ lobby.runData.name }}</h2>
+            <div>
+              <span>Teams: {{ lobby.runData.teams }}</span>
+              <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
+            </div>
+          </div>
+          <div class="run-info">
+            <div>
+              <span>In Lobby: {{ lobby.spectators.length + lobby.runners.length }}</span>
+              <span>Version: {{ lobby.runData.buildVersion }}</span>
+            </div>
+          </div>
+          <button (click)="routeToRun(lobby.id)">Join</button>
+        </div>
+
+        <div *ngFor="let lobby of unavaliableLobbies" class="run run-disabled" (mouseleave)="hideLobbyViewer()"  (mouseenter)="selectLobby(lobby)">
+          <div class="run-info">
+            <h2 class="run-title">{{ lobby.runData.name }}</h2>
+            <div>
+              <span>Teams: {{ lobby.runData.teams }}</span>
+              <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
+            </div>
+          </div>
+          <div class="run-info">
+            <div>
+              <span>In Lobby: {{ lobby.spectators.length + lobby.runners.length }}</span>
+              <span>Version: {{ lobby.runData.buildVersion }}</span>
+            </div>
+          </div>
+          <button disabled>Join</button>
+        </div>
+      </div>
+
+      <div class="backtext">
+        <h1>Lobby</h1>
+      </div>
+      <p id="name" class="text-in-background" [title]="_user.getName()">{{ _user.getName() }}</p>
+    </mat-sidenav-content>
   </mat-sidenav-container>
 </div>

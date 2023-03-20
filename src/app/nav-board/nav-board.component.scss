@@ -26,6 +26,7 @@
         }
         & p {
             margin: 0;
+            -webkit-user-select: none;
         }
     }
 }
@@ -35,7 +36,10 @@
     transform: rotate(90deg);
     font-size: 80px;
     margin-left: 10px;
-    opacity: 0.55;
+    opacity: 0.4;
+    position: absolute;
+    top: 320px;
+    left: -150px;
 }
 
 #name {

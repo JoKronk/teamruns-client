@@ -1,9 +1,11 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { User } from '../common/player/user';
+import { OG } from '../common/opengoal/og';
+import { User } from '../common/user/user';
+import { NewUpdateComponent } from '../dialogs/new-update/new-update.component';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
-import { GoalService } from '../services/goal.service';
+import { FireStoreService } from '../services/fire-store.service';
 import { UserService } from '../services/user.service';
 
 @Component({
@@ -11,7 +13,7 @@ import { UserService } from '../services/user.service';
   templateUrl: './start-screen.component.html',
   styleUrls: ['./start-screen.component.scss']
 })
-export class StartScreenComponent {
+export class StartScreenComponent implements OnDestroy {
 
   @ViewChild('video') video: ElementRef;
   @ViewChild('blackscreen') blackscreen: ElementRef;
@@ -20,17 +22,29 @@ export class StartScreenComponent {
     "Thanks Barg",
     "Thanks Mortis",
     "Thanks Kuitar",
-    "TriFecto",
+    "Thanks Ricky",
+    "Thanks SixRock",
+    "Thanks Stellar",
+    "Thanks Tombo",
     "LowResKui",
     "speed run",
-    "OpenGOAL"
+    "OpenGOAL",
+    "goonin3"
   ];
   infoText: string = this.infoTexts[Math.floor(Math.random() * this.infoTexts.length)];
 
   initUserData: User;
 
-  constructor(public _user: UserService, private router: Router, private dialog: MatDialog) {
+  private updateListener: any;
+
+  constructor(public _user: UserService, private router: Router, private dialog: MatDialog, private _firestore: FireStoreService) {
     this.checkVideoLoad();
+
+    this.setupUpdateListener();
+    _user.checkForUpdate();
+
+    if (new Date().getHours() % 4 === 0) //saving some reads on the free plan db
+      this._firestore.deleteOldLobbies();
   }
 
   sendToLobby() {
@@ -45,7 +59,7 @@ export class StartScreenComponent {
     if (!this._user.user.ogFolderpath)
       this.dialog.open(SetPathComponent);
     else
-    this._user._goal.startGame();
+      OG.startGame();
   }
 
   checkVideoLoad() {
@@ -57,5 +71,15 @@ export class StartScreenComponent {
       else 
         this.checkVideoLoad();
     }, 200);
+  }
+
+  setupUpdateListener() {
+    this.updateListener = (window as any).electron.receive("update-available", () => {
+      this.dialog.open(NewUpdateComponent);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.updateListener();
   }
 }

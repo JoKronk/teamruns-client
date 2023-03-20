@@ -31,15 +31,21 @@
             margin-left: -8px;
         }
         & .settings {
-            font-family: 'Segoe UI';
-            font-size: 16px;
-            margin-top: 40px;
-            text-decoration: underline;
-            color: #a56d06;
-            transition: 0.12s;
+            height: 22px;
+            margin-right: 8px;
+            margin-top: 44px;
+            & g {
+                fill: #929292;
+                transition: 0.22s;
+            }
             &:hover {
                 cursor: pointer;
-                color: #380000;
+                & g {
+                    fill: #a56d06;
+                }
+            }
+            &:focus {
+                outline: none;
             }
         }
     }
@@ -89,6 +95,72 @@
             max-height:100%;
             border-bottom: 1px solid #6c4700;
         }
+    }
+}
+
+.run {
+    position: relative;
+    display: flex;
+    border: 3px solid #d49012;
+    background-color: #383838;
+    border-radius: 16px;
+    margin: 16px 96px 16px 0px;
+    padding: 6px;
+    height: 65px;
+    font-family: 'jak';
+    color: #b4b4b4;
+    transition: 0.2s;
+    &:hover {
+        border: 3px solid #a56d06;
+        background-color: #3e3e3e;
+    }
+    &-cont {
+        margin: 0px 24px;
+        border-top: 2px solid rgba(29, 29, 29, 0.2);
+    }
+    &-info {
+        flex: 1;
+        position: relative;
+        & div {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+    }
+    & h2 {
+        margin: 0;
+        padding: 0;
+        font-size: 24px;
+    }
+    & span {
+        margin-right: 12px;
+        display: block;
+    }
+    & button {
+        flex-shrink: 1;
+        font-family: 'jak';
+        font-size: 32px;
+        color: #636363;
+        height: 52px;
+        width: 92px;
+        background-color: #3e3e3e;
+        border: 2px solid #636363;
+        border-radius: 12px;
+        outline: none;
+        margin: auto;
+        margin-right: 8px;
+        transition: 0.2s;
+        &:hover:enabled {
+            color: rgba(204, 204, 204, 0.9);
+            background-color: rgba(85, 85, 85, 0.8);
+            cursor: pointer;
+        }
+        &:disabled {
+            opacity: 0.3;
+        }
+    }
+    &-disabled {
+        border: 3px solid #636363 !important;
     }
 }
 

@@ -1,14 +1,39 @@
 #draggable-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 45px;
-    background: rgba(0, 0, 0, 0);
-    width: 100%;
-    z-index: 8;
     -webkit-user-select: none;
     -webkit-app-region: drag;
+    flex-grow: 1;
 
+    &-container {
+        display: flex;
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 45px;
+        background: rgba(0, 0, 0, 0);
+        width: 100%;
+        z-index: 8;
+    }
+    &-buttons {
+        flex-shrink: 1;
+        & span {
+            display: inline-block;
+            width: 46px;
+            height: 30px;
+            font-size: 15px;
+            color: #74b1be;
+            text-align: center;
+            vertical-align: middle;
+            line-height: 30px;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: 0.25s;
+            &:hover {
+                cursor: default;
+                color: #d49012;
+            }
+        }
+
+    }
 }
 
 mat-sidenav-container {

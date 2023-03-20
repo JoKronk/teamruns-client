@@ -6,14 +6,14 @@ const fs = require('fs');
 const spawn = require('child_process').spawn;
 let win = null;
 
-var modStatePath = "/data/mods";
+var modFilesPath = "/data";
 
 var openGoalGk = null;
 var openGoalTracker = null;
 var openGoalWatcher = null;
 var openGoalGameState = null;
 var trackerConnectedState = false;
-
+var openGoalHasStarted = false;
 
 class OpenGoal {
 
@@ -27,7 +27,6 @@ class OpenGoal {
     async runGameSetup() {
         
         let ogPath = await getOpenGoalPath();
-        this.runGameStateWatcher(ogPath);
         
         this.sendClientMessage("(1/3) Starting OpenGOAL!");
         if (openGoalGk) {
@@ -37,36 +36,55 @@ class OpenGoal {
 
         openGoalGk = new net.Socket();
 
+        let startSuccessful = false;
         this.killOG();
-        await sleep(1000);
+        await sleep(1500);
         this.startOG(ogPath);
-        await sleep(2000);
+        await sleep(2500);
         
+        this.runStateWatcher(ogPath);
+        
+
         openGoalGk.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
-        openGoalGk.on('connect', () => {
+        openGoalGk.on('connect', async () => {
             this.setupOG();
+            this.runTracker();
+
+            await sleep(2000);
+            startSuccessful = true;
         });
 
-        this.runTracker();
+        openGoalGk.on('error', (ex) => {
+            if (!startSuccessful)
+                this.sendClientMessage("Failed to start the client properly, please relaunch!");
+        });
     }
 
 
-    killOG() {
+    killOG(spareGk = false) {
         try {
-            var shell = new winax.Object('WScript.Shell');
-            shell.Exec("taskkill /F /IM gk.exe");
-            shell.Exec("taskkill /F /IM goalc.exe");
+            if (openGoalHasStarted) {
+                var shell = new winax.Object('WScript.Shell');
+                if (!spareGk)
+                    shell.Exec("taskkill /F /IM gk.exe");
+                shell.Exec("taskkill /F /IM goalc.exe");
+            }
+            openGoalHasStarted = false;
+
+            if (openGoalTracker) 
+                spawn("taskkill", ["/pid", openGoalTracker.pid, '/f', '/t']);
         }
-        catch (e) { this.sendClientMessage(e.message); }
+        catch (e) { this.sendClientMessage(e); }
     }
 
     startOG(ogPath) {
         try {
             var shell = new winax.Object('Shell.Application');
-            shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 1);
-            shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open", 1);
+            shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 0);
+            shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open", 0);
+            openGoalHasStarted = true;
         }
-        catch (e) { this.sendClientMessage(e.message); }
+        catch (e) { this.sendClientMessage(e); }
     }
 
     setupOG() {
@@ -75,12 +93,15 @@ class OpenGoal {
         this.writeGoalCommand("(set! *debug-segment* #f)");
         this.writeGoalCommand("(mi)");
         this.writeGoalCommand("(set! *cheat-mode* #f)");
+        this.writeGoalCommand("(set! (-> *pc-settings* speedrunner-mode?) #t)");
         this.writeGoalCommand("(send-event *target* 'loading)");
         this.writeGoalCommand("(send-event *target* 'get-pickup (pickup-type eco-red) 1.0)");
         console.log(".done");
     }
 
     writeGoalCommand(args) {
+        if (!openGoalHasStarted) return;
+
         let utf8Encode = new TextEncoder();
         var data = utf8Encode.encode(args);
         var bb = new ByteBuffer().LE().writeInt(data.length).writeInt(10).writeString(args).flip().toBuffer();
@@ -91,17 +112,19 @@ class OpenGoal {
 
     
     // --- TRACKING ---
-    runTracker() {
-        if (openGoalTracker) 
-            openGoalTracker.kill();
-
+   runTracker() {
         console.log("Running Tracker!");
-        openGoalTracker = spawn('python', [path.join(__dirname, '../tracker/JakTracker.py'), path.join(__dirname, '../tracker/')]);
-        
+        try {
+            openGoalTracker = spawn(path.join(__dirname, '../tracker/JakTracker.exe'), [path.join(__dirname, '../tracker/')]);     
+        }
+        catch (err) {
+            this.sendClientMessage("Error: " + err);
+        }
+
         //On error
         openGoalTracker.stderr.on('data', (data) => {
-            console.log(data.toString());
-            this.sendClientMessage("Tracker Error!: " + data.toString());
+            console.log("Tracker Error!: " + data.toString());
+            //this.sendClientMessage("Tracker Error!: " + data.toString());
         });
 
         //On data
@@ -116,7 +139,9 @@ class OpenGoal {
         openGoalTracker.stdout.on('end', () => {
             trackerConnectedState = false;
             this.sendClientTrackerState();
-            this.sendClientMessage("Tracker Disconneted!");
+            if (openGoalHasStarted);
+                this.sendClientMessage("Tracker Disconneted!");
+            this.killOG(true);
         });
         
         this.sendClientMessage("(2/3) Startup successful! Connecting...");
@@ -140,31 +165,51 @@ class OpenGoal {
             }
         }
         catch (err) {
-            this.sendClientMessage("Tracker Error!: " + jsonString);
+            //this.sendClientMessage("Tracker Error!: " + jsonString);
         }
     }
 
-    runGameStateWatcher(ogPath) {
+    runStateWatcher(ogPath) {
         if (openGoalWatcher)
             openGoalWatcher.close();
 
-        let path = ogPath + modStatePath;
+        let path = ogPath + modFilesPath;
+        this.checkCreateFileExists(path + "/mod-states.json");
+
         openGoalWatcher = fs.watch(path, (event, filename) => {
-            if (event == "change" && filename == "mod-states.json")
+            if (event != "change") return;
+
+            if (filename == "mod-states.json")
                 this.readGameState(path + "/" + filename);
         });
     }
 
+    checkCreateFileExists(file) {
+        if (!fs.existsSync(file)) {
+            fs.writeFileSync(file, "");
+        }
+    }
+
     async readGameState(path) {
-        path ??= await getOpenGoalPath() + modStatePath + "/mod-states.json";
+        path ??= await getOpenGoalPath() + modFilesPath + "/mod-states.json";
         console.log("reading from " + path);
         fs.readFile(path, 'utf8', (err, data) => {
             if (err) {
                 console.log(err);
                 return;
             }
-            openGoalGameState = JSON.parse(data);
-            this.sendClientStateUpdate();
+            if (!data) return;
+            try {
+                let gameState = JSON.parse(data);
+                if (JSON.stringify(openGoalGameState) !== JSON.stringify(gameState)) {
+                    openGoalGameState = gameState;
+                    console.log("STATE UPDATE!");
+                    this.sendClientStateUpdate();
+                }
+            }
+            catch (ex) {
+                this.sendClientMessage("Failed to parse: " + data);
+            }
         });
     }
 

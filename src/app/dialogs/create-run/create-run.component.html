@@ -2,23 +2,29 @@
     <h2>Create Run</h2>
     <div class="option">
         <p>Run Name</p>
-        <input [(ngModel)]="runName">
+        <input [(ngModel)]="runData.name" maxlength="20">
+    </div>
+    <div class="option">
+        <p>Mode</p>
+        <select [disabled]="usingPreset" [(ngModel)]="runData.mode" (change)="changeMode()">
+            <option [ngValue]="runMode.Speedrun">Speedrun</option>
+            <option [ngValue]="runMode.Lockout">Lockout</option>
+        </select>
     </div>
     <div class="option">
         <p>Teams (for races)</p>
-        <select [(ngModel)]="numberOfTeams" (change)="updateRunSize()">
+        <select [(ngModel)]="runData.teams">
             <option *ngFor="let teams of teamsOptions" [ngValue]="teams">{{ teams }}</option>
         </select>
     </div>
-    <div class="option">
-        <p>Runners Per Team</p>
-        <select [(ngModel)]="runnersPerTeam" (change)="updateRunSize()">
-            <option *ngFor="let runners of runnersOptions" [ngValue]="runners">{{ runners }}</option>
-        </select>
-    </div>
-
-    <p>Run size: {{ runSize }}</p>
-
+    <br />
+    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
+    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
+    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.normalCellCost">Normal cell costs</label>
+    <br />
+    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noLTS">No LTS</label>
+    
     <button (click)="createRun()">Create Run</button>
+    <button *ngIf="tournamentPreset.presetIsVisible && !usingPreset" (click)="usePreset()">{{ tournamentPreset.presetButtonText }}</button>
 
 </div>

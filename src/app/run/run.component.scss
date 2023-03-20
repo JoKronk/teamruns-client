@@ -15,9 +15,8 @@
         top: 40px;
         right: 80px;
         & .info {
-            display: inline-block;
             display: flex;
-            flex: 1;
+            flex-shrink: 1;
             height: 100%;
             & #version {
                 font-family: 'precursor';
@@ -28,19 +27,27 @@
                 margin-left: -8px;
             }
             & .settings {
-                font-family: 'Segoe UI';
-                font-size: 16px;
-                margin-top: 40px;
-                text-decoration: underline;
-                color: #a56d06;
-                transition: 0.12s;
+                height: 22px;
+                margin-right: 8px;
+                margin-top: 44px;
+                & g {
+                    fill: #929292;
+                    transition: 0.22s;
+                }
                 &:hover {
                     cursor: pointer;
-                    color: #380000;
+                    & g {
+                        fill: #a56d06;
+                    }
+                }
+                &:focus {
+                    outline: none;
                 }
             }
-            & .back {
-                margin-left: 6px;
+            &-tooltip {
+                position: absolute;
+                top: 0;
+                right: 160px;
             }
         }
         & .logo {
@@ -78,13 +85,14 @@
         }
     }
     &-body {
-        height: 705px;
         display: flex;
         flex-direction: column;
+        height: 700px;
+        min-height: 0;
     }
 
     &-info {
-        flex: 2;
+        flex-shrink: 1;
         display: flex;
         border-bottom: 3px solid #494949;
         &-teams {
@@ -92,6 +100,22 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
+            &-zoomer {
+                float: left;
+                height: 17px;
+                margin-top: 2px;
+                margin-right: 4px;
+            }
+            &-level {
+                float: left;
+                height: 19px;
+                margin-right: 4px;
+            }
+            &-disconnected {
+                float: left;
+                height: 19px;
+                margin-right: 4px;
+            }
         }
         &-details {
             flex: 2;
@@ -117,7 +141,7 @@
                     cursor: pointer;
                 }
             }
-            &-ready:enabled {
+            &-ready {
                 background-color: rgb(212, 144, 18, 0.7) !important;
                 color: #3e3e3e !important;
             }
@@ -129,10 +153,6 @@
                     background-color: rgb(56, 0, 0, 0.9) !important;
                     color: rgba(204, 204, 204, 0.8) !important;
                     cursor: pointer;
-                }
-                &-ready {
-                    background-color: rgb(56, 0, 0, 0.7) !important;
-                    color: rgba(204, 204, 204, 0.8) !important;
                 }
             }
             &-owner {
@@ -158,12 +178,22 @@
 
 .team {
     &-cont {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
         position: relative;
         flex-basis: 48%;
         margin-bottom: 10px;
         padding-left: 5px;
         border-left: 2px solid rgba(29, 29, 29, 0.2);
+        &-1row {
+            max-height: 210px;
+        }
+        &-2row {
+            max-height: 130px;
+        }
         & p {
+            flex-shrink: 1;
             margin: 0;
             color: #cccccccc;
         }
@@ -176,6 +206,14 @@
     &-name {
         text-decoration: underline;
     }
+    &-players {
+        flex-shrink: 1;
+        min-height: 0;
+        overflow: auto;
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
     &-player {
         &-ready {
         color: rgb(212, 144, 18, 0.7) !important;
@@ -186,105 +224,18 @@
     }
 }
 
-.prog {
+.progress {
+    flex-grow: 1;
     display: flex;
     margin: 5px 0px 5px;
+    min-height: 0;
     &-team{
         flex: 1;
-        height: 460px;
+        position: relative;
         padding: 5px 10px 0px;
         &-splitter {
             border-left: 2px solid rgba(29, 29, 29, 0.2);
         }
-        &-header {
-            margin: 0px 0px 10px;
-            & h2 {
-                display: inline;
-                float: left;
-                margin: 0;
-                margin-right: 14px;
-                font-family: 'jak';
-                font-weight: normal;
-                font-size: 32px;
-                color: rgb(212, 144, 18, 0.7) !important;
-            }
-        }
-        &-cells {
-            display: inline-block;
-            height: 30px;
-            & img {
-                height: inherit;
-                display: inline;
-            }
-            & span {
-                font-family: 'precursor';
-                font-size: 32px;
-                color: rgb(212, 144, 18, 0.7) !important;
-            }
-        }
-    }
-    &-tasks {
-        width: 100%;
-        display: inline-block;
-        padding: 4px 0px;
-        border-top: 2px solid rgba(29, 29, 29, 0.2);
-        &-container {
-            max-height: 420px;
-            height: auto;
-            overflow: auto;
-            display: flex;
-            flex-direction: column-reverse;
-            &::-webkit-scrollbar {
-                display: none;
-              }
-        }
-        & img {
-            height: 40px;
-            float: left;
-            margin-right: 12px;
-        }
-        &-player {
-            font-family: 'Segoe UI';
-            display: block;
-        }
-        &-time {
-            display: block;
-            font-family: 'Segoe UI';
-            font-weight: bold;
-        }
-        & span {
-            color: #cccccccc;
-        }
-    }
-}
-
-
-.timer {
-    border: 5px solid #494949;
-    border-radius: 12px;
-    margin: 30px 10px 0px;
-    padding: 5px;
-    height: 90px;
-    &-title {
-        margin: 0;
-        -webkit-user-select: none;
-        font-family: 'jak';
-        font-size: 24px;
-    }
-    &-clock {
-        font-family: 'Segoe UI';
-        font-weight: bold;
-        font-size: 52px;
-        float: right;
-        margin-right: 10px;
-        margin-top: -15px;
-        width: auto;
-        position: relative;
-        display: block;
-        text-align: center;
-    }
-    &-ms {
-        font-size: 42px;
     }
 }
 
@@ -308,14 +259,4 @@
     margin: 40px;
     font-family: 'jak';
     font-size: 52px;
-}
-
-#name {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    font-family: 'jak';
-    font-size: 30px;
-    margin: 0;
-    margin-left: 5px;
 }
