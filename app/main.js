@@ -92,6 +92,7 @@ function createWindow() {
   });
     
   ipcMain.on('window-close', () => {
+    openGoal.killOG();
     win.close();
   });
 
