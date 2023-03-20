@@ -89,6 +89,7 @@ export class Run {
     start(startDate: Date) {
         startDate.setSeconds(startDate.getSeconds() + this.timer.countdownSeconds - 1);
         this.timer.startTimer(startDate.getTime());
+        OG.runCommand("(start 'play (get-continue-by-name *game-info* \"village1-hut\"))");
     }
 
     setOrbCosts(playerTeam: string) {
