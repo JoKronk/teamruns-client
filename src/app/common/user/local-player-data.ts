@@ -160,7 +160,10 @@ export class LocalPlayerData {
           //handle cell tasks
           default:
             if (Task.isCell(key)) {
-              OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder))");
+              if (taskValue === 5)
+                OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder))");
+              else
+                OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder))");
             }
         }
       }
