@@ -263,7 +263,7 @@ export class RunHandler {
                 this.zone.run(() => { 
                     this.run?.endPlayerRun(event.user, event.value);
 
-                    if (this.run?.timer.runState === RunState.Ended)
+                    if (this.lobby?.host === userId && this.run?.timer.runState === RunState.Ended)
                         this.runDoc.set(JSON.parse(JSON.stringify(this.run)));
                 });
                 break;
