@@ -11,6 +11,7 @@ import { Lobby } from '../common/firestore/lobby';
 import { RunMode } from '../common/run/run-mode';
 import { InfoComponent } from '../dialogs/info/info.component';
 import { GivePasswordComponent } from '../dialogs/give-password/give-password.component';
+import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
 
 @Component({
   selector: 'app-lobby',
@@ -93,6 +94,15 @@ export class LobbyComponent implements OnDestroy {
 
   toggleSetting(): void {
     this._user.viewSettings = !this._user.viewSettings;
+  }
+
+  deleteLobby(lobby: Lobby) {
+    const dialogRef = this.dialog.open(ConfirmComponent, { data: "Delete " + lobby.runData.name + "?" });
+    const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
+      dialogSubscription.unsubscribe();
+      if (confirmed)
+        this._firestore.deleteLobby(lobby.id);
+    });
   }
 
   ngOnDestroy() {
