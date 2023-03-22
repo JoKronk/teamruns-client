@@ -18,6 +18,7 @@ export class CreateRunComponent {
 
   runData: RunData = new RunData(pkg.version);
   teamsOptions: number[] = [1, 2, 3, 4];
+  countdownOptions: number[] = [5, 10, 15];
   password: string | null = null;
 
   runMode = RunMode;

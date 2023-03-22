@@ -8,6 +8,7 @@ export class RunData {
     buildVersion: string;
 
     //run settings
+    countdownSeconds: number;
     mode: RunMode;
     requireSameLevel: boolean;
     allowSoloHubZoomers: boolean;
@@ -20,6 +21,7 @@ export class RunData {
         this.name = "";
         this.teams = 1;
         this.buildVersion = version;
+        this.countdownSeconds = 10;
         this.mode = RunMode.Speedrun;
         this.requireSameLevel = false;
         this.allowSoloHubZoomers = false;

@@ -20,7 +20,7 @@ export class Run {
     constructor(runData: RunData) {
         this.data = runData;
         this.teams = [];
-        this.timer = new Timer(15);
+        this.timer = new Timer(this.data.countdownSeconds);
 
         for (let i = 0; i < this.data.teams; i++)
             this.teams.push(new Team("Team " + (i + 1)));
