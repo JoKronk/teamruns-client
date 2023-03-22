@@ -32,7 +32,7 @@ export class RunHandler {
     localSlave: RTCPeerSlave | undefined;
 
     lobbyDoc: AngularFirestoreDocument<Lobby>;
-    runDoc: AngularFirestoreDocument<Run>;
+    firestore: AngularFirestore;
     userService: UserService;
     private localPlayer: LocalPlayerData;
     private obsUserId: string | null;
@@ -43,7 +43,7 @@ export class RunHandler {
 
     constructor(lobbyId: string, firestore: AngularFirestore, userService: UserService, localUser: LocalPlayerData, zone: NgZone, obsUserId: string | null = null) {
         this.lobbyDoc = firestore.collection<Lobby>(CollectionName.lobbies).doc(lobbyId);
-        this.runDoc = firestore.collection<Run>(CollectionName.runs).doc();
+        this.firestore = firestore;
         this.userService = userService;
         this.localPlayer = localUser;
         this.zone = zone;
@@ -256,7 +256,7 @@ export class RunHandler {
                     this.run?.endPlayerRun(event.userId, event.value);
 
                     if (isMaster && this.run?.timer.runState === RunState.Ended)
-                        this.runDoc.set(JSON.parse(JSON.stringify(this.run)));
+                        this.firestore.collection<Run>(CollectionName.runs).doc().set(JSON.parse(JSON.stringify(this.run)));
                 });
                 break;
 
