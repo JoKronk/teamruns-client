@@ -2,6 +2,8 @@ import { AngularFirestoreDocument } from "@angular/fire/compat/firestore";
 import { Subject, Subscription } from "rxjs";
 import { CollectionName } from "../firestore/collection-name";
 import { Lobby } from "../firestore/lobby";
+import { LobbyUser } from "../firestore/lobby-user";
+import { User } from "../user/user";
 import { DataChannelEvent } from "./data-channel-event";
 import { RTCPeer, RTCPeerSlaveConnection } from "./rtc-peer";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
@@ -15,8 +17,8 @@ export class RTCPeerMaster {
     peerSubscriptions: Subscription[];
     peers: RTCPeerSlaveConnection[];
 
-    constructor(userId: string, doc: AngularFirestoreDocument<Lobby>) {
-        this.userId = userId;
+    constructor(user: User, doc: AngularFirestoreDocument<Lobby>) {
+        this.userId = user.id;
         this.eventChannel = new Subject();
         this.lobbyDoc = doc;
         this.peers = [];
@@ -25,10 +27,11 @@ export class RTCPeerMaster {
         //add user to spectate list
         doc.ref.get().then(lobbyData => {
             if (!lobbyData.exists) return;
-            let lobby = lobbyData.data();
+            let lobby = lobbyData.data(); if (!lobby) return;
+            lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId), lobby);
 
-            if (lobby && !lobby.spectators.concat(lobby.runners).includes(userId)) {
-                lobby.spectators.push(userId);
+            if (!lobby.hasUser(user.id)) {
+                lobby.users.push(new LobbyUser(user));
                 doc.set(JSON.parse(JSON.stringify(lobby)));
             }
         });
@@ -36,14 +39,13 @@ export class RTCPeerMaster {
 
     onLobbyChange(lobby: Lobby) {
         //check if new users
-        lobby.spectators.concat(lobby.runners).filter(x => x !== this.userId && !this.peers.some(({ userId: userId }) => userId === x)).forEach(userId => {
+        lobby.users.filter(x => x.id !== this.userId && !this.peers.some(({ userId: userId }) => userId === x.id)).forEach(user => {
 
-            console.log("master: GOT NEW USER!", userId);
+            console.log("master: GOT NEW USER!", user.name);
             //setup user handling
-            const peerSubscription = this.lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(userId).snapshotChanges().subscribe(snapshot => {
+            const peerSubscription = this.lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(user.id).snapshotChanges().subscribe(snapshot => {
                 if (snapshot.payload.metadata.hasPendingWrites) return;
-                const peer = snapshot.payload.data();
-                if (!peer) return;
+                const peer = snapshot.payload.data(); if (!peer) return;
 
                 console.log("master: Got slave change!", this.peers);
                 this.handlePeerConnectionChanges(peer);
@@ -112,7 +114,7 @@ export class RTCPeerMaster {
 
     relayToSlaves(event: DataChannelEvent) {
         this.peers.forEach(slave => {
-            if (slave.userId !== event.user)
+            if (slave.userId !== event.userId)
                 slave.peer.sendEvent(event);
         });
     }

@@ -11,12 +11,16 @@
 
     <div class="viewer-group">
         <p>Runners:</p>
-        <span *ngFor="let runner of lobby.runners">{{ runner }}</span>
+        <div *ngFor="let user of lobby.users">
+            <span *ngIf="user.isRunner">{{ user.name }}</span>
+        </div>
     </div>
     
     <div class="viewer-group">
         <p>Spectators:</p>
-        <span *ngFor="let spectator of lobby.spectators">{{ spectator }}</span>
+        <div *ngFor="let user of lobby.users">
+            <span *ngIf="!user.isRunner">{{ user.name }}</span>
+        </div>
     </div>
 
 </div>

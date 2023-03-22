@@ -1,13 +1,17 @@
+import { UserBase } from "../user/user";
+
 export class Task {
     gameTask: string;
     isCell: boolean;
-    obtainedBy: string;
+    obtainedByName: string;
+    obtainedById: string;
     obtainedAt: string;
 
-    constructor(task: string, obtainedBy: string, timerTime: string) {
+    constructor(task: string, user: UserBase, timerTime: string) {
         this.gameTask = task;
         this.isCell = Task.isCell(task);
-        this.obtainedBy = obtainedBy;
+        this.obtainedById = user.id;
+        this.obtainedByName = user.name;
         this.obtainedAt = timerTime;
     }
 

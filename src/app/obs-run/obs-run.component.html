@@ -14,7 +14,7 @@
                     <p [class.team-player-ready]="player.state === playerState.Ready && (runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">
                         <img *ngIf="player.gameState?.onZoomer" class="run-info-teams-zoomer" [src]="'./assets/other/zoomer.png'">
                         <img *ngIf="player.gameState?.currentLevel" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">
-                        <span>{{ player.name }}</span>
+                        <span>{{ player.user.name }}</span>
                     </p>
                 </div>
             </div>
@@ -22,6 +22,6 @@
     </div>
     <div class="info">
         <p>The red line is the content border,<br /> to change height or background color adjust the values in the obs link.</p>
-        <p>Obs Id: {{ _user.user.displayName }}</p>
+        <p>Obs Id: {{ _user.user.name }}</p>
     </div>
 </div>

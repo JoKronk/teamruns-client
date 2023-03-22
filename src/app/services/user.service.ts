@@ -25,7 +25,7 @@ export class UserService implements OnDestroy {
   constructor(private _snackbar: MatSnackBar, private zone: NgZone, private router: Router) { 
     this.isBrowser = !(window as any).electron;
     if (this.isBrowser) {
-      this.user.displayName = "obs-" + new Date().valueOf();
+      this.user.name = "obs-" + new Date().valueOf();
       //scuffed but works, url is always "/" otherwise..
       setTimeout(() => {
         if (!router.url.startsWith("/obs"))
@@ -38,14 +38,18 @@ export class UserService implements OnDestroy {
   }
 
   public getName() {
-    return this.user.displayName;
+    return this.user.name;
+  }
+
+  public getId() {
+    return this.user.id;
   }
 
   public checkWriteUserDataHasChanged() {
     if (!this.user.isEqualToDataCopy(this.UserCopy))
       this.writeSettings();
     
-    this.UserCopy = this.user.getBaseCopy();
+    this.UserCopy = this.user.getCopy();
   }
 
   public sendNotification(message: string) {

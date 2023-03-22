@@ -1,7 +1,6 @@
 import { Component, HostListener, NgZone, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GameState } from '../common/player/game-state';
-import { Run } from '../common/run/run';
 import { Task } from '../common/opengoal/task';
 import { UserService } from '../services/user.service';
 import pkg from 'app/package.json';
@@ -9,12 +8,10 @@ import { FireStoreService } from '../services/fire-store.service';
 import { Subscription } from 'rxjs';
 import { LocalPlayerData } from '../common/user/local-player-data';
 import { RunMode } from '../common/run/run-mode';
-import { Timer } from '../common/run/timer';
 import { PlayerState } from '../common/player/player-state';
 import { RunState } from '../common/run/run-state';
 import { RunHandler } from '../common/run/run-handler';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { DataChannelEvent } from '../common/peer/data-channel-event';
 import { EventType } from '../common/peer/event-type';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
@@ -32,7 +29,7 @@ export class RunComponent implements OnDestroy {
   runState = RunState;
 
   //component variables
-  localPlayer: LocalPlayerData = new LocalPlayerData();
+  localPlayer: LocalPlayerData = new LocalPlayerData(this._user.user.getUserBase());
   runHandler: RunHandler;
 
   private stateListener: any;
@@ -60,7 +57,7 @@ export class RunComponent implements OnDestroy {
       if (confirmed) {
         this.localPlayer.state = PlayerState.Forfeit;
         this.runHandler.sendEvent(EventType.EndPlayerRun, true);
-        this.runHandler.sendEvent(EventType.NewCell, new Task("int-finalboss-forfeit", this._user.getName(), this.runHandler.run!.getTimerShortenedFormat()));
+        this.runHandler.sendEvent(EventType.NewCell, new Task("int-finalboss-forfeit", this.localPlayer.user, this.runHandler.run!.getTimerShortenedFormat()));
       }
     });
   }
@@ -77,35 +74,14 @@ export class RunComponent implements OnDestroy {
 
   switchTeam(teamName: string) {
     if (this.runHandler.run?.timer.runState !== RunState.Waiting && this.isSpectatorOrNull()) return;
-
-    //swap from spectator if user currently is
-    if (this.runHandler.lobby?.spectators.includes(this.localPlayer.name)) 
-      this.movePlayerOutOfSpectators();
-
     this.runHandler.sendEvent(EventType.ChangeTeam, teamName);
     this.localPlayer.team = this.runHandler.run?.getTeam(teamName) ?? undefined;
     this.runHandler.getPlayerState();
   }
 
-  private movePlayerOutOfSpectators() {
-    this.zone.run(() => {
-      if (!this.runHandler.lobby) return;
-      let change = false;
-      if (this.runHandler.lobby.spectators.includes(this.localPlayer.name)) {
-        this.runHandler!.lobby.spectators = this.runHandler.lobby.spectators.filter(user => user !== this.localPlayer.name);
-        change = true;
-      }
-      
-      if (!this.runHandler.lobby.runners.includes(this.localPlayer.name)) { //incase disconnect
-        this.runHandler.lobby.runners.push(this.localPlayer.name);
-        change = true;
-      }
-      this.runHandler.updateFirestoreLobby();
-    });
-  }
 
   copyMultiTwitchLink() {
-    const twitchLinks: string[] | undefined = this.runHandler.run?.teams.flatMap(team => team.players.filter(x => x.twitchName !== null).flatMap(x => x.twitchName!));
+    const twitchLinks: string[] | undefined = this.runHandler.run?.teams.flatMap(team => team.players.filter(x => x.user.twitchName !== null).flatMap(x => x.user.twitchName!));
     if (!twitchLinks || twitchLinks.length === 0) {
       this._user.sendNotification("No players with twitch links found!");
     }
@@ -180,7 +156,7 @@ export class RunComponent implements OnDestroy {
             this.runHandler.sendEvent(EventType.EndPlayerRun, false);
           }
 
-          var cell = new Task(task, this._user.getName(), this.runHandler.run.getTimerShortenedFormat());
+          var cell = new Task(task, this.localPlayer.user, this.runHandler.run.getTimerShortenedFormat());
           this.runHandler.sendEvent(EventType.NewCell, cell);
         }
       });
@@ -188,7 +164,7 @@ export class RunComponent implements OnDestroy {
   }
 
   private isSpectatorOrNull() {
-    return !this.localPlayer.name || this.localPlayer.name === "" || this.runHandler.lobby?.spectators.includes(this.localPlayer.name);
+    return !this.localPlayer.user.id || this.localPlayer.user.id === "" || this.runHandler.lobby?.hasSpectator(this.localPlayer.user.id);
   }
 
   private shouldAddTask(task: string): boolean {
@@ -201,7 +177,7 @@ export class RunComponent implements OnDestroy {
     if (Task.isCell(task)) {
       if (this.runHandler.run?.data.mode === RunMode.Speedrun && !this.runHandler.run.runHasCell(task))
         return true;
-      else if (!this.runHandler.run?.playerTeamHasCell(task, this.localPlayer.name))
+      else if (!this.runHandler.run?.playerTeamHasCell(task, this.localPlayer.user.id))
         return true;
     }
     return false;

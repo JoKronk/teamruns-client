@@ -2,7 +2,9 @@
     <p class="title">Spectators</p>
 
     <div *ngIf="lobby" class="spectators">
-        <p *ngFor="let spectator of lobby.spectators">{{ spectator }}</p>
+        <div *ngFor="let user of lobby.users">
+            <p *ngIf="!user.isRunner">{{ user.name }}</p>
+        </div>
     </div>
 </div>
 

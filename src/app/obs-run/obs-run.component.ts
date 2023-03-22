@@ -16,7 +16,7 @@ import { Lobby } from '../common/firestore/lobby';
 })
 export class ObsRunComponent implements OnDestroy {
 
-  localPlayer: LocalPlayerData = new LocalPlayerData();
+  localPlayer: LocalPlayerData = new LocalPlayerData(this._user.user.getUserBase());
   runHandler: RunHandler | undefined;
 
   width: number = 320;
@@ -57,7 +57,7 @@ export class ObsRunComponent implements OnDestroy {
             setTimeout(() => { //allow runHandler to get player leave change and set host to null if runner was the only one left in lobby
               this.runHandler!.destroy();
               this.runHandler = undefined;
-              this.localPlayer = new LocalPlayerData();
+              this.localPlayer = new LocalPlayerData(this._user.user.getUserBase());
             }, 300);
           }
         }
@@ -71,9 +71,7 @@ export class ObsRunComponent implements OnDestroy {
     if (lobbies.length === 0) return;
 
     lobbies.forEach(lobby => {
-      lobby.runners = lobby.runners.filter(x => x !== userId);
-      lobby.spectators = lobby.spectators.filter(x => x !== userId);
-      console.log("DELETEIGN");
+      lobby.users = lobby.users.filter(x => x.id !== userId);
       this.firestoreService.updateLobby(lobby);
     });
   }
