@@ -31,6 +31,7 @@ import { LobbyViewerComponent } from './lobby-viewer/lobby-viewer.component';
 import { ConfirmComponent } from './dialogs/confirm/confirm.component';
 import { InfoComponent } from './dialogs/info/info.component';
 import { NewUpdateComponent } from './dialogs/new-update/new-update.component';
+import { GivePasswordComponent } from './dialogs/give-password/give-password.component';
 
 @NgModule({
   declarations: [
@@ -50,7 +51,8 @@ import { NewUpdateComponent } from './dialogs/new-update/new-update.component';
     LobbyViewerComponent,
     ConfirmComponent,
     InfoComponent,
-    NewUpdateComponent
+    NewUpdateComponent,
+    GivePasswordComponent
   ],
   imports: [
     BrowserModule,

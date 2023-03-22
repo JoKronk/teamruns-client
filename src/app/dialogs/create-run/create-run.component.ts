@@ -18,6 +18,7 @@ export class CreateRunComponent {
 
   runData: RunData = new RunData(pkg.version);
   teamsOptions: number[] = [1, 2, 3, 4];
+  password: string | null = null;
 
   runMode = RunMode;
 
@@ -30,7 +31,7 @@ export class CreateRunComponent {
 
   createRun() {
     this.runData.buildVersion = pkg.version;
-    const lobby = new Lobby(this.runData, this._user.getId());
+    const lobby = new Lobby(this.runData, this._user.getId(), this.password);
     this._firestore.addLobby(lobby);
     this.router.navigate(['/run'], { queryParams: { id: lobby.id } });
     this.dialogRef.close();

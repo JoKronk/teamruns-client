@@ -17,6 +17,10 @@
             <option *ngFor="let teams of teamsOptions" [ngValue]="teams">{{ teams }}</option>
         </select>
     </div>
+    <div class="option">
+        <p>Password (optional)</p>
+        <input [(ngModel)]="password" maxlength="20">
+    </div>
     <br />
     <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
     <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>

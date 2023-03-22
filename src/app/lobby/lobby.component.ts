@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { Lobby } from '../common/firestore/lobby';
 import { RunMode } from '../common/run/run-mode';
 import { InfoComponent } from '../dialogs/info/info.component';
+import { GivePasswordComponent } from '../dialogs/give-password/give-password.component';
 
 @Component({
   selector: 'app-lobby',
@@ -57,9 +58,25 @@ export class LobbyComponent implements OnDestroy {
     this.dialog.open(InfoComponent, {maxWidth: "100vw"});
   }
 
-  routeToRun(runId: string) {
-    this.router.navigate(['/run' ], { queryParams: { id: runId } });
+  routeToRun(lobby: Lobby) {
+    if (lobby.password) {
+      const dialogRef = this.dialog.open(GivePasswordComponent, { data: lobby.password });
+      const dialogSubscription = dialogRef.afterClosed().subscribe((successful: boolean | null) => {
+        console.log(successful);
+        dialogSubscription.unsubscribe();
+        if (successful === undefined)
+          return;
+        if (!successful)
+          this._user.sendNotification("Wrong password!");
+        if (successful)
+        this.router.navigate(['/run' ], { queryParams: { id: lobby.id } });
+      });
+    }
+    else
+      this.router.navigate(['/run' ], { queryParams: { id: lobby.id } });
   }
+  
+
 
   selectLobby(lobby: Lobby) {
     this.selectedLobby = lobby;

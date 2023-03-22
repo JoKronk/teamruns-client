@@ -7,15 +7,17 @@ export class Lobby {
     host: LobbyUser | null;
     backupHost: LobbyUser | null;
     runData: RunData;
+    password: string | null;
     users: LobbyUser[];
     visible: boolean;
     creatorId: string;
     creationDate: string; //firestore saves it as string if Date and fetches it as string
     lastUpdateDate: string;
 
-    constructor(runData: RunData, creatorId: string) {
+    constructor(runData: RunData, creatorId: string, password: string | null = null) {
         this.id = crypto.randomUUID();
         this.runData = runData;
+        this.password = password;
         this.host = null;
         this.backupHost = null;
         this.users = [];

@@ -37,7 +37,7 @@
       <div class="run-cont">
         <div *ngFor="let lobby of avaliableLobbies" class="run" (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)">
           <div class="run-info">
-            <h2 class="run-title">{{ lobby.runData.name }}</h2>
+            <h2 class="run-title"><img *ngIf="lobby.password" src="./assets/other/lock.png">{{ lobby.runData.name }}</h2>
             <div>
               <span>Teams: {{ lobby.runData.teams }}</span>
               <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
@@ -49,7 +49,7 @@
               <span>Version: {{ lobby.runData.buildVersion }}</span>
             </div>
           </div>
-          <button (click)="routeToRun(lobby.id)">Join</button>
+          <button (click)="routeToRun(lobby)">Join</button>
         </div>
 
         <div *ngFor="let lobby of unavaliableLobbies" class="run run-disabled" (mouseleave)="hideLobbyViewer()"  (mouseenter)="selectLobby(lobby)">
