@@ -28,8 +28,11 @@ export class Team {
     }
     
     addTask(task: Task) {
-        if (task.isCell)
+        if (task.isCell) {
             this.cellCount++;
+            const player = this.players.find(x => x.user.id === task.obtainedById);
+            if (player) player.cellsCollected++;
+        }
             
         this.tasks.unshift(task);
     }
