@@ -21,6 +21,7 @@ import { SetPathComponent } from './dialogs/set-path/set-path.component';
 import { RunComponent } from './run/run.component';
 import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 import { AngularFireModule } from '@angular/fire/compat';
+import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { environment } from '../environments/environment';
 import { RunSplitsComponent } from './run-splits/run-splits.component';
 import { RunTimerComponent } from './run-timer/run-timer.component';
@@ -65,7 +66,8 @@ import { GivePasswordComponent } from './dialogs/give-password/give-password.com
     MatTooltipModule,
     MatProgressSpinnerModule,
     AngularFireModule.initializeApp(environment.firebase),
-    AngularFirestoreModule
+    AngularFirestoreModule,
+    AngularFireAuthModule
   ],
   providers: [],
   bootstrap: [AppComponent]

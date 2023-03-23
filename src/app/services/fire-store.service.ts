@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
+import { environment } from 'src/environments/environment';
 import { CollectionName } from '../common/firestore/collection-name';
 import { Lobby } from '../common/firestore/lobby';
 import { Preset } from '../common/firestore/preset';
@@ -13,9 +15,10 @@ export class FireStoreService {
   private runs: AngularFirestoreCollection<Run>;
   private lobbies: AngularFirestoreCollection<Lobby>;
 
-  constructor(public firestore: AngularFirestore) {
+  constructor(public firestore: AngularFirestore, public auth: AngularFireAuth) {
     this.runs = firestore.collection<Run>(CollectionName.runs);
     this.lobbies = firestore.collection<Lobby>(CollectionName.lobbies);
+    this.auth.signInWithEmailAndPassword(environment.firestoreUsername, environment.firestorePassword);
   }
 
   getOpenLobbies() {
@@ -24,6 +27,10 @@ export class FireStoreService {
 
   getUserLobby(userId: string) {
     return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('runners', 'array-contains', userId)).valueChanges();
+  }
+
+  getLobbyDoc(id: string) {
+    return this.firestore.collection<Lobby>(CollectionName.lobbies).doc(id);
   }
 
   async addLobby(lobby: Lobby) {

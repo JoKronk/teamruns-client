@@ -50,7 +50,7 @@ export class ObsRunComponent implements OnDestroy {
           this.removeUserFromLobbies(userId, lobbies.filter(x => x.id !== playerLobby.id));
 
           //create run
-          this.runHandler = new RunHandler(playerLobby.id, firestoreService.firestore, _user, this.localPlayer, zone, userId);
+          this.runHandler = new RunHandler(playerLobby.id, firestoreService, _user, this.localPlayer, zone, userId);
         }
         else {
           if (this.runHandler) {

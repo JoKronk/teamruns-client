@@ -19,6 +19,7 @@ import { OG } from "../opengoal/og";
 import { Team } from "./team";
 import { LobbyUser } from "../firestore/lobby-user";
 import { UserBase } from "../user/user";
+import { FireStoreService } from "src/app/services/fire-store.service";
 
 export class RunHandler {
     
@@ -32,7 +33,7 @@ export class RunHandler {
     localSlave: RTCPeerSlave | undefined;
 
     lobbyDoc: AngularFirestoreDocument<Lobby>;
-    firestore: AngularFirestore;
+    firestoreService: FireStoreService;
     userService: UserService;
     private localPlayer: LocalPlayerData;
     private obsUserId: string | null;
@@ -41,9 +42,9 @@ export class RunHandler {
     dataSubscription: Subscription;
     lobbySubscription: Subscription;
 
-    constructor(lobbyId: string, firestore: AngularFirestore, userService: UserService, localUser: LocalPlayerData, zone: NgZone, obsUserId: string | null = null) {
-        this.lobbyDoc = firestore.collection<Lobby>(CollectionName.lobbies).doc(lobbyId);
-        this.firestore = firestore;
+    constructor(lobbyId: string, firestoreService: FireStoreService, userService: UserService, localUser: LocalPlayerData, zone: NgZone, obsUserId: string | null = null) {
+        this.lobbyDoc = firestoreService.getLobbyDoc(lobbyId);
+        this.firestoreService = firestoreService;
         this.userService = userService;
         this.localPlayer = localUser;
         this.zone = zone;
@@ -261,7 +262,7 @@ export class RunHandler {
                     this.run?.endPlayerRun(event.userId, event.value);
 
                     if (isMaster && this.run?.timer.runState === RunState.Ended)
-                        this.firestore.collection<Run>(CollectionName.runs).doc().set(JSON.parse(JSON.stringify(this.run)));
+                        this.firestoreService.addRun(this.run);
                 });
                 break;
 
