@@ -277,7 +277,7 @@ export class RunHandler {
                 if (event.userId !== userId) {
                     this.run.giveCellToUser(event.value, this.run.getPlayer(userId));
                     
-                    if (this.run.getPlayerTeam(event.userId)?.name === this.localPlayer.team?.name) {
+                    if (this.run.getPlayerTeam(event.userId)?.name === this.localPlayer.team?.name || this.run.data.mode === RunMode.Lockout) {
                         //handle klaww kill
                         if ((event.value as Task).gameTask === "ogre-boss") {
                             this.localPlayer.killKlawwOnSpot = true;
@@ -357,10 +357,10 @@ export class RunHandler {
                 
                 //check if everyone is ready, send start call if so
                 if (isMaster && event.value === PlayerState.Ready && this.run!.everyoneIsReady()) {
-                this.lobby!.visible = false;
-                this.updateFirestoreLobby();
-                
-                this.sendEvent(EventType.StartRun, new Date().toUTCString());
+                    this.lobby!.visible = false;
+                    this.updateFirestoreLobby();
+                    
+                    this.sendEvent(EventType.StartRun, new Date().toUTCString());
                 }     
                 break;
             
