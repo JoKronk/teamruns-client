@@ -291,10 +291,20 @@ export class RunHandler {
                 if (this.run.data.mode === RunMode.Lockout) {
                     const playerTeam = this.run.getPlayerTeam(this.localPlayer.user.id);
                     if (!playerTeam) break;
-                    if (this.localPlayer.gameState.cellCount < 73 || this.run.teams.some(team => team.name !== playerTeam.name && team.cellCount > playerTeam.cellCount))
-                        OG.removeFinalBossAccess(this.localPlayer.gameState.currentLevel);
-                    else
-                        OG.giveFinalBossAccess(this.localPlayer.gameState.currentLevel);
+                    if (this.run.teams.length !== 1) {
+                        if (this.localPlayer.gameState.cellCount < 73 || this.run.teams.some(team => team.name !== playerTeam.name && team.cellCount > playerTeam.cellCount))
+                            OG.removeFinalBossAccess(this.localPlayer.gameState.currentLevel);
+                        else
+                            OG.giveFinalBossAccess(this.localPlayer.gameState.currentLevel);
+                    }
+                    //free for all Lockout
+                    else {
+                        const localPlayer = this.run.getPlayer(this.localPlayer.user.id)!;
+                        if (this.localPlayer.gameState.cellCount < 73 || playerTeam.players.some(player => player.user.id !== localPlayer.user.id && player.cellsCollected > localPlayer.cellsCollected))
+                            OG.removeFinalBossAccess(this.localPlayer.gameState.currentLevel);
+                        else
+                            OG.giveFinalBossAccess(this.localPlayer.gameState.currentLevel);
+                    }
                 }
                 break;
 

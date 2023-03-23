@@ -48,11 +48,7 @@ export class CreateRunComponent {
   }
 
   changeMode() {
-    if (this.runData.mode === RunMode.Speedrun)
-      this.teamsOptions = [1, 2, 3, 4];
-    else if (this.runData.mode === RunMode.Lockout) {
-      this.teamsOptions = [2, 3, 4];
-      if (this.runData.teams === 1)
+    if (this.runData.mode === RunMode.Lockout && this.runData.teams === 1) {
         this.runData.teams = 2;
     }
   }
