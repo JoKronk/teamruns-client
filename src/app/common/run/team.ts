@@ -24,6 +24,7 @@ export class Team {
         if (this.players.length === 0) return;
         this.players.forEach(player => {
             player.state = PlayerState.Neutral;
+            player.cellsCollected = 0;
         })
     }
     

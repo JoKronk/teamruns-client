@@ -17,7 +17,10 @@ export class Timer {
     }
 
     reset() {
-        this.resetEverything = true;
+        if (this.runState === RunState.Countdown || this.runState === RunState.Started)
+            this.resetEverything = true;
+        else
+            this.resetTimer();
     }
 
     private resetTimer() {
