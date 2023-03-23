@@ -79,6 +79,10 @@ export class RunComponent implements OnDestroy {
     this.runHandler.getPlayerState();
   }
 
+  kickPlayer(userId: string) {
+    this.runHandler.sendEvent(EventType.Disconnect, userId);
+  }
+
 
   copyMultiTwitchLink() {
     const twitchLinks: string[] | undefined = this.runHandler.run?.teams.flatMap(team => team.players.filter(x => x.user.twitchName !== null).flatMap(x => x.user.twitchName!));

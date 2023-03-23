@@ -161,7 +161,7 @@ export class RunHandler {
         const userId = this.userService.getId();
 
         //send updates to master to all slaves | this should be here and not moved up to sendEvent as it's not the only method triggering this
-        if (isMaster && event.type !== EventType.Connect && event.type !== EventType.Disconnect && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
+        if (isMaster && event.type !== EventType.Connect && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
             this.localMaster?.relayToSlaves(event);
 
         switch (event.type) {
@@ -192,6 +192,11 @@ export class RunHandler {
                         this.lobby.backupHost = null; //will be set by host onLobbyChange
 
                     this.updateFirestoreLobby();
+                }
+                //kick logic
+                else if(this.localPlayer.user.id === event.value && this.lobby.host?.id === event.userId) {
+                    this.userService.sendNotification("You've been kicked from the lobby.");
+                    this.userService.routeTo('/lobby');
                 }
                 //backupHost on master disconnect
                 else if (event.userId === this.lobby.host?.id && this.lobby.backupHost?.id === userId) {

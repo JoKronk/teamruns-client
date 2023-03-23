@@ -45,6 +45,10 @@ export class UserService implements OnDestroy {
     return this.user.id;
   }
 
+  public routeTo(link: string) {
+    this.router.navigate([link]);
+  }
+
   public checkWriteUserDataHasChanged() {
     if (!this.user.isEqualToDataCopy(this.UserCopy))
       this.writeSettings();

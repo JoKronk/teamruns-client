@@ -125,6 +125,17 @@
                     color: rgb(212, 144, 18, 0.7) !important;
                 }
             }
+            &-kick {
+                margin-left: 6px;
+                font-size: 19px;
+                font-family: 'jak';
+                color: #380000;
+                transition: 0.3s;
+                &:hover {
+                    color: #d49012;
+                    cursor: pointer;
+                }
+            }
         }
         &-details {
             flex: 2;
