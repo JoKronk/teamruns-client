@@ -51,15 +51,15 @@ export class RTCPeerSlave {
             lobby.users.push(lobbyUser ?? new LobbyUser(user));
         await this.updateFirestoreLobby(lobbyDoc, lobby);
 
-        this.createPeerConnection(user.id);
+        this.createPeerConnection(lobbyDoc, user.id);
     }
 
     private async updateFirestoreLobby(doc: AngularFirestoreDocument<Lobby>, lobby: Lobby) {
         await doc.set(JSON.parse(JSON.stringify(lobby)));
     }
 
-    private async createPeerConnection(userId: string) {
-        this.peer = new RTCPeerDataConnection(this.eventChannel, userId, false);
+    private async createPeerConnection(lobbyDoc: AngularFirestoreDocument<Lobby>, userId: string) {
+        this.peer = new RTCPeerDataConnection(this.eventChannel, userId, lobbyDoc, false);
 
         //listen for slave candidates to be created, might need to be done before .createOffer() according to some unlisted documentation
         this.peer.connection.onicecandidate = (event) => {
@@ -79,7 +79,7 @@ export class RTCPeerSlave {
         //One solution is to have a seperate doc for -> connections, master candidates, slave candidates
         setTimeout(() => {
             this.peerDoc.set(JSON.parse(JSON.stringify(this.peerData)));
-            console.log("slave: Created slave offer!", this.peerData);
+            console.log("slave: Created slave offer!");
         }, 500);
 
         

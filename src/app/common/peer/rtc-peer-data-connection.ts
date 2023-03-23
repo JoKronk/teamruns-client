@@ -1,6 +1,10 @@
+import { AngularFirestoreDocument } from "@angular/fire/compat/firestore";
 import { Subject } from "rxjs";
+import { CollectionName } from "../firestore/collection-name";
+import { Lobby } from "../firestore/lobby";
 import { DataChannelEvent } from "./data-channel-event";
 import { EventType } from "./event-type";
+import { RTCPeer } from "./rtc-peer";
 
 export class RTCPeerDataConnection {
 
@@ -9,7 +13,7 @@ export class RTCPeerDataConnection {
     hasConnected: boolean = false;
 
 
-    constructor(eventChannel: Subject<DataChannelEvent>, userId: string, createdInMaster: boolean) {
+    constructor(eventChannel: Subject<DataChannelEvent>, userId: string, lobbyDoc: AngularFirestoreDocument<Lobby>, creatorIsMaster: boolean) {
         this.connection = new RTCPeerConnection({
             iceServers: [
               { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
@@ -36,9 +40,16 @@ export class RTCPeerDataConnection {
         //setup remote peer data listeners
         this.connection.ondatachannel = ((dc) => {
             const channel = dc.channel;
-            console.log('%cGot data channel', 'color: #00ff00', channel);
+            console.log('%cGot data channel', 'color: #00ff00');
 
             this.hasConnected = true;
+
+            if (creatorIsMaster) {
+                //!TODO: seems safe to delete instantly but I'm not taking any chances before I know for certain
+                setTimeout(() => {
+                    lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(userId).delete();
+                }, 1000);
+            }
 
             channel.onmessage = (event) => {
                 eventChannel.next(JSON.parse(event.data));
@@ -46,11 +57,12 @@ export class RTCPeerDataConnection {
         });
 
         //check if user never connected -> if so assume stuck or leftover user data from improper disconnect
-        if (createdInMaster) {
+        if (creatorIsMaster) {
             setTimeout(() => {
                 if (!this.hasConnected) {
                     console.log("kicking: ", userId);
                     eventChannel.next(new DataChannelEvent(userId, EventType.Disconnect, null));
+                    lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(userId).delete();
                 }
             }, 8000);
         }
@@ -58,7 +70,6 @@ export class RTCPeerDataConnection {
 
     sendEvent(event: DataChannelEvent) {
         if (this.channelToPeer.readyState !== "open") return;
-        
         this.channelToPeer.send(JSON.stringify(event));
     }
 

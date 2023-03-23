@@ -24,7 +24,7 @@ export class RTCPeerMaster {
         this.peers = [];
         this.peerSubscriptions = [];
 
-        //add user to spectate list
+        //add user to users list
         doc.ref.get().then(lobbyData => {
             if (!lobbyData.exists) return;
             let lobby = lobbyData.data(); if (!lobby) return;
@@ -47,7 +47,7 @@ export class RTCPeerMaster {
                 if (snapshot.payload.metadata.hasPendingWrites) return;
                 const peer = snapshot.payload.data(); if (!peer) return;
 
-                console.log("master: Got slave change!", this.peers);
+                console.log("master: Got slave change!");
                 this.handlePeerConnectionChanges(peer);
             });
             this.peerSubscriptions.push(peerSubscription);
@@ -82,7 +82,7 @@ export class RTCPeerMaster {
 
 
         //setup master connection to peer
-        slave.peer = new RTCPeerDataConnection(this.eventChannel, slave.userId, true);
+        slave.peer = new RTCPeerDataConnection(this.eventChannel, slave.userId, this.lobbyDoc, true);
         
         slave.peer.connection.onicecandidate = (event) => {
             if (event.candidate) {
@@ -107,7 +107,7 @@ export class RTCPeerMaster {
 
         //!TODO: should setup a better solution for this, check slave side equivalent for further comments on it
         setTimeout(() => {
-            console.log("Setting connection in db: ", peer);
+            console.log("Setting connection in db for: ", peer.userId);
             this.lobbyDoc.collection(CollectionName.peerConnections).doc(peer.userId).set(JSON.parse(JSON.stringify(peer)));
         }, 500);
     }
