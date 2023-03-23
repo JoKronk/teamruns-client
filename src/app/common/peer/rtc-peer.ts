@@ -9,8 +9,8 @@ export class RTCPeer{
     slaveDescription: RTCSessionDescriptionInit;
     slaveCandidates: RTCIceCandidate[];
 
-    constructor (user: string) {
-        this.userId = user;
+    constructor (userId: string) {
+        this.userId = userId;
         this.masterCandidates = [];
         this.slaveCandidates = [];
     }
@@ -20,7 +20,7 @@ export class RTCPeer{
 export class RTCPeerSlaveConnection extends RTCPeer {
     peer: RTCPeerDataConnection;
 
-    constructor(user: string) {
-        super(user);
+    constructor(userId: string) {
+        super(userId);
     }
 }

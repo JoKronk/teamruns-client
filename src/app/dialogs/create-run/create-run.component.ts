@@ -7,6 +7,7 @@ import pkg from 'app/package.json';
 import { RunMode } from 'src/app/common/run/run-mode';
 import { Lobby } from 'src/app/common/firestore/lobby';
 import { Preset } from 'src/app/common/firestore/preset';
+import { UserService } from 'src/app/services/user.service';
 
 @Component({
   selector: 'app-create-run',
@@ -17,19 +18,21 @@ export class CreateRunComponent {
 
   runData: RunData = new RunData(pkg.version);
   teamsOptions: number[] = [1, 2, 3, 4];
+  countdownOptions: number[] = [5, 10, 15];
+  password: string | null = null;
 
   runMode = RunMode;
 
   tournamentPreset: Preset;
   usingPreset: boolean;
 
-  constructor(private _firestore: FireStoreService, private router: Router, private dialogRef: MatDialogRef<CreateRunComponent>) {
+  constructor(private _user: UserService, private _firestore: FireStoreService, private router: Router, private dialogRef: MatDialogRef<CreateRunComponent>) {
     this.getPreset();
   }
 
   createRun() {
     this.runData.buildVersion = pkg.version;
-    const lobby = new Lobby(this.runData);
+    const lobby = new Lobby(this.runData, this._user.getId(), this.password);
     this._firestore.addLobby(lobby);
     this.router.navigate(['/run'], { queryParams: { id: lobby.id } });
     this.dialogRef.close();
@@ -45,17 +48,8 @@ export class CreateRunComponent {
   }
 
   changeMode() {
-    if (this.runData.mode === RunMode.Speedrun)
-      this.teamsOptions = [1, 2, 3, 4];
-    else if (this.runData.mode === RunMode.Lockout) {
-      this.teamsOptions = [2, 3, 4];
-      if (this.runData.teams === 1)
+    if (this.runData.mode === RunMode.Lockout && this.runData.teams === 1) {
         this.runData.teams = 2;
-    }
-    else if (this.runData.mode === RunMode.Elimination) {
-      this.teamsOptions = [1];
-      if (this.runData.teams !== 1)
-        this.runData.teams = 1;
     }
   }
 }

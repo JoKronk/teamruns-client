@@ -24,12 +24,16 @@ export class Team {
         if (this.players.length === 0) return;
         this.players.forEach(player => {
             player.state = PlayerState.Neutral;
+            player.cellsCollected = 0;
         })
     }
     
     addTask(task: Task) {
-        if (task.isCell)
+        if (task.isCell) {
             this.cellCount++;
+            const player = this.players.find(x => x.user.id === task.obtainedById);
+            if (player) player.cellsCollected++;
+        }
             
         this.tasks.unshift(task);
     }

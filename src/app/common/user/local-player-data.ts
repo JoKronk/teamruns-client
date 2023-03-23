@@ -6,9 +6,10 @@ import { Task } from "../opengoal/task";
 import { Run } from "../run/run";
 import { Team } from "../run/team";
 import { Level } from "../opengoal/levels";
+import { UserBase } from "./user";
 
 export class LocalPlayerData {
-  name: string;
+  user: UserBase;
   team: Team | undefined;
   mode: RunMode;
   gameState: GameState;
@@ -18,8 +19,8 @@ export class LocalPlayerData {
   killKlawwOnSpot: boolean;
   isSyncing: boolean = false;
 
-  constructor() {
-    this.name = "";
+  constructor(user: UserBase) {
+    this.user = user;
     this.team = undefined;
     this.mode = RunMode.Speedrun;
     this.gameState = new GameState();
@@ -49,11 +50,11 @@ export class LocalPlayerData {
 
   checkDesync(run: Run) {
     if (this.isSyncing) return;
-    let team = run.getPlayerTeam(this.name);
+    let team = run.getPlayerTeam(this.user.id);
     if (!team) return;
 
     if (team.cellCount > this.gameState.cellCount || (run.data.mode == RunMode.Lockout && run.teams.reduce((a, b) => a + (b["cellCount"] || 0), 0) > this.gameState.cellCount)) {
-      const player = run.getPlayer(this.name);
+      const player = run.getPlayer(this.user.id);
       if (!player) return;
 
       this.isSyncing = true;
@@ -190,6 +191,6 @@ export class LocalPlayerData {
   }
 
   isObs() {
-    return this.name.startsWith("obs-");
+    return this.user.id.startsWith("obs-");
   }
 }

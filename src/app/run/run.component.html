@@ -79,10 +79,12 @@
               <div class="team-players">
                 <div *ngFor="let player of team.players">
                   <p [class.team-player-ready]="player.state === playerState.Ready && (runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">
-                    <img *ngIf="player.name == localPlayer.name && !_user.trackerConnected" class="run-info-teams-disconnected" [src]="'./assets/other/disconnected.png'">
-                    <img *ngIf="player.gameState?.onZoomer && _user.trackerConnected" class="run-info-teams-zoomer" [src]="'./assets/other/zoomer.png'">
+                    <img *ngIf="player.user.id === localPlayer.user.id && !_user.trackerConnected" class="run-info-teams-disconnected" src="./assets/other/disconnected.png">
+                    <img *ngIf="player.gameState?.onZoomer && _user.trackerConnected" class="run-info-teams-zoomer" src="./assets/other/zoomer.png">
                     <img *ngIf="player.gameState?.currentLevel && _user.trackerConnected" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">
-                    <span>{{ player.name }}</span>
+                    <span>{{ player.user.name }}</span>
+                    <span class="run-info-teams-cells-cont"><img class="run-info-teams-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>
+                    <span *ngIf="runHandler.lobby?.host?.id === localPlayer.user.id && player.user.id !== localPlayer.user.id && runHandler.run.timer.runState === runState.Waiting" class="run-info-teams-kick" (click)="kickPlayer(player.user.id)">X</span>
                   </p>
                 </div>
               </div>
@@ -95,12 +97,12 @@
             (click)="runHandler.run.timer.runState === runState.Started ? forfeit() : toggleReady()">{{ runHandler.run.timer.runState === runState.Started ? "Forfeit" : "Ready" }}</button>
 
             <button class="run-info-details-reset" 
-            [disabled]="runHandler.run.timer.runState !== runState.Started"
+            [disabled]="runHandler.run.timer.runState !== runState.Started && runHandler.run.timer.runState !== runState.Ended"
             [class.run-info-details-reset-ready]="localPlayer.state === playerState.WantsToReset"
             (click)="toggleReset()">Vote Reset</button>
 
           <div class="run-info-details-owner">
-            <p>Host:<span>{{ runHandler.lobby?.host }}</span></p>
+            <p>Host:<span>{{ runHandler.lobby?.host?.name }}</span></p>
           </div>
         </div>
       </div>

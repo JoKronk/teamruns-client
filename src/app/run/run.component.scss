@@ -116,6 +116,26 @@
                 height: 19px;
                 margin-right: 4px;
             }
+            &-cells {
+                margin-left: 6px;
+                height: 19px;
+                &-cont {
+                    font-family: 'precursor';
+                    font-size: 18px;
+                    color: rgb(212, 144, 18, 0.7) !important;
+                }
+            }
+            &-kick {
+                margin-left: 6px;
+                font-size: 19px;
+                font-family: 'jak';
+                color: #380000;
+                transition: 0.3s;
+                &:hover {
+                    color: #d49012;
+                    cursor: pointer;
+                }
+            }
         }
         &-details {
             flex: 2;

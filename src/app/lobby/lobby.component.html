@@ -35,39 +35,51 @@
       </div>
 
       <div class="run-cont">
-        <div *ngFor="let lobby of avaliableLobbies" class="run" (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)">
-          <div class="run-info">
-            <h2 class="run-title">{{ lobby.runData.name }}</h2>
-            <div>
-              <span>Teams: {{ lobby.runData.teams }}</span>
-              <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
+
+        <div *ngFor="let lobby of avaliableLobbies" class="run-cont-inner">
+          <div class="run" (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)">
+            <div class="run-info">
+              <h2 class="run-title"><img *ngIf="lobby.password" src="./assets/other/lock.png">{{ lobby.runData.name }}</h2>
+              <div>
+                <span>Teams: {{ lobby.runData.teams }}</span>
+                <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
+              </div>
             </div>
-          </div>
-          <div class="run-info">
-            <div>
-              <span>In Lobby: {{ lobby.spectators.length + lobby.runners.length }}</span>
-              <span>Version: {{ lobby.runData.buildVersion }}</span>
+            <div class="run-info">
+              <div>
+                <span>In Lobby: {{ lobby.users.length }}</span>
+                <span>Version: {{ lobby.runData.buildVersion }}</span>
+              </div>
             </div>
+            <button (click)="routeToRun(lobby)">Join</button>
           </div>
-          <button (click)="routeToRun(lobby.id)">Join</button>
+          <div class="run-delete-cont">
+            <div *ngIf="lobby.host?.id === _user.user.id" class="run-delete" (click)="deleteLobby(lobby)">X</div>
+          </div>
         </div>
 
-        <div *ngFor="let lobby of unavaliableLobbies" class="run run-disabled" (mouseleave)="hideLobbyViewer()"  (mouseenter)="selectLobby(lobby)">
-          <div class="run-info">
-            <h2 class="run-title">{{ lobby.runData.name }}</h2>
-            <div>
-              <span>Teams: {{ lobby.runData.teams }}</span>
-              <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
+        <div *ngFor="let lobby of unavaliableLobbies" class="run-cont-inner">
+          <div class="run run-disabled" (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)">
+            <div class="run-info">
+              <h2 class="run-title"><img *ngIf="lobby.password" src="./assets/other/lock.png">{{ lobby.runData.name }}</h2>
+              <div>
+                <span>Teams: {{ lobby.runData.teams }}</span>
+                <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
+              </div>
             </div>
-          </div>
-          <div class="run-info">
-            <div>
-              <span>In Lobby: {{ lobby.spectators.length + lobby.runners.length }}</span>
-              <span>Version: {{ lobby.runData.buildVersion }}</span>
+            <div class="run-info">
+              <div>
+                <span>In Lobby: {{ lobby.users.length }}</span>
+                <span>Version: {{ lobby.runData.buildVersion }}</span>
+              </div>
             </div>
+            <button disabled>Join</button>
           </div>
-          <button disabled>Join</button>
+          <div class="run-delete-cont">
+            <div *ngIf="lobby.host?.id === _user.user.id" class="run-delete" (click)="deleteLobby(lobby)">X</div>
+          </div>
         </div>
+
       </div>
 
       <div class="backtext">

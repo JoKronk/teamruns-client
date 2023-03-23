@@ -104,10 +104,11 @@
     border: 3px solid #d49012;
     background-color: #383838;
     border-radius: 16px;
-    margin: 16px 96px 16px 0px;
+    margin: 16px 36px 16px 0px;
     padding: 6px;
     height: 65px;
     font-family: 'jak';
+    flex-grow: 1;
     color: #b4b4b4;
     transition: 0.2s;
     &:hover {
@@ -121,6 +122,9 @@
         border-top: 2px solid rgba(29, 29, 29, 0.2);
         &::-webkit-scrollbar {
             display: none;
+        }
+        &-inner {
+            display: flex;
         }
     }
     &-info {
@@ -136,6 +140,10 @@
         margin: 0;
         padding: 0;
         font-size: 24px;
+        & img {
+            height: 18px;
+            margin-right: 6px;
+        }
     }
     & span {
         margin-right: 12px;
@@ -166,6 +174,24 @@
     }
     &-disabled {
         border: 3px solid #636363 !important;
+    }
+    &-delete {
+        font-size: 62px;
+        font-family: 'jak';
+        color: #380000;
+        transition: 0.3s;
+        &:hover {
+            color: #d49012;
+            cursor: pointer;
+        }
+        &-cont {
+            margin-top: 14px;
+            padding: 10px;
+            height: 62px;
+            width: 42px;
+            flex-shrink: 1;
+            display: inline-block;
+        }
     }
 }
 
