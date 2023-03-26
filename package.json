@@ -23,13 +23,13 @@
       "./tracker/*"
     ],
     "nsis": {
-        "artifactName": "${name}-${version}-installer.${ext}",
-        "allowToChangeInstallationDirectory": true,
-        "oneClick": false,
-        "installerIcon": "build/icon.ico",
-        "uninstallerIcon": "build/icon.ico",
-        "uninstallDisplayName": "TeamRun",
-        "shortcutName": "TeamRun"
+      "artifactName": "${name}-${version}-installer.${ext}",
+      "allowToChangeInstallationDirectory": true,
+      "oneClick": false,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "uninstallDisplayName": "TeamRun",
+      "shortcutName": "TeamRun"
     },
     "win": {
       "artifactName": "${name}-${version}-portable.${ext}",

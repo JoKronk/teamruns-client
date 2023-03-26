@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, screen } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const url = require('url');
@@ -8,16 +8,23 @@ const { OpenGoal } = require('./opengoal');
 let win = null;
 const devServe = (process.argv.at(-1) === '--serve');
 var openGoal;
+var userSettings = { window: { x: 10, y: 10, width: 1000, height: 800 } };
 
 function createWindow() {  
        
 // --- CONFIGS ---
+  let factor = screen.getPrimaryDisplay().scaleFactor;
 	win = new BrowserWindow({
-    width: 1000, 
-    height: 800,
-    x: 10,
-    y: 10,
+    width: userSettings.window.width / factor, 
+    height: userSettings.window.height / factor,
+    minWidth: 850 / factor,
+    minHeight: 670 / factor,
+    maxWidth: 1165 / factor,
+    maxHeight: 1100 / factor,
+    x: userSettings.window.x,
+    y: userSettings.window.y,
     webPreferences: {
+        zoomFactor: 1.0 / factor,
         allowRunningInsecureContent: (devServe),
         preload: path.join(__dirname, "preload.js")
     },
@@ -27,7 +34,7 @@ function createWindow() {
       height: 30
     },
     autoHideMenuBar: true,
-    resizable: false,
+    resizable: true,
     fullscreenable: false,
     transparent: true,
     frame: false
@@ -52,6 +59,20 @@ function createWindow() {
 
   openGoal = new OpenGoal(win);
   openGoal.readGameState();
+
+  win.on('resized', () => {
+    const size = win.getSize();
+    userSettings.window.width  = size[0];
+    userSettings.window.height = size[1];
+    writeSettings(userSettings);
+  });
+
+  win.on('moved', () => {
+    const pos = win.getPosition();
+    userSettings.window.x  = pos[0];
+    userSettings.window.y = pos[1];
+    writeSettings(userSettings);
+  });
     
 // --- FRONTEND COM ---
   ipcMain.on('og-start-game', () => {
@@ -86,6 +107,15 @@ function createWindow() {
     
   ipcMain.on('settings-select-path', () => {
     selectFolderPath();
+  });
+    
+  ipcMain.on('settings-reset-size', () => {
+    win.setSize(1000, 800);
+    win.setPosition(10, 10);
+    userSettings.window.width  = 1000;
+    userSettings.window.height = 800;
+    userSettings.window.x  = 10;
+    userSettings.window.y = 10;
   });
     
   ipcMain.on('window-minimize', () => {
@@ -147,6 +177,8 @@ app.on('activate', () => {
 
 // --- SETTINGS ---
 function writeSettings(settings) {
+  settings.window = userSettings.window;
+  userSettings = settings;
   fs.writeFile('./settings.json', JSON.stringify(settings), (err) => {
     if (err) sendClientMessage("Failed to update user data!");
   });
@@ -154,7 +186,20 @@ function writeSettings(settings) {
 
 function readSettings() {
   fs.readFile("./settings.json", 'utf8', function (err, data) {
-    err ? console.log(err) : win.webContents.send("settings-get", JSON.parse(data));
+    if (err) console.log(err)
+    const user = JSON.parse(data);
+    win.webContents.send("settings-get", user);
+    
+    if (user.window) {
+      if (user.window.width && user.window.height && (user.window.width !== userSettings.window.width || user.window.height !== userSettings.window.height))
+        win.setSize(user.window.width, user.window.height);
+      if (user.window.x && user.window.y && (user.window.x !== userSettings.window.x || user.window.y !== userSettings.window.y))
+        win.setPosition(user.window.x, user.window.y);
+    }
+    else
+    user.window = userSettings.window;
+    
+    userSettings = user;
   });
 }
 
