@@ -4,8 +4,12 @@
 }
 
 .lobby {
+    flex-shrink: 1;
+    max-height: 110px;
     padding: 0px 20px 30px;
     &-container {
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
     }
 }
@@ -117,8 +121,8 @@
     }
     &-cont {
         overflow: auto;
-        max-height: 610px;
-        margin: 0px 24px;
+        flex-grow: 1;
+        margin: 0px 24px 64px;
         border-top: 2px solid rgba(29, 29, 29, 0.2);
         &::-webkit-scrollbar {
             display: none;
