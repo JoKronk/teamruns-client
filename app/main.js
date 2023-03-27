@@ -179,27 +179,29 @@ app.on('activate', () => {
 function writeSettings(settings) {
   settings.window = userSettings.window;
   userSettings = settings;
-  fs.writeFile('./settings.json', JSON.stringify(settings), (err) => {
+  fs.writeFile(path.join(app.getPath('userData'), 'settings.json'), JSON.stringify(settings), (err) => {
     if (err) sendClientMessage("Failed to update user data!");
   });
 }
 
 function readSettings() {
-  fs.readFile("./settings.json", 'utf8', function (err, data) {
+  fs.readFile(path.join(app.getPath('userData'), 'settings.json'), 'utf8', function (err, data) {
     if (err) console.log(err)
-    const user = JSON.parse(data);
-    win.webContents.send("settings-get", user);
+    else if (data) {
+      const user = JSON.parse(data);
+      win.webContents.send("settings-get", user);
     
-    if (user.window) {
-      if (user.window.width && user.window.height && (user.window.width !== userSettings.window.width || user.window.height !== userSettings.window.height))
-        win.setSize(user.window.width, user.window.height);
-      if (user.window.x && user.window.y && (user.window.x !== userSettings.window.x || user.window.y !== userSettings.window.y))
-        win.setPosition(user.window.x, user.window.y);
+      if (user.window) {
+        if (user.window.width && user.window.height && (user.window.width !== userSettings.window.width || user.window.height !== userSettings.window.height))
+          win.setSize(user.window.width, user.window.height);
+        if (user.window.x && user.window.y && (user.window.x !== userSettings.window.x || user.window.y !== userSettings.window.y))
+          win.setPosition(user.window.x, user.window.y);
+      }
+      else
+      user.window = userSettings.window;
+      
+      userSettings = user;
     }
-    else
-    user.window = userSettings.window;
-    
-    userSettings = user;
   });
 }
 
