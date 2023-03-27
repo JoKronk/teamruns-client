@@ -13,7 +13,7 @@
     </div>
     <div class="option">
         <p>Teams (for races)</p>
-        <select [(ngModel)]="runData.teams">
+        <select [(ngModel)]="runData.teams" (change)="changeTeams()">
             <option *ngFor="let teams of teamsOptions" [ngValue]="teams">{{ runData.mode === runMode.Lockout && teams === 1 ? "Free for All" : teams }}</option>
         </select>
     </div>
@@ -28,7 +28,7 @@
         </select>
     </div>
     <br />
-    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
+    <label><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
     <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
     <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.normalCellCost">Normal cell costs</label>
     <br />
