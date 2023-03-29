@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-info',
@@ -7,4 +8,11 @@ import { Component } from '@angular/core';
 })
 export class InfoComponent {
 
+  constructor(private dialogRef: MatDialogRef<InfoComponent>) {
+
+  }
+
+  close() {
+    this.dialogRef.close();
+  }
 }
