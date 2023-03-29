@@ -1,18 +1,25 @@
 .container {
     padding: 10px 20px 30px;
-    width: 312px;
+    width: 624px;
     font-family: 'jak';
     font-weight: bold;
     font-size: 22px;
     border: 2px solid #1f1f1f;
     border-radius: 4px;
-    background-color: rgba(34, 34, 34, 0.8);
+    background-color: rgba(34, 34, 34, 0.85);
 }
 ::ng-deep mat-dialog-container  {
   background-color: transparent !important;
 }
 ::ng-deep .mat-mdc-dialog-container .mdc-dialog__surface {
     background-color: transparent !important;
+}
+
+.tab {
+    flex: 1;
+    &-container {
+        display: flex;
+    }
 }
 
 .option {
