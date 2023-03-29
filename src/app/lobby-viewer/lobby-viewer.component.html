@@ -1,7 +1,7 @@
 <div *ngIf="lobby" class="viewer" [style.opacity]="hide ? '0' : '1'">
     <h2>{{ lobby.runData.name }}</h2>
     <span>{{ runMode[lobby.runData.mode] }}</span>
-    <span>Host: {{ lobby.host }}</span>
+    <span>Host: {{ lobby.host?.name }}</span>
     <br />
     <span>Teams: {{ lobby.runData.teams }}</span>
     <span>Require Same Level: {{ lobby.runData.requireSameLevel }}</span>
