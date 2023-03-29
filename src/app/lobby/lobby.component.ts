@@ -48,6 +48,15 @@ export class LobbyComponent implements OnDestroy {
       });
       
       lobbies = lobbies.filter(x => new Date(x.creationDate) >= expireDate);
+      
+      lobbies.filter(x => x.users.some(user => user.id === _user.user.id) || x.host?.id === _user.user.id).forEach(lobby => {
+        if (lobby.host?.id === _user.user.id)
+          lobby.host = null;
+
+        lobby.users = lobby.users.filter(x => x.id !== _user.user.id);
+        _firestore.updateLobby(lobby);
+      });
+
       const version = this.buildVersion.slice(0, -2);
       this.avaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) === version).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
       this.unavaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) !== version).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
@@ -63,7 +72,6 @@ export class LobbyComponent implements OnDestroy {
     if (lobby.password) {
       const dialogRef = this.dialog.open(GivePasswordComponent, { data: lobby.password });
       const dialogSubscription = dialogRef.afterClosed().subscribe((successful: boolean | null) => {
-        console.log(successful);
         dialogSubscription.unsubscribe();
         if (successful === undefined)
           return;
