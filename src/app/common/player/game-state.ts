@@ -22,4 +22,10 @@ export class GameState {
         || this.currentCheckpoint != state.currentCheckpoint
         || this.onZoomer != state.onZoomer;
     }
+
+    hasSignificantPlayerStateChange(state: GameState): boolean {
+        return this.currentLevel != state.currentLevel 
+        || (this.currentCheckpoint != state.currentCheckpoint && state.currentCheckpoint === "citadel-elevator")
+        || this.onZoomer != state.onZoomer;
+    }
 }

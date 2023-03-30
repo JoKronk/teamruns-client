@@ -79,7 +79,7 @@ export class RunComponent implements OnDestroy {
   }
 
   kickPlayer(userId: string) {
-    this.runHandler.sendEvent(EventType.Disconnect, userId);
+    this.runHandler.sendEvent(EventType.Kick, userId);
   }
 
 
@@ -98,7 +98,7 @@ export class RunComponent implements OnDestroy {
   }
 
   routeToLobby() {
-    if (!this.localPlayer.team || this.runHandler.run?.timer.runState === RunState.Waiting || this.runHandler.run?.timer.runState === RunState.Ended) {
+    if (!this.localPlayer.team || !this.runHandler.run?.timer.runIsOngoing()) {
       this.router.navigate(['/lobby' ]);
       return;
     }
@@ -121,17 +121,23 @@ export class RunComponent implements OnDestroy {
         this.localPlayer.checkDesync(this.runHandler.run);
 
         //handle task status updates
-        if (this.localPlayer.gameState.hasSharedTaskChange(state) && this.runHandler.run.timer.runState !== RunState.Waiting) {
+        if (this.localPlayer.gameState.hasSharedTaskChange(state) && this.runHandler.run.timer.runIsOngoing()) {
           this.localPlayer.gameState.sharedTasks = state.sharedTasks;
           this.runHandler.sendEvent(EventType.NewTaskStatusUpdate, state.sharedTasks);
         }
 
         //handle state change
         if (this.localPlayer.gameState.hasPlayerStateChange(state) && this.localPlayer.state !== PlayerState.Finished) {
+
+          //this is purely to save unnecessary writes to db if user is on client-server communication
+          const insignificantChange = (((this.runHandler.localSlave && this.runHandler.localSlave.peer.usesServerCommunication) || (this.runHandler.localMaster && this.runHandler.localMaster.peers.every(x => x.peer.usesServerCommunication))) && !this.localPlayer.gameState.hasSignificantPlayerStateChange(state));
+          
           this.localPlayer.gameState.currentLevel = state.currentLevel;
           this.localPlayer.gameState.currentCheckpoint = state.currentCheckpoint;
           this.localPlayer.gameState.onZoomer = state.onZoomer;
-          this.runHandler.sendEvent(EventType.NewPlayerState, state);
+
+          if (!insignificantChange)
+            this.runHandler.sendEvent(EventType.NewPlayerState, state);
           
           //handle klaww kill
           this.localPlayer.checkKillKlaww();

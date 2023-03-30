@@ -56,12 +56,12 @@ export class UserService implements OnDestroy {
     this.UserCopy = this.user.getCopy();
   }
 
-  public sendNotification(message: string) {
+  public sendNotification(message: string, notifDuration: number = 5000) {
     if (this.isBrowser) return;
 
     this.zone.run(() => {
       this._snackbar.openFromComponent(SnackbarComponent, {
-        duration: 5000,
+        duration: notifDuration,
         data: message,
         verticalPosition: 'bottom',
         horizontalPosition: 'right'

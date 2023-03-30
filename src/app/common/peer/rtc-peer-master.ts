@@ -2,7 +2,6 @@ import { AngularFirestoreDocument } from "@angular/fire/compat/firestore";
 import { Subject, Subscription } from "rxjs";
 import { CollectionName } from "../firestore/collection-name";
 import { Lobby } from "../firestore/lobby";
-import { LobbyUser } from "../firestore/lobby-user";
 import { User } from "../user/user";
 import { DataChannelEvent } from "./data-channel-event";
 import { RTCPeer, RTCPeerSlaveConnection } from "./rtc-peer";
@@ -10,6 +9,7 @@ import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
 
 export class RTCPeerMaster {
     userId: string;
+    isBeingDestroyed: boolean = false;
 
     lobbyDoc: AngularFirestoreDocument<Lobby>;
     eventChannel: Subject<DataChannelEvent>;
@@ -23,27 +23,15 @@ export class RTCPeerMaster {
         this.lobbyDoc = doc;
         this.peers = [];
         this.peerSubscriptions = [];
-
-        //add user to users list
-        doc.ref.get().then(lobbyData => {
-            if (!lobbyData.exists) return;
-            let lobby = lobbyData.data(); if (!lobby) return;
-            lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId), lobby);
-
-            if (!lobby.hasUser(user.id)) {
-                lobby.users.push(new LobbyUser(user));
-                doc.set(JSON.parse(JSON.stringify(lobby)));
-            }
-        });
     }
 
     onLobbyChange(lobby: Lobby) {
-        //check if new users
-        lobby.users.filter(x => x.id !== this.userId && !this.peers.some(({ userId: userId }) => userId === x.id)).forEach(user => {
+        //check for new users
+        lobby.users.filter(x => x.id !== this.userId && !this.peers.some(({ userId: userId }) => userId === x.id)).forEach(newPeer => {
 
-            console.log("master: GOT NEW USER!", user.name);
+            console.log("master: GOT NEW USER!", newPeer.name);
             //setup user handling
-            const peerSubscription = this.lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(user.id).snapshotChanges().subscribe(snapshot => {
+            const peerSubscription = this.lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(newPeer.id).snapshotChanges().subscribe(snapshot => {
                 if (snapshot.payload.metadata.hasPendingWrites) return;
                 const peer = snapshot.payload.data(); if (!peer) return;
 
@@ -51,6 +39,11 @@ export class RTCPeerMaster {
                 this.handlePeerConnectionChanges(peer);
             });
             this.peerSubscriptions.push(peerSubscription);
+        });
+        //check for disconnected users
+        this.peers.filter(x => !lobby.users.some(({ id: userId }) => userId === x.userId)).forEach(async (removedPeer) => {
+            removedPeer.peer.destroy();
+            this.peers = this.peers.filter(x => x.userId !== removedPeer.userId)
         });
     }
 
@@ -82,7 +75,7 @@ export class RTCPeerMaster {
 
 
         //setup master connection to peer
-        slave.peer = new RTCPeerDataConnection(this.eventChannel, slave.userId, this.lobbyDoc, true);
+        slave.peer = new RTCPeerDataConnection(this.eventChannel, this.userId, slave.userId, this.lobbyDoc, true);
         
         slave.peer.connection.onicecandidate = (event) => {
             if (event.candidate) {
@@ -107,9 +100,18 @@ export class RTCPeerMaster {
 
         //!TODO: should setup a better solution for this, check slave side equivalent for further comments on it
         setTimeout(() => {
-            console.log("Setting connection in db for: ", peer.userId);
-            this.lobbyDoc.collection(CollectionName.peerConnections).doc(peer.userId).set(JSON.parse(JSON.stringify(peer)));
+            console.log("master: Setting connection in db for: ", peer.userId);
+            this.lobbyDoc.collection(CollectionName.peerConnections).doc(peer.userId).set(JSON.parse(JSON.stringify(this.getPureRTCPeer(peer)))); //peer gets poluted by slave due to it being binded by reference
         }, 500);
+    }
+
+    getPureRTCPeer(oldPeer: RTCPeer): RTCPeer {
+        let peer = new RTCPeer(oldPeer.userId);
+        peer.masterDescription = oldPeer.masterDescription;
+        peer.masterCandidates = oldPeer.masterCandidates;
+        peer.slaveDescription = oldPeer.slaveDescription;
+        peer.slaveCandidates = oldPeer.slaveCandidates;
+        return peer;
     }
 
     relayToSlaves(event: DataChannelEvent) {
@@ -128,6 +130,7 @@ export class RTCPeerMaster {
 
 
     destroy() {
+        this.isBeingDestroyed = true;
         if (this.peerSubscriptions) {
             this.peerSubscriptions.forEach(sub => {
                 sub.unsubscribe();
@@ -135,7 +138,7 @@ export class RTCPeerMaster {
         }
         if (this.peers) {
             this.peers.forEach(pc => {
-                pc.peer.destory();
+                pc.peer.destroy();
             });
         }
     }

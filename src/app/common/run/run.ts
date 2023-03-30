@@ -27,9 +27,11 @@ export class Run {
     }
 
     removePlayer(playerId: string): void {
-        let team = this.getPlayerTeam(playerId);
-        if (!team) return;
-        team.players = team.players.filter(x => x.user.id !== playerId);
+        if (!this.timer.runIsOngoing()) {
+            let team = this.getPlayerTeam(playerId);
+            if (!team) return;
+            team.players = team.players.filter(x => x.user.id !== playerId);
+        }
     }
 
     toggleVoteReset(playerId: string, state: PlayerState): boolean {
@@ -156,54 +158,28 @@ export class Run {
     // --- RUN METHODS INVOLVING OPENGOAL ---
 
     //used to sync runs between players for user join or in case of desync
-    importChanges(localPlayer: LocalPlayerData, run: Run) {
-
-        //handle run metedata
-        if (this.timer.runState === RunState.Waiting)
-            this.data = run.data;
-        //handle timer
-        if (this.timer.runState === RunState.Waiting && run.timer.runState === RunState.Countdown && run.timer.startDateMs) {
-            this.timer.startTimer(run.timer.startDateMs);
-            localPlayer.state = PlayerState.Neutral;
-        }
+    importTaskChanges(localPlayer: LocalPlayerData, run: Run) {
 
         //handle team events
         this.teams.forEach(team => {
             let importTeam = run.teams.find(x => x.name === team.name);
             if (importTeam) {
-                //checks to do before run start
-                if (this.timer.runState === RunState.Waiting) {
-                    team.owner = importTeam.owner;
-                    team.players = importTeam.players;
-                }
-                //checks to do after run start
-                else {
-                    //get new player states
-                    team.players.forEach(player => {
-                        let importPlayer = importTeam!.players.find(x => x.user.id === player.user.id);
-                        if (importPlayer) {
-                            player.state = importPlayer.state;
-                            player.gameState = importPlayer.gameState;
-                        }
+                //localPlayer player class, use to check if this is curernt players TEAM
+                let localImportedPlayer = team.players.find(x => x.user.id === localPlayer.user.id);
+                //check for new tasks to give player
+                if (localImportedPlayer || this.data.mode === RunMode.Lockout) {
+                    importTeam.tasks.filter(x => x.isCell && !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
+                        this.giveCellToUser(task, localImportedPlayer);
                     });
+                }
 
-                    //localPlayer player class, use to check if this is curernt players TEAM
-                    let localPlayerImportedPlayer = team.players.find(x => x.user.id === localPlayer.user.id);
-                    //check for new tasks to give player
-                    if (localPlayerImportedPlayer || this.data.mode === RunMode.Lockout) {
-                        importTeam.tasks.filter(x => x.isCell && !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
-                            this.giveCellToUser(task, localPlayerImportedPlayer);
-                        });
-                    }
+                //transfer tasks
+                team.tasks = importTeam.tasks;
+                team.cellCount = importTeam.cellCount;
 
-                    //transfer tasks
-                    team.tasks = importTeam.tasks;
-                    team.cellCount = importTeam.cellCount;
-
-                    //state update checks
-                    if (localPlayerImportedPlayer) {
-                        this.onUserStateChange(localPlayer, localPlayerImportedPlayer);
-                    }
+                //state update checks
+                if (localImportedPlayer) {
+                    this.onUserStateChange(localPlayer, localImportedPlayer);
                 }
             }
         });
@@ -227,7 +203,7 @@ export class Run {
         let levelToCheck = team.players[0]?.gameState.currentLevel;
 
         //if all on same level hub zoomer
-        if (!localPlayer.restrictedZoomerLevels.includes(player.gameState.currentLevel) || team.players.every(x => x.gameState.onZoomer && x.gameState.currentLevel === levelToCheck)) {
+        if (!localPlayer.restrictedZoomerLevels.includes(player.gameState.currentLevel) || team.players.every(x => x.gameState.onZoomer && x.gameState.currentLevel === levelToCheck) || this.data.mode === RunMode.Lockout && this.teams.length === 1) {
             OG.runCommand("(set-zoomer-full-mode)");
             localPlayer.restrictedZoomerLevels = localPlayer.restrictedZoomerLevels.filter(x => x !== player!.gameState.currentLevel);
         }
@@ -263,7 +239,7 @@ export class Run {
         }
         this.teams = teams;
         this.timer = Object.assign(new Timer(this.timer.countdownSeconds), this.timer);
-        if (this.timer.runState !== RunState.Waiting)
+        if (this.timer.runIsOngoing())
             this.timer.updateTimer();
 
         return this;
