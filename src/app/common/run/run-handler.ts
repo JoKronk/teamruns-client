@@ -405,7 +405,7 @@ export class RunHandler {
 
 
             case EventType.NewTaskStatusUpdate:
-                if (!this.run || this.run.getPlayerTeam(event.userId)?.name !== this.localPlayer.team?.name) return;
+                if (!this.run || this.run.getPlayerTeam(event.userId)?.name !== this.localPlayer.team?.name || (this.run.data.mode === RunMode.Lockout && this.run.teams.length === 1)) return;
                 this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.userId === userId);
                 break;
 
