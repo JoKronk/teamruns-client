@@ -149,14 +149,17 @@ export class LocalPlayerData {
           case "lavatube-balls":
             OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-resolution))");
             break;
-            case "plunger-lurker-hit":
-              //softlocks sometimes
-              /*
-              OG.runCommand("(close-specific-task! (game-task plunger-lurker-hit) (task-status need-hint))");
-              OG.runCommand('(process-entity-status! (process-by-ename "plunger-lurker-3")(entity-perm-status complete) #t)');
-              OG.runCommand('(cleanup-for-death (the-as (process-by-ename "plunger-lurker-3")))');
-              OG.runCommand('(deactivate (process-by-ename "plunger-lurker-3"))');
-              */
+          case "plunger-lurker-hit":
+            //!TODO: softlocks sometimes
+            /*
+            OG.runCommand("(close-specific-task! (game-task plunger-lurker-hit) (task-status need-hint))");
+            OG.runCommand('(process-entity-status! (process-by-ename "plunger-lurker-3")(entity-perm-status complete) #t)');
+            OG.runCommand('(cleanup-for-death (the-as (process-by-ename "plunger-lurker-3")))');
+            OG.runCommand('(deactivate (process-by-ename "plunger-lurker-3"))');
+            */
+            break;
+            case "rolling-race":
+              //!TODO: not fixed yet
               break;
           //handle cell tasks
           default:
