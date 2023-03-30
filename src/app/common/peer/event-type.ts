@@ -6,6 +6,7 @@ export enum EventType {
 
     //peer distributed calls
     Disconnect,
+    Reconnect,
     Kick,
     Ready,
     StartRun,

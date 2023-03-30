@@ -32,6 +32,11 @@ export class Run {
             if (!team) return;
             team.players = team.players.filter(x => x.user.id !== playerId);
         }
+        else {
+            let runplayer = this.getPlayer(playerId);
+            if (!runplayer) return;
+            runplayer.state = PlayerState.Disconnected;
+        }
     }
 
     toggleVoteReset(playerId: string, state: PlayerState): boolean {
@@ -73,6 +78,12 @@ export class Run {
         let player = this.getPlayer(playerId);
         if (!player) return;
         player.gameState = state;
+    }
+
+    reconnectPlayer(playerId: string) {
+        let player = this.getPlayer(playerId);
+        if (!player) return;
+        player.state = PlayerState.Ready;
     }
 
     addSplit(task: Task): void {

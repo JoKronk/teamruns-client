@@ -243,7 +243,10 @@
         color: rgb(212, 144, 18, 0.7) !important;
         }
         &-reset {
-            color: #380000!important;
+            color: #380000 !important;
+        }
+        &-disconnected {
+            color: #636363 !important;
         }
     }
 }

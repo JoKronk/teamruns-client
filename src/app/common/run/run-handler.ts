@@ -219,7 +219,7 @@ export class RunHandler {
 
                 //host logic
                 if (isMaster) {
-                    if (this.localMaster?.peers) {
+                    if (this.localMaster?.peers) { //yes this is needed
                         let peer = this.localMaster.peers.find(x => x.userId === event.value);
                         if (peer) {
                             console.log("Destorying disconnected peer");
@@ -257,6 +257,13 @@ export class RunHandler {
                     this.userService.sendNotification("You've been kicked from the lobby.");
                     this.userService.routeTo('/lobby');
                 }
+                break;
+
+
+            case EventType.Reconnect:
+                this.zone.run(() => {
+                    this.run!.reconnectPlayer(event.userId); 
+                }); 
                 break;
                
                 
@@ -296,6 +303,9 @@ export class RunHandler {
                             playerTeam.tasks = [];
 
                         this.localPlayer.team = playerTeam;
+
+                        if (playerTeam.players.some(x => x.user.id === this.localPlayer.user.id && x.state === PlayerState.Disconnected))
+                            this.sendEvent(EventType.Reconnect);
                     }
                     
                     //add to lobby if missing
