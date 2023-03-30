@@ -87,6 +87,7 @@ export class RunHandler {
     async onLobbyChange() {
         const userId = this.userService.getId();
         if (!this.lobby) return;
+        let runLocalMasterOnLobbyChange = true;
 
         console.log("Got Lobby Change!");
         //become master if needed (for example host disconnect or no host at start)
@@ -102,6 +103,7 @@ export class RunHandler {
                 this.dataSubscription.unsubscribe();
                 this.firestoreService.deleteLobbySubCollections(this.lobby.id);
                 this.localSlave = undefined;
+                runLocalMasterOnLobbyChange = false;
             }
 
             this.lobby.host = lobbyUser;
@@ -135,7 +137,8 @@ export class RunHandler {
                 this.lobby.backupHost = this.lobby.users.find(user => user.isRunner && user.id !== userId) ?? this.lobby.users.find(user => !user.isRunner && user.id !== userId) ?? null;
 
             //check for new users/peer connections
-            this.localMaster.onLobbyChange(this.lobby);
+            if (runLocalMasterOnLobbyChange)
+                this.localMaster.onLobbyChange(this.lobby);
         }
     }
 
