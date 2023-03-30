@@ -5,9 +5,11 @@
 
 .run {
     padding: 0px 20px 30px;
-    height: 760px;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     &-header {
+        flex-shrink: 1;
         display: flex;
         justify-content: space-around;
         width: 100%;
@@ -86,8 +88,10 @@
     }
     &-body {
         display: flex;
+        flex-grow: 1;
         flex-direction: column;
         height: 700px;
+        margin-bottom: 24px;
         min-height: 0;
     }
 
@@ -239,7 +243,10 @@
         color: rgb(212, 144, 18, 0.7) !important;
         }
         &-reset {
-            color: #380000!important;
+            color: #380000 !important;
+        }
+        &-disconnected {
+            color: #636363 !important;
         }
     }
 }

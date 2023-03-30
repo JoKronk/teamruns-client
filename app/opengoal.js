@@ -4,6 +4,7 @@ const winax = require('winax');
 const ByteBuffer = require('bytebuffer');
 const fs = require('fs');
 const spawn = require('child_process').spawn;
+const { app } = require('electron');
 let win = null;
 
 var modFilesPath = "/data";
@@ -235,12 +236,11 @@ function sleep(ms) {
 
 function getOpenGoalPath() {
     return new Promise(function(resolve) {
-        fs.readFile("./settings.json", 'utf8', function(err, data) {
-            if (err) {
-                console.log(err);
-                return;
-            }
-            resolve(JSON.parse(data).ogFolderpath);
+        fs.readFile(path.join(app.getPath('userData'), 'settings.json'), 'utf8', function(err, data) {
+            if (err) 
+                console.log(err); 
+            else if (data)
+                resolve(JSON.parse(data).ogFolderpath);
         });
     });
 }

@@ -17,10 +17,14 @@ export class Timer {
     }
 
     reset() {
-        if (this.runState === RunState.Countdown || this.runState === RunState.Started)
+        if (this.runIsOngoing())
             this.resetEverything = true;
         else
             this.resetTimer();
+    }
+
+    runIsOngoing() {
+        return this.runState === RunState.Countdown || this.runState === RunState.Started;
     }
 
     private resetTimer() {

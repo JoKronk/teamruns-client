@@ -39,4 +39,9 @@ export class NavBoardComponent {
     this.dialog.open(InfoComponent, {maxWidth: "100vw"});
     this._user.viewSettings = false;
   }
+
+  resetWindowSize() {
+    if (this._user.isBrowser) return;
+    (window as any).electron.send('settings-reset-size');
+  }
 }

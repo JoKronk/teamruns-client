@@ -3,5 +3,6 @@ export enum PlayerState {
     Ready,
     WantsToReset,
     Finished,
-    Forfeit
+    Forfeit,
+    Disconnected
 }

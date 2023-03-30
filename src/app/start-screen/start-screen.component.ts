@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnDestroy, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { OG } from '../common/opengoal/og';
@@ -13,7 +13,7 @@ import { UserService } from '../services/user.service';
   templateUrl: './start-screen.component.html',
   styleUrls: ['./start-screen.component.scss']
 })
-export class StartScreenComponent implements OnDestroy {
+export class StartScreenComponent implements OnDestroy, AfterViewInit {
 
   @ViewChild('video') video: ElementRef;
   @ViewChild('blackscreen') blackscreen: ElementRef;
@@ -41,10 +41,13 @@ export class StartScreenComponent implements OnDestroy {
     this.checkVideoLoad();
 
     this.setupUpdateListener();
-    _user.checkForUpdate();
 
     if (new Date().getHours() % 4 === 0) //saving some reads on the free plan db
       this._firestore.deleteOldLobbies();
+  }
+
+  ngAfterViewInit(): void {
+    this._user.checkForUpdate();
   }
 
   sendToLobby() {

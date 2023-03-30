@@ -5,6 +5,8 @@ import { environment } from 'src/environments/environment';
 import { CollectionName } from '../common/firestore/collection-name';
 import { Lobby } from '../common/firestore/lobby';
 import { Preset } from '../common/firestore/preset';
+import { DataChannelEvent } from '../common/peer/data-channel-event';
+import { RTCPeer } from '../common/peer/rtc-peer';
 import { Run } from '../common/run/run';
 
 @Injectable({
@@ -54,11 +56,19 @@ export class FireStoreService {
   }
 
   async deleteLobby(id: string) {
+    await this.deleteLobbySubCollections(id);
+    await this.lobbies.doc<Lobby>(id).delete();
+  }
+
+  async deleteLobbySubCollections(id: string) {
     let lobbyConnections = this.lobbies.doc<Lobby>(id).collection(CollectionName.peerConnections);
     (await lobbyConnections.ref.get()).forEach(conSnapshot => {
-      lobbyConnections.doc<Lobby>(conSnapshot.id).delete();
+      lobbyConnections.doc<RTCPeer>(conSnapshot.id).delete();
     });
-    this.lobbies.doc<Lobby>(id).delete();
+    let lobbyCommunicationConnections = this.lobbies.doc<Lobby>(id).collection(CollectionName.serverEventCommuncation);
+    (await lobbyCommunicationConnections.ref.get()).forEach(conSnapshot => {
+      lobbyCommunicationConnections.doc<DataChannelEvent>(conSnapshot.id).delete();
+    });
   }
 
   async getRun(id: string) {

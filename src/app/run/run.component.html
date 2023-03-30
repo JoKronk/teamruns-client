@@ -78,7 +78,7 @@
               (click)="switchTeam(team.name)">Join</button>
               <div class="team-players">
                 <div *ngFor="let player of team.players">
-                  <p [class.team-player-ready]="player.state === playerState.Ready && (runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">
+                  <p [class.team-player-disconnected]="player.state === playerState.Disconnected" [class.team-player-ready]="player.state === playerState.Ready && (runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">
                     <img *ngIf="player.user.id === localPlayer.user.id && !_user.trackerConnected" class="run-info-teams-disconnected" src="./assets/other/disconnected.png">
                     <img *ngIf="player.gameState?.onZoomer && _user.trackerConnected" class="run-info-teams-zoomer" src="./assets/other/zoomer.png">
                     <img *ngIf="player.gameState?.currentLevel && _user.trackerConnected" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">

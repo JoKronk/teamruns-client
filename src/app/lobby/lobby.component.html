@@ -54,7 +54,7 @@
             <button (click)="routeToRun(lobby)">Join</button>
           </div>
           <div class="run-delete-cont">
-            <div *ngIf="lobby.host?.id === _user.user.id" class="run-delete" (click)="deleteLobby(lobby)">X</div>
+            <div *ngIf="lobby.creatorId === _user.user.id" class="run-delete" (click)="deleteLobby(lobby)">X</div>
           </div>
         </div>
 
@@ -76,7 +76,7 @@
             <button disabled>Join</button>
           </div>
           <div class="run-delete-cont">
-            <div *ngIf="lobby.host?.id === _user.user.id" class="run-delete" (click)="deleteLobby(lobby)">X</div>
+            <div *ngIf="lobby.creatorId === _user.user.id" class="run-delete" (click)="deleteLobby(lobby)">X</div>
           </div>
         </div>
 
@@ -85,7 +85,7 @@
       <div class="backtext">
         <h1>Lobby</h1>
       </div>
-      <p id="name" class="text-in-background" [title]="_user.getName()">{{ _user.getName() }}</p>
+      <p id="name" class="text-in-background" [title]="_user.user.name">{{ _user.user.name }}</p>
     </mat-sidenav-content>
   </mat-sidenav-container>
 </div>

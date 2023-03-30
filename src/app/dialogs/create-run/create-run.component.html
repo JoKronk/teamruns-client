@@ -1,41 +1,49 @@
 <div class="container">
     <h2>Create Run</h2>
-    <div class="option">
-        <p>Run Name</p>
-        <input [(ngModel)]="runData.name" maxlength="20">
+    <div class="tab-container">
+        <div class="tab">
+            <div class="option">
+                <p>Run Name</p>
+                <input [(ngModel)]="runData.name" maxlength="20">
+            </div>
+            <div class="option">
+                <p>Mode</p>
+                <select [disabled]="usingPreset" [(ngModel)]="runData.mode" (change)="changeMode()">
+                    <option [ngValue]="runMode.Speedrun">Speedrun</option>
+                    <option [ngValue]="runMode.Lockout">Lockout</option>
+                </select>
+            </div>
+            <div class="option">
+                <p>Teams (for races)</p>
+                <select [(ngModel)]="runData.teams" (change)="changeTeams()">
+                    <option *ngFor="let teams of teamsOptions" [ngValue]="teams">{{ runData.mode === runMode.Lockout && teams === 1 ? "Free for All" : teams }}</option>
+                </select>
+            </div>
+            <div class="option">
+                <p>Timer Countdown</p>
+                <select [(ngModel)]="runData.countdownSeconds">
+                    <option *ngFor="let secs of countdownOptions" [ngValue]="secs">{{ secs }} Seconds</option>
+                </select>
+            </div>
+            <button (click)="createRun()">Create Run</button>
+            
+        </div>
+        <div class="tab">
+            <div class="option">
+                <p>Modifiers</p>
+            </div>
+            <label><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
+            <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
+            <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.normalCellCost">Normal cell costs</label>
+            <br />
+            <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noLTS">No LTS</label>
+            <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noCitadelSkip">No Citadel Skip</label>
+            <br />
+            <div class="option">
+                <p>Password (optional)</p>
+                <input [(ngModel)]="password" maxlength="20">
+            </div>
+            <button *ngIf="tournamentPreset && tournamentPreset.presetIsVisible && !usingPreset" (click)="usePreset()">{{ tournamentPreset.presetButtonText }}</button>
+        </div>
     </div>
-    <div class="option">
-        <p>Mode</p>
-        <select [disabled]="usingPreset" [(ngModel)]="runData.mode" (change)="changeMode()">
-            <option [ngValue]="runMode.Speedrun">Speedrun</option>
-            <option [ngValue]="runMode.Lockout">Lockout</option>
-        </select>
-    </div>
-    <div class="option">
-        <p>Teams (for races)</p>
-        <select [(ngModel)]="runData.teams">
-            <option *ngFor="let teams of teamsOptions" [ngValue]="teams">{{ runData.mode === runMode.Lockout && teams === 1 ? "Free for All" : teams }}</option>
-        </select>
-    </div>
-    <div class="option">
-        <p>Password (optional)</p>
-        <input [(ngModel)]="password" maxlength="20">
-    </div>
-    <div class="option">
-        <p>Timer Countdown</p>
-        <select [(ngModel)]="runData.countdownSeconds">
-            <option *ngFor="let secs of countdownOptions" [ngValue]="secs">{{ secs }} Seconds</option>
-        </select>
-    </div>
-    <br />
-    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
-    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
-    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.normalCellCost">Normal cell costs</label>
-    <br />
-    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noLTS">No LTS</label>
-    <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noCitadelSkip">No Citadel Skip</label>
-    
-    <button (click)="createRun()">Create Run</button>
-    <button *ngIf="tournamentPreset && tournamentPreset.presetIsVisible && !usingPreset" (click)="usePreset()">{{ tournamentPreset.presetButtonText }}</button>
-
 </div>
