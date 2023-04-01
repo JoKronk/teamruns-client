@@ -4,13 +4,15 @@ import { PlayerState } from "../player/player-state";
 
 
 export class Team {
+    id: number;
     name: string;
     players: Player[];
     tasks: Task[];
     cellCount: number;
     owner: string;
 
-    constructor(name: string) {
+    constructor(id: number, name: string) {
+        this.id = id;
         this.name = name;
         this.players = [];
         this.owner = "";

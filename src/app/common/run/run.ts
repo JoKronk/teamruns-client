@@ -22,8 +22,12 @@ export class Run {
         this.teams = [];
         this.timer = new Timer(this.data.countdownSeconds);
 
-        for (let i = 0; i < this.data.teams; i++)
-            this.teams.push(new Team("Team " + (i + 1)));
+        if (this.data.teams > 1) {
+            for (let i = 0; i < this.data.teams; i++)
+                this.teams.push(new Team(i, "Team " + (i + 1)));
+        }
+        else
+            this.teams.push(new Team(0, "Team"));
     }
 
     removePlayer(playerId: string): void {
@@ -117,8 +121,8 @@ export class Run {
         }
     }
 
-    changeTeam(user: UserBase, teamName: string) {
-      let newTeam = this.getTeam(teamName);
+    changeTeam(user: UserBase, teamId: number) {
+      let newTeam = this.getTeam(teamId);
       if (!newTeam) return;
   
       let oldTeam = this.getPlayerTeam(user.id);
@@ -140,8 +144,8 @@ export class Run {
         return time;
     }
 
-    getTeam(teamName: string): Team | undefined {
-        return this.teams.find(x => x.name === teamName);
+    getTeam(teamId: number): Team | undefined {
+        return this.teams.find(x => x.id === teamId);
     }
 
     getPlayerTeam(playerId: string): Team | undefined {
@@ -173,7 +177,7 @@ export class Run {
 
         //handle team events
         this.teams.forEach(team => {
-            let importTeam = run.teams.find(x => x.name === team.name);
+            let importTeam = run.teams.find(x => x.id === team.id);
             if (importTeam) {
                 //localPlayer player class, use to check if this is curernt players TEAM
                 let localImportedPlayer = team.players.find(x => x.user.id === localPlayer.user.id);
@@ -199,7 +203,7 @@ export class Run {
     giveCellToUser(task: Task, player: Player | undefined) {
         if (!player || !task.isCell) return;
 
-        if ((this.getPlayerTeam(task.obtainedById)?.name === this.getPlayerTeam(player.user.id)?.name || this.data.mode === RunMode.Lockout)) {
+        if ((this.getPlayerTeam(task.obtainedById)?.id === this.getPlayerTeam(player.user.id)?.id || this.data.mode === RunMode.Lockout)) {
             let fuelCell = Task.getEnameMap().get(task.gameTask);
             if (fuelCell)
                 OG.runCommand('(+! (-> (the fuel-cell (process-by-ename "' + fuelCell + '")) base y) (meters -200.0))');
@@ -246,7 +250,7 @@ export class Run {
         //update run
         let teams: Team[] = [];
         for (let team of this.teams) {
-            teams.push(Object.assign(new Team(team.name), team));
+            teams.push(Object.assign(new Team(team.id, team.name), team));
         }
         this.teams = teams;
         this.timer = Object.assign(new Timer(this.timer.countdownSeconds), this.timer);

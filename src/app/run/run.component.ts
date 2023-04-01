@@ -31,6 +31,8 @@ export class RunComponent implements OnDestroy {
   localPlayer: LocalPlayerData = new LocalPlayerData(this._user.user.getUserBase());
   runHandler: RunHandler;
 
+  editingName: boolean;
+
   private stateListener: any;
   private taskListener: any;
 
@@ -71,11 +73,26 @@ export class RunComponent implements OnDestroy {
     this.runHandler.sendEvent(EventType.ToggleReset, this.localPlayer.state);
   }
 
-  switchTeam(teamName: string) {
+  switchTeam(teamId: number) {
     if (this.runHandler.run?.timer.runState !== RunState.Waiting && this.isSpectatorOrNull()) return;
-    this.runHandler.sendEvent(EventType.ChangeTeam, teamName);
-    this.localPlayer.team = this.runHandler.run?.getTeam(teamName) ?? undefined;
+    this.runHandler.sendEvent(EventType.ChangeTeam, teamId);
+    this.localPlayer.team = this.runHandler.run?.getTeam(teamId) ?? undefined;
     this.runHandler.getPlayerState();
+  }
+
+  editTeamName(teamId: number) {
+    if (teamId === this.localPlayer.team?.id && this.localPlayer.state !== PlayerState.Ready && this.runHandler?.run?.timer.runState === RunState.Waiting) {
+      this.editingName = !this.editingName;
+    }
+  }
+  newTeamName() {
+    if (!this.localPlayer.team) return;
+
+    if (!this.localPlayer.team.name.replace(/\s/g, ''))
+      this.localPlayer.team.name = "Team " + (this.localPlayer.team.id + 1);
+
+    this.runHandler.sendEvent(EventType.ChangeTeamName, this.localPlayer.team.name);
+    this.editingName = !this.editingName;
   }
 
   kickPlayer(userId: string) {

@@ -73,9 +73,12 @@
       <div class="run-info">
         <div class="run-info-teams">
           <div *ngFor="let team of runHandler.run.teams; let i = index" class="team-cont" [class.team-cont-1row]="runHandler.run.teams.length < 3"[class.team-cont-2row]="runHandler.run.teams.length >= 3">
-            <p class="team-name">{{ team.name }}</p>
-            <button *ngIf="runHandler.loaded && team.name !== localPlayer.team?.name && localPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
-              (click)="switchTeam(team.name)">Join</button>
+            
+            <p *ngIf="!editingName || team.id !== localPlayer.team?.id" [class.team-name-editable]="team.id === localPlayer.team?.id && localPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting" (click)="editTeamName(team.id)" class="team-name">{{ team.name }}</p>
+            <input *ngIf="editingName && team.id === localPlayer.team?.id" (keyup.enter)="newTeamName()" [(ngModel)]="team.name" maxlength="16">
+            
+            <button *ngIf="runHandler.loaded && team.id !== localPlayer.team?.id && localPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
+              (click)="switchTeam(team.id)">Join</button>
               <div class="team-players">
                 <div *ngFor="let player of team.players">
                   <p [class.team-player-disconnected]="player.state === playerState.Disconnected" [class.team-player-ready]="player.state === playerState.Ready && (runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">

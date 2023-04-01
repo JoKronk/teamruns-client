@@ -229,6 +229,11 @@
     }
     &-name {
         text-decoration: underline;
+        transition: 0.2s;
+        &-editable:hover {
+            color: #d49012 !important;
+            cursor: pointer;
+        }
     }
     &-players {
         flex-shrink: 1;

@@ -14,6 +14,7 @@ export enum EventType {
     NewPlayerState,
     NewTaskStatusUpdate,
     ChangeTeam,
+    ChangeTeamName,
     ToggleReset,
     EndPlayerRun
 }

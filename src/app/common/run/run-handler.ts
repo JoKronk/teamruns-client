@@ -359,7 +359,7 @@ export class RunHandler {
                 if (event.userId !== userId) {
                     this.run.giveCellToUser(event.value, this.run.getPlayer(userId));
                     
-                    if (this.run.getPlayerTeam(event.userId)?.name === this.localPlayer.team?.name || this.run.data.mode === RunMode.Lockout) {
+                    if (this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id || this.run.data.mode === RunMode.Lockout) {
                         //handle klaww kill
                         if ((event.value as Task).gameTask === "ogre-boss") {
                             this.localPlayer.killKlawwOnSpot = true;
@@ -375,7 +375,7 @@ export class RunHandler {
                     const playerTeam = this.run.getPlayerTeam(this.localPlayer.user.id);
                     if (!playerTeam) break;
                     if (this.run.teams.length !== 1) {
-                        if (this.localPlayer.gameState.cellCount < 73 || this.run.teams.some(team => team.name !== playerTeam.name && team.cellCount > playerTeam.cellCount))
+                        if (this.localPlayer.gameState.cellCount < 73 || this.run.teams.some(team => team.id !== playerTeam.id && team.cellCount > playerTeam.cellCount))
                             OG.removeFinalBossAccess(this.localPlayer.gameState.currentLevel);
                         else
                             OG.giveFinalBossAccess(this.localPlayer.gameState.currentLevel);
@@ -408,7 +408,7 @@ export class RunHandler {
 
 
             case EventType.NewTaskStatusUpdate:
-                if (!this.run || this.run.getPlayerTeam(event.userId)?.name !== this.localPlayer.team?.name || (this.run.data.mode === RunMode.Lockout && this.run.teams.length === 1)) return;
+                if (!this.run || this.run.getPlayerTeam(event.userId)?.id !== this.localPlayer.team?.id || (this.run.data.mode === RunMode.Lockout && this.run.teams.length === 1)) return;
                 this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.userId === userId);
                 break;
 
@@ -428,6 +428,15 @@ export class RunHandler {
                     if (this.obsUserId && this.obsUserId === event.userId) { 
                         this.localPlayer.team = this.run?.getPlayerTeam(this.obsUserId);
                     }
+                });
+                break;
+
+            
+            case EventType.ChangeTeamName:
+                let team = this.run?.getPlayerTeam(event.userId);
+                if (!team) return;
+                this.zone.run(() => { 
+                    team!.name = event.value;
                 });
                 break;
 
