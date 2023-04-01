@@ -37,7 +37,7 @@ export class RTCPeerSlave {
 
             let lobbyData = await lobbyDoc.ref.get(); if (!lobbyData.exists) return;
             let lobby = lobbyData.data(); if (!lobby) return;
-            lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId), lobby);
+            lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
             let lobbyUser: LobbyUser | undefined = lobby.getUser(user.id);
             //make sure user is not reconnecting from a disconnect, temp removal is needed if so to let host know that user needs a new connection
             if (lobbyUser) {

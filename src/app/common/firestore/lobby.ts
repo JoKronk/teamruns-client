@@ -15,8 +15,8 @@ export class Lobby {
     creationDate: string; //firestore saves it as string if Date and fetches it as string
     lastUpdateDate: string;
 
-    constructor(runData: RunData, creatorId: string, password: string | null = null) {
-        this.id = crypto.randomUUID();
+    constructor(runData: RunData, creatorId: string, password: string | null = null, id: string | null = null) {
+        this.id = id ?? crypto.randomUUID();
         this.runData = runData;
         this.password = password;
         this.host = null;
@@ -57,5 +57,9 @@ export class Lobby {
     removeUser(id: string) {
         this.users = this.users.filter(user => user.id !== id);
         this.runnerIds = this.runnerIds.filter(x => x !== id);
+    }
+
+    setBestAvailableBackupHostCandidate(currentUserId: string) {
+        this.backupHost = this.users.find(user => user.isRunner && user.id !== currentUserId) ?? this.users.find(user => !user.isRunner && user.id !== currentUserId && !user.id.startsWith("obs-")) ?? null;
     }
 }

@@ -49,7 +49,7 @@ export class RunHandler {
             if (snapshot.payload.metadata.hasPendingWrites) return;
             let lobby = snapshot.payload.data();
             if (!lobby) return;
-            this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId), lobby);
+            this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
 
             //create run if it doesn't exist
             if (!this.run) {
