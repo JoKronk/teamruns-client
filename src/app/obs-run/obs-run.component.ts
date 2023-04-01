@@ -40,8 +40,6 @@ export class ObsRunComponent implements OnDestroy {
 
       this.lobbiesSubscription = this.firestoreService.getUserLobby(userId).subscribe((lobbies) => {
         if (lobbies && lobbies.length !== 0) {
-          console.log("GOT GHANGES");
-
           let playerLobby = lobbies.sort((x, y) => new Date(y.lastUpdateDate).valueOf() - new Date(x.lastUpdateDate).valueOf())[0];
           if (this.runHandler?.lobby?.id === playerLobby.id) return; //return if still in same lobby
           
@@ -71,7 +69,7 @@ export class ObsRunComponent implements OnDestroy {
     if (lobbies.length === 0) return;
 
     lobbies.forEach(lobby => {
-      lobby.users = lobby.users.filter(x => x.id !== userId);
+      lobby.removeUser(userId);
       this.firestoreService.updateLobby(lobby);
     });
   }

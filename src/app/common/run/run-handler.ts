@@ -62,14 +62,14 @@ export class RunHandler {
 
                 //setup lobby user
                 if (this.lobby.hasUser(this.localPlayer.user.id)) {
-                    this.lobby.users = this.lobby.users.filter(x => x.id !== this.localPlayer.user.id);
+                    this.lobby.removeUser(this.localPlayer.user.id);
                     this.updateFirestoreLobby().then(() => {
-                        this.lobby!.users.push(new LobbyUser(this.localPlayer.user));
+                        this.lobby!.addUser(new LobbyUser(this.localPlayer.user));
                         this.updateFirestoreLobby();
                     });
                 }
                 else {
-                    this.lobby.users.push(new LobbyUser(this.localPlayer.user));
+                    this.lobby.addUser(new LobbyUser(this.localPlayer.user));
                     this.updateFirestoreLobby();
                 }
 
@@ -146,7 +146,7 @@ export class RunHandler {
         if (!this.lobby) return false;
         if (!this.lobby.host || (this.lobby.host.id === userId && !this.localMaster)) {
             const users = this.lobby.users.filter(x => this.run?.getPlayer(x.id)?.state !== PlayerState.Disconnected);
-            if (this.lobby.backupHost && !this.lobby.users.some(x => x.id === this.lobby?.backupHost?.id))
+            if (this.lobby.backupHost && !this.lobby.hasUser(this.lobby?.backupHost?.id))
                 this.lobby.backupHost = null;
 
             //lets backuphost or first runner in user list marked as runner become host
@@ -234,7 +234,7 @@ export class RunHandler {
                     let updateDb = false;
 
                     if (this.lobby.hasUser(event.value)) {
-                        this.lobby.users = this.lobby.users.filter(user => user.id !== event.value);
+                        this.lobby.removeUser(event.value);
                         updateDb = true;
                     }
 
@@ -312,8 +312,8 @@ export class RunHandler {
                     }
                     
                     //add to lobby if missing
-                    if (!this.obsUserId && this.lobby && !this.lobby.users.some(x => x.id === userId)) {
-                        this.lobby.users.push(new LobbyUser(this.userService.user));
+                    if (!this.obsUserId && this.lobby && !this.lobby.hasUser(userId)) {
+                        this.lobby.addUser(new LobbyUser(this.userService.user));
                         this.updateFirestoreLobby();
                     }
 
@@ -322,10 +322,13 @@ export class RunHandler {
                         let updateDb = false;
                         if (this.lobby.hasSpectator(userId)) {
                             this.lobby.getUser(userId)!.isRunner = true;
+                            if (!this.lobby.runnerIds.includes(userId))
+                                this.lobby.runnerIds.push(userId);
+
                             updateDb = true;
                         }
                         else if (!this.lobby.hasRunner(userId)) {
-                            this.lobby.users.push(new LobbyUser(this.userService.user, true));
+                            this.lobby.addUser(new LobbyUser(this.userService.user, true));
                             updateDb = true;
                         }
                         if (updateDb)
@@ -418,6 +421,8 @@ export class RunHandler {
                 if (!user) return;
                 if (!user.isRunner) {
                     user.isRunner = true;
+                    if (!this.lobby!.runnerIds.includes(userId))
+                        this.lobby!.runnerIds.push(userId);
                     if (isMaster)
                         this.updateFirestoreLobby();
                 }
@@ -510,7 +515,7 @@ export class RunHandler {
                 console.log("Removing host!")
                 this.lobby.host = null;
             }
-            this.lobby.users = this.lobby.users.filter(user => user.id !== this.localPlayer.user.id);
+            this.lobby.removeUser(this.localPlayer.user.id);
             this.updateFirestoreLobby();
         }
     }

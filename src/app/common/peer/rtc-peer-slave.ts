@@ -41,10 +41,10 @@ export class RTCPeerSlave {
             let lobbyUser: LobbyUser | undefined = lobby.getUser(user.id);
             //make sure user is not reconnecting from a disconnect, temp removal is needed if so to let host know that user needs a new connection
             if (lobbyUser) {
-                lobby.users = lobby.users.filter(x => x.id !== user.id);
+                lobby.removeUser(user.id);
                 await lobbyDoc.set(JSON.parse(JSON.stringify(lobby)));
                 setTimeout(async () => {
-                    lobby!.users.push(lobbyUser ?? new LobbyUser(user));
+                    lobby!.addUser(lobbyUser ?? new LobbyUser(user));
                     await lobbyDoc.set(JSON.parse(JSON.stringify(lobby)));
                     this.createPeerConnection(lobbyDoc, user.id);
                 }, 500);

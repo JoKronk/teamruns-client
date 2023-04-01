@@ -9,6 +9,7 @@ export class Lobby {
     runData: RunData;
     password: string | null;
     users: LobbyUser[];
+    runnerIds: string[]; //for obs plugin to find user
     visible: boolean;
     creatorId: string;
     creationDate: string; //firestore saves it as string if Date and fetches it as string
@@ -21,6 +22,7 @@ export class Lobby {
         this.host = null;
         this.backupHost = null;
         this.users = [];
+        this.runnerIds = [];
         this.visible = true;
         this.creatorId = creatorId;
         this.creationDate = new Date().toUTCString();
@@ -45,5 +47,15 @@ export class Lobby {
 
     getUser(id: string) {
         return this.users.find(x => x.id === id);
+    }
+
+    addUser(user: LobbyUser) {
+        this.users.push(user);
+        if (user.isRunner)
+            this.runnerIds.push(user.id);
+    }
+    removeUser(id: string) {
+        this.users = this.users.filter(user => user.id !== id);
+        this.runnerIds = this.runnerIds.filter(x => x !== id);
     }
 }
