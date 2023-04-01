@@ -421,8 +421,8 @@ export class RunHandler {
                 if (!user) return;
                 if (!user.isRunner) {
                     user.isRunner = true;
-                    if (!this.lobby!.runnerIds.includes(userId))
-                        this.lobby!.runnerIds.push(userId);
+                    if (!this.lobby!.runnerIds.includes(user.id))
+                        this.lobby!.runnerIds.push(user.id);
                     if (isMaster)
                         this.updateFirestoreLobby();
                 }
