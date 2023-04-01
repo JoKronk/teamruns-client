@@ -83,8 +83,8 @@
                 <div *ngFor="let player of team.players">
                   <p [class.team-player-disconnected]="player.state === playerState.Disconnected" [class.team-player-ready]="player.state === playerState.Ready && (runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">
                     <img *ngIf="player.user.id === localPlayer.user.id && !_user.trackerConnected" class="run-info-teams-disconnected" src="./assets/other/disconnected.png">
-                    <img *ngIf="player.gameState?.onZoomer && _user.trackerConnected" class="run-info-teams-zoomer" src="./assets/other/zoomer.png">
-                    <img *ngIf="player.gameState?.currentLevel && _user.trackerConnected" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">
+                    <img *ngIf="player.gameState?.onZoomer && (_user.trackerConnected || player.user.id !== localPlayer.user.id)" class="run-info-teams-zoomer" src="./assets/other/zoomer.png">
+                    <img *ngIf="player.gameState?.currentLevel && (_user.trackerConnected || player.user.id !== localPlayer.user.id)" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">
                     <span>{{ player.user.name }}</span>
                     <span class="run-info-teams-cells-cont"><img class="run-info-teams-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>
                     <span *ngIf="runHandler.lobby?.host?.id === localPlayer.user.id && player.user.id !== localPlayer.user.id && runHandler.run.timer.runState === runState.Waiting" class="run-info-teams-kick" (click)="kickPlayer(player.user.id)">X</span>
