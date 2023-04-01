@@ -110,7 +110,8 @@ export class RTCPeerSlave {
     }
 
     destroy() {
-        this.peerDocSubscription.unsubscribe();
+        if (this.peerDocSubscription)
+            this.peerDocSubscription.unsubscribe();
         this.peer.destroy();
     }
 }

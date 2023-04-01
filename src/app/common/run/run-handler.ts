@@ -109,7 +109,7 @@ export class RunHandler {
             this.lobby.host = lobbyUser;
             
             if (this.lobby.backupHost?.id === userId) //replace backup host if user was backup, host is kicked out of user list and lobby host role by backupHost on data channel disconnect
-                this.lobby.backupHost = this.lobby.users.find(user => user.isRunner && user.id !== userId) ?? this.lobby.users.find(user => !user.isRunner && user.id !== userId) ?? null;
+                this.lobby.setBestAvailableBackupHostCandidate(userId);
             
             this.updateFirestoreLobby();
             this.setupMaster();
@@ -134,7 +134,7 @@ export class RunHandler {
         else {
             //check for backupHost disconnect
             if (!this.lobby.backupHost)
-                this.lobby.backupHost = this.lobby.users.find(user => user.isRunner && user.id !== userId) ?? this.lobby.users.find(user => !user.isRunner && user.id !== userId) ?? null;
+                this.lobby.setBestAvailableBackupHostCandidate(userId);
 
             //check for new users/peer connections
             if (runLocalMasterOnLobbyChange)
@@ -145,12 +145,12 @@ export class RunHandler {
     shouldBecomeHost(userId: string): boolean {
         if (!this.lobby) return false;
         if (!this.lobby.host || (this.lobby.host.id === userId && !this.localMaster)) {
-            const users = this.lobby.users.filter(x => this.run?.getPlayer(x.id)?.state !== PlayerState.Disconnected);
+            const users = this.lobby.users.filter(x => this.run?.getPlayer(x.id)?.state !== PlayerState.Disconnected && !x.id.startsWith("OBS-"));
             if (this.lobby.backupHost && !this.lobby.hasUser(this.lobby?.backupHost?.id))
                 this.lobby.backupHost = null;
 
             //lets backuphost or first runner in user list marked as runner become host
-            if (((!this.lobby.backupHost && users.length !== 0 && users[0].id === this.localPlayer.user.id) || this.lobby.backupHost?.id === userId || this.lobby.host?.id === userId) && !this.localPlayer.isObs())
+            if (((!this.lobby.backupHost && users.length !== 0 && users[0].id === this.localPlayer.user.id) || this.lobby.backupHost?.id === userId || this.lobby.host?.id === userId))
                 return true;
         }
         return false;
@@ -162,7 +162,7 @@ export class RunHandler {
         this.localMaster.destroy();
         this.localMaster = undefined;
         this.lobby.host = null;
-        this.lobby.backupHost = this.lobby.users.find(user => user.isRunner && user.id !== this.localPlayer.user.id) ?? this.lobby.users.find(user => !user.isRunner && user.id !== this.localPlayer.user.id) ?? null;
+        this.lobby.setBestAvailableBackupHostCandidate(this.localPlayer.user.id);
         this.updateFirestoreLobby();
     }
 
@@ -278,7 +278,7 @@ export class RunHandler {
                     if (this.localMaster && this.localMaster.peers.length > 1 && this.localMaster.peers.every(x => x.peer.usesServerCommunication)) {
                         this.userService.sendNotification("Unfit as host for lobby of this size, please rejoin for a normal role.");
                         if (this.lobby?.backupHost === null) {
-                            this.lobby.backupHost = this.lobby.users.find(user => user.isRunner && user.id !== userId) ?? this.lobby.users.find(user => !user.isRunner && user.id !== userId) ?? null;
+                            this.lobby.setBestAvailableBackupHostCandidate(userId);
                             this.updateFirestoreLobby().then(() => {
                                 this.userService.routeTo('/lobby');
                             });

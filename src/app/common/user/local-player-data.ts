@@ -192,8 +192,4 @@ export class LocalPlayerData {
       OG.runCommand("(start 'play (get-continue-by-name *game-info* \"citadel-elevator\"))");
     }
   }
-
-  isObs() {
-    return this.user.id.startsWith("obs-");
-  }
 }

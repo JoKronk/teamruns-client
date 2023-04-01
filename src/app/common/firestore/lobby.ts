@@ -60,6 +60,6 @@ export class Lobby {
     }
 
     setBestAvailableBackupHostCandidate(currentUserId: string) {
-        this.backupHost = this.users.find(user => user.isRunner && user.id !== currentUserId) ?? this.users.find(user => !user.isRunner && user.id !== currentUserId && !user.id.startsWith("obs-")) ?? null;
+        this.backupHost = this.users.find(user => user.isRunner && user.id !== currentUserId) ?? this.users.find(user => !user.isRunner && user.id !== currentUserId && !user.id.startsWith("OBS-")) ?? null;
     }
 }
