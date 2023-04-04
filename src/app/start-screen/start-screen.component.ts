@@ -51,6 +51,11 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
   }
 
   sendToLobby() {
+    this._user.user.name = this._user.user.name.trim();
+    if (this._user.user.name.length === 0) {
+      this._user.sendNotification("Please enter a username!");
+      return;
+    }
     this._user.checkWriteUserDataHasChanged();
     this.blackscreen.nativeElement.classList.remove('blackscreen-fade');
     setTimeout(() => {
