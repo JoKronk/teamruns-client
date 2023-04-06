@@ -162,7 +162,7 @@ export class Run {
 
 
     playerTeamHasCell(task: string, playerId: string): boolean {
-        return this.getPlayerTeam(playerId)?.tasks.some(x => x.gameTask === task) ?? false;
+        return this.getPlayerTeam(playerId)?.hasTask(task) ?? false;
     }
 
     runHasCell(task: string): boolean {

@@ -15,7 +15,7 @@ export class RunData {
     normalCellCost: boolean;
 
     noLTS: boolean;
-    noCitadelSkip: boolean;
+    citadelSkip: CitadelOptions;
 
     constructor(version: string) {
         this.name = "";
@@ -28,6 +28,12 @@ export class RunData {
         this.normalCellCost = false;
 
         this.noLTS = true;
-        this.noCitadelSkip = false;
+        this.citadelSkip = CitadelOptions.Shared;
     }
+}
+
+export enum CitadelOptions {
+    Patched,
+    Normal,
+    Shared
 }

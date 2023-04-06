@@ -16,6 +16,7 @@ import { OG } from "../opengoal/og";
 import { LobbyUser } from "../firestore/lobby-user";
 import { UserBase } from "../user/user";
 import { FireStoreService } from "src/app/services/fire-store.service";
+import { CitadelOptions } from "./run-data";
 
 export class RunHandler {
     
@@ -75,7 +76,7 @@ export class RunHandler {
 
 
                 //set run info
-                this.info = RunMode[this.run.data.mode] + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\n\nNo LTS: " + this.run.data.noLTS + "\nNo Citadel Skip: " + this.run.data.noCitadelSkip;
+                this.info = RunMode[this.run.data.mode] + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\n\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOptions[this.run.data.citadelSkip];
             }
 
             this.onLobbyChange();
@@ -369,8 +370,10 @@ export class RunHandler {
                             this.localPlayer.checkKillKlaww();
                         }
                         //handle citadel elevator cell cases
-                        else if ((event.value as Task).gameTask === "citadel-sage-green")
+                        else if ((event.value as Task).gameTask === "citadel-sage-green") {
+                            this.localPlayer.checkCitadelSkip(this.run);
                             this.localPlayer.checkCitadelElevator();
+                        }
                         else //check if orb buy
                             this.localPlayer.checkForFirstOrbCellFromMultiSeller((event.value as Task).gameTask);
                     }

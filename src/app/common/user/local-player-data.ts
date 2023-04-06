@@ -7,6 +7,7 @@ import { Run } from "../run/run";
 import { Team } from "../run/team";
 import { Level } from "../opengoal/levels";
 import { UserBase } from "./user";
+import { CitadelOptions } from "../run/run-data";
 
 export class LocalPlayerData {
   user: UserBase;
@@ -17,6 +18,7 @@ export class LocalPlayerData {
   restrictedZoomerLevels: string[];
   tasksStatus: Map<string, number>;
   killKlawwOnSpot: boolean;
+  hasCitadelSkipAccess: boolean;
   isSyncing: boolean = false;
 
   constructor(user: UserBase) {
@@ -32,6 +34,7 @@ export class LocalPlayerData {
     this.restrictedZoomerLevels = [Level.fireCanyon, Level.mountainPass, Level.lavaTube];
     this.tasksStatus = new Map();
     this.killKlawwOnSpot = false;
+    this.hasCitadelSkipAccess = true;
   }
 
 
@@ -179,7 +182,14 @@ export class LocalPlayerData {
       OG.runCommand("(start 'play (get-continue-by-name *game-info* \"lavatube-start\"))");
   }
 
-  checkNoCitadelSkip(run: Run) {
+  checkCitadelSkip(run: Run) {
+    if (run.data.citadelSkip === CitadelOptions.Patched)
+      this.handleNoCitadelSkip(run);
+    else if (run.data.citadelSkip === CitadelOptions.Shared)
+      this.handleCitadelSkip(run);
+  }
+
+  private handleNoCitadelSkip(run: Run) {
     if (!this.team) return;
     const hasAllCitadelCells: boolean = (run.data.mode !== RunMode.Lockout ? this.team.tasks : run.getAllTask()).filter(x => x.gameTask.startsWith("citadel-sage-")).length === 4;
     if (hasAllCitadelCells) return;
@@ -192,7 +202,17 @@ export class LocalPlayerData {
       OG.runCommand("(start 'play (get-continue-by-name *game-info* \"citadel-elevator\"))");
     }
   }
-  
+
+  private handleCitadelSkip(run: Run) {
+    if (this.hasCitadelSkipAccess && this.gameState.currentCheckpoint === "citadel-start" && (run.data.mode === RunMode.Lockout ? run.runHasCell("citadel-sage-green") : this.team?.hasTask("citadel-sage-green"))) {
+      OG.runCommand('(set-continue! *game-info* "citadel-elevator")');
+      //citadel-start is sometimes given to you twice when entering citadel, this is to give you some time to deathwarp
+      setTimeout(() => {
+        this.hasCitadelSkipAccess = false;
+      }, 10000);
+    }
+  }
+
   checkCitadelElevator() {
     if (this.gameState.currentLevel === "citadel") {
       setTimeout(() => { //give level time to load

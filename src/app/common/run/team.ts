@@ -20,7 +20,7 @@ export class Team {
     }
 
     resetForRun() {
-        this.tasks = [ ];
+        this.tasks = [];
         this.cellCount = 0;
 
         if (this.players.length === 0) return;
@@ -38,5 +38,9 @@ export class Team {
         }
             
         this.tasks.unshift(task);
+    }
+
+    hasTask(task: string): boolean {
+        return this.tasks.some(x => x.gameTask === task) ?? false;
     }
 }

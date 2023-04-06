@@ -153,6 +153,7 @@ export class RunComponent implements OnDestroy {
           this.localPlayer.gameState.currentCheckpoint = state.currentCheckpoint;
           this.localPlayer.gameState.onZoomer = state.onZoomer;
 
+          //check death
           if (this.localPlayer.gameState.hasDied(state)) {
             this.localPlayer.gameState.deathCount = state.deathCount;
   
@@ -171,9 +172,8 @@ export class RunComponent implements OnDestroy {
         if (this.runHandler.run.data.noLTS)
           this.localPlayer.checkNoLTS();
 
-        //handle no Citadel Skip
-        if (this.runHandler.run.data.noCitadelSkip)
-          this.localPlayer.checkNoCitadelSkip(this.runHandler.run);
+        //handle Citadel Skip
+        this.localPlayer.checkCitadelSkip(this.runHandler.run);
       });
     });
 
@@ -188,6 +188,8 @@ export class RunComponent implements OnDestroy {
             this.localPlayer.state = PlayerState.Finished;
             this.runHandler.sendEvent(EventType.EndPlayerRun, false);
           }
+          else if (task === "citadel-sage-green")
+            this.localPlayer.hasCitadelSkipAccess = false;
 
           var cell = new Task(task, this.localPlayer.user, this.runHandler.run.getTimerShortenedFormat());
           this.runHandler.sendEvent(EventType.NewCell, cell);
