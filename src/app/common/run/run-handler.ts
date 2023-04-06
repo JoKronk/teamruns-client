@@ -368,6 +368,9 @@ export class RunHandler {
                             this.localPlayer.killKlawwOnSpot = true;
                             this.localPlayer.checkKillKlaww();
                         }
+                        //handle citadel elevator cell cases
+                        else if ((event.value as Task).gameTask === "citadel-sage-green")
+                            this.localPlayer.checkCitadelElevator();
                         else //check if orb buy
                             this.localPlayer.checkForFirstOrbCellFromMultiSeller((event.value as Task).gameTask);
                     }

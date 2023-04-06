@@ -3,6 +3,7 @@ export class GameState {
     currentCheckpoint: string;
     onZoomer: boolean;
     cellCount: number;
+    deathCount: number;
     sharedTasks: any;
 
     constructor() {
@@ -10,6 +11,7 @@ export class GameState {
         this.currentCheckpoint = "";
         this.onZoomer = false;
         this.cellCount = 0;
+        this.deathCount = 0;
         this.sharedTasks = null;
     }
 
@@ -20,7 +22,12 @@ export class GameState {
     hasPlayerStateChange(state: GameState): boolean {
         return this.currentLevel != state.currentLevel 
         || this.currentCheckpoint != state.currentCheckpoint
+        || this.hasDied(state)
         || this.onZoomer != state.onZoomer;
+    }
+
+    hasDied(state: GameState): boolean {
+        return this.deathCount != state.deathCount;
     }
 
     hasSignificantPlayerStateChange(state: GameState): boolean {

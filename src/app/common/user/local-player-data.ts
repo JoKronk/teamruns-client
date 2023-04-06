@@ -192,4 +192,12 @@ export class LocalPlayerData {
       OG.runCommand("(start 'play (get-continue-by-name *game-info* \"citadel-elevator\"))");
     }
   }
+  
+  checkCitadelElevator() {
+    if (this.gameState.currentLevel === "citadel") {
+      setTimeout(() => { //give level time to load
+        OG.runCommand("(send-event (process-by-name \"citb-exit-plat-4\" *active-pool*) 'trigger)");
+      }, 300);
+    }
+  }
 }

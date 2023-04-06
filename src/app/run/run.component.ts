@@ -153,6 +153,13 @@ export class RunComponent implements OnDestroy {
           this.localPlayer.gameState.currentCheckpoint = state.currentCheckpoint;
           this.localPlayer.gameState.onZoomer = state.onZoomer;
 
+          if (this.localPlayer.gameState.hasDied(state)) {
+            this.localPlayer.gameState.deathCount = state.deathCount;
+  
+            //handle citadel elevator
+            this.localPlayer.checkCitadelElevator();
+          }
+
           if (!insignificantChange)
             this.runHandler.sendEvent(EventType.NewPlayerState, state);
           
