@@ -16,6 +16,7 @@ export class RTCPeerMaster {
 
     peerSubscriptions: Subscription[] = [];
     peers: RTCPeerSlaveConnection[] = [];
+    peerIds: string[] = [];
 
     constructor(user: User, doc: AngularFirestoreDocument<Lobby>) {
         this.userId = user.id;
@@ -24,7 +25,8 @@ export class RTCPeerMaster {
 
     onLobbyChange(lobby: Lobby) {
         //check for new users
-        lobby.users.filter(x => x.id !== this.userId && !this.peers.some(({ userId: userId }) => userId === x.id)).forEach(newPeer => {
+        lobby.users.filter(x => x.id !== this.userId && !this.peerIds.includes(x.id)).forEach(newPeer => {
+            this.peerIds.push(newPeer.id);
 
             console.log("master: GOT NEW USER!", newPeer.name);
             //setup user handling
@@ -40,7 +42,8 @@ export class RTCPeerMaster {
         //check for disconnected users
         this.peers.filter(x => !lobby.users.some(({ id: userId }) => userId === x.userId)).forEach(async (removedPeer) => {
             removedPeer.peer.destroy();
-            this.peers = this.peers.filter(x => x.userId !== removedPeer.userId)
+            this.peers = this.peers.filter(x => x.userId !== removedPeer.userId);
+            this.peerIds = this.peerIds.filter(userId => userId !== removedPeer.userId);
         });
     }
 
@@ -68,7 +71,7 @@ export class RTCPeerMaster {
 
         console.log("master: Got new slave, setting up!")
         let slave = peer as RTCPeerSlaveConnection;
-        this.peers.push(slave); //pushed here as rapid updates can cause it to be created twice otherwise
+        this.peers.push(slave);
 
 
         //setup master connection to peer

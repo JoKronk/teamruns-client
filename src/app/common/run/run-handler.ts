@@ -250,7 +250,8 @@ export class RunHandler {
                         if (peer) {
                             console.log("Destorying disconnected peer");
                             peer.peer.destroy();
-                            this.localMaster!.peers = this.localMaster!.peers.filter(x => x.userId !== event.value)
+                            this.localMaster!.peers = this.localMaster!.peers.filter(x => x.userId !== event.value);
+                            this.localMaster!.peerIds = this.localMaster!.peerIds.filter(userId => userId !==  event.value);
                         }
                     }
 
