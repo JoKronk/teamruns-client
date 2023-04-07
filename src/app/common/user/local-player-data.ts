@@ -181,14 +181,13 @@ export class LocalPlayerData {
             OG.runCommand('(deactivate (process-by-ename "plunger-lurker-3"))');
             */
             break;
-            case "rolling-race":
-              //!TODO: not fixed yet
-              break;
           //handle cell tasks
           default:
             if (Task.isCell(key)) {
-              if (taskValue === 5)
-                OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder))");
+              if (taskValue === 5) {
+                OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-introduction))");
+                OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder-a))");
+              }
               else
                 OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder))");
             }
