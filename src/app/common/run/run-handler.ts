@@ -52,6 +52,12 @@ export class RunHandler {
             if (snapshot.payload.metadata.hasPendingWrites || this.isBeingDestroyed) return;
             let lobby = snapshot.payload.data();
             if (!lobby) return;
+
+            //check potential overwrites if needed
+            if (!this.isSelfLobbyUpdate && this.hasLobbyOverwrites(lobby))
+                return;
+
+            this.isSelfLobbyUpdate = false;
             this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
 
             //create run if it doesn't exist
@@ -80,11 +86,6 @@ export class RunHandler {
                 //set run info
                 this.info = RunMode[this.run.data.mode] + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\n\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOptions[this.run.data.citadelSkip];
             }
-
-            //check potential overwrites when needed
-            if (!this.isSelfLobbyUpdate)
-                this.checkPotentialLobbyOverwrites();
-            this.isSelfLobbyUpdate = false;
 
             this.onLobbyChange();
         });
@@ -150,10 +151,13 @@ export class RunHandler {
         }
     }
 
-    checkPotentialLobbyOverwrites() {
-        if (!this.lobby) return;
+    hasLobbyOverwrites(newLobby: Lobby): boolean {
+        if (!this.lobby) return false;
+        const isHost: boolean = (this.lobby.host?.id === this.localPlayer.user.id && this.localMaster !== undefined);
+        if (!isHost) return false;
+
         let updateDb = false;
-        let spectators = this.lobby.users.filter(x => !x.isRunner);
+        let spectators = newLobby.users.filter(x => !x.isRunner);
         spectators.forEach(spectator => {
             if (this.run?.getPlayer(spectator.id)) {
                 spectator.isRunner = true;
@@ -161,8 +165,17 @@ export class RunHandler {
             }
         });
 
-        if (updateDb)
+        if (isHost && newLobby.host?.id !== this.localPlayer.user.id) {
+            newLobby.host = this.lobby.host;
+            updateDb = true;
+        }
+
+        if (updateDb) {
+            this.lobby = Object.assign(new Lobby(newLobby.runData, newLobby.creatorId, newLobby.password, newLobby.id), newLobby);
             this.updateFirestoreLobby();
+            return true;
+        }
+        return false;
     }
 
     shouldBecomeHost(userId: string): boolean {
