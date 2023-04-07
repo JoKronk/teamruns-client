@@ -182,6 +182,9 @@ export class RunComponent implements OnDestroy {
       this.zone.run(() => {
         if (!this.runHandler.run || this.isSpectatorOrNull()) return;
 
+        if (Task.isCell(task) && !this.localPlayer.cellsRecivedFromOG.includes(task))
+          this.localPlayer.cellsRecivedFromOG.push(task);
+
         if (this.shouldAddTask(task)) {  
           //run end
           if (task === "int-finalboss-movies") {
@@ -205,12 +208,10 @@ export class RunComponent implements OnDestroy {
   private shouldAddTask(task: string): boolean {
     if (this.runHandler.run!.timer.runState !== RunState.Started || this.localPlayer.state === PlayerState.Finished || this.localPlayer.state === PlayerState.Forfeit)
       return false;
-    if (this.runHandler.run!.data.mode === RunMode.Lockout && this.runHandler.run!.teams.some(team => team.tasks.some(x => x.gameTask === task)))
-      return false;
     if (task === "int-finalboss-movies")
       return true;
     if (Task.isCell(task)) {
-      if (this.runHandler.run?.data.mode === RunMode.Speedrun && !this.runHandler.run.runHasCell(task))
+      if (this.runHandler.run?.isMode(RunMode.Lockout) && !this.runHandler.run.runHasCell(task))
         return true;
       else if (!this.runHandler.run?.playerTeamHasCell(task, this.localPlayer.user.id))
         return true;

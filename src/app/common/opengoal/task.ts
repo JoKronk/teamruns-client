@@ -28,7 +28,7 @@ export class Task {
         ])
     }
 
-    public static getEnameMap(): Map<string, string> {
+    public static getCellEname(task: string): string | undefined {
         return new Map([
             ["training-gimmie", "fuel-cell-55"],
             ["training-door", "fuel-cell-53"],
@@ -56,7 +56,7 @@ export class Task {
             ["cave-spider-tunnel", "fuel-cell-58"],
             ["cave-robot-climb", "fuel-cell-57"],
             ["cave-swing-poles", "fuel-cell-56"],
-        ]);
+        ]).get(task);
     }
 
     public static isCell(gameTask: string) {

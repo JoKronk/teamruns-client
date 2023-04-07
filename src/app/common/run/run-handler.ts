@@ -382,9 +382,9 @@ export class RunHandler {
 
                 //handle none current user things
                 if (event.userId !== userId) {
-                    this.run.giveCellToUser(event.value, this.run.getPlayer(userId));
+                    this.run.giveCellToUser(event.value, userId);
                     
-                    if (this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id || this.run.data.mode === RunMode.Lockout) {
+                    if (this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id || this.run.isMode(RunMode.Lockout)) {
                         //handle klaww kill
                         if ((event.value as Task).gameTask === "ogre-boss") {
                             this.localPlayer.killKlawwOnSpot = true;
@@ -401,7 +401,7 @@ export class RunHandler {
                 }
 
                 //handle Lockout
-                if (this.run.data.mode === RunMode.Lockout) {
+                if (this.run.isMode(RunMode.Lockout)) {
                     const playerTeam = this.run.getPlayerTeam(this.localPlayer.user.id);
                     if (!playerTeam) break;
                     if (this.run.teams.length !== 1) {
@@ -439,7 +439,7 @@ export class RunHandler {
 
             case EventType.NewTaskStatusUpdate:
                 if (!this.run) return;
-                if (this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id && !(this.run.data.mode === RunMode.Lockout && this.run.teams.length === 1))
+                if (this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id && !(this.run.isMode(RunMode.Lockout) && this.run.teams.length === 1))
                     this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.userId === userId, false);
                 else if (this.run.data.sharedWarpGatesBetweenTeams)
                     this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.userId === userId, true);

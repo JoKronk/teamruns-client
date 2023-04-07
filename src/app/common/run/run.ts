@@ -70,7 +70,7 @@ export class Run {
         let player = this.getPlayer(playerId);
         if (!player) return;
         player.state = forfeit ? PlayerState.Forfeit : PlayerState.Finished;
-        if (this.everyoneHasFinished() || (!forfeit && this.data.mode === RunMode.Lockout))
+        if (this.everyoneHasFinished() || (!forfeit && this.isMode(RunMode.Lockout)))
             this.timer.runState = RunState.Ended;
     }
 
@@ -111,7 +111,7 @@ export class Run {
     }
 
     setOrbCosts(playerId: string) {
-        if (!this.data.normalCellCost && (this.data.mode === RunMode.Lockout || (this.getPlayerTeam(playerId)?.players.length ?? 0) > 1)) {
+        if (!this.data.normalCellCost && (this.isMode(RunMode.Lockout) || (this.getPlayerTeam(playerId)?.players.length ?? 0) > 1)) {
             OG.runCommand("(set! (-> *GAME-bank* money-task-inc) 180.0)");
             OG.runCommand("(set! (-> *GAME-bank* money-oracle-inc) 240.0)");
         }
@@ -169,6 +169,10 @@ export class Run {
         return this.teams.some(x => x.tasks.some(y => y.gameTask === task));
     }
 
+    isMode(mode: RunMode): boolean {
+        return this.data.mode === mode;
+    }
+
 
     // --- RUN METHODS INVOLVING OPENGOAL ---
 
@@ -182,9 +186,9 @@ export class Run {
                 //localPlayer player class, use to check if this is curernt players TEAM
                 let localImportedPlayer = team.players.find(x => x.user.id === localPlayer.user.id);
                 //check for new tasks to give player
-                if (localImportedPlayer || this.data.mode === RunMode.Lockout) {
+                if (localImportedPlayer || this.isMode(RunMode.Lockout)) {
                     importTeam.tasks.filter(x => x.isCell && !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
-                        this.giveCellToUser(task, localImportedPlayer);
+                        this.giveCellToUser(task, localImportedPlayer?.user.id);
                     });
                 }
 
@@ -200,11 +204,11 @@ export class Run {
         });
     }
 
-    giveCellToUser(task: Task, player: Player | undefined) {
-        if (!player || !task.isCell) return;
+    giveCellToUser(task: Task, playerId: string | undefined) {
+        if (!playerId || !task.isCell) return;
 
-        if ((this.getPlayerTeam(task.obtainedById)?.id === this.getPlayerTeam(player.user.id)?.id || this.data.mode === RunMode.Lockout)) {
-            let fuelCell = Task.getEnameMap().get(task.gameTask);
+        if ((this.getPlayerTeam(task.obtainedById)?.id === this.getPlayerTeam(playerId)?.id || this.isMode(RunMode.Lockout))) {
+            let fuelCell = Task.getCellEname(task.gameTask);
             if (fuelCell)
                 OG.runCommand('(+! (-> (the fuel-cell (process-by-ename "' + fuelCell + '")) base y) (meters -200.0))');
             OG.giveCell(task.gameTask);
@@ -218,7 +222,7 @@ export class Run {
         let levelToCheck = team.players[0]?.gameState.currentLevel;
 
         //if all on same level hub zoomer
-        if (!localPlayer.restrictedZoomerLevels.includes(player.gameState.currentLevel) || team.players.every(x => x.gameState.onZoomer && x.gameState.currentLevel === levelToCheck) || this.data.mode === RunMode.Lockout && this.teams.length === 1) {
+        if (!localPlayer.restrictedZoomerLevels.includes(player.gameState.currentLevel) || team.players.every(x => x.gameState.onZoomer && x.gameState.currentLevel === levelToCheck) || this.isMode(RunMode.Lockout) && this.teams.length === 1) {
             OG.runCommand("(set-zoomer-full-mode)");
             localPlayer.restrictedZoomerLevels = localPlayer.restrictedZoomerLevels.filter(x => x !== player!.gameState.currentLevel);
         }
