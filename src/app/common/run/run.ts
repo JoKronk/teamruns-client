@@ -14,12 +14,11 @@ import { UserBase } from "../user/user";
 
 export class Run {
     data: RunData;
-    teams: Team[];
+    teams: Team[] = [];
     timer: Timer;
 
     constructor(runData: RunData) {
         this.data = runData;
-        this.teams = [];
         this.timer = new Timer(this.data.countdownSeconds);
 
         if (this.data.teams > 1) {

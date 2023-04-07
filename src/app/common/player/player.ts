@@ -4,15 +4,12 @@ import { UserBase } from "../user/user";
 
 export class Player {
     user: UserBase
-    cellsCollected: number;
-    gameState: GameState;
-    state: PlayerState;
+    cellsCollected: number = 0;
+    gameState: GameState = new GameState();
+    state: PlayerState = PlayerState.Neutral;
 
     constructor(user: UserBase) {
         this.user = user;
-        this.cellsCollected = 0;
-        this.state = PlayerState.Neutral;
-        this.gameState = new GameState();
     }
 
 

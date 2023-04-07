@@ -17,10 +17,9 @@ export class RTCPeerSlave {
     peerDocSubscription: Subscription;
     
     hostId: string;
-    eventChannel: Subject<DataChannelEvent>;
+    eventChannel: Subject<DataChannelEvent> = new Subject();
 
     constructor(user: User, doc: AngularFirestoreDocument<Lobby>, host: LobbyUser) {
-        this.eventChannel = new Subject();
         this.peerDoc = doc.collection<RTCPeer>(CollectionName.peerConnections).doc(user.id);
         this.peerData = new RTCPeer(user.id);
         this.hostId = host.id;

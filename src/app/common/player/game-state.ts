@@ -1,18 +1,13 @@
 export class GameState {
-    currentLevel: string;
-    currentCheckpoint: string;
-    onZoomer: boolean;
-    cellCount: number;
-    deathCount: number;
-    sharedTasks: any;
+    currentLevel: string = "";
+    currentCheckpoint: string = "";
+    onZoomer: boolean = false;
+    cellCount: number = 0;
+    deathCount: number = 0;
+    sharedTasks: any = null;
 
     constructor() {
-        this.currentLevel = "";
-        this.currentCheckpoint = "";
-        this.onZoomer = false;
-        this.cellCount = 0;
-        this.deathCount = 0;
-        this.sharedTasks = null;
+        
     }
 
     hasSharedTaskChange(state: GameState): boolean {

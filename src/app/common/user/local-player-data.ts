@@ -11,10 +11,10 @@ import { CitadelOptions } from "../run/run-data";
 
 export class LocalPlayerData {
   user: UserBase;
-  team: Team | undefined;
-  mode: RunMode;
-  gameState: GameState;
-  state: PlayerState;
+  team: Team | undefined = undefined;
+  mode: RunMode = RunMode.Speedrun;
+  gameState: GameState = new GameState();
+  state: PlayerState = PlayerState.Neutral;
 
   restrictedZoomerLevels: string[];
   cellsRecivedFromOG: string[]; //!TODO: gets updated but unused atm as this can currently desync from the run if the player leaves the run and comes back mid run
@@ -26,10 +26,6 @@ export class LocalPlayerData {
 
   constructor(user: UserBase) {
     this.user = user;
-    this.team = undefined;
-    this.mode = RunMode.Speedrun;
-    this.gameState = new GameState();
-    this.state = PlayerState.Neutral;
     this.resetRunDependentProperties();
   }
 

@@ -12,17 +12,14 @@ export class RTCPeerMaster {
     isBeingDestroyed: boolean = false;
 
     lobbyDoc: AngularFirestoreDocument<Lobby>;
-    eventChannel: Subject<DataChannelEvent>;
+    eventChannel: Subject<DataChannelEvent> = new Subject();
 
-    peerSubscriptions: Subscription[];
-    peers: RTCPeerSlaveConnection[];
+    peerSubscriptions: Subscription[] = [];
+    peers: RTCPeerSlaveConnection[] = [];
 
     constructor(user: User, doc: AngularFirestoreDocument<Lobby>) {
         this.userId = user.id;
-        this.eventChannel = new Subject();
         this.lobbyDoc = doc;
-        this.peers = [];
-        this.peerSubscriptions = [];
     }
 
     onLobbyChange(lobby: Lobby) {

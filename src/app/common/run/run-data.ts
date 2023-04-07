@@ -3,34 +3,23 @@ import { RunMode } from "./run-mode";
 //used to create base run from lobby
 export class RunData {
     //metadata
-    name: string;
-    teams: number;
+    name: string = "";
+    teams: number = 1;
     buildVersion: string;
 
     //run settings
-    countdownSeconds: number;
-    mode: RunMode;
-    requireSameLevel: boolean;
-    allowSoloHubZoomers: boolean;
-    normalCellCost: boolean;
-    sharedWarpGatesBetweenTeams: boolean;
+    countdownSeconds: number = 10;
+    mode: RunMode = RunMode.Speedrun;
+    requireSameLevel: boolean = false;
+    allowSoloHubZoomers: boolean = false;
+    normalCellCost: boolean = false;
+    sharedWarpGatesBetweenTeams: boolean = false;
 
-    noLTS: boolean;
-    citadelSkip: CitadelOptions;
+    noLTS: boolean = true;
+    citadelSkip: CitadelOptions = CitadelOptions.Shared;
 
     constructor(version: string) {
-        this.name = "";
-        this.teams = 1;
         this.buildVersion = version;
-        this.countdownSeconds = 10;
-        this.mode = RunMode.Speedrun;
-        this.requireSameLevel = false;
-        this.allowSoloHubZoomers = false;
-        this.normalCellCost = false;
-        this.sharedWarpGatesBetweenTeams = false;
-
-        this.noLTS = true;
-        this.citadelSkip = CitadelOptions.Shared;
     }
 }
 

@@ -4,29 +4,22 @@ import { LobbyUser } from "./lobby-user";
 
 export class Lobby {
     id: string;
-    host: LobbyUser | null;
-    backupHost: LobbyUser | null;
+    host: LobbyUser | null = null;
+    backupHost: LobbyUser | null = null;
     runData: RunData;
     password: string | null;
-    users: LobbyUser[];
-    runnerIds: string[]; //for obs plugin to find user
-    visible: boolean;
+    users: LobbyUser[] = [];
+    runnerIds: string[] = []; //for obs plugin to find user
+    visible: boolean = true;
     creatorId: string;
-    creationDate: string; //firestore saves it as string if Date and fetches it as string
-    lastUpdateDate: string;
+    creationDate: string = new Date().toUTCString(); //firestore saves it as string if Date and fetches it as string
+    lastUpdateDate: string = new Date().toUTCString();
 
     constructor(runData: RunData, creatorId: string, password: string | null = null, id: string | null = null) {
         this.id = id ?? crypto.randomUUID();
         this.runData = runData;
         this.password = password;
-        this.host = null;
-        this.backupHost = null;
-        this.users = [];
-        this.runnerIds = [];
-        this.visible = true;
         this.creatorId = creatorId;
-        this.creationDate = new Date().toUTCString();
-        this.lastUpdateDate = new Date().toUTCString();
     }
 
     getUserNameFromKey(id: string) {
