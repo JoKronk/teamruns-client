@@ -17,6 +17,7 @@ export class RTCPeerSlave {
     peerDocSubscription: Subscription;
     
     hostId: string;
+    isBeingDestroyed: boolean = false;
     eventChannel: Subject<DataChannelEvent> = new Subject();
 
     constructor(user: User, doc: AngularFirestoreDocument<Lobby>, host: LobbyUser) {
@@ -43,6 +44,7 @@ export class RTCPeerSlave {
                 lobby.removeUser(user.id);
                 await lobbyDoc.set(JSON.parse(JSON.stringify(lobby)));
                 setTimeout(async () => {
+                    if (this.isBeingDestroyed) return;
                     lobby!.addUser(lobbyUser ?? new LobbyUser(user));
                     await lobbyDoc.set(JSON.parse(JSON.stringify(lobby)));
                     this.createPeerConnection(lobbyDoc, user.id);
@@ -75,6 +77,7 @@ export class RTCPeerSlave {
         //!TODO: Find some more elegant way to do this, we need to dodge overwriting master candidates and the same the other way around
         //One solution is to have a seperate doc for -> connections, master candidates, slave candidates
         setTimeout(() => {
+            if (this.isBeingDestroyed) return;
             this.peerDoc.set(JSON.parse(JSON.stringify(this.peerData)));
             console.log("slave: Created slave offer!");
         }, 500);
@@ -109,6 +112,7 @@ export class RTCPeerSlave {
     }
 
     destroy() {
+        this.isBeingDestroyed = true;
         if (this.peerDocSubscription)
             this.peerDocSubscription.unsubscribe();
         this.peer.destroy();

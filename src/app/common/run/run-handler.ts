@@ -26,6 +26,7 @@ export class RunHandler {
     loaded: boolean = false;
     isSelfLobbyUpdate: boolean = true;
     info: string = "";
+    isBeingDestroyed: boolean = false;
 
     localMaster: RTCPeerMaster | undefined;
     localSlave: RTCPeerSlave | undefined;
@@ -48,7 +49,7 @@ export class RunHandler {
 
         //when loaded listen on lobby
         this.lobbySubscription = this.firestoreService.getLobbyDoc(lobbyId).snapshotChanges().subscribe(snapshot => {
-            if (snapshot.payload.metadata.hasPendingWrites) return;
+            if (snapshot.payload.metadata.hasPendingWrites || this.isBeingDestroyed) return;
             let lobby = snapshot.payload.data();
             if (!lobby) return;
             this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
@@ -533,6 +534,7 @@ export class RunHandler {
 
 
     destroy() {
+        this.isBeingDestroyed = true;
         const wasHost = this.localMaster && this.lobby?.host?.id === this.localPlayer.user.id;
 
         this.localMaster?.destroy();

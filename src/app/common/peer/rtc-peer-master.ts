@@ -97,6 +97,7 @@ export class RTCPeerMaster {
 
         //!TODO: should setup a better solution for this, check slave side equivalent for further comments on it
         setTimeout(() => {
+            if (this.isBeingDestroyed) return;
             console.log("master: Setting connection in db for: ", peer.userId);
             this.lobbyDoc.collection(CollectionName.peerConnections).doc(peer.userId).set(JSON.parse(JSON.stringify(this.getPureRTCPeer(peer)))); //peer gets poluted by slave due to it being binded by reference
         }, 500);

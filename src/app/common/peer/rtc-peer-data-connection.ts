@@ -13,6 +13,7 @@ export class RTCPeerDataConnection {
     hasConnected: boolean = false;
 
     isMaster: boolean;
+    isBeingDestroyed: boolean = false;
     usesServerCommunication: boolean = false;
     private connectionUserId: string; //connection user id is self id for slave and peer id for master
     private lobbyDoc: AngularFirestoreDocument<Lobby>;
@@ -56,6 +57,7 @@ export class RTCPeerDataConnection {
             if (this.isMaster) {
                 //!TODO: seems safe to delete instantly but I'm not taking any chances before I know for certain
                 setTimeout(() => {
+                    if (this.isBeingDestroyed) return;
                     lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(this.connectionUserId).delete();
                 }, 1000);
             }
@@ -67,6 +69,7 @@ export class RTCPeerDataConnection {
         //check if user never connected -> if so assume stuck or leftover user data from improper disconnect
         if (this.isMaster) {
             setTimeout(() => {
+                if (this.isBeingDestroyed) return;
                 if (!this.hasConnected) {
                     console.log("kicking: ", selfId);
                     eventChannel.next(new DataChannelEvent(selfId, EventType.Kick, selfId));
@@ -77,7 +80,8 @@ export class RTCPeerDataConnection {
 
         //suggest client server communcation if no peer to peer was established
         setTimeout(() => {
-            if (!this.hasConnected) {
+            if (this.isBeingDestroyed) return;
+            if (!this.hasConnected && !this.serverComSubscriptions) {
                 console.log("%cCreating client server communication channel", "color: #FFAC1C");
                 if (this.isMaster)
                     this.setupServerCommunicationEventSubscription("host", peerId, eventChannel);
@@ -119,6 +123,7 @@ export class RTCPeerDataConnection {
     }
 
     destroy() {
+        this.isBeingDestroyed = true;
         if (this.serverComSubscriptions) {
             console.log("unsubscribing from client server com");
             this.serverComSubscriptions.unsubscribe();
