@@ -24,6 +24,7 @@ export class RunHandler {
     run: Run | undefined;
 
     loaded: boolean = false;
+    isSelfLobbyUpdate: boolean = true;
     info: string = "";
 
     localMaster: RTCPeerMaster | undefined;
@@ -78,6 +79,11 @@ export class RunHandler {
                 //set run info
                 this.info = RunMode[this.run.data.mode] + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\n\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOptions[this.run.data.citadelSkip];
             }
+
+            //check potential overwrites when needed
+            if (!this.isSelfLobbyUpdate)
+                this.checkPotentialLobbyOverwrites();
+            this.isSelfLobbyUpdate = false;
 
             this.onLobbyChange();
         });
@@ -141,6 +147,21 @@ export class RunHandler {
             if (runLocalMasterOnLobbyChange)
                 this.localMaster.onLobbyChange(this.lobby);
         }
+    }
+
+    checkPotentialLobbyOverwrites() {
+        if (!this.lobby) return;
+        let updateDb = false;
+        let spectators = this.lobby.users.filter(x => !x.isRunner);
+        spectators.forEach(spectator => {
+            if (this.run?.getPlayer(spectator.id)) {
+                spectator.isRunner = true;
+                updateDb = true;
+            }
+        });
+
+        if (updateDb)
+            this.updateFirestoreLobby();
     }
 
     shouldBecomeHost(userId: string): boolean {
@@ -501,6 +522,7 @@ export class RunHandler {
     async updateFirestoreLobby() {
         if (!this.lobby) return;
         this.lobby.lastUpdateDate = new Date().toUTCString();
+        this.isSelfLobbyUpdate = true;
         await this.firestoreService.updateLobby(this.lobby);
     }
 
