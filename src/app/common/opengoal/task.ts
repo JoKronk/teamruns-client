@@ -161,7 +161,37 @@ export class Task {
             "village3-miner-money4",
             "village3-oracle-money1",
             "village3-oracle-money2",
-            "ogre-secret",
+            "ogre-secret"
+        ]).includes(gameTask);
+    }
+
+
+    public static isCellWithCost(gameTask: string) {
+        return ([
+            "village1-mayor-money",
+            "village1-uncle-money",
+            "village1-oracle-money1",
+            "village1-oracle-money2",
+            "village2-gambler-money",
+            "village2-geologist-money",
+            "village2-warrior-money",
+            "village2-oracle-money1",
+            "village2-oracle-money2",
+            "village3-miner-money1",
+            "village3-miner-money2",
+            "village3-miner-money3",
+            "village3-miner-money4",
+            "village3-oracle-money1",
+            "village3-oracle-money2"
+        ]).includes(gameTask);
+    }
+
+
+    public static isWarpGate(gameTask: string) {
+        return ([
+            "village2-levitator",
+            "village3-button",
+            "village4-button"
         ]).includes(gameTask);
     }
 }

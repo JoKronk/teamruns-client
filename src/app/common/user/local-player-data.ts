@@ -119,12 +119,12 @@ export class LocalPlayerData {
 
 
 
-  updateTaskStatus(tasks: Map<string, string>, isLocalPlayer: boolean) {
+  updateTaskStatus(tasks: Map<string, string>, isLocalPlayer: boolean, checkWarpgatesOnly: boolean) {
     const taskStatusValues = Task.getTaskStatusValues();
     for (let [key, value] of tasks) {
       const taskValue = taskStatusValues.get(value) ?? 1;
 
-      if ((this.tasksStatus.get(key) ?? 0) < taskValue) {
+      if ((!checkWarpgatesOnly || Task.isWarpGate(key)) && (this.tasksStatus.get(key) ?? 0) < taskValue) {
         this.tasksStatus.set(key, taskValue);
         if (isLocalPlayer || taskValue < taskStatusValues.get("need-reminder-a")!) continue;
 

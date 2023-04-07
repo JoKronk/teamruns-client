@@ -13,6 +13,7 @@ export class RunData {
     requireSameLevel: boolean;
     allowSoloHubZoomers: boolean;
     normalCellCost: boolean;
+    sharedWarpGatesBetweenTeams: boolean;
 
     noLTS: boolean;
     citadelSkip: CitadelOptions;
@@ -26,6 +27,7 @@ export class RunData {
         this.requireSameLevel = false;
         this.allowSoloHubZoomers = false;
         this.normalCellCost = false;
+        this.sharedWarpGatesBetweenTeams = false;
 
         this.noLTS = true;
         this.citadelSkip = CitadelOptions.Shared;

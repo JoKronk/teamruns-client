@@ -35,6 +35,7 @@
             <label><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
             <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
             <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.normalCellCost">Normal cell costs</label>
+            <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.sharedWarpGatesBetweenTeams">Shared warp gates between teams</label>
             <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noLTS">No LTS</label>
             <div class="option">
                 <p>Citadel Skip</p>

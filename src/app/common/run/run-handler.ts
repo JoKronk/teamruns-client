@@ -417,8 +417,11 @@ export class RunHandler {
 
 
             case EventType.NewTaskStatusUpdate:
-                if (!this.run || this.run.getPlayerTeam(event.userId)?.id !== this.localPlayer.team?.id || (this.run.data.mode === RunMode.Lockout && this.run.teams.length === 1)) return;
-                this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.userId === userId);
+                if (!this.run) return;
+                if (this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id && !(this.run.data.mode === RunMode.Lockout && this.run.teams.length === 1))
+                    this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.userId === userId, false);
+                else if (this.run.data.sharedWarpGatesBetweenTeams)
+                    this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.userId === userId, true);
                 break;
 
                 
