@@ -8,7 +8,7 @@
     <!-- TIMER -->
     <app-run-timer *ngIf="runHandler.connected" [run]="runHandler.run"></app-run-timer>
 
-    <app-run-spectators *ngIf="runHandler.connected && runHandler.run" [spectators]="runHandler.run.spectators"></app-run-spectators>
+    <app-run-spectators *ngIf="runHandler.connected && runHandler.run" [spectators]="runHandler.run.spectators" [isHost]="runHandler.lobby?.host?.id === localPlayer.user.id" [userId]="localPlayer.user.id" (onKick)="kickPlayer($event)"></app-run-spectators>
   </mat-sidenav>
 
   <mat-sidenav-content class="run">
@@ -91,7 +91,7 @@
                     <img *ngIf="player.gameState?.currentLevel && (_user.trackerConnected || player.user.id !== localPlayer.user.id)" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">
                     <span>{{ player.user.name }}</span>
                     <span class="run-info-teams-cells-cont"><img class="run-info-teams-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>
-                    <span *ngIf="runHandler.lobby?.host?.id === localPlayer.user.id && player.user.id !== localPlayer.user.id && runHandler.run.timer.runState === runState.Waiting" class="run-info-teams-kick" (click)="kickPlayer(player.user.id)">X</span>
+                    <span *ngIf="runHandler.lobby?.host?.id === localPlayer.user.id && player.user.id !== localPlayer.user.id && runHandler.run.timer.runState === runState.Waiting" class="run-info-teams-kick" (click)="kickPlayer(player.user)">X</span>
                   </p>
                 </div>
               </div>

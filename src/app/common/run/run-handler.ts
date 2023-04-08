@@ -100,6 +100,8 @@ export class RunHandler {
 
             if (!this.lobby.hasUser(userId))
                 this.lobby.addUser(new LobbyUser(this.localPlayer.user, false));
+
+            this.lobby.users = this.lobby.users.filter(x => x.isRunner || this.run?.hasSpectator(x.id));
             
             await this.updateFirestoreLobby();
             this.setupMaster();
@@ -278,10 +280,12 @@ export class RunHandler {
 
 
             case EventType.Kick:
-                if(this.localPlayer.user.id === event.value && (this.lobby?.host?.id === event.userId || this.localPlayer.user.id === event.userId)) {
+                if(this.localPlayer.user.id === event.value.id && (this.lobby?.host?.id === event.userId || this.localPlayer.user.id === event.userId)) {
                     this.userService.sendNotification("You've been kicked from the lobby.");
-                    //this.userService.routeTo('/lobby');
+                    this.userService.routeTo('/lobby');
                 }
+                else if (isMaster && event.value.id.startsWith("OBS-"))
+                    this.sendEvent(EventType.Disconnect, event.value);
                 break;
 
 

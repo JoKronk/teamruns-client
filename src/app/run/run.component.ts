@@ -14,6 +14,7 @@ import { RunHandler } from '../common/run/run-handler';
 import { EventType } from '../common/peer/event-type';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
+import { UserBase } from '../common/user/user';
 
 @Component({
   selector: 'app-run',
@@ -95,8 +96,17 @@ export class RunComponent implements OnDestroy {
     this.editingName = !this.editingName;
   }
 
-  kickPlayer(userId: string) {
-    this.runHandler.sendEvent(EventType.Kick, userId);
+  kickPlayer(user: UserBase) {
+    if (this.runHandler.run?.timer.runIsOngoing()) {
+      const dialogRef = this.dialog.open(ConfirmComponent, { data: "Are you sure you want to kick " + user.name + "?" });
+      const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
+        dialogSubscription.unsubscribe();
+        if (confirmed)
+          this.runHandler.sendEvent(EventType.Kick, user);
+      });
+    }
+    else
+      this.runHandler.sendEvent(EventType.Kick, user);
   }
 
 

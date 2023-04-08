@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Player } from '../common/player/player';
+import { UserBase } from '../common/user/user';
 
 @Component({
   selector: 'app-run-spectators',
@@ -9,4 +10,15 @@ import { Player } from '../common/player/player';
 export class RunSpectatorsComponent {
 
   @Input() spectators: Player[];
+  @Input() isHost: boolean;
+  @Input() userId: string;
+  @Output() onKick: EventEmitter<UserBase> = new EventEmitter<UserBase>();
+
+  constructor() {
+
+  }
+
+  kickPlayer(spectator: UserBase) {
+    this.onKick.emit(spectator);
+  }
 }
