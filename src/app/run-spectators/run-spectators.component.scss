@@ -15,7 +15,7 @@
 .spectators {
     & p {
         margin: 3px;
-        color: #cccccccc;
+        color: #cccccc;
     }
 }
 
@@ -27,4 +27,16 @@
     position: absolute;
     top: 330px;
     right: -150px;
+}
+
+.kick {
+    margin-left: 2px;
+    font-size: 19px;
+    font-family: 'jak';
+    color: #380000;
+    transition: 0.3s;
+    &:hover {
+        color: #d49012;
+        cursor: pointer;
+    }
 }

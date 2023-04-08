@@ -1,10 +1,14 @@
 <mat-sidenav-container fullscreen>
   <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="sidenav">
 
-    <!-- TIMER -->
-    <app-run-timer [run]="runHandler.run"></app-run-timer>
+    <div *ngIf="!runHandler.connected && runHandler.localSlave" class="logs">
+      <p *ngFor="let log of runHandler.localSlave.connectionLogs">{{ log }}</p>
+    </div>
 
-    <app-run-spectators [lobby]="runHandler.lobby"></app-run-spectators>
+    <!-- TIMER -->
+    <app-run-timer *ngIf="runHandler.connected" [run]="runHandler.run"></app-run-timer>
+
+    <app-run-spectators *ngIf="runHandler.connected && runHandler.run" [spectators]="runHandler.run.spectators" [isHost]="runHandler.lobby?.host?.id === localPlayer.user.id" [userId]="localPlayer.user.id" (onKick)="kickPlayer($event)"></app-run-spectators>
   </mat-sidenav>
 
   <mat-sidenav-content class="run">
@@ -58,7 +62,7 @@
       </div>
       <div class="title">
         <div>
-          <p class="text-in-background" [title]="runHandler.run?.data?.name">{{ runHandler.run?.data?.name }}</p>
+          <p *ngIf="runHandler.connected" class="text-in-background" [title]="runHandler.run?.data?.name">{{ runHandler.run?.data?.name }}</p>
         </div>
       </div>
       <div class="logo-container">
@@ -68,23 +72,26 @@
       </div>
     </div>
 
-    <div class="run-body" *ngIf="runHandler.run">
+    <div class="run-body" *ngIf="runHandler.connected && runHandler.run">
       <!-- TEAMS -->
       <div class="run-info">
         <div class="run-info-teams">
           <div *ngFor="let team of runHandler.run.teams; let i = index" class="team-cont" [class.team-cont-1row]="runHandler.run.teams.length < 3"[class.team-cont-2row]="runHandler.run.teams.length >= 3">
-            <p class="team-name">{{ team.name }}</p>
-            <button *ngIf="runHandler.loaded && team.name !== localPlayer.team?.name && localPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
-              (click)="switchTeam(team.name)">Join</button>
+            
+            <p *ngIf="!editingName || team.id !== localPlayer.team?.id" [class.team-name-editable]="team.id === localPlayer.team?.id && localPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting" (click)="editTeamName(team.id)" class="team-name">{{ team.name }}</p>
+            <input *ngIf="editingName && team.id === localPlayer.team?.id" (keyup.enter)="newTeamName()" [(ngModel)]="team.name" maxlength="16">
+            
+            <button *ngIf="runHandler.connected && team.id !== localPlayer.team?.id && localPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
+              (click)="switchTeam(team.id)">Join</button>
               <div class="team-players">
                 <div *ngFor="let player of team.players">
                   <p [class.team-player-disconnected]="player.state === playerState.Disconnected" [class.team-player-ready]="player.state === playerState.Ready && (runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">
                     <img *ngIf="player.user.id === localPlayer.user.id && !_user.trackerConnected" class="run-info-teams-disconnected" src="./assets/other/disconnected.png">
-                    <img *ngIf="player.gameState?.onZoomer && _user.trackerConnected" class="run-info-teams-zoomer" src="./assets/other/zoomer.png">
-                    <img *ngIf="player.gameState?.currentLevel && _user.trackerConnected" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">
+                    <img *ngIf="player.gameState?.onZoomer && (_user.trackerConnected || player.user.id !== localPlayer.user.id)" class="run-info-teams-zoomer" src="./assets/other/zoomer.png">
+                    <img *ngIf="player.gameState?.currentLevel && (_user.trackerConnected || player.user.id !== localPlayer.user.id)" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">
                     <span>{{ player.user.name }}</span>
                     <span class="run-info-teams-cells-cont"><img class="run-info-teams-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>
-                    <span *ngIf="runHandler.lobby?.host?.id === localPlayer.user.id && player.user.id !== localPlayer.user.id && runHandler.run.timer.runState === runState.Waiting" class="run-info-teams-kick" (click)="kickPlayer(player.user.id)">X</span>
+                    <span *ngIf="runHandler.lobby?.host?.id === localPlayer.user.id && player.user.id !== localPlayer.user.id && runHandler.run.timer.runState === runState.Waiting" class="run-info-teams-kick" (click)="kickPlayer(player.user)">X</span>
                   </p>
                 </div>
               </div>
@@ -93,7 +100,7 @@
         <!-- READY -->
         <div class="run-info-details">
           <button [class.run-info-details-ready]="localPlayer.state == playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
-            [disabled]="runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Ended || localPlayer.state === playerState.Forfeit || !_user.trackerConnected || !localPlayer.team"
+            [disabled]="runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Ended || localPlayer.state === playerState.Forfeit || localPlayer.state === playerState.WantsToReset || !_user.trackerConnected || !localPlayer.team"
             (click)="runHandler.run.timer.runState === runState.Started ? forfeit() : toggleReady()">{{ runHandler.run.timer.runState === runState.Started ? "Forfeit" : "Ready" }}</button>
 
             <button class="run-info-details-reset" 
@@ -113,8 +120,9 @@
         <app-run-splits *ngFor="let team of runHandler.run.teams; let i = index" [team]="team" class="progress-team" [class.progress-team-splitter]="i !== 0"></app-run-splits>
       </div>
     </div>
-    <div *ngIf="!runHandler.run" id="error">
-      <h1 class="text-in-background">Run not found!</h1>
+    <div *ngIf="!runHandler.connected" id="connecting">
+      <h1 class="text-in-background">Connecting to Lobby</h1>
+      <mat-spinner class="spinner"></mat-spinner>
     </div>
 
     <div class="backtext">

@@ -1,7 +1,8 @@
+import { UserBase } from "../user/user";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
 
 export class RTCPeer{
-    userId: string;
+    user: UserBase;
 
     masterDescription: RTCSessionDescriptionInit;
     masterCandidates: RTCIceCandidate[];
@@ -9,8 +10,8 @@ export class RTCPeer{
     slaveDescription: RTCSessionDescriptionInit;
     slaveCandidates: RTCIceCandidate[];
 
-    constructor (userId: string) {
-        this.userId = userId;
+    constructor (user: UserBase) {
+        this.user = user;
         this.masterCandidates = [];
         this.slaveCandidates = [];
     }
@@ -20,7 +21,7 @@ export class RTCPeer{
 export class RTCPeerSlaveConnection extends RTCPeer {
     peer: RTCPeerDataConnection;
 
-    constructor(userId: string) {
-        super(userId);
+    constructor(user: UserBase) {
+        super(user);
     }
 }

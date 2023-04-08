@@ -4,21 +4,21 @@ import { PlayerState } from "../player/player-state";
 
 
 export class Team {
+    id: number;
     name: string;
-    players: Player[];
+    players: Player[] = [];
     tasks: Task[];
     cellCount: number;
-    owner: string;
+    owner: string = "";
 
-    constructor(name: string) {
+    constructor(id: number, name: string) {
+        this.id = id;
         this.name = name;
-        this.players = [];
-        this.owner = "";
         this.resetForRun();
     }
 
     resetForRun() {
-        this.tasks = [ ];
+        this.tasks = [];
         this.cellCount = 0;
 
         if (this.players.length === 0) return;
@@ -36,5 +36,9 @@ export class Team {
         }
             
         this.tasks.unshift(task);
+    }
+
+    hasTask(task: string): boolean {
+        return this.tasks.some(x => x.gameTask === task) ?? false;
     }
 }

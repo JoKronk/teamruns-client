@@ -96,6 +96,8 @@ class OpenGoal {
         this.writeGoalCommand("(mi)", true);
         this.writeGoalCommand("(set! *cheat-mode* #f)", true);
         this.writeGoalCommand("(set! (-> *pc-settings* speedrunner-mode?) #t)", true);
+        //!TODO: Swap this one out as soon as possible
+        this.writeGoalCommand("(set! *pc-settings-built-sha* \"rev. 20f132 \\nTeamRun Version " + app.getVersion() + "\")", true);
         this.writeGoalCommand("(send-event *target* 'loading)", true);
         this.writeGoalCommand("(send-event *target* 'get-pickup (pickup-type eco-red) 1.0)", true);
         console.log(".done");

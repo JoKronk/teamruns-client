@@ -26,7 +26,6 @@ import { environment } from '../environments/environment';
 import { RunSplitsComponent } from './run-splits/run-splits.component';
 import { RunTimerComponent } from './run-timer/run-timer.component';
 import { RunSpectatorsComponent } from './run-spectators/run-spectators.component';
-import { ObsRunComponent } from './obs-run/obs-run.component';
 import { CloseScreenComponent } from './close-screen/close-screen.component';
 import { LobbyViewerComponent } from './lobby-viewer/lobby-viewer.component';
 import { ConfirmComponent } from './dialogs/confirm/confirm.component';
@@ -47,7 +46,6 @@ import { GivePasswordComponent } from './dialogs/give-password/give-password.com
     RunSplitsComponent,
     RunTimerComponent,
     RunSpectatorsComponent,
-    ObsRunComponent,
     CloseScreenComponent,
     LobbyViewerComponent,
     ConfirmComponent,

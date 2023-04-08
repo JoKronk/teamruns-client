@@ -7,31 +7,34 @@ import { Run } from "../run/run";
 import { Team } from "../run/team";
 import { Level } from "../opengoal/levels";
 import { UserBase } from "./user";
+import { CitadelOptions } from "../run/run-data";
 
 export class LocalPlayerData {
   user: UserBase;
-  team: Team | undefined;
-  mode: RunMode;
-  gameState: GameState;
-  state: PlayerState;
+  team: Team | undefined = undefined;
+  mode: RunMode = RunMode.Speedrun;
+  gameState: GameState = new GameState();
+  state: PlayerState = PlayerState.Neutral;
+
   restrictedZoomerLevels: string[];
+  cellsRecivedFromOG: string[]; //!TODO: gets updated but unused atm as this can currently desync from the run if the player leaves the run and comes back mid run
   tasksStatus: Map<string, number>;
+
   killKlawwOnSpot: boolean;
+  hasCitadelSkipAccess: boolean;
   isSyncing: boolean = false;
 
   constructor(user: UserBase) {
     this.user = user;
-    this.team = undefined;
-    this.mode = RunMode.Speedrun;
-    this.gameState = new GameState();
-    this.state = PlayerState.Neutral;
     this.resetRunDependentProperties();
   }
 
   resetRunDependentProperties() {
     this.restrictedZoomerLevels = [Level.fireCanyon, Level.mountainPass, Level.lavaTube];
+    this.cellsRecivedFromOG = [];
     this.tasksStatus = new Map();
     this.killKlawwOnSpot = false;
+    this.hasCitadelSkipAccess = true;
   }
 
 
@@ -53,21 +56,19 @@ export class LocalPlayerData {
     let team = run.getPlayerTeam(this.user.id);
     if (!team) return;
 
-    if (team.cellCount > this.gameState.cellCount || (run.data.mode == RunMode.Lockout && run.teams.reduce((a, b) => a + (b["cellCount"] || 0), 0) > this.gameState.cellCount)) {
-      const player = run.getPlayer(this.user.id);
-      if (!player) return;
+    if (team.cellCount > this.gameState.cellCount || (run.isMode(RunMode.Lockout) && run.teams.reduce((a, b) => a + (b["cellCount"] || 0), 0) > this.gameState.cellCount)) {
 
       this.isSyncing = true;
       setTimeout(() => {  //give the player some time to spawn in
-        if (run.data.mode !== RunMode.Lockout) {
+        if (!run.isMode(RunMode.Lockout)) {
           team!.tasks.filter(x => x.isCell).forEach(cell => {
-            run.giveCellToUser(cell, player);
+            run.giveCellToUser(cell, this.user.id);
           });
         }
         else {
           run.teams.forEach(runTeam => {
             runTeam.tasks.filter(x => x.isCell).forEach(cell => {
-              run.giveCellToUser(cell, player);
+              run.giveCellToUser(cell, this.user.id);
             });
           });
         }
@@ -105,6 +106,24 @@ export class LocalPlayerData {
     }
   }
 
+  //unused and doesn't work currently as cell pickup calls are only sent to client on the first pickup
+  checkFixDupedCellBuy(task: string, run: Run): boolean {
+    if (Task.isCellWithCost(task) && this.cellsRecivedFromOG.includes(task)) {
+      let newTask = task.slice(0, -1) + (+task.slice(-1) + 1);
+      if (Task.isCellWithCost(newTask)) {
+        OG.giveCell(newTask);
+        return true;
+      }
+      else {
+        if (task.includes("oracle"))
+          OG.runCommand("(send-event *target* 'get-pickup 5 " + (run.data.normalCellCost ? 120 : 240) + ".0)");
+        else
+          OG.runCommand("(send-event *target* 'get-pickup 5 " + (run.data.normalCellCost ? 90 : 180) + ".0)");
+      }
+    }
+    return false;
+  }
+
 
 
   checkForZoomerTalkSkip(playerGameState: GameState) {
@@ -116,12 +135,12 @@ export class LocalPlayerData {
 
 
 
-  updateTaskStatus(tasks: Map<string, string>, isLocalPlayer: boolean) {
+  updateTaskStatus(tasks: Map<string, string>, isLocalPlayer: boolean, checkWarpgatesOnly: boolean) {
     const taskStatusValues = Task.getTaskStatusValues();
     for (let [key, value] of tasks) {
       const taskValue = taskStatusValues.get(value) ?? 1;
 
-      if ((this.tasksStatus.get(key) ?? 0) < taskValue) {
+      if ((!checkWarpgatesOnly || Task.isWarpGate(key)) && (this.tasksStatus.get(key) ?? 0) < taskValue) {
         this.tasksStatus.set(key, taskValue);
         if (isLocalPlayer || taskValue < taskStatusValues.get("need-reminder-a")!) continue;
 
@@ -158,14 +177,13 @@ export class LocalPlayerData {
             OG.runCommand('(deactivate (process-by-ename "plunger-lurker-3"))');
             */
             break;
-            case "rolling-race":
-              //!TODO: not fixed yet
-              break;
           //handle cell tasks
           default:
             if (Task.isCell(key)) {
-              if (taskValue === 5)
-                OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder))");
+              if (taskValue === 5) {
+                OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-introduction))");
+                OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder-a))");
+              }
               else
                 OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder))");
             }
@@ -179,9 +197,16 @@ export class LocalPlayerData {
       OG.runCommand("(start 'play (get-continue-by-name *game-info* \"lavatube-start\"))");
   }
 
-  checkNoCitadelSkip(run: Run) {
+  checkCitadelSkip(run: Run) {
+    if (run.data.citadelSkip === CitadelOptions.Patched)
+      this.handleNoCitadelSkip(run);
+    else if (run.data.citadelSkip === CitadelOptions.Shared)
+      this.handleCitadelSkip(run);
+  }
+
+  private handleNoCitadelSkip(run: Run) {
     if (!this.team) return;
-    const hasAllCitadelCells: boolean = (run.data.mode !== RunMode.Lockout ? this.team.tasks : run.getAllTask()).filter(x => x.gameTask.startsWith("citadel-sage-")).length === 4;
+    const hasAllCitadelCells: boolean = (!run.isMode(RunMode.Lockout) ? this.team.tasks : run.getAllTask()).filter(x => x.gameTask.startsWith("citadel-sage-")).length === 4;
     if (hasAllCitadelCells) return;
 
     if (this.gameState.currentCheckpoint === "citadel-elevator") {
@@ -193,7 +218,21 @@ export class LocalPlayerData {
     }
   }
 
-  isObs() {
-    return this.user.id.startsWith("obs-");
+  private handleCitadelSkip(run: Run) {
+    if (this.hasCitadelSkipAccess && this.gameState.currentCheckpoint === "citadel-start" && (run.isMode(RunMode.Lockout) ? run.runHasCell("citadel-sage-green") : this.team?.hasTask("citadel-sage-green"))) {
+      OG.runCommand('(set-continue! *game-info* "citadel-elevator")');
+      //citadel-start is sometimes given to you twice when entering citadel, this is to give you some time to deathwarp
+      setTimeout(() => {
+        this.hasCitadelSkipAccess = false;
+      }, 10000);
+    }
+  }
+
+  checkCitadelElevator() {
+    if (this.gameState.currentLevel === "citadel") {
+      setTimeout(() => { //give level time to load
+        OG.runCommand("(send-event (process-by-name \"citb-exit-plat-4\" *active-pool*) 'trigger)");
+      }, 300);
+    }
   }
 }

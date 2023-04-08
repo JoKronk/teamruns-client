@@ -1,10 +1,10 @@
 export enum EventType {
     //master only calls
-    Connect,
     RequestRunSync,
     RunSync,
 
     //peer distributed calls
+    Connect,
     Disconnect,
     Reconnect,
     Kick,
@@ -14,6 +14,7 @@ export enum EventType {
     NewPlayerState,
     NewTaskStatusUpdate,
     ChangeTeam,
+    ChangeTeamName,
     ToggleReset,
     EndPlayerRun
 }

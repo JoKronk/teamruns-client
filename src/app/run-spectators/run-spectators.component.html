@@ -1,9 +1,12 @@
 <div class="container">
     <p class="title">Spectators</p>
 
-    <div *ngIf="lobby" class="spectators">
-        <div *ngFor="let user of lobby.users">
-            <p *ngIf="!user.isRunner">{{ user.name }}</p>
+    <div class="spectators">
+        <div *ngFor="let spectator of spectators">
+            <p>
+                {{ spectator.user.name }}
+                <span *ngIf="isHost && spectator.user.id !== userId" class="kick" (click)="kickPlayer(spectator.user)">X</span>
+            </p>
         </div>
     </div>
 </div>

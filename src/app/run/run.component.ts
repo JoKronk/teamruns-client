@@ -14,6 +14,7 @@ import { RunHandler } from '../common/run/run-handler';
 import { EventType } from '../common/peer/event-type';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
+import { UserBase } from '../common/user/user';
 
 @Component({
   selector: 'app-run',
@@ -30,6 +31,8 @@ export class RunComponent implements OnDestroy {
   //component variables
   localPlayer: LocalPlayerData = new LocalPlayerData(this._user.user.getUserBase());
   runHandler: RunHandler;
+
+  editingName: boolean;
 
   private stateListener: any;
   private taskListener: any;
@@ -67,19 +70,43 @@ export class RunComponent implements OnDestroy {
   }
 
   toggleReset() {
-    this.localPlayer.state = this.localPlayer.state === PlayerState.WantsToReset ? PlayerState.Neutral : PlayerState.WantsToReset;
+    this.localPlayer.state = this.localPlayer.state === PlayerState.WantsToReset ? this.localPlayer.team?.tasks.some(x => x.obtainedById === this.localPlayer.user.id && x.gameTask === "int-finalboss-forfeit") ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
     this.runHandler.sendEvent(EventType.ToggleReset, this.localPlayer.state);
   }
 
-  switchTeam(teamName: string) {
+  switchTeam(teamId: number) {
     if (this.runHandler.run?.timer.runState !== RunState.Waiting && this.isSpectatorOrNull()) return;
-    this.runHandler.sendEvent(EventType.ChangeTeam, teamName);
-    this.localPlayer.team = this.runHandler.run?.getTeam(teamName) ?? undefined;
+    this.runHandler.sendEvent(EventType.ChangeTeam, teamId);
+    this.localPlayer.team = this.runHandler.run?.getTeam(teamId) ?? undefined;
     this.runHandler.getPlayerState();
   }
 
-  kickPlayer(userId: string) {
-    this.runHandler.sendEvent(EventType.Kick, userId);
+  editTeamName(teamId: number) {
+    if (teamId === this.localPlayer.team?.id && this.localPlayer.state !== PlayerState.Ready && this.runHandler?.run?.timer.runState === RunState.Waiting) {
+      this.editingName = !this.editingName;
+    }
+  }
+  newTeamName() {
+    if (!this.localPlayer.team) return;
+
+    if (!this.localPlayer.team.name.replace(/\s/g, ''))
+      this.localPlayer.team.name = "Team " + (this.localPlayer.team.id + 1);
+
+    this.runHandler.sendEvent(EventType.ChangeTeamName, this.localPlayer.team.name);
+    this.editingName = !this.editingName;
+  }
+
+  kickPlayer(user: UserBase) {
+    if (this.runHandler.run?.timer.runIsOngoing()) {
+      const dialogRef = this.dialog.open(ConfirmComponent, { data: "Are you sure you want to kick " + user.name + "?" });
+      const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
+        dialogSubscription.unsubscribe();
+        if (confirmed)
+          this.runHandler.sendEvent(EventType.Kick, user);
+      });
+    }
+    else
+      this.runHandler.sendEvent(EventType.Kick, user);
   }
 
 
@@ -136,6 +163,14 @@ export class RunComponent implements OnDestroy {
           this.localPlayer.gameState.currentCheckpoint = state.currentCheckpoint;
           this.localPlayer.gameState.onZoomer = state.onZoomer;
 
+          //check death
+          if (this.localPlayer.gameState.hasDied(state)) {
+            this.localPlayer.gameState.deathCount = state.deathCount;
+  
+            //handle citadel elevator
+            this.localPlayer.checkCitadelElevator();
+          }
+
           if (!insignificantChange)
             this.runHandler.sendEvent(EventType.NewPlayerState, state);
           
@@ -147,9 +182,8 @@ export class RunComponent implements OnDestroy {
         if (this.runHandler.run.data.noLTS)
           this.localPlayer.checkNoLTS();
 
-        //handle no Citadel Skip
-        if (this.runHandler.run.data.noCitadelSkip)
-          this.localPlayer.checkNoCitadelSkip(this.runHandler.run);
+        //handle Citadel Skip
+        this.localPlayer.checkCitadelSkip(this.runHandler.run);
       });
     });
 
@@ -158,12 +192,17 @@ export class RunComponent implements OnDestroy {
       this.zone.run(() => {
         if (!this.runHandler.run || this.isSpectatorOrNull()) return;
 
+        if (Task.isCell(task) && !this.localPlayer.cellsRecivedFromOG.includes(task))
+          this.localPlayer.cellsRecivedFromOG.push(task);
+
         if (this.shouldAddTask(task)) {  
           //run end
           if (task === "int-finalboss-movies") {
             this.localPlayer.state = PlayerState.Finished;
             this.runHandler.sendEvent(EventType.EndPlayerRun, false);
           }
+          else if (task === "citadel-sage-green")
+            this.localPlayer.hasCitadelSkipAccess = false;
 
           var cell = new Task(task, this.localPlayer.user, this.runHandler.run.getTimerShortenedFormat());
           this.runHandler.sendEvent(EventType.NewCell, cell);
@@ -179,12 +218,10 @@ export class RunComponent implements OnDestroy {
   private shouldAddTask(task: string): boolean {
     if (this.runHandler.run!.timer.runState !== RunState.Started || this.localPlayer.state === PlayerState.Finished || this.localPlayer.state === PlayerState.Forfeit)
       return false;
-    if (this.runHandler.run!.data.mode === RunMode.Lockout && this.runHandler.run!.teams.some(team => team.tasks.some(x => x.gameTask === task)))
-      return false;
     if (task === "int-finalboss-movies")
       return true;
     if (Task.isCell(task)) {
-      if (this.runHandler.run?.data.mode === RunMode.Speedrun && !this.runHandler.run.runHasCell(task))
+      if (this.runHandler.run?.isMode(RunMode.Lockout) && !this.runHandler.run.runHasCell(task))
         return true;
       else if (!this.runHandler.run?.playerTeamHasCell(task, this.localPlayer.user.id))
         return true;

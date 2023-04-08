@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
-import { Lobby } from '../common/firestore/lobby';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Player } from '../common/player/player';
+import { UserBase } from '../common/user/user';
 
 @Component({
   selector: 'app-run-spectators',
@@ -8,5 +9,16 @@ import { Lobby } from '../common/firestore/lobby';
 })
 export class RunSpectatorsComponent {
 
-  @Input() lobby: Lobby | undefined;
+  @Input() spectators: Player[];
+  @Input() isHost: boolean;
+  @Input() userId: string;
+  @Output() onKick: EventEmitter<UserBase> = new EventEmitter<UserBase>();
+
+  constructor() {
+
+  }
+
+  kickPlayer(spectator: UserBase) {
+    this.onKick.emit(spectator);
+  }
 }

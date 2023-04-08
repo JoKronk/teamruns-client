@@ -16,13 +16,11 @@ export class UserBase {
 
 
 export class User extends UserBase {
-    ogFolderpath: string;
-    darkMode: boolean;
+    ogFolderpath: string = "";
+    darkMode: boolean = true;
 
     constructor() {
         super(crypto.randomUUID(), "", "");
-        this.ogFolderpath = "";
-        this.darkMode = true;
     }
 
     getCopy(): User {
