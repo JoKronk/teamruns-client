@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Lobby } from '../common/firestore/lobby';
+import { Player } from '../common/player/player';
 
 @Component({
   selector: 'app-run-spectators',
@@ -8,5 +8,5 @@ import { Lobby } from '../common/firestore/lobby';
 })
 export class RunSpectatorsComponent {
 
-  @Input() lobby: Lobby | undefined;
+  @Input() spectators: Player[];
 }

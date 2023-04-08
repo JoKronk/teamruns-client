@@ -186,7 +186,7 @@
                 position: relative;
                 & p {
                     margin-top: 12px;
-                    color: #cccccccc;
+                    color: #cccccc;
                     text-decoration: underline;
                 }
                 & span {
@@ -219,7 +219,7 @@
         & p {
             flex-shrink: 1;
             margin: 0;
-            color: #cccccccc;
+            color: #cccccc;
         }
         & button {
             position: absolute;
@@ -287,8 +287,25 @@
     background-clip: text;
 }
 
-#error h1 {
-    margin: 40px;
-    font-family: 'jak';
-    font-size: 52px;
+#connecting {
+    margin: auto;
+    margin-top: 50px;
+    & h1 {
+        display: inline-block;
+        font-family: 'jak';
+        color: #a56d06;
+        font-size: 42px;
+    }
+    .spinner {
+        margin: auto;
+    }
+}
+.logs {
+    margin: 70px 1px;
+    & p {
+        margin: 4px;
+        font-family: 'jak';
+        color: #b4b4b4;
+        font-size: 16px;
+    }
 }

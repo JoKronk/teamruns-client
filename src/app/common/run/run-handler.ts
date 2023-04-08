@@ -14,19 +14,20 @@ import { NgZone } from "@angular/core";
 import { Task } from "../opengoal/task";
 import { OG } from "../opengoal/og";
 import { LobbyUser } from "../firestore/lobby-user";
-import { UserBase } from "../user/user";
+import { User, UserBase } from "../user/user";
 import { FireStoreService } from "src/app/services/fire-store.service";
 import { CitadelOptions } from "./run-data";
+import { Player } from "../player/player";
 
 export class RunHandler {
     
     lobby: Lobby | undefined;
     run: Run | undefined;
 
-    loaded: boolean = false;
-    isSelfLobbyUpdate: boolean = true;
+    connected: boolean = false;
     info: string = "";
     isBeingDestroyed: boolean = false;
+    becomeHostQuickAccess: boolean;
 
     localMaster: RTCPeerMaster | undefined;
     localSlave: RTCPeerSlave | undefined;
@@ -53,11 +54,6 @@ export class RunHandler {
             let lobby = snapshot.payload.data();
             if (!lobby) return;
 
-            //check potential overwrites if needed
-            if (!this.isSelfLobbyUpdate && this.hasLobbyOverwrites(lobby))
-                return;
-
-            this.isSelfLobbyUpdate = false;
             this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
 
             //create run if it doesn't exist
@@ -68,20 +64,7 @@ export class RunHandler {
                 //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
                 this.localPlayer.user = this.userService.user.getUserBase();
                 this.localPlayer.mode = this.run.data.mode;
-
-                //setup lobby user
-                if (this.lobby.hasUser(this.localPlayer.user.id)) {
-                    this.lobby.removeUser(this.localPlayer.user.id);
-                    this.updateFirestoreLobby().then(() => {
-                        this.lobby!.addUser(new LobbyUser(this.localPlayer.user));
-                        this.updateFirestoreLobby();
-                    });
-                }
-                else {
-                    this.lobby.addUser(new LobbyUser(this.localPlayer.user));
-                    this.updateFirestoreLobby();
-                }
-
+                this.run.spectators.push(new Player(this.localPlayer.user));
 
                 //set run info
                 this.info = RunMode[this.run.data.mode] + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\n\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOptions[this.run.data.citadelSkip];
@@ -96,100 +79,77 @@ export class RunHandler {
     async onLobbyChange() {
         const userId = this.userService.getId();
         if (!this.lobby) return;
-        let runLocalMasterOnLobbyChange = true;
 
         console.log("Got Lobby Change!");
         //become master if needed (for example host disconnect or no host at start)
         if (this.shouldBecomeHost(userId)) {
-            let lobbyUser = this.lobby.users.find(x => x.id === userId);
-            if (!lobbyUser) return;
+            let player = this.getUser(userId);
+            if (!player) return;
 
             console.log("Becomming host!");
-            //cleanup own slave connection if previously slave (in for example host disconnect)
-            if (this.localSlave) {
+            await this.firestoreService.deleteLobbySubCollections(this.lobby.id);
+            
+            if (this.localSlave)
                 this.run?.removePlayer(this.localSlave.hostId);
-                this.localSlave.destroy();
-                this.dataSubscription.unsubscribe();
-                this.firestoreService.deleteLobbySubCollections(this.lobby.id);
-                this.localSlave = undefined;
-                runLocalMasterOnLobbyChange = false;
-            }
 
-            this.lobby.host = lobbyUser;
+            this.resetUser();
+            this.lobby.host = player.user;
             
             if (this.lobby.backupHost?.id === userId) //replace backup host if user was backup, host is kicked out of user list and lobby host role by backupHost on data channel disconnect
-                this.lobby.setBestAvailableBackupHostCandidate(userId);
+                this.getNewBackupHost();
+
+            if (!this.lobby.hasUser(userId))
+                this.lobby.addUser(new LobbyUser(this.localPlayer.user, false));
             
-            this.updateFirestoreLobby();
+            await this.updateFirestoreLobby();
             this.setupMaster();
-            this.loaded = true;
+            this.connected = true;
         }
 
 
         //slave checks on lobby change
         if (!this.localMaster) {
             //kill current slave connection if new host
-            if (this.localSlave && this.localSlave.hostId !== this.lobby.host?.id) {
-                this.localSlave.destroy();
-                this.localSlave = undefined;
-            }
+            if (this.localSlave?.hostId !== this.lobby.host?.id)
+                this.resetUser();
 
             //become slave if not already and master exists
             if (!this.localSlave && this.lobby.host)
                 this.setupSlave();
         }
-
-        //master checks on lobby change
-        else {
-            //check for backupHost disconnect
-            if (!this.lobby.backupHost)
-                this.lobby.setBestAvailableBackupHostCandidate(userId);
-
-            //check for new users/peer connections
-            if (runLocalMasterOnLobbyChange)
-                this.localMaster.onLobbyChange(this.lobby);
-        }
     }
 
-    hasLobbyOverwrites(newLobby: Lobby): boolean {
-        if (!this.lobby) return false;
-        const isHost: boolean = (this.lobby.host?.id === this.localPlayer.user.id && this.localMaster !== undefined);
-        if (!isHost) return false;
+    resetUser() {
+        this.dataSubscription?.unsubscribe();
 
-        let updateDb = false;
-        let spectators = newLobby.users.filter(x => !x.isRunner);
-        spectators.forEach(spectator => {
-            if (this.run?.getPlayer(spectator.id)) {
-                spectator.isRunner = true;
-                updateDb = true;
-            }
-        });
-
-        if (isHost && newLobby.host?.id !== this.localPlayer.user.id) {
-            newLobby.host = this.lobby.host;
-            updateDb = true;
+        if (this.localSlave) {
+            this.localSlave.destroy();
+            this.localSlave = undefined;
+        }
+        if (this.localMaster) {
+            this.localMaster.destroy();
+            this.localMaster = undefined;
         }
 
-        if (updateDb) {
-            this.lobby = Object.assign(new Lobby(newLobby.runData, newLobby.creatorId, newLobby.password, newLobby.id), newLobby);
-            this.updateFirestoreLobby();
-            return true;
-        }
-        return false;
+        this.connected = false;
+    }
+    
+    getUser(userId: string): Player | undefined {
+        return this.run?.getPlayer(userId);
+    }
+
+    getNewBackupHost() {
+        if (!this.lobby) return;
+        let candidate = this.run?.getAllPlayers().find(player => player.user.id !== this.localPlayer.user.id && player.state !== PlayerState.Disconnected) ?? this.run?.spectators.find(player => player.user.id !== this.localPlayer.user.id && !player.user.id.startsWith("OBS-") && player.state !== PlayerState.Disconnected) ?? null;
+        this.lobby.backupHost = candidate ? candidate.user : null;
     }
 
     shouldBecomeHost(userId: string): boolean {
-        if (!this.lobby) return false;
-        if (!this.lobby.host || (this.lobby.host.id === userId && !this.localMaster)) {
-            const users = this.lobby.users.filter(x => this.run?.getPlayer(x.id)?.state !== PlayerState.Disconnected && !x.id.startsWith("OBS-"));
-            if (this.lobby.backupHost && !this.lobby.hasUser(this.lobby?.backupHost?.id))
-                this.lobby.backupHost = null;
-
-            //lets backuphost or first runner in user list marked as runner become host
-            if (((!this.lobby.backupHost && users.length !== 0 && users[0].id === this.localPlayer.user.id) || this.lobby.backupHost?.id === userId || this.lobby.host?.id === userId))
-                return true;
-        }
-        return false;
+        if (!this.lobby || this.obsUserId) return false;
+        if ((!this.lobby.host && (!this.lobby.backupHost || this.lobby.backupHost.id === this.localPlayer.user.id)) || (this.lobby.host?.id === userId && !this.localMaster))
+            return true;
+        else
+            return false;
     } 
 
     dehost() { //used only for testing atm, cannot currently be used if host is in a team as he's removed from the team on dehost
@@ -198,14 +158,14 @@ export class RunHandler {
         this.localMaster.destroy();
         this.localMaster = undefined;
         this.lobby.host = null;
-        this.lobby.setBestAvailableBackupHostCandidate(this.localPlayer.user.id);
+        this.getNewBackupHost();
         this.updateFirestoreLobby();
     }
 
 
     setupMaster() {
         console.log("Setting up master!");
-        this.localMaster = new RTCPeerMaster(this.userService.user, this.firestoreService.getLobbyDoc(this.lobby!.id));
+        this.localMaster = new RTCPeerMaster(this.userService.user.getUserBase(), this.firestoreService.getLobbyDoc(this.lobby!.id));
         this.dataSubscription = this.localMaster.eventChannel.subscribe(event => {
             if (this.localMaster && !this.localMaster.isBeingDestroyed)
             this.onDataChannelEvent(event, true);
@@ -214,7 +174,7 @@ export class RunHandler {
 
     setupSlave() {
         console.log("Setting up slave!");
-        this.localSlave = new RTCPeerSlave(this.userService.user, this.firestoreService.getLobbyDoc(this.lobby!.id), this.lobby!.host!);
+        this.localSlave = new RTCPeerSlave(this.userService.user.getUserBase(), this.firestoreService.getLobbyDoc(this.lobby!.id), this.lobby!.host!);
         this.dataSubscription = this.localSlave.eventChannel.subscribe(event => {
             this.onDataChannelEvent(event, false);
         });
@@ -234,50 +194,75 @@ export class RunHandler {
         const userId = this.userService.getId();
 
         //send updates to master to all slaves | this should be here and not moved up to sendEvent as it's not the only method triggering this
-        if (isMaster && event.type !== EventType.Connect && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
+        if (isMaster && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
             this.localMaster?.relayToSlaves(event);
 
         switch (event.type) {
 
             case EventType.Connect: //rtc stuff on connection is setup individually in rtc-peer-master/slave
+                const newUser: UserBase = event.value as UserBase;
                 if (event.userId === "host")
                     this.userService.sendNotification("Client to server fallback communication established,\n please recreate the lobby if peer to peer usually works.", 10000);
-                else
-                    console.log(this.lobby?.getUserNameFromKey(event.userId) + " connected!");
+                
+                console.log(newUser.name + " connected!");
 
-                if (!isMaster) {
-                    console.log("Sending run request!");
+                if (isMaster) {
+                    //handle run
+                    const isRunner: boolean = (this.run?.getPlayerTeam(newUser.id) !== undefined);
+                    if (isRunner) 
+                        this.sendEvent(EventType.Reconnect, newUser.id);
+                    else if (!this.run?.hasSpectator(newUser.id))
+                        this.run!.spectators.push(new Player(newUser));
+
+                    //handle lobby
+                    if (!this.lobby?.hasUser(newUser.id)) {
+                        this.lobby?.addUser(new LobbyUser(newUser, isRunner));
+                        this.updateFirestoreLobby();
+                    }
+                    else if ((this.lobby.hasRunner(newUser.id) && !isRunner) || (this.lobby.hasSpectator(newUser.id) && isRunner)) {
+                        this.lobby!.getUser(newUser.id)!.isRunner = isRunner;
+                        this.updateFirestoreLobby();
+                    }
+                }
+                else if (event.userId === this.localPlayer.user.id) {
                     this.sendEvent(EventType.RequestRunSync);
                 }
+                else if (!this.run?.hasSpectator(newUser.id))
+                    this.run!.spectators.push(new Player(newUser));
+
                 break;
 
 
             case EventType.Disconnect:
                 if(!this.lobby) return;
-                this.run?.removePlayer(event.value);
+                const disconnectedUser: UserBase = event.value as UserBase;
+                this.zone.run(() => {
+                    this.run?.removePlayer(disconnectedUser.id);
+                }); 
 
                 //host logic
                 if (isMaster) {
                     if (this.localMaster?.peers) { //yes this is needed
-                        let peer = this.localMaster.peers.find(x => x.userId === event.value);
+                        let peer = this.localMaster.peers.find(x => x.user.id === disconnectedUser.id);
                         if (peer) {
                             console.log("Destorying disconnected peer");
                             peer.peer.destroy();
-                            this.localMaster!.peers = this.localMaster!.peers.filter(x => x.userId !== event.value);
-                            this.localMaster!.peerIds = this.localMaster!.peerIds.filter(userId => userId !==  event.value);
+                            if (peer.peer.usesServerCommunication)
+                                this.firestoreService.deleteLobbyServerCommunication(this.lobby.id, disconnectedUser.id);
+                            this.localMaster!.peers = this.localMaster!.peers.filter(x => x.user.id !== disconnectedUser.id);
                         }
                     }
 
                     let updateDb = false;
 
-                    if (this.lobby.hasUser(event.value)) {
-                        this.lobby.removeUser(event.value);
+                    if (this.lobby.hasUser(disconnectedUser.id) || this.lobby.runnerIds.includes(disconnectedUser.id)) {
+                        this.lobby.removeUser(disconnectedUser.id);
                         updateDb = true;
                     }
 
                     //host on backupHost disconnect
-                    if (event.value === this.lobby.backupHost?.id) {
-                        this.lobby.backupHost = null; //will be set by host onLobbyChange
+                    if (disconnectedUser.id === this.lobby.backupHost?.id) {
+                        this.getNewBackupHost();
                         updateDb = true;
                     }
 
@@ -295,14 +280,14 @@ export class RunHandler {
             case EventType.Kick:
                 if(this.localPlayer.user.id === event.value && (this.lobby?.host?.id === event.userId || this.localPlayer.user.id === event.userId)) {
                     this.userService.sendNotification("You've been kicked from the lobby.");
-                    this.userService.routeTo('/lobby');
+                    //this.userService.routeTo('/lobby');
                 }
                 break;
 
 
             case EventType.Reconnect:
                 this.zone.run(() => {
-                    this.run!.reconnectPlayer(event.userId); 
+                    this.run!.reconnectPlayer(event.value); 
                 }); 
                 break;
                
@@ -311,11 +296,12 @@ export class RunHandler {
                 if (isMaster) {
                     this.localMaster?.respondToSlave(new DataChannelEvent(userId, EventType.RunSync, this.run), event.userId);
                     console.log("Got run request, responding!");
-
+                    
+                    //check for self kick if suspected of being tied to client to server communication as host
                     if (this.localMaster && this.localMaster.peers.length > 1 && this.localMaster.peers.every(x => x.peer.usesServerCommunication)) {
-                        this.userService.sendNotification("Unfit as host for lobby of this size, please rejoin for a normal role.");
+                        this.userService.sendNotification("Unfit as host, please rejoin.");
                         if (this.lobby?.backupHost === null) {
-                            this.lobby.setBestAvailableBackupHostCandidate(userId);
+                            this.getNewBackupHost();
                             this.updateFirestoreLobby().then(() => {
                                 this.userService.routeTo('/lobby');
                             });
@@ -343,37 +329,10 @@ export class RunHandler {
                             playerTeam.tasks = [];
 
                         this.localPlayer.team = playerTeam;
-
-                        if (playerTeam.players.some(x => x.user.id === this.localPlayer.user.id && x.state === PlayerState.Disconnected))
-                            this.sendEvent(EventType.Reconnect);
-                    }
-                    
-                    //add to lobby if missing
-                    if (!this.obsUserId && this.lobby && !this.lobby.hasUser(userId)) {
-                        this.lobby.addUser(new LobbyUser(this.userService.user));
-                        this.updateFirestoreLobby();
-                    }
-
-                    //set runner as runner if reconnect
-                    if (!this.obsUserId && this.lobby && this.run.getPlayer(userId)) {
-                        let updateDb = false;
-                        if (this.lobby.hasSpectator(userId)) {
-                            this.lobby.getUser(userId)!.isRunner = true;
-                            if (!this.lobby.runnerIds.includes(userId))
-                                this.lobby.runnerIds.push(userId);
-
-                            updateDb = true;
-                        }
-                        else if (!this.lobby.hasRunner(userId)) {
-                            this.lobby.addUser(new LobbyUser(this.userService.user, true));
-                            updateDb = true;
-                        }
-                        if (updateDb)
-                            this.updateFirestoreLobby();
                     }
 
                     this.run!.importTaskChanges(this.localPlayer, event.value);
-                    this.loaded = true;
+                    this.connected = true;
                 });
                 break;
 
@@ -443,12 +402,9 @@ export class RunHandler {
                     this.run!.updateState(event.userId, event.value);
                 });
                 
-                const player = this.run.getPlayer(userId);
-                if (player) {
-                    this.run.onUserStateChange(this.localPlayer, player);
-                    if (event.userId !== userId)
-                        this.localPlayer.checkForZoomerTalkSkip(event.value);
-                } 
+                this.run.onUserStateChange(this.localPlayer, this.run.getPlayer(userId));
+                if (event.userId !== userId)
+                    this.localPlayer.checkForZoomerTalkSkip(event.value);
                 break;
 
 
@@ -462,23 +418,23 @@ export class RunHandler {
 
                 
             case EventType.ChangeTeam:
-                const user: LobbyUser | undefined = this.lobby?.getUser(event.userId);
-                if (!user) return;
-                if (!user.isRunner) {
-                    user.isRunner = true;
-                    if (!this.lobby!.runnerIds.includes(user.id))
-                        this.lobby!.runnerIds.push(user.id);
-                    if (isMaster)
-                        this.updateFirestoreLobby();
-                }
                 this.zone.run(() => { 
-                    this.run?.changeTeam(new UserBase(user.id, user.name, user.twitchName), event.value);
+                    this.run?.changeTeam(this.getUser(event.userId)?.user, event.value);
 
                     //check set team for obs window, set from run component if normal user
                     if (this.obsUserId && this.obsUserId === event.userId) { 
                         this.localPlayer.team = this.run?.getPlayerTeam(this.obsUserId);
                     }
                 });
+
+                if (!isMaster) break;
+                const user: LobbyUser | undefined = this.lobby?.getUser(event.userId);
+                if (!user || user.isRunner) break;
+
+                user.isRunner = true;
+                if (!this.lobby!.runnerIds.includes(user.id))
+                    this.lobby!.runnerIds.push(user.id);
+                this.updateFirestoreLobby();
                 break;
 
             
@@ -535,9 +491,8 @@ export class RunHandler {
     }
 
     async updateFirestoreLobby() {
-        if (!this.lobby) return;
+        if (!this.lobby || !(this.lobby?.backupHost?.id === this.localPlayer.user.id || this.lobby?.host?.id === this.localPlayer.user.id || this.lobby?.host === null)) return;
         this.lobby.lastUpdateDate = new Date().toUTCString();
-        this.isSelfLobbyUpdate = true;
         await this.firestoreService.updateLobby(this.lobby);
     }
 
@@ -551,10 +506,7 @@ export class RunHandler {
         this.isBeingDestroyed = true;
         const wasHost = this.localMaster && this.lobby?.host?.id === this.localPlayer.user.id;
 
-        this.localMaster?.destroy();
-        this.localSlave?.destroy();
-
-        this.dataSubscription?.unsubscribe();
+        this.resetUser();
         this.lobbySubscription?.unsubscribe();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself

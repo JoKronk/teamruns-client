@@ -87,6 +87,10 @@ export class FireStoreService {
     });
   }
 
+  async deleteLobbyServerCommunication(lobbyId: string, id: string) {
+    await this.lobbies.doc<Lobby>(lobbyId).collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(id).delete();
+  }
+
   async getRun(id: string) {
     this.checkAuthenticated();
     return (await this.runs.doc(id).ref.get()).data();

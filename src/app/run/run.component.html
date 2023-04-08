@@ -1,10 +1,14 @@
 <mat-sidenav-container fullscreen>
   <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="sidenav">
 
-    <!-- TIMER -->
-    <app-run-timer [run]="runHandler.run"></app-run-timer>
+    <div *ngIf="!runHandler.connected && runHandler.localSlave" class="logs">
+      <p *ngFor="let log of runHandler.localSlave.connectionLogs">{{ log }}</p>
+    </div>
 
-    <app-run-spectators [lobby]="runHandler.lobby"></app-run-spectators>
+    <!-- TIMER -->
+    <app-run-timer *ngIf="runHandler.connected" [run]="runHandler.run"></app-run-timer>
+
+    <app-run-spectators *ngIf="runHandler.connected && runHandler.run" [spectators]="runHandler.run.spectators"></app-run-spectators>
   </mat-sidenav>
 
   <mat-sidenav-content class="run">
@@ -58,7 +62,7 @@
       </div>
       <div class="title">
         <div>
-          <p class="text-in-background" [title]="runHandler.run?.data?.name">{{ runHandler.run?.data?.name }}</p>
+          <p *ngIf="runHandler.connected" class="text-in-background" [title]="runHandler.run?.data?.name">{{ runHandler.run?.data?.name }}</p>
         </div>
       </div>
       <div class="logo-container">
@@ -68,7 +72,7 @@
       </div>
     </div>
 
-    <div class="run-body" *ngIf="runHandler.run">
+    <div class="run-body" *ngIf="runHandler.connected && runHandler.run">
       <!-- TEAMS -->
       <div class="run-info">
         <div class="run-info-teams">
@@ -77,7 +81,7 @@
             <p *ngIf="!editingName || team.id !== localPlayer.team?.id" [class.team-name-editable]="team.id === localPlayer.team?.id && localPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting" (click)="editTeamName(team.id)" class="team-name">{{ team.name }}</p>
             <input *ngIf="editingName && team.id === localPlayer.team?.id" (keyup.enter)="newTeamName()" [(ngModel)]="team.name" maxlength="16">
             
-            <button *ngIf="runHandler.loaded && team.id !== localPlayer.team?.id && localPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
+            <button *ngIf="runHandler.connected && team.id !== localPlayer.team?.id && localPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
               (click)="switchTeam(team.id)">Join</button>
               <div class="team-players">
                 <div *ngFor="let player of team.players">
@@ -116,8 +120,9 @@
         <app-run-splits *ngFor="let team of runHandler.run.teams; let i = index" [team]="team" class="progress-team" [class.progress-team-splitter]="i !== 0"></app-run-splits>
       </div>
     </div>
-    <div *ngIf="!runHandler.run" id="error">
-      <h1 class="text-in-background">Run not found!</h1>
+    <div *ngIf="!runHandler.connected" id="connecting">
+      <h1 class="text-in-background">Connecting to Lobby</h1>
+      <mat-spinner class="spinner"></mat-spinner>
     </div>
 
     <div class="backtext">

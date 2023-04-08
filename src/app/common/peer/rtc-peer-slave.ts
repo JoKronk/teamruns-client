@@ -2,8 +2,7 @@ import { AngularFirestoreDocument } from "@angular/fire/compat/firestore";
 import { Subject, Subscription } from "rxjs";
 import { CollectionName } from "../firestore/collection-name";
 import { Lobby } from "../firestore/lobby";
-import { LobbyUser } from "../firestore/lobby-user";
-import { User } from "../user/user";
+import { UserBase } from "../user/user";
 import { DataChannelEvent } from "./data-channel-event";
 import { RTCPeer } from "./rtc-peer";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
@@ -17,53 +16,47 @@ export class RTCPeerSlave {
     peerDocSubscription: Subscription;
     
     hostId: string;
+    connectionLogs: string[] = ["Setting up connection..."];
     isBeingDestroyed: boolean = false;
     eventChannel: Subject<DataChannelEvent> = new Subject();
 
-    constructor(user: User, doc: AngularFirestoreDocument<Lobby>, host: LobbyUser) {
+    constructor(user: UserBase, doc: AngularFirestoreDocument<Lobby>, host: UserBase) {
         this.peerDoc = doc.collection<RTCPeer>(CollectionName.peerConnections).doc(user.id);
-        this.peerData = new RTCPeer(user.id);
+        this.peerData = new RTCPeer(user);
         this.hostId = host.id;
 
 
-        this.preCreationCleanup(user, doc);
+        this.preCreationCleanup(user, doc, host);
     }
 
-    private async preCreationCleanup(user: User, lobbyDoc: AngularFirestoreDocument<Lobby>) {
+    private async preCreationCleanup(user: UserBase, lobbyDoc: AngularFirestoreDocument<Lobby>, host: UserBase) {
+        //delete old server communication if exists
+        if ((await lobbyDoc.collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(user.id).ref.get()).exists) {
+            this.connectionLogs.push("Detected previous server communication, deleting!");
+            console.log("slave: Server communication exists from before, deleting!");
+            await lobbyDoc.collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(user.id).delete();
+        }
+
+        //delete old peer connection if exists
         let peer = await this.peerDoc.ref.get();
         if (peer.exists) {
+            this.connectionLogs.push("Detected previous connection, deleting!");
             console.log("slave: Peer connection exists from before, deleting!");
             await this.peerDoc.delete();
-
-            let lobbyData = await lobbyDoc.ref.get(); if (!lobbyData.exists) return;
-            let lobby = lobbyData.data(); if (!lobby) return;
-            lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
-            let lobbyUser: LobbyUser | undefined = lobby.getUser(user.id);
-            //make sure user is not reconnecting from a disconnect, temp removal is needed if so to let host know that user needs a new connection
-            if (lobbyUser) {
-                lobby.removeUser(user.id);
-                await lobbyDoc.set(JSON.parse(JSON.stringify(lobby)));
-                setTimeout(async () => {
-                    if (this.isBeingDestroyed) return;
-                    lobby!.addUser(lobbyUser ?? new LobbyUser(user));
-                    await lobbyDoc.set(JSON.parse(JSON.stringify(lobby)));
-                    this.createPeerConnection(lobbyDoc, user.id);
-                }, 500);
-            }
-            else
-                this.createPeerConnection(lobbyDoc, user.id);
+            this.createPeerConnection(lobbyDoc, user, host);
         }
         else
-            this.createPeerConnection(lobbyDoc, user.id);
+            this.createPeerConnection(lobbyDoc, user, host);
     }
 
-    private async createPeerConnection(lobbyDoc: AngularFirestoreDocument<Lobby>, userId: string) {
-        this.peer = new RTCPeerDataConnection(this.eventChannel, userId, this.hostId, lobbyDoc, false);
+    private async createPeerConnection(lobbyDoc: AngularFirestoreDocument<Lobby>, user: UserBase, host: UserBase) {
+        this.peer = new RTCPeerDataConnection(this.eventChannel, user, host, lobbyDoc, false, this.connectionLogs);
 
         //listen for slave candidates to be created, might need to be done before .createOffer() according to some unlisted documentation
         this.peer.connection.onicecandidate = (event) => {
             if (event.candidate) {
                 this.peerData.slaveCandidates.push(event.candidate);
+                this.connectionLogs.push("Got ice candidate");
                 console.log("slave: Got slave candidate!");
                 //this.peerDoc.set(JSON.parse(JSON.stringify(this.peerData))); WE GIVE THE CLIENT SOME TIME TO FETCH THESE INSTEAD AND PUSHES ONCE TO DODGE OVERWRITE ON MASTER CANDIDATES
             }
@@ -79,6 +72,7 @@ export class RTCPeerSlave {
         setTimeout(() => {
             if (this.isBeingDestroyed) return;
             this.peerDoc.set(JSON.parse(JSON.stringify(this.peerData)));
+            this.connectionLogs.push("Created connection offer!");
             console.log("slave: Created slave offer!");
         }, 500);
 

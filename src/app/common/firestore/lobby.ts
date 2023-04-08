@@ -1,11 +1,11 @@
-import { Run } from "../run/run";
 import { RunData } from "../run/run-data";
+import { UserBase } from "../user/user";
 import { LobbyUser } from "./lobby-user";
 
 export class Lobby {
     id: string;
-    host: LobbyUser | null = null;
-    backupHost: LobbyUser | null = null;
+    host: UserBase | null = null;
+    backupHost: UserBase | null = null;
     runData: RunData;
     password: string | null;
     users: LobbyUser[] = [];
@@ -20,10 +20,6 @@ export class Lobby {
         this.runData = runData;
         this.password = password;
         this.creatorId = creatorId;
-    }
-
-    getUserNameFromKey(id: string) {
-        return this.users.find(x => x.id === id)?.name;
     }
 
     hasUser(id: string) {
@@ -50,9 +46,5 @@ export class Lobby {
     removeUser(id: string) {
         this.users = this.users.filter(user => user.id !== id);
         this.runnerIds = this.runnerIds.filter(x => x !== id);
-    }
-
-    setBestAvailableBackupHostCandidate(currentUserId: string) {
-        this.backupHost = this.users.find(user => user.isRunner && user.id !== currentUserId) ?? this.users.find(user => !user.isRunner && user.id !== currentUserId && !user.id.startsWith("OBS-")) ?? null;
     }
 }

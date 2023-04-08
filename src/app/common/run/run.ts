@@ -15,6 +15,7 @@ import { UserBase } from "../user/user";
 export class Run {
     data: RunData;
     teams: Team[] = [];
+    spectators: Player[] = [];
     timer: Timer;
 
     constructor(runData: RunData) {
@@ -30,15 +31,19 @@ export class Run {
     }
 
     removePlayer(playerId: string): void {
+        let team = this.getPlayerTeam(playerId);
         if (!this.timer.runIsOngoing()) {
-            let team = this.getPlayerTeam(playerId);
+            this.spectators = this.spectators.filter(x => x.user.id !== playerId);
             if (!team) return;
             team.players = team.players.filter(x => x.user.id !== playerId);
         }
         else {
             let runplayer = this.getPlayer(playerId);
             if (!runplayer) return;
-            runplayer.state = PlayerState.Disconnected;
+            if (team)
+                runplayer.state = PlayerState.Disconnected;
+            else
+                this.spectators = this.spectators.filter(x => x.user.id !== playerId);
         }
     }
 
@@ -120,20 +125,22 @@ export class Run {
         }
     }
 
-    changeTeam(user: UserBase, teamId: number) {
-      let newTeam = this.getTeam(teamId);
-      if (!newTeam) return;
-  
-      let oldTeam = this.getPlayerTeam(user.id);
-      let player = oldTeam ? oldTeam.players.find(x => x.user.id === user.id) : new Player(user);
-      newTeam.players.push(player!);
+    changeTeam(user: UserBase | undefined, teamId: number) {
+        if (!user) return;
+        let newTeam = this.getTeam(teamId);
+        if (!newTeam) return;
+    
+        let oldTeam = this.getPlayerTeam(user.id);
+        let player = oldTeam ? oldTeam.players.find(x => x.user.id === user.id) : new Player(user);
+        newTeam.players.push(player!);
+        this.spectators = this.spectators.filter(x => x.user.id !== user.id);
 
-      //cheap method of forcing screen to re-render old team
-      if (oldTeam) {
-        let players = oldTeam.players.filter(x => x.user.id !== user.id);
-        oldTeam.players = [];
-        oldTeam.players = players;
-      }
+        //cheap method of forcing screen to re-render old team
+        if (oldTeam) {
+            let players = oldTeam.players.filter(x => x.user.id !== user.id);
+            oldTeam.players = [];
+            oldTeam.players = players;
+        }
     }
     
     getTimerShortenedFormat(): string {
@@ -152,7 +159,11 @@ export class Run {
     }
 
     getPlayer(playerId: string): Player | undefined {
-        return this.getPlayerTeam(playerId)?.players.find(x => x.user.id === playerId);
+        return this.getPlayerTeam(playerId)?.players.find(x => x.user.id === playerId) ?? this.spectators.find(x => x.user.id === playerId);
+    }
+
+    getAllPlayers(): Player[] {
+        return this.teams.flatMap(x => x.players);
     }
 
     getAllTask(): Task[] {
@@ -166,6 +177,10 @@ export class Run {
 
     runHasCell(task: string): boolean {
         return this.teams.some(x => x.tasks.some(y => y.gameTask === task));
+    }
+
+    hasSpectator(playerId: string): boolean {
+        return this.spectators.find(x => x.user.id === playerId) !== undefined;
     }
 
     isMode(mode: RunMode): boolean {
@@ -214,7 +229,8 @@ export class Run {
         }
     }
 
-    onUserStateChange(localPlayer: LocalPlayerData, player: Player) {
+    onUserStateChange(localPlayer: LocalPlayerData, player: Player | undefined) {
+        if (!player) return;
         const team = this.getPlayerTeam(player.user.id);
         if (!team) return;
 
