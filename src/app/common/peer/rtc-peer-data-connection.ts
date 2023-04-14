@@ -6,11 +6,14 @@ import { DataChannelEvent } from "./data-channel-event";
 import { EventType } from "./event-type";
 import { RTCPeer } from "./rtc-peer";
 import { UserBase } from "../user/user";
+import { PositionData } from "../opengoal/position-data";
+import { OG } from "../opengoal/og";
 
 export class RTCPeerDataConnection {
 
     connection: RTCPeerConnection;
-    channelToPeer: RTCDataChannel;
+    dataChannelToPeer: RTCDataChannel;
+    positionChannelToPeer: RTCDataChannel;
     hasConnected: boolean = false;
 
     self: UserBase;
@@ -21,7 +24,7 @@ export class RTCPeerDataConnection {
     private serverComSubscriptions: Subscription;
 
 
-    constructor(eventChannel: Subject<DataChannelEvent>, self: UserBase, peer: UserBase, lobbyDoc: AngularFirestoreDocument<Lobby>, creatorIsMaster: boolean, connectionLog: string[] | null = null) {
+    constructor(eventChannel: Subject<DataChannelEvent>, positionChannel: Subject<PositionData> | null, self: UserBase, peer: UserBase, lobbyDoc: AngularFirestoreDocument<Lobby>, creatorIsMaster: boolean, connectionLog: string[] | null = null) {
         this.connection = new RTCPeerConnection({
             iceServers: [
               { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
@@ -31,17 +34,20 @@ export class RTCPeerDataConnection {
         this.lobbyDoc = lobbyDoc;
         this.self = self;
         this.isMaster = creatorIsMaster;
-        let chatId = "dc-" + this.isMaster ? peer.id : self.id;
-        this.channelToPeer = this.connection.createDataChannel(chatId);
-        console.log("Created data channel with id: ", chatId);
+
+        const dataChannelId = "dc-" + (this.isMaster ? peer.id : self.id);
+        const positionChannelId = "pos-" + (this.isMaster ? peer.id : self.id);
+        this.dataChannelToPeer = this.connection.createDataChannel(dataChannelId);
+        
+        if (positionChannel)
+            this.positionChannelToPeer = this.connection.createDataChannel(positionChannelId, {ordered: false});
+        
+        console.log("Created data channels for id: ", this.isMaster ? peer.id : self.id);
         if (connectionLog)
             connectionLog.push("Created peer data channel");
 
-        //useful options: ordered false ignores making sure data is delivered in order
-        //this.connection.createDataChannel("data", {ordered: false});
-
         //setup local peer data listeners
-        this.channelToPeer.onopen = () => {
+        this.dataChannelToPeer.onopen = () => {
             if (connectionLog) {
                 connectionLog.push("Peer data channel connected!");
                 connectionLog.push("Waiting for data channel from host...");
@@ -49,9 +55,24 @@ export class RTCPeerDataConnection {
             console.log("data channel open");
             eventChannel.next(new DataChannelEvent(self.id, EventType.Connect, peer));
         }
-        this.channelToPeer.onclose = () => {
+        this.dataChannelToPeer.onclose = () => {
             console.log("data channel closed");
             eventChannel.next(new DataChannelEvent(self.id, EventType.Disconnect, peer));
+        }
+
+        if (positionChannel) {
+            this.positionChannelToPeer.onopen = () => {
+                if (connectionLog) {
+                    connectionLog.push("Peer position channel connected!");
+                    connectionLog.push("Waiting for position channel from host...");
+                }
+                console.log("position channel open");
+                eventChannel.next(new DataChannelEvent(self.id, EventType.PositionChannelOpen, null));
+            }
+            this.positionChannelToPeer.onclose = () => {
+                console.log("position channel closed");
+                eventChannel.next(new DataChannelEvent(self.id, EventType.PositionChannelClosed, null));
+            }
         }
         
         //setup remote peer data listeners
@@ -60,9 +81,7 @@ export class RTCPeerDataConnection {
                 connectionLog.push("Host data channel connected!");
 
             const channel = dc.channel;
-            console.log('%cGot data channel', 'color: #00ff00');
-
-            this.hasConnected = true;
+            console.log('%cGot data channel', 'color: #00ff00', dc);
 
             if (this.isMaster) {
                 //!TODO: seems safe to delete instantly but I'm not taking any chances before I know for certain
@@ -71,8 +90,21 @@ export class RTCPeerDataConnection {
                     lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(peer.id).delete();
                 }, 1000);
             }
-            channel.onmessage = (event) => {
-                eventChannel.next(JSON.parse(event.data));
+            
+            if (channel.label === dataChannelId) {
+                this.hasConnected = true;
+
+                channel.onmessage = (event) => {
+                    eventChannel.next(JSON.parse(event.data));
+                }
+            }
+            else if (channel.label === positionChannelId && positionChannel) {
+                OG.runCommand("(set! (-> *multiplayer-info* players 1 username) \"" + peer.name + "\")");
+                OG.runCommand("(set! (-> *multiplayer-info* players 1 mp_state) (mp-tgt-state mp-tgt-connected))");
+                OG.runCommand("(set! (-> *self-player-info* color) (tgt-color normal))");
+                channel.onmessage = (target) => {
+                    positionChannel.next(JSON.parse(target.data));
+                }
             }
         });
 
@@ -141,12 +173,17 @@ export class RTCPeerDataConnection {
     }
 
     sendEvent(event: DataChannelEvent) {
-        if (this.channelToPeer?.readyState !== "open" && !this.usesServerCommunication) return;
+        if (this.dataChannelToPeer?.readyState !== "open" && !this.usesServerCommunication) return;
         if (!this.usesServerCommunication)
-            this.channelToPeer.send(JSON.stringify(event));
+            this.dataChannelToPeer.send(JSON.stringify(event));
         else {
             this.lobbyDoc.collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(this.isMaster ? "host" : event.userId).set(JSON.parse(JSON.stringify(event)));
         }
+    }
+
+    sendPosition(target: PositionData) {
+        if (this.positionChannelToPeer?.readyState === "open" && !this.usesServerCommunication)
+            this.positionChannelToPeer.send(JSON.stringify(target));
     }
 
     destroy() {
@@ -155,7 +192,10 @@ export class RTCPeerDataConnection {
             this.lobbyDoc.collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(this.isMaster ? "host" : this.self.id).set(JSON.parse(JSON.stringify(new DataChannelEvent(this.self.id, EventType.Disconnect, this.self))));
             this.serverComSubscriptions.unsubscribe();
         }
-        if (this.channelToPeer) this.channelToPeer.close();
+        if (this.dataChannelToPeer) this.dataChannelToPeer.close();
+        if (this.positionChannelToPeer) {
+            this.positionChannelToPeer.close();
+        } 
         if (this.connection) this.connection.close();
     }
 

@@ -10,6 +10,7 @@ export class RunData {
     //run settings
     countdownSeconds: number = 10;
     mode: RunMode = RunMode.Speedrun;
+    showOtherPlayers: boolean = true;
     requireSameLevel: boolean = false;
     allowSoloHubZoomers: boolean = false;
     normalCellCost: boolean = false;

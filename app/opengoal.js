@@ -17,6 +17,8 @@ var trackerConnectedState = false;
 var openGoalIsRunning = false;
 var openGoalHasStarted = false;
 
+var ogSpawn = null;
+
 class OpenGoal {
 
     constructor(window) {
@@ -80,9 +82,33 @@ class OpenGoal {
     }
 
     startOG(ogPath) {
+        
+        ogSpawn = spawn(ogPath + "\\gk.exe", ["-boot", "-fakeiso", "-debug"]);
+        //On error
+        ogSpawn.stderr.on('data', (data) => {
+            console.log("OG Error!: " + data.toString());
+            this.sendClientMessage("OG Error!: " + data.toString());
+        });
+
+        //On data
+        ogSpawn.stdout.on('data', (data) => {
+            try {
+                let playerPos = JSON.parse(data);
+                this.sendClientPositionUpdate(playerPos);
+            }
+            catch (ex) {
+                console.log("Failed to parse: " + data);
+            }
+        });
+
+        //On kill
+        ogSpawn.stdout.on('end', () => {
+            this.sendClientMessage("OG Disconneted!");
+        });
+
         try {
             var shell = new winax.Object('Shell.Application');
-            shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 0);
+            //shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 0);
             shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open", 0);
             openGoalIsRunning = true;
         }
@@ -223,6 +249,10 @@ class OpenGoal {
 
     sendClientStateUpdate() {
         win.webContents.send("og-state-update", openGoalGameState);
+    }
+
+    sendClientPositionUpdate(pos) {
+        win.webContents.send("og-position-update", pos);
     }
 
     sendClientMessage(msg) {

@@ -1,3 +1,5 @@
+import { PositionData } from "./position-data";
+
 export class OG {
   static startGame(): void {
     if (!(window as any).electron) return;
@@ -11,6 +13,10 @@ export class OG {
 
   static giveCell(taskName: string) {
     this.runCommand("(dm-give-cell (game-task " + taskName + "))");
+  }
+
+  static updatePlayerPosition(target: PositionData) {
+    this.runCommand("(manual-position-update 1 " + target.transX.toFixed(4) + " " + target.transY.toFixed(4) + " " + target.transZ.toFixed(4) + " " + target.quatY.toFixed(4) + " " + target.quatZ.toFixed(4) + " " + target.quatW.toFixed(4) + " \"" + target.tgtState + "\")");
   }
 
   static giveFinalBossAccess(currentLevel: string) {

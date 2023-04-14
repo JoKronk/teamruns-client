@@ -4,6 +4,7 @@ import { CollectionName } from "../firestore/collection-name";
 import { Lobby } from "../firestore/lobby";
 import { UserBase } from "../user/user";
 import { DataChannelEvent } from "./data-channel-event";
+import { PositionData } from "../opengoal/position-data";
 import { RTCPeer, RTCPeerSlaveConnection } from "./rtc-peer";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
 
@@ -13,13 +14,17 @@ export class RTCPeerMaster {
 
     lobbyDoc: AngularFirestoreDocument<Lobby>;
     eventChannel: Subject<DataChannelEvent> = new Subject();
+    positionChannel: Subject<PositionData> | null = null;
 
     peersSubscriptions: Subscription;
     peers: RTCPeerSlaveConnection[] = [];
 
-    constructor(user: UserBase, doc: AngularFirestoreDocument<Lobby>) {
+    constructor(user: UserBase, createPositionChannel: boolean, doc: AngularFirestoreDocument<Lobby>) {
         this.user = user;
         this.lobbyDoc = doc;
+
+        if (createPositionChannel)
+            this.positionChannel = new Subject();
 
         //setup user handling
         this.peersSubscriptions = this.lobbyDoc.collection<RTCPeer>(CollectionName.peerConnections).valueChanges().subscribe(peers => {
@@ -51,7 +56,7 @@ export class RTCPeerMaster {
 
 
         //setup master connection to peer
-        slave.peer = new RTCPeerDataConnection(this.eventChannel, this.user, slave.user, this.lobbyDoc, true);
+        slave.peer = new RTCPeerDataConnection(this.eventChannel, this.positionChannel, this.user, slave.user, this.lobbyDoc, true);
         
         slave.peer.connection.onicecandidate = (event) => {
             if (event.candidate) {
@@ -101,6 +106,13 @@ export class RTCPeerMaster {
                 if (slave.peer.usesServerCommunication && !hasRelayedToServer)
                     hasRelayedToServer = true;
             }
+        });
+    }
+
+    relayPositionToSlaves(target: PositionData) {
+        this.peers.forEach(slave => {
+            if (slave.user.id !== target.userId)
+                slave.peer.sendPosition(target);
         });
     }
 

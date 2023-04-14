@@ -18,6 +18,7 @@ import { User, UserBase } from "../user/user";
 import { FireStoreService } from "src/app/services/fire-store.service";
 import { CitadelOptions } from "./run-data";
 import { Player } from "../player/player";
+import { PositionData } from "../opengoal/position-data";
 
 export class RunHandler {
     
@@ -39,7 +40,9 @@ export class RunHandler {
 
     zone: NgZone;
     dataSubscription: Subscription;
+    positionSubscription: Subscription;
     lobbySubscription: Subscription;
+    positionListener: any;
 
     constructor(lobbyId: string, firestoreService: FireStoreService, userService: UserService, localUser: LocalPlayerData, zone: NgZone, obsUserId: string | null = null) {
         this.firestoreService = firestoreService;
@@ -68,6 +71,14 @@ export class RunHandler {
 
                 //set run info
                 this.info = RunMode[this.run.data.mode] + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\n\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOptions[this.run.data.citadelSkip];
+            
+                //setup position listener
+                if (this.run.data.showOtherPlayers) {
+                    this.positionListener = (window as any).electron.receive("og-position-update", (target: PositionData) => {
+                        target.userId = this.localPlayer.user.id;
+                        this.sendPosition(target);
+                    });
+                }
             }
 
             this.onLobbyChange();
@@ -123,6 +134,7 @@ export class RunHandler {
 
     resetUser() {
         this.dataSubscription?.unsubscribe();
+        this.positionSubscription?.unsubscribe();
 
         if (this.localSlave) {
             this.localSlave.destroy();
@@ -167,18 +179,31 @@ export class RunHandler {
 
     setupMaster() {
         console.log("Setting up master!");
-        this.localMaster = new RTCPeerMaster(this.userService.user.getUserBase(), this.firestoreService.getLobbyDoc(this.lobby!.id));
+        this.localMaster = new RTCPeerMaster(this.userService.user.getUserBase(), this.run!.data.showOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id));
         this.dataSubscription = this.localMaster.eventChannel.subscribe(event => {
-            if (this.localMaster && !this.localMaster.isBeingDestroyed)
+            if (!this.localMaster?.isBeingDestroyed)
             this.onDataChannelEvent(event, true);
+        });
+
+        if (!this.localMaster.positionChannel) return;
+        this.positionSubscription = this.localMaster.positionChannel.subscribe(target => {
+            if (!this.localMaster?.isBeingDestroyed)
+            this.onPostionChannelUpdate(target, true);
         });
     }
 
     setupSlave() {
         console.log("Setting up slave!");
-        this.localSlave = new RTCPeerSlave(this.userService.user.getUserBase(), this.firestoreService.getLobbyDoc(this.lobby!.id), this.lobby!.host!);
+        this.localSlave = new RTCPeerSlave(this.userService.user.getUserBase(), this.run!.data.showOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id), this.lobby!.host!);
         this.dataSubscription = this.localSlave.eventChannel.subscribe(event => {
-            this.onDataChannelEvent(event, false);
+            if (!this.localSlave?.isBeingDestroyed)
+                this.onDataChannelEvent(event, false);
+        });
+
+        if (!this.localSlave.positionChannel) return;
+        this.positionSubscription = this.localSlave.positionChannel.subscribe(target => {
+            if (!this.localSlave?.isBeingDestroyed)
+                this.onPostionChannelUpdate(target, false);
         });
     }
 
@@ -192,10 +217,26 @@ export class RunHandler {
             this.onDataChannelEvent(event, true);
     }
 
+    sendPosition(target: PositionData) {
+        if (this.localSlave) {
+            this.localSlave.peer.sendPosition(target);
+        }
+        else if (this.localMaster && this.lobby?.host?.id === this.localPlayer.user.id && !this.localMaster.isBeingDestroyed)
+        this.localMaster?.relayPositionToSlaves(target);
+    }
+
+    onPostionChannelUpdate(target: PositionData, isMaster: boolean) {
+        //send updates from master to all slaves
+        if (isMaster)
+            this.localMaster?.relayPositionToSlaves(target);
+        
+        OG.updatePlayerPosition(target);
+    }
+
     onDataChannelEvent(event: DataChannelEvent, isMaster: boolean) {
         const userId = this.userService.getId();
 
-        //send updates to master to all slaves | this should be here and not moved up to sendEvent as it's not the only method triggering this
+        //send updates from master to all slaves | this should be here and not moved up to sendEvent as it's not the only method triggering this
         if (isMaster && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
             this.localMaster?.relayToSlaves(event);
 

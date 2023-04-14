@@ -32,6 +32,7 @@
             <div class="option">
                 <p>Modifiers</p>
             </div>
+            <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.showOtherPlayers">Show other players</label>
             <label><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
             <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
             <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.normalCellCost">Normal cell costs</label>

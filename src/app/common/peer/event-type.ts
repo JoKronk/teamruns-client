@@ -8,6 +8,8 @@ export enum EventType {
     Disconnect,
     Reconnect,
     Kick,
+    PositionChannelOpen,
+    PositionChannelClosed,
     Ready,
     StartRun,
     NewCell,

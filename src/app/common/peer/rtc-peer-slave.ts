@@ -4,6 +4,7 @@ import { CollectionName } from "../firestore/collection-name";
 import { Lobby } from "../firestore/lobby";
 import { UserBase } from "../user/user";
 import { DataChannelEvent } from "./data-channel-event";
+import { PositionData } from "../opengoal/position-data";
 import { RTCPeer } from "./rtc-peer";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
 
@@ -19,12 +20,15 @@ export class RTCPeerSlave {
     connectionLogs: string[] = ["Setting up connection..."];
     isBeingDestroyed: boolean = false;
     eventChannel: Subject<DataChannelEvent> = new Subject();
+    positionChannel: Subject<PositionData> | null = null;
 
-    constructor(user: UserBase, doc: AngularFirestoreDocument<Lobby>, host: UserBase) {
+    constructor(user: UserBase, createPositionChannel: boolean, doc: AngularFirestoreDocument<Lobby>, host: UserBase) {
         this.peerDoc = doc.collection<RTCPeer>(CollectionName.peerConnections).doc(user.id);
         this.peerData = new RTCPeer(user);
         this.hostId = host.id;
 
+        if (createPositionChannel)
+            this.positionChannel = new Subject();
 
         this.preCreationCleanup(user, doc, host);
     }
@@ -50,7 +54,7 @@ export class RTCPeerSlave {
     }
 
     private async createPeerConnection(lobbyDoc: AngularFirestoreDocument<Lobby>, user: UserBase, host: UserBase) {
-        this.peer = new RTCPeerDataConnection(this.eventChannel, user, host, lobbyDoc, false, this.connectionLogs);
+        this.peer = new RTCPeerDataConnection(this.eventChannel, this.positionChannel, user, host, lobbyDoc, false, this.connectionLogs);
 
         //listen for slave candidates to be created, might need to be done before .createOffer() according to some unlisted documentation
         this.peer.connection.onicecandidate = (event) => {
