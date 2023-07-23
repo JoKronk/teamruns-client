@@ -1,0 +1,55 @@
+
+<div class="header">
+    <div class="info">
+      <p id="version" class="text-in-background" [title]="buildVersion">{{ buildVersion }}</p>
+      
+      <!-- Menu -->
+      <svg class="settings" matTooltip="Open menu" matTooltipPosition="above" (click)="_user.viewSettings = !_user.viewSettings" version="1.0" viewBox="0 0 119.000000 99.000000" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0.000000,99.000000) scale(0.100000,-0.100000)" stroke="none">
+          <path d="M90 905 l0 -85 445 0 445 0 0 85 0 85 -445 0 -445 0 0 -85z"/>
+          <path d="M90 505 l0 -85 495 0 495 0 0 85 0 85 -495 0 -495 0 0 -85z"/>
+          <path d="M90 105 l0 -85 395 0 395 0 0 85 0 85 -395 0 -395 0 0 -85z"/>
+        </g>
+      </svg>
+
+      <!-- Back -->
+      <svg class="settings" matTooltip="Back to lobby" matTooltipPosition="above" (click)="routeToLobby()" version="1.0" viewBox="0 0 111.000000 104.000000" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0.000000,104.000000) scale(0.100000,-0.100000)" stroke="none">
+          <path d="M285 788 c-148 -139 -270 -257 -270 -263 0 -11 527 -506 546 -513 5 -2 9 80 9 187 l0 191 265 0 265 0 0 135 0 135 -265 0 -265 0 0 190 c0 105 -3 190 -7 190 -5 -1 -129 -114 -278 -252z"/>
+        </g>
+      </svg>
+
+    </div>
+
+    <div class="options-container" *ngIf="showLobbyButtons == true">
+      <div class="options">
+        <button (click)="openInfo()">Help/Info</button>
+        <button (click)="createLobby()">New Run</button>
+      </div>
+    </div>
+
+    <div class="info">
+        <!-- Info -->
+        <div class="info-tooltip" *ngIf="runInfo != null">
+          <svg class="settings" matTooltipClass="tooltip" [matTooltip]="runInfo" matTooltipPosition="below" version="1.0" viewBox="0 0 113.000000 122.000000" preserveAspectRatio="xMidYMid meet">
+            <g transform="translate(0.000000,122.000000) scale(0.100000,-0.100000)">
+              <path d="M422 1150 c-105 -28 -167 -64 -252 -150 -87 -86 -122 -147 -150 -256
+              -25 -98 -25 -180 0 -278 28 -109 63 -170 150 -256 86 -87 147 -122 256 -150
+              98 -25 180 -25 278 0 109 28 170 63 256 150 87 86 122 147 150 256 25 98 25
+              180 0 278 -28 109 -63 170 -150 256 -86 87 -147 122 -256 150 -96 25 -187 25
+              -282 0z m298 -139 c109 -41 208 -140 252 -251 31 -78 31 -232 0 -310 -44 -110
+              -142 -208 -252 -252 -78 -31 -232 -31 -310 0 -341 135 -376 600 -59 785 102
+              60 255 72 369 28z"/>
+              <path d="M490 930 l0 -60 70 0 70 0 0 60 0 60 -70 0 -70 0 0 -60z"/>
+              <path d="M490 525 l0 -265 70 0 70 0 0 265 0 265 -70 0 -70 0 0 -265z"/>
+            </g>
+          </svg>
+        </div>
+    </div>
+
+    <div class="logo-container">
+      <div class="logo">
+        <img src="./assets/teamrun-logo.png" alt="image">
+      </div>
+    </div>
+  </div>

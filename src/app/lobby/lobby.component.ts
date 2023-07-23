@@ -1,6 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { CreateRunComponent } from '../dialogs/create-run/create-run.component';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { UserService } from '../services/user.service';
 import pkg from 'app/package.json';
@@ -9,7 +8,6 @@ import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { Lobby } from '../common/firestore/lobby';
 import { RunMode } from '../common/run/run-mode';
-import { InfoComponent } from '../dialogs/info/info.component';
 import { GivePasswordComponent } from '../dialogs/give-password/give-password.component';
 import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
 
@@ -65,10 +63,6 @@ export class LobbyComponent implements OnDestroy {
     });
   }
 
-  openInfo() {
-    this.dialog.open(InfoComponent, {maxWidth: "100vw"});
-  }
-
   routeToRun(lobby: Lobby) {
     if (lobby.password) {
       const dialogRef = this.dialog.open(GivePasswordComponent, { data: lobby.password });
@@ -95,10 +89,6 @@ export class LobbyComponent implements OnDestroy {
 
   hideLobbyViewer() {
     this.hideViewer = true;
-  }
-
-  createLobby(): void {
-    this.dialog.open(CreateRunComponent);
   }
 
   toggleSetting(): void {

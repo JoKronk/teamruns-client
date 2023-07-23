@@ -109,35 +109,6 @@ export class RunComponent implements OnDestroy {
       this.runHandler.sendEvent(EventType.Kick, user);
   }
 
-
-  copyMultiTwitchLink() {
-    const twitchLinks: string[] | undefined = this.runHandler.run?.teams.flatMap(team => team.players.filter(x => x.user.twitchName !== null).flatMap(x => x.user.twitchName!));
-    if (!twitchLinks || twitchLinks.length === 0) {
-      this._user.sendNotification("No players with twitch links found!");
-    }
-    else {
-      let link = "https://www.multitwitch.tv";
-      twitchLinks.forEach(user => {
-        link += "/" + user;
-      });
-      this._user.copyLink(link);
-    }
-  }
-
-  routeToLobby() {
-    if (!this.localPlayer.team || !this.runHandler.run?.timer.runIsOngoing()) {
-      this.router.navigate(['/lobby' ]);
-      return;
-    }
-
-    const dialogRef = this.dialog.open(ConfirmComponent, { data: "Are you sure you want to leave the run in progress?" });
-    const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
-      dialogSubscription.unsubscribe();
-      if (confirmed)
-        this.router.navigate(['/lobby' ]);
-    });
-  }
-
   setupListeners() {
     //state update
     this.stateListener = (window as any).electron.receive("og-state-update", (state: GameState) => {

@@ -32,6 +32,7 @@ import { ConfirmComponent } from './dialogs/confirm/confirm.component';
 import { InfoComponent } from './dialogs/info/info.component';
 import { NewUpdateComponent } from './dialogs/new-update/new-update.component';
 import { GivePasswordComponent } from './dialogs/give-password/give-password.component';
+import { HeaderComponent } from './header/header.component';
 
 @NgModule({
   declarations: [
@@ -51,7 +52,8 @@ import { GivePasswordComponent } from './dialogs/give-password/give-password.com
     ConfirmComponent,
     InfoComponent,
     NewUpdateComponent,
-    GivePasswordComponent
+    GivePasswordComponent,
+    HeaderComponent
   ],
   imports: [
     BrowserModule,
