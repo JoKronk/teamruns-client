@@ -166,7 +166,7 @@ export class Run {
         return this.teams.flatMap(x => x.players);
     }
 
-    getAllTask(): Task[] {
+    getAllTasks(): Task[] {
         return this.teams.flatMap(x => x.tasks);
     }
 

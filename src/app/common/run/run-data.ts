@@ -20,7 +20,7 @@ export class RunData {
     normalCellCost: boolean = false;
     sharedWarpGatesBetweenTeams: boolean = false;
     noLTS: boolean = true;
-    citadelSkip: CitadelOptions = CitadelOptions.Shared;
+    citadelSkip: CitadelOption = CitadelOption.Shared;
 
     constructor(version: string) {
         this.buildVersion = version;
@@ -30,7 +30,7 @@ export class RunData {
         this.allowSoloHubZoomers = false;
         this.normalCellCost = false;
         this.sharedWarpGatesBetweenTeams = false;
-        this.citadelSkip = CitadelOptions.Shared;
+        this.citadelSkip = CitadelOption.Shared;
         this.noLTS = false;
 
         switch (this.category) {
@@ -39,13 +39,13 @@ export class RunData {
                 break;
             case 4:
                 this.noLTS = true;
-                this.citadelSkip = CitadelOptions.Patched;
+                this.citadelSkip = CitadelOption.Patched;
                 break;
         }
     }
 }
 
-export enum CitadelOptions {
+export enum CitadelOption {
     Patched,
     Normal,
     Shared

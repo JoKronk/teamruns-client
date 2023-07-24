@@ -16,7 +16,7 @@ import { OG } from "../opengoal/og";
 import { LobbyUser } from "../firestore/lobby-user";
 import { User, UserBase } from "../user/user";
 import { FireStoreService } from "src/app/services/fire-store.service";
-import { CitadelOptions } from "./run-data";
+import { CitadelOption } from "./run-data";
 import { Player } from "../player/player";
 import { PositionData } from "../opengoal/position-data";
 import { Category } from "./category";
@@ -72,7 +72,7 @@ export class RunHandler {
 
                 //set run info
                 if (this.run.data.category == 0)
-                    this.info = this.run.data.name + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOptions[this.run.data.citadelSkip];
+                    this.info = this.run.data.name + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOption[this.run.data.citadelSkip];
                 else
                     this.info = this.run.data.name + "\n\n" + RunMode[this.run.data.mode] + "\nCategory: " + Category.GetGategories()[this.run.data.category].displayName + "\nSame Level: " + this.run.data.requireSameLevel;
 

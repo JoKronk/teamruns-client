@@ -58,8 +58,8 @@ export class RunComponent implements OnDestroy {
       dialogSubscription.unsubscribe();
       if (confirmed) {
         this.localPlayer.state = PlayerState.Forfeit;
-        this.runHandler.sendEvent(EventType.EndPlayerRun, true);
         this.runHandler.sendEvent(EventType.NewCell, new Task("int-finalboss-forfeit", this.localPlayer.user, this.runHandler.run!.getTimerShortenedFormat()));
+        this.runHandler.sendEvent(EventType.EndPlayerRun, true);
       }
     });
   }
@@ -167,16 +167,17 @@ export class RunComponent implements OnDestroy {
           this.localPlayer.cellsRecivedFromOG.push(task);
 
         if (this.shouldAddTask(task)) {  
-          //run end
-          if (task === "int-finalboss-movies") {
-            this.localPlayer.state = PlayerState.Finished;
-            this.runHandler.sendEvent(EventType.EndPlayerRun, false);
-          }
-          else if (task === "citadel-sage-green")
+          if (task === "citadel-sage-green")
             this.localPlayer.hasCitadelSkipAccess = false;
 
           var cell = new Task(task, this.localPlayer.user, this.runHandler.run.getTimerShortenedFormat());
           this.runHandler.sendEvent(EventType.NewCell, cell);
+          
+          //run end
+          if (task === Task.lastboss) {
+            this.localPlayer.state = PlayerState.Finished;
+            this.runHandler.sendEvent(EventType.EndPlayerRun, false);
+          }
         }
       });
     });
@@ -189,7 +190,7 @@ export class RunComponent implements OnDestroy {
   private shouldAddTask(task: string): boolean {
     if (this.runHandler.run!.timer.runState !== RunState.Started || this.localPlayer.state === PlayerState.Finished || this.localPlayer.state === PlayerState.Forfeit)
       return false;
-    if (task === "int-finalboss-movies")
+    if (task === Task.lastboss)
       return true;
     if (Task.isCell(task)) {
       if (this.runHandler.run?.isMode(RunMode.Lockout) && !this.runHandler.run.runHasCell(task))

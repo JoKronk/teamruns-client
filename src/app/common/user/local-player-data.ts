@@ -7,7 +7,7 @@ import { Run } from "../run/run";
 import { Team } from "../run/team";
 import { Level } from "../opengoal/levels";
 import { UserBase } from "./user";
-import { CitadelOptions } from "../run/run-data";
+import { CitadelOption } from "../run/run-data";
 
 export class LocalPlayerData {
   user: UserBase;
@@ -198,15 +198,15 @@ export class LocalPlayerData {
   }
 
   checkCitadelSkip(run: Run) {
-    if (run.data.citadelSkip === CitadelOptions.Patched)
+    if (run.data.citadelSkip === CitadelOption.Patched)
       this.handleNoCitadelSkip(run);
-    else if (run.data.citadelSkip === CitadelOptions.Shared)
+    else if (run.data.citadelSkip === CitadelOption.Shared)
       this.handleCitadelSkip(run);
   }
 
   private handleNoCitadelSkip(run: Run) {
     if (!this.team) return;
-    const hasAllCitadelCells: boolean = (!run.isMode(RunMode.Lockout) ? this.team.tasks : run.getAllTask()).filter(x => x.gameTask.startsWith("citadel-sage-")).length === 4;
+    const hasAllCitadelCells: boolean = (!run.isMode(RunMode.Lockout) ? this.team.tasks : run.getAllTasks()).filter(x => x.gameTask.startsWith("citadel-sage-")).length === 4;
     if (hasAllCitadelCells) return;
 
     if (this.gameState.currentCheckpoint === "citadel-elevator") {
