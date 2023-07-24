@@ -19,6 +19,7 @@ import { FireStoreService } from "src/app/services/fire-store.service";
 import { CitadelOptions } from "./run-data";
 import { Player } from "../player/player";
 import { PositionData } from "../opengoal/position-data";
+import { Category } from "./category";
 
 export class RunHandler {
     
@@ -70,8 +71,11 @@ export class RunHandler {
                 this.run.spectators.push(new Player(this.localPlayer.user));
 
                 //set run info
-                this.info = RunMode[this.run.data.mode] + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\n\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOptions[this.run.data.citadelSkip];
-            
+                if (this.run.data.category == 0)
+                    this.info = this.run.data.name + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOptions[this.run.data.citadelSkip];
+                else
+                    this.info = this.run.data.name + "\n\n" + RunMode[this.run.data.mode] + "\nCategory: " + Category.GetGategories()[this.run.data.category].displayName + "\nSame Level: " + this.run.data.requireSameLevel;
+
                 //setup position listener
                 if (this.run.data.showOtherPlayers) {
                     this.positionListener = (window as any).electron.receive("og-position-update", (target: PositionData) => {
