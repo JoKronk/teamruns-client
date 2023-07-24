@@ -9,7 +9,6 @@ export class Team {
     players: Player[] = [];
     tasks: Task[];
     cellCount: number;
-    owner: string = "";
 
     constructor(id: number, name: string) {
         this.id = id;
