@@ -14,6 +14,34 @@
                 </select>
             </div>
             <div class="option">
+                <p>Category</p>
+                <select [(ngModel)]="runData.category" (change)="changeCategory()">
+                    <option *ngFor="let category of categoryOptions" [ngValue]="category.key">{{ category.displayName }}</option>
+                </select>
+            </div>
+            <br />
+            <label><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
+            <div *ngIf="runData.category === 0">
+                <div class="option">
+                    <p>Modifiers</p>
+                </div>
+                <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.showOtherPlayers">Show other players</label>
+                <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
+                <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.normalCellCost">Normal cell costs</label>
+                <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.sharedWarpGatesBetweenTeams">Shared warp gates between teams</label>
+                <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noLTS">No LTS</label>
+                <div class="option">
+                    <p>Citadel Skip</p>
+                    <select [(ngModel)]="runData.citadelSkip">
+                        <option *ngFor="let option of citadelSkipOptions" [ngValue]="option">{{ citadelOptions[option] }}</option>
+                    </select>
+                </div>
+            </div>
+            <button (click)="createRun()">Create Run</button>
+            
+        </div>
+        <div class="tab">
+            <div class="option">
                 <p>Teams (for races)</p>
                 <select [(ngModel)]="runData.teams" (change)="changeTeams()">
                     <option *ngFor="let teams of teamsOptions" [ngValue]="teams">{{ runData.mode === runMode.Lockout && teams === 1 ? "Free for All" : teams }}</option>
@@ -25,26 +53,6 @@
                     <option *ngFor="let secs of countdownOptions" [ngValue]="secs">{{ secs }} Seconds</option>
                 </select>
             </div>
-            <button (click)="createRun()">Create Run</button>
-            
-        </div>
-        <div class="tab">
-            <div class="option">
-                <p>Modifiers</p>
-            </div>
-            <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.showOtherPlayers">Show other players</label>
-            <label><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
-            <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
-            <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.normalCellCost">Normal cell costs</label>
-            <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.sharedWarpGatesBetweenTeams">Shared warp gates between teams</label>
-            <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noLTS">No LTS</label>
-            <div class="option">
-                <p>Citadel Skip</p>
-                <select [(ngModel)]="runData.citadelSkip">
-                    <option *ngFor="let option of citadelSkipOptions" [ngValue]="option">{{ citadelOptions[option] }}</option>
-                </select>
-            </div>
-            <br />
             <div class="option">
                 <p>Password (optional)</p>
                 <input [(ngModel)]="password" maxlength="20">

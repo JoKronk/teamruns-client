@@ -8,6 +8,7 @@ import { RunMode } from 'src/app/common/run/run-mode';
 import { Lobby } from 'src/app/common/firestore/lobby';
 import { Preset } from 'src/app/common/firestore/preset';
 import { UserService } from 'src/app/services/user.service';
+import { Category, CategoryOption } from 'src/app/common/run/category';
 
 @Component({
   selector: 'app-create-run',
@@ -17,9 +18,10 @@ import { UserService } from 'src/app/services/user.service';
 export class CreateRunComponent {
 
   runData: RunData = new RunData(pkg.version);
+  categoryOptions: Category[] = Category.GetGategories();
   teamsOptions: number[] = [1, 2, 3, 4];
   countdownOptions: number[] = [5, 10, 15];
-  citadelSkipOptions: number[] = [0, 1, 2];
+  citadelSkipOptions: number[] = Object.values(CitadelOptions).filter((v) => !isNaN(Number(v))).map(x => parseInt(x.toString()));
   password: string | null = null;
 
   runMode = RunMode;
@@ -50,11 +52,24 @@ export class CreateRunComponent {
   }
 
   changeMode() {
-    if (this.runData.mode === RunMode.Lockout && this.runData.teams === 1) {
-        this.runData.teams = 2;
+    if (this.runData.mode === RunMode.Lockout) {
+        if (this.runData.teams === 1)
+          this.runData.teams = 2;
+        
+        this.categoryOptions = [Category.GetGategories()[0]];
+        this.runData.category = CategoryOption.Custom;
+    }
+    else {
+      this.categoryOptions = Category.GetGategories();
+      this.runData.category = CategoryOption.NoLts;
     }
   }
   changeTeams() {
+    if (this.runData.mode === RunMode.Lockout && this.runData.teams === 1) {
+        this.runData.requireSameLevel = false;
+    }
+  }
+  changeCategory() {
     if (this.runData.mode === RunMode.Lockout && this.runData.teams === 1) {
         this.runData.requireSameLevel = false;
     }
