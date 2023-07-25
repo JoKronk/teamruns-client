@@ -15,6 +15,8 @@ export class Task {
         this.obtainedAt = timerTime;
     }
 
+    public static lastboss = "int-finalboss-movies";
+
     public static getTaskStatusValues(): Map<string, number> {
         return new Map([
             ["invalid", 8], //is 0 in game but making it 8 here as it's set last

@@ -1,16 +1,14 @@
 export class UserBase {
     id: string;
     name: string;
-    twitchName: string;
 
-    constructor(id: string, name: string, twitch: string) {
+    constructor(id: string, name: string) {
         this.id =  id;
         this.name = name;
-        this.twitchName = twitch;
     }
 
     getUserBase(): UserBase {
-        return new UserBase(this.id, this.name, this.twitchName);
+        return new UserBase(this.id, this.name);
     }
 }
 
@@ -18,9 +16,10 @@ export class UserBase {
 export class User extends UserBase {
     ogFolderpath: string = "";
     darkMode: boolean = true;
+    leaderboardName: string;
 
     constructor() {
-        super(crypto.randomUUID(), "", "");
+        super(crypto.randomUUID(), "");
     }
 
     getCopy(): User {
@@ -29,7 +28,6 @@ export class User extends UserBase {
 
     isEqualToDataCopy(copy: User) : boolean {
         return this.name === copy.name &&
-            this.twitchName === copy.twitchName &&
             this.ogFolderpath === copy.ogFolderpath &&
             this.darkMode === copy.darkMode;
     }

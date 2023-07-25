@@ -4,7 +4,7 @@ export class LobbyUser extends UserBase {
     isRunner: boolean;
 
     constructor(user: UserBase, runner: boolean = false) {
-        super(user.id, user.name, user.twitchName);
+        super(user.id, user.name);
         this.isRunner = runner;
     }
 }
