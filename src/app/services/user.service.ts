@@ -44,6 +44,10 @@ export class UserService implements OnDestroy {
     this.UserCopy = this.user.getCopy();
   }
 
+  public hasUserNameChange() {
+    return this.user.id === this.UserCopy.id && this.user.leaderboardName !== this.UserCopy.leaderboardName;
+  }
+
   public sendNotification(message: string, notifDuration: number = 5000) {
     if (this.isBrowser) return;
 

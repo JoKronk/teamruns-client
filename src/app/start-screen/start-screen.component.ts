@@ -1,6 +1,7 @@
 import { Component, ViewChild, ElementRef, OnDestroy, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
+import { DbUser } from '../common/firestore/db-user';
 import { OG } from '../common/opengoal/og';
 import { User } from '../common/user/user';
 import { NewUpdateComponent } from '../dialogs/new-update/new-update.component';
@@ -57,6 +58,11 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
       return;
     }
     this._user.checkWriteUserDataHasChanged();
+
+    if (this._user.hasUserNameChange()) {
+      this._firestore.updateUser(new DbUser(this._user.user.id, this._user.user.leaderboardName));
+    }
+
     this.blackscreen.nativeElement.classList.remove('blackscreen-fade');
     setTimeout(() => {
       this.router.navigate(['/lobby']);

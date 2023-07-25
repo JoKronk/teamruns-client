@@ -28,6 +28,7 @@ export class User extends UserBase {
 
     isEqualToDataCopy(copy: User) : boolean {
         return this.name === copy.name &&
+            this.leaderboardName === copy.leaderboardName &&
             this.ogFolderpath === copy.ogFolderpath &&
             this.darkMode === copy.darkMode;
     }

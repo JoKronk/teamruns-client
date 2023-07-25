@@ -75,9 +75,9 @@
             border: 1px solid #636363;
             border-radius: 6px;
             outline: none;
-            cursor: pointer;
             transition: 0.3s;
-            &:hover {
+            &:not([disabled]):hover {
+                cursor: pointer;
                 color: rgb(204, 204, 204, 0.8);
                 background-color: rgba(85, 85, 85, 0.8);
                 border: 1px solid rgb(99, 99, 99, 0.6);

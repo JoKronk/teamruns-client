@@ -3,6 +3,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { environment } from 'src/environments/environment';
 import { CollectionName } from '../common/firestore/collection-name';
+import { DbUser } from '../common/firestore/db-user';
 import { Lobby } from '../common/firestore/lobby';
 import { Preset } from '../common/firestore/preset';
 import { DataChannelEvent } from '../common/peer/data-channel-event';
@@ -15,11 +16,13 @@ import { Run } from '../common/run/run';
 export class FireStoreService {
 
   private runs: AngularFirestoreCollection<Run>;
+  private users: AngularFirestoreCollection<DbUser>;
   private lobbies: AngularFirestoreCollection<Lobby>;
   private isAuthenticated: boolean = false;
 
   constructor(public firestore: AngularFirestore, public auth: AngularFireAuth) {
     this.runs = firestore.collection<Run>(CollectionName.runs);
+    this.users = firestore.collection<DbUser>(CollectionName.users);
     this.lobbies = firestore.collection<Lobby>(CollectionName.lobbies);
   }
 
@@ -91,6 +94,11 @@ export class FireStoreService {
     await this.lobbies.doc<Lobby>(lobbyId).collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(id).delete();
   }
 
+  async updateUser(user: DbUser) {
+    this.checkAuthenticated();
+    await this.users.doc<DbUser>(user.id).set(JSON.parse(JSON.stringify(user)));
+  }
+
   async getRun(id: string) {
     this.checkAuthenticated();
     return (await this.runs.doc(id).ref.get()).data();
@@ -100,6 +108,11 @@ export class FireStoreService {
     this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
     await this.runs.doc<Run>().set(JSON.parse(JSON.stringify(run)));
+  }
+
+  async deleteRun(id: string) {
+    this.checkAuthenticated();
+    await this.runs.doc<Run>(id).delete();
   }
 
   async getPreset(id: string) {
