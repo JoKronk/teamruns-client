@@ -389,10 +389,12 @@ export class RunHandler {
 
             case EventType.EndPlayerRun:  
                 this.zone.run(() => { 
-                    this.run?.endPlayerRun(event.userId, event.value);
+                    this.run?.endPlayerRun(event.userId, event.value.gameTask === Task.forfeit);
+                    this.run?.checkTeamEnd(event.value);
 
-                    if (isMaster && this.run?.timer.runState === RunState.Ended && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit))
+                    if (isMaster && this.run?.timer.runState === RunState.Ended && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit)) {
                         this.firestoreService.addRun(this.run);
+                    }
                 });
                 break;
 

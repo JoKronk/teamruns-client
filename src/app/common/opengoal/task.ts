@@ -16,6 +16,7 @@ export class Task {
     }
 
     public static lastboss = "int-finalboss-movies";
+    public static forfeit = "int-finalboss-forfeit";
 
     public static getTaskStatusValues(): Map<string, number> {
         return new Map([

@@ -82,6 +82,15 @@ export class Run {
         return this.teams.every(x => x.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit));
     }
 
+    checkTeamEnd(task: Task): void {
+        let team = this.getPlayerTeam(task.obtainedById);
+        if (!team) return;
+        if (team.players.every(y => y.state === PlayerState.Finished))
+            team.endTime = "DNF";
+        else if (team.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit)) 
+            team.endTime = task.obtainedAt;
+    }
+
     updateState(playerId: string, state: GameState): void {
         let player = this.getPlayer(playerId);
         if (!player) return;
@@ -168,6 +177,10 @@ export class Run {
 
     getAllTasks(): Task[] {
         return this.teams.flatMap(x => x.tasks);
+    }
+
+    getPlayerTasks(playerId: string): Task[] {
+        return this.getPlayerTeam(playerId)?.tasks.filter(x => x.obtainedById === playerId) ?? [];
     }
 
 

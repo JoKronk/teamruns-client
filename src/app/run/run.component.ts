@@ -58,8 +58,9 @@ export class RunComponent implements OnDestroy {
       dialogSubscription.unsubscribe();
       if (confirmed) {
         this.localPlayer.state = PlayerState.Forfeit;
-        this.runHandler.sendEvent(EventType.NewCell, new Task("int-finalboss-forfeit", this.localPlayer.user, this.runHandler.run!.getTimerShortenedFormat()));
-        this.runHandler.sendEvent(EventType.EndPlayerRun, true);
+        let task = new Task(Task.forfeit, this.localPlayer.user, this.runHandler.run!.getTimerShortenedFormat());
+        this.runHandler.sendEvent(EventType.NewCell, task);
+        this.runHandler.sendEvent(EventType.EndPlayerRun, task);
       }
     });
   }
@@ -70,7 +71,7 @@ export class RunComponent implements OnDestroy {
   }
 
   toggleReset() {
-    this.localPlayer.state = this.localPlayer.state === PlayerState.WantsToReset ? this.localPlayer.team?.tasks.some(x => x.obtainedById === this.localPlayer.user.id && x.gameTask === "int-finalboss-forfeit") ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
+    this.localPlayer.state = this.localPlayer.state === PlayerState.WantsToReset ? this.localPlayer.team?.tasks.some(x => x.obtainedById === this.localPlayer.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
     this.runHandler.sendEvent(EventType.ToggleReset, this.localPlayer.state);
   }
 
@@ -176,7 +177,7 @@ export class RunComponent implements OnDestroy {
           //run end
           if (task === Task.lastboss) {
             this.localPlayer.state = PlayerState.Finished;
-            this.runHandler.sendEvent(EventType.EndPlayerRun, false);
+            this.runHandler.sendEvent(EventType.EndPlayerRun, cell);
           }
         }
       });
