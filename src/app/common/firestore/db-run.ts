@@ -55,11 +55,6 @@ export class DbRun {
             });
         });
 
-
-        this.teams.forEach((team, index) => {
-            this.teams[index].players = team.players.sort((x, y) => y.cellsCollected - x.cellsCollected);
-        });
-
         return this;
     }
 
