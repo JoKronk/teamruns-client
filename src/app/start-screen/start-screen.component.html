@@ -8,11 +8,11 @@
     <div class="login-container">
         <div class="input-container">
             <p>Display Name</p>
-            <input [(ngModel)]="_user.user.name" (keyup.enter)="sendToLobby()" maxlength="20">
+            <input [(ngModel)]="_user.user.displayName" (keyup.enter)="sendToLobby()" maxlength="20">
         </div>
         <div class="input-container">
             <p>Username</p>
-            <input [(ngModel)]="_user.user.leaderboardName" (keyup.enter)="sendToLobby()">
+            <input [(ngModel)]="_user.user.name" (keyup.enter)="sendToLobby()">
         </div>
         <button (click)="startGame()">Launch Game</button>
         <button (click)="sendToLobby()" [disabled]="!_user.user.name || !_user.user.leaderboardName">Find Run</button>

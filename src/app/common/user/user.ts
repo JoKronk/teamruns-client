@@ -16,7 +16,7 @@ export class UserBase {
 export class User extends UserBase {
     ogFolderpath: string = "";
     darkMode: boolean = true;
-    leaderboardName: string;
+    displayName: string;
 
     constructor() {
         super(crypto.randomUUID(), "");
@@ -28,8 +28,12 @@ export class User extends UserBase {
 
     isEqualToDataCopy(copy: User) : boolean {
         return this.name === copy.name &&
-            this.leaderboardName === copy.leaderboardName &&
+            this.displayName === copy.displayName &&
             this.ogFolderpath === copy.ogFolderpath &&
             this.darkMode === copy.darkMode;
+    }
+
+    createUserBaseFromDisplayName(): UserBase {
+        return new UserBase(this.id, this.displayName);
     }
 }

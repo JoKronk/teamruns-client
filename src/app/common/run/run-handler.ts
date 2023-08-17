@@ -66,7 +66,7 @@ export class RunHandler {
                 this.run = new Run(this.lobby.runData);
 
                 //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
-                this.localPlayer.user = this.userService.user.getUserBase();
+                this.localPlayer.user = this.userService.user.createUserBaseFromDisplayName();
                 this.localPlayer.mode = this.run.data.mode;
                 this.run.spectators.push(new Player(this.localPlayer.user));
 
@@ -183,7 +183,7 @@ export class RunHandler {
 
     setupMaster() {
         console.log("Setting up master!");
-        this.localMaster = new RTCPeerMaster(this.userService.user.getUserBase(), this.run!.data.showOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id));
+        this.localMaster = new RTCPeerMaster(this.userService.user.createUserBaseFromDisplayName(), this.run!.data.showOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id));
         this.dataSubscription = this.localMaster.eventChannel.subscribe(event => {
             if (!this.localMaster?.isBeingDestroyed)
             this.onDataChannelEvent(event, true);
@@ -198,7 +198,7 @@ export class RunHandler {
 
     setupSlave() {
         console.log("Setting up slave!");
-        this.localSlave = new RTCPeerSlave(this.userService.user.getUserBase(), this.run!.data.showOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id), this.lobby!.host!);
+        this.localSlave = new RTCPeerSlave(this.userService.user.createUserBaseFromDisplayName(), this.run!.data.showOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id), this.lobby!.host!);
         this.dataSubscription = this.localSlave.eventChannel.subscribe(event => {
             if (!this.localSlave?.isBeingDestroyed)
                 this.onDataChannelEvent(event, false);

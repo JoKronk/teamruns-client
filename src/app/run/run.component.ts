@@ -29,7 +29,7 @@ export class RunComponent implements OnDestroy {
   runState = RunState;
 
   //component variables
-  localPlayer: LocalPlayerData = new LocalPlayerData(this._user.user.getUserBase());
+  localPlayer: LocalPlayerData = new LocalPlayerData(this._user.user.createUserBaseFromDisplayName());
   runHandler: RunHandler;
 
   editingName: boolean;

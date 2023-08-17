@@ -45,7 +45,7 @@ export class UserService implements OnDestroy {
   }
 
   public hasUserNameChange() {
-    return this.user.id === this.UserCopy.id && this.user.leaderboardName !== this.UserCopy.leaderboardName;
+    return this.user.id === this.UserCopy.id && this.user.name !== this.UserCopy.name;
   }
 
   public sendNotification(message: string, notifDuration: number = 5000) {
