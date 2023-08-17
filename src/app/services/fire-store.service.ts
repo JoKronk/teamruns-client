@@ -3,12 +3,12 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { environment } from 'src/environments/environment';
 import { CollectionName } from '../common/firestore/collection-name';
-import { DbUser } from '../common/firestore/db-user';
 import { Lobby } from '../common/firestore/lobby';
 import { Preset } from '../common/firestore/preset';
 import { DataChannelEvent } from '../common/peer/data-channel-event';
 import { RTCPeer } from '../common/peer/rtc-peer';
 import { Run } from '../common/run/run';
+import { DbUsersCollection } from '../common/firestore/db-users-collection';
 
 @Injectable({
   providedIn: 'root'
@@ -16,13 +16,13 @@ import { Run } from '../common/run/run';
 export class FireStoreService {
 
   private runs: AngularFirestoreCollection<Run>;
-  private users: AngularFirestoreCollection<DbUser>;
+  private globalData: AngularFirestoreCollection<DbUsersCollection>;
   private lobbies: AngularFirestoreCollection<Lobby>;
   private isAuthenticated: boolean = false;
 
   constructor(public firestore: AngularFirestore, public auth: AngularFireAuth) {
     this.runs = firestore.collection<Run>(CollectionName.runs);
-    this.users = firestore.collection<DbUser>(CollectionName.users);
+    this.globalData = firestore.collection<DbUsersCollection>(CollectionName.globalData);
     this.lobbies = firestore.collection<Lobby>(CollectionName.lobbies);
   }
 
@@ -94,9 +94,14 @@ export class FireStoreService {
     await this.lobbies.doc<Lobby>(lobbyId).collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(id).delete();
   }
 
-  async updateUser(user: DbUser) {
+  async getUsers() {
     this.checkAuthenticated();
-    await this.users.doc<DbUser>(user.id).set(JSON.parse(JSON.stringify(user)));
+    return (await this.globalData.doc("users").ref.get()).data();
+  }
+
+  async updateUsers(userCollection: DbUsersCollection) {
+    this.checkAuthenticated();
+    await this.globalData.doc<DbUsersCollection>("users").set(JSON.parse(JSON.stringify(userCollection)));
   }
 
   async getRun(id: string) {

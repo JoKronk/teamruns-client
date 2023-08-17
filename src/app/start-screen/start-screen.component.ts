@@ -1,13 +1,13 @@
 import { Component, ViewChild, ElementRef, OnDestroy, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { DbUser } from '../common/firestore/db-user';
 import { OG } from '../common/opengoal/og';
 import { User } from '../common/user/user';
 import { NewUpdateComponent } from '../dialogs/new-update/new-update.component';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { FireStoreService } from '../services/fire-store.service';
 import { UserService } from '../services/user.service';
+import { DbUsersCollection } from '../common/firestore/db-users-collection';
 
 @Component({
   selector: 'app-start-screen',
@@ -60,7 +60,15 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     this._user.checkWriteUserDataHasChanged();
 
     if (this._user.hasUserNameChange()) {
-      this._firestore.updateUser(new DbUser(this._user.user.id, this._user.user.leaderboardName));
+      this._firestore.getUsers().then(collection => {
+        if (!collection) collection = new DbUsersCollection();
+
+        let user = collection.users.find(user => user.id === this._user.user.id);
+        if (user) {
+          user.name = this._user.user.name;
+        }
+        this._firestore.updateUsers(collection);
+      });
     }
 
     this.blackscreen.nativeElement.classList.remove('blackscreen-fade');
