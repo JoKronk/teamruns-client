@@ -20,6 +20,7 @@ import { CitadelOption } from "./run-data";
 import { Player } from "../player/player";
 import { PositionData } from "../opengoal/position-data";
 import { Category } from "./category";
+import { DbRun } from "../firestore/db-run";
 
 export class RunHandler {
     
@@ -393,7 +394,7 @@ export class RunHandler {
                     this.run?.checkTeamEnd(event.value);
 
                     if (isMaster && this.run?.timer.runState === RunState.Ended && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit)) {
-                        this.firestoreService.addRun(this.run);
+                        this.firestoreService.addNewStyleRun(DbRun.convertToFromRun(this.run));
                     }
                 });
                 break;

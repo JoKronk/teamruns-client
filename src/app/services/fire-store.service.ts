@@ -3,6 +3,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { environment } from 'src/environments/environment';
 import { CollectionName } from '../common/firestore/collection-name';
+import { DbRun } from '../common/firestore/db-run';
 import { Lobby } from '../common/firestore/lobby';
 import { Preset } from '../common/firestore/preset';
 import { DataChannelEvent } from '../common/peer/data-channel-event';
@@ -16,12 +17,14 @@ import { DbUsersCollection } from '../common/firestore/db-users-collection';
 export class FireStoreService {
 
   private runs: AngularFirestoreCollection<Run>;
+  private newStyleRuns: AngularFirestoreCollection<DbRun>;
   private globalData: AngularFirestoreCollection<DbUsersCollection>;
   private lobbies: AngularFirestoreCollection<Lobby>;
   private isAuthenticated: boolean = false;
 
   constructor(public firestore: AngularFirestore, public auth: AngularFireAuth) {
     this.runs = firestore.collection<Run>(CollectionName.runs);
+    this.newStyleRuns = firestore.collection<DbRun>(CollectionName.newStyleRuns);
     this.globalData = firestore.collection<DbUsersCollection>(CollectionName.globalData);
     this.lobbies = firestore.collection<Lobby>(CollectionName.lobbies);
   }
@@ -109,10 +112,32 @@ export class FireStoreService {
     return (await this.runs.doc(id).ref.get()).data();
   }
 
-  async addRun(run:Run) {
+  getRuns() {
+    this.checkAuthenticated();
+    return this.firestore.collection<Run>(CollectionName.runs, ref => ref.where('data.mode', '==', 0)).valueChanges({idField: 'runId'});
+  }
+
+  getUserRuns(userId: string) {
+    this.checkAuthenticated();
+    return this.firestore.collection<DbRun>(CollectionName.newStyleRuns, ref => ref.where('playerIds', 'array-contains', userId).orderBy('date', 'desc')).valueChanges({idField: 'id'});
+  }
+
+  getNewStyleRuns() {
+    this.checkAuthenticated();
+    return this.firestore.collection<DbRun>(CollectionName.newStyleRuns, ref => ref.orderBy('date').limit(10)).valueChanges({idField: 'id'});
+  }
+
+  async addRun(run: Run) {
     this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
     await this.runs.doc<Run>().set(JSON.parse(JSON.stringify(run)));
+  }
+
+  async addNewStyleRun(run: DbRun) {
+    this.checkAuthenticated();
+    //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
+
+    await this.newStyleRuns.doc<DbRun>().set(JSON.parse(JSON.stringify(run)));
   }
 
   async deleteRun(id: string) {

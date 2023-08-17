@@ -1,4 +1,5 @@
 export class CollectionName {
+    static newStyleRuns = "newStyleRuns";
     static globalData = "globalData";
     static runs = "runs";
     static lobbies = "lobbies";
