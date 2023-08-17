@@ -1,0 +1,133 @@
+
+.page {
+    &-container {
+        padding: 0 20px;
+        display: flex;
+        flex-direction: column;
+        max-height: 100%;
+    }
+    &-header {
+        flex-shrink: 1;
+    }
+    &-table {
+        flex: 1;
+        overflow: auto;
+        border: 1px solid red;
+        &-cont {
+            overflow: auto;
+            border: 1px solid red;
+            flex-grow: 1;
+            margin: 0px 24px 64px;
+        }
+        &-info {
+            flex-shrink: 1;
+        }
+    }
+}
+
+.no-wrap {
+    white-space: nowrap;
+}
+
+.team {
+    display: flex;
+    flex-direction: column;
+    margin: 5px 0px 5px;
+    min-height: 0;
+    width: 100%;
+    padding: 8px 0;
+    border-top: 4px solid #383838;
+    border-bottom: 3px solid #383838;
+    &-cont {
+        display: flex;
+        margin-bottom: 16px;
+    }
+    &-players {
+        margin: 0 6px;
+        display: inline;
+        color: #cccccc;
+        white-space: nowrap;
+        flex-shrink: 1;
+        &-cont {
+            border-left: 1px solid #a56d06;
+            flex-grow: 1;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        & span {
+            color: #acacac;
+            margin: 0;
+            margin-right: 4px;
+        }
+        &-cells {
+            margin-left: 0px;
+            height: 19px;
+            &-cont {
+                font-family: 'precursor';
+                font-size: 18px;
+                color: rgb(212, 144, 18, 0.7) !important;
+            }
+        }
+    }
+    &-splits{
+        border-left: 1px solid #a56d06;
+        flex: 1;
+        position: relative;
+        padding: 5px 10px 0px;
+        max-height: 400px;
+        max-width: 350px;
+    }
+}
+
+
+.backtext {
+    -webkit-user-select: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'precursor';
+    font-size: 40px;
+    z-index: -1;
+    color: rgba(61, 61, 61, 0.9);
+    text-shadow: 0px 2px 3px rgba(51, 51, 51, 0.8);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+#name {
+    position: absolute;
+    bottom: 3px;
+    left: 0;
+    font-family: 'jak';
+    font-size: 30px;
+    margin: 0;
+    margin-left: 5px;
+}
+
+table {
+    width: 100%;
+  }
+td {
+    color: #a8a8a8 !important;
+}
+tr.run-expanded-row {
+height: 0;
+}
+
+tr.run-row:not(.example-expanded-row):hover {
+background: whitesmoke;
+}
+
+tr.run-row:not(.example-expanded-row):active {
+background: #efefef;
+}
+
+.run-row td {
+border-bottom-width: 0;
+}
+
+
+.mat-mdc-table {
+    background: none !important;
+}
