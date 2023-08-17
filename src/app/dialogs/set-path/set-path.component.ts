@@ -19,7 +19,7 @@ export class SetPathComponent implements OnDestroy {
 
   setPath() {
     this._user.user.ogFolderpath = this.path;
-    this._user.checkWriteUserDataHasChanged();
+    this._user.writeUserDataChangeToLocal();
     this.dialogRef.close();
   }
 

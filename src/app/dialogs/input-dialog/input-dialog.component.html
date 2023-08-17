@@ -1,0 +1,13 @@
+<div class="container">
+    <h2>{{input.precursorTitle}}</h2>
+    
+    <div class="option">
+        <p>{{input.title}}</p>
+        <input [(ngModel)]="userInput" maxlength="36">
+    </div>
+    
+    <div class="buttons">
+        <button class="cancel" (click)="close()">Cancel</button>
+        <button (click)="confirm()">{{input.confirmText}}</button>
+    </div>
+</div>

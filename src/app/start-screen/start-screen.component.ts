@@ -8,6 +8,8 @@ import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { FireStoreService } from '../services/fire-store.service';
 import { UserService } from '../services/user.service';
 import { DbUsersCollection } from '../common/firestore/db-users-collection';
+import { DbUser } from '../common/firestore/db-user';
+import { InputDialogComponent } from '../dialogs/input-dialog/input-dialog.component';
 
 @Component({
   selector: 'app-start-screen',
@@ -53,20 +55,25 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
 
   sendToLobby() {
     this._user.user.name = this._user.user.name.trim();
-    if (this._user.user.name.length === 0) {
+    if (!this._user.user.name || this._user.user.name.length === 0) {
       this._user.sendNotification("Please enter a username!");
       return;
     }
-    this._user.checkWriteUserDataHasChanged();
+    if (!this._user.user.displayName || this._user.user.displayName.length === 0)
+      this._user.user.displayName = this._user.user.name;
+    
+    if (this._user.userHasChanged()) {
+      this._user.writeUserDataChangeToLocal();
 
-    if (this._user.hasUserNameChange()) {
       this._firestore.getUsers().then(collection => {
-        if (!collection) collection = new DbUsersCollection();
+        if (!collection) return;
 
         let user = collection.users.find(user => user.id === this._user.user.id);
-        if (user) {
-          user.name = this._user.user.name;
-        }
+        if (user)
+          user = new DbUser(this._user.user);
+        else
+          collection.users.push(new DbUser(this._user.user));
+
         this._firestore.updateUsers(collection);
       });
     }
@@ -75,6 +82,28 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     setTimeout(() => {
       this.router.navigate(['/lobby']);
     }, 300);
+  }
+
+  openUserImport() {
+    const dialogRef = this.dialog.open(InputDialogComponent, { data: { passwordCheck: false, precursorTitle: "Key", title: "User Key:", confirmText: "Import" } });
+    const dialogSubscription = dialogRef.afterClosed().subscribe((userId: string | null) => {
+      dialogSubscription.unsubscribe();
+      if (!userId || userId.length === 0) return;
+
+      this._firestore.getUsers().then(collection => {
+        if (!collection) return;
+
+        let user = collection.users.find(user => user.id === userId);
+        if (user) {
+          this._user.user.importUser(user);
+          this._user.sendNotification("User successfully imported.");
+        }
+        else
+          this._user.sendNotification("User not found.");
+
+        this._firestore.updateUsers(collection);
+      });
+    });
   }
 
   startGame() {

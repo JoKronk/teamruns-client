@@ -8,7 +8,7 @@ import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { Lobby } from '../common/firestore/lobby';
 import { RunMode } from '../common/run/run-mode';
-import { GivePasswordComponent } from '../dialogs/give-password/give-password.component';
+import { InputDialogComponent } from '../dialogs/input-dialog/input-dialog.component';
 import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
 
 @Component({
@@ -65,7 +65,7 @@ export class LobbyComponent implements OnDestroy {
 
   routeToRun(lobby: Lobby) {
     if (lobby.password) {
-      const dialogRef = this.dialog.open(GivePasswordComponent, { data: lobby.password });
+      const dialogRef = this.dialog.open(InputDialogComponent, { data: { passwordCheck: true, password: lobby.password, precursorTitle: "Password", title: "Lobby password:", confirmText: "Join" } });
       const dialogSubscription = dialogRef.afterClosed().subscribe((successful: boolean | null) => {
         dialogSubscription.unsubscribe();
         if (successful === undefined)

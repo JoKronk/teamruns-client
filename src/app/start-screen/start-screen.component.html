@@ -14,8 +14,10 @@
             <p>Username</p>
             <input [(ngModel)]="_user.user.name" (keyup.enter)="sendToLobby()">
         </div>
-        <button (click)="startGame()">Launch Game</button>
-        <button (click)="sendToLobby()" [disabled]="!_user.user.name || !_user.user.leaderboardName">Find Run</button>
+        <div class="input-container-buttons">
+            <button (click)="openUserImport()">Import User</button>
+            <button (click)="sendToLobby()">Login</button>
+        </div>
     </div>
 </div>
 

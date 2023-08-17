@@ -68,9 +68,10 @@
             font-family: 'jak';
             font-size: 24px;
             color: #cccccc;
-            margin: 30px 10px;
-            height: 76px;
-            width: 160px;
+            margin: 30px 18px;
+            height: 68px;
+            width: 120px;
+            flex-shrink: 1;
             background-color: #3e3e3e;
             border: 1px solid #636363;
             border-radius: 6px;
@@ -89,6 +90,9 @@
 .input-container {
     margin: 10px 10px 30px;
     font-family: 'jak';
+    &-buttons {
+        display: flex;
+    }
     & p {
         font-size: 22px;
         margin: 4px;

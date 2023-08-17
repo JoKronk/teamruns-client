@@ -37,15 +37,14 @@ export class UserService implements OnDestroy {
     this.router.navigate([link]);
   }
 
-  public checkWriteUserDataHasChanged() {
-    if (!this.user.isEqualToDataCopy(this.UserCopy))
-      this.writeSettings();
-    
-    this.UserCopy = this.user.getCopy();
+  public userHasChanged(): boolean {
+    return !this.user.isEqualToDataCopy(this.UserCopy);
   }
 
-  public hasUserNameChange() {
-    return this.user.id === this.UserCopy.id && this.user.name !== this.UserCopy.name;
+  public writeUserDataChangeToLocal() {
+    console.log("writing tho")
+    this.writeSettings();
+    this.UserCopy = this.user.getCopy();
   }
 
   public sendNotification(message: string, notifDuration: number = 5000) {

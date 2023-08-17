@@ -1,3 +1,5 @@
+import { DbUser } from "../firestore/db-user";
+
 export class UserBase {
     id: string;
     name: string;
@@ -35,5 +37,11 @@ export class User extends UserBase {
 
     createUserBaseFromDisplayName(): UserBase {
         return new UserBase(this.id, this.displayName);
+    }
+
+    importUser(user: DbUser) {
+        this.id =  user.id;
+        this.name = user.name;
+        this.displayName = user.displayName;
     }
 }

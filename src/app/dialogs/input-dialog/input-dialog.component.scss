@@ -1,6 +1,6 @@
 .container {
     padding: 10px 20px 30px;
-    width: 280px;
+    width: 380px;
     font-family: 'jak';
     font-weight: bold;
     font-size: 22px;
@@ -24,7 +24,7 @@
         background: rgba(14, 14, 14, 0.8);
         border-radius: 4px;
         height: 36px;
-        width: 250px;
+        width: 350px;
         transition: 0.3s;
         transition-timing-function: ease;
         color: #ffffff;
@@ -50,14 +50,20 @@ h2 {
     font-size: 36px;
 }
 
+.buttons {
+    display: flex;
+    justify-content: space-around;
+}
+
 button {
+    flex-shrink: 1;
     margin-top: 26px;
     margin-right: 12px;
     font-family: 'jak';
     font-size: 20px;
     color: #cccccc;
     height: 40px;
-    width: 125px;
+    width: 165px;
     background-color: #3e3e3e;
     border: 1px solid #636363;
     border-radius: 6px;
@@ -71,9 +77,6 @@ button {
     }
 }
 
-.cancel {
-    float: right;
-    &:hover {
-        background-color: #380000;
-    }
+.cancel:hover {
+    background-color: #380000;
 }
