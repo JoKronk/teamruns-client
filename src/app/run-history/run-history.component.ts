@@ -52,21 +52,7 @@ export class RunHistoryComponent {
 
   }
 
-
   routeToLobby() {
     this.router.navigate(['/lobby' ]);
   }
-  
-  convertOldRuns() {
-    const runsSubscription = this.firestoreService.getRuns().subscribe(oldRuns => {
-      runsSubscription.unsubscribe();
-      oldRuns.forEach(run => {
-        let dbRun = DbRun.convertToFromRun(run);
-
-        this.runs.push(dbRun);
-      });  
-      this.dataSource = new MatTableDataSource(this.runs);
-    });
-  }
-
 }
