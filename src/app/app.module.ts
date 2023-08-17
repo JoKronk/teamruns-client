@@ -11,6 +11,7 @@ import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {MatTableModule} from '@angular/material/table';
 
 import { NavBoardComponent } from './nav-board/nav-board.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
@@ -33,6 +34,7 @@ import { InfoComponent } from './dialogs/info/info.component';
 import { NewUpdateComponent } from './dialogs/new-update/new-update.component';
 import { GivePasswordComponent } from './dialogs/give-password/give-password.component';
 import { HeaderComponent } from './header/header.component';
+import { RunHistoryComponent } from './run-history/run-history.component';
 
 @NgModule({
   declarations: [
@@ -53,7 +55,8 @@ import { HeaderComponent } from './header/header.component';
     InfoComponent,
     NewUpdateComponent,
     GivePasswordComponent,
-    HeaderComponent
+    HeaderComponent,
+    RunHistoryComponent
   ],
   imports: [
     BrowserModule,
@@ -65,6 +68,7 @@ import { HeaderComponent } from './header/header.component';
     MatDialogModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    MatTableModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule,
     AngularFireAuthModule

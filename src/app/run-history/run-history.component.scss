@@ -2,29 +2,27 @@
 .page {
     &-container {
         padding: 0 20px;
+        height: 100%;
         display: flex;
         flex-direction: column;
-        max-height: 100%;
+        position: relative;
     }
     &-header {
         flex-shrink: 1;
     }
+    &-info {
+        flex-shrink: 1;
+    }
     &-table {
-        flex: 1;
         overflow: auto;
-        border: 1px solid red;
-        &-cont {
-            overflow: auto;
-            border: 1px solid red;
-            flex-grow: 1;
-            margin: 0px 24px 64px;
-        }
-        &-info {
-            flex-shrink: 1;
-        }
+        flex-grow: 1;
+        margin: 0px 12px 46px;
     }
 }
 
+h2 {
+    margin: 0;
+}
 .no-wrap {
     white-space: nowrap;
 }
@@ -40,7 +38,11 @@
     border-bottom: 3px solid #383838;
     &-cont {
         display: flex;
-        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #d49012;
+        &-bg {
+            background-color: #3e3e3e;
+        }
     }
     &-players {
         margin: 0 6px;
@@ -114,13 +116,31 @@ td {
 tr.run-expanded-row {
 height: 0;
 }
-
-tr.run-row:not(.example-expanded-row):hover {
-background: whitesmoke;
+tr.run-row:not(.run-expanded-row-open) {
+    transition: 0.2s;
 }
 
-tr.run-row:not(.example-expanded-row):active {
-background: #efefef;
+tr.run-row:not(.run-expanded-row-open):hover {
+    background-color: rgba(204, 204, 204, 0.1);
+    cursor: pointer;
+}
+
+tr.run-row:not(.run-expanded-row-open):active {
+    background-color: rgba(204, 204, 204, 0.2);
+}
+
+.mdc-data-table__cell {
+    padding: 0;
+}
+
+.mat-mdc-row:nth-child(2n+1){
+    background-color: #3e3e3e;
+}
+.mat-mdc-row:not(:nth-child(4n+1)){
+    background-color:#3b3b3b;
+}
+.mat-mdc-row:nth-child(even){
+    background-color: #d49012;
 }
 
 .run-row td {

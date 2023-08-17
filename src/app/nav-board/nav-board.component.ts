@@ -4,6 +4,7 @@ import { OG } from '../common/opengoal/og';
 import { InfoComponent } from '../dialogs/info/info.component';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { UserService } from '../services/user.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-nav-board',
@@ -12,7 +13,7 @@ import { UserService } from '../services/user.service';
 })
 export class NavBoardComponent {
 
-  constructor(public _user: UserService, private dialog: MatDialog) {
+  constructor(public _user: UserService, private dialog: MatDialog, private router: Router) {
     
   }
 
@@ -28,6 +29,10 @@ export class NavBoardComponent {
   getObsLink() {
     this._user.copyLink("https://teamrun.web.app/obs?user=" + this._user.getId() + "&height=800&bgColor=4e4e4e&timerBorder=true");
     this._user.viewSettings = false;
+  }
+
+  navHistory() {
+    this.router.navigate(['/history' ]);
   }
 
   openPathConfig() {
