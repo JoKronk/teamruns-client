@@ -1,4 +1,6 @@
 export class CollectionName {
+    static personalBests = "personalBests";
+    static leaderboards = "leaderboards";
     static newStyleRuns = "newStyleRuns";
     static globalData = "globalData";
     static runs = "runs";

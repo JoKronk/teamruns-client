@@ -10,12 +10,17 @@ import { DataChannelEvent } from '../common/peer/data-channel-event';
 import { RTCPeer } from '../common/peer/rtc-peer';
 import { Run } from '../common/run/run';
 import { DbUsersCollection } from '../common/firestore/db-users-collection';
+import { CategoryOption } from '../common/run/category';
+import { DbLeaderboard } from '../common/firestore/db-leaderboard';
+import { DbPb } from '../common/firestore/db-pb';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FireStoreService {
 
+  private personalBests: AngularFirestoreCollection<DbPb>;
+  private leaderboards: AngularFirestoreCollection<DbLeaderboard>;
   private runs: AngularFirestoreCollection<Run>;
   private newStyleRuns: AngularFirestoreCollection<DbRun>;
   private globalData: AngularFirestoreCollection<DbUsersCollection>;
@@ -23,6 +28,9 @@ export class FireStoreService {
   private isAuthenticated: boolean = false;
 
   constructor(public firestore: AngularFirestore, public auth: AngularFireAuth) {
+
+    this.personalBests = firestore.collection<DbPb>(CollectionName.personalBests);
+    this.leaderboards = firestore.collection<DbLeaderboard>(CollectionName.leaderboards);
     this.runs = firestore.collection<Run>(CollectionName.runs);
     this.newStyleRuns = firestore.collection<DbRun>(CollectionName.newStyleRuns);
     this.globalData = firestore.collection<DbUsersCollection>(CollectionName.globalData);
@@ -112,6 +120,21 @@ export class FireStoreService {
     return (await this.runs.doc(id).ref.get()).data();
   }
 
+  getLeaderboard(category: CategoryOption, sameLevel: boolean, players: number) {
+    this.checkAuthenticated();
+    return this.firestore.collection<DbLeaderboard>(CollectionName.leaderboards, ref => ref.where('category', '==', category).where('sameLevel', '==', sameLevel).where('players', '==', players)).valueChanges({idField: 'id'});
+  }
+
+  getLeaderboards(category: CategoryOption, sameLevel: boolean, playersCounts: number[]) {
+    this.checkAuthenticated();
+    return this.firestore.collection<DbLeaderboard>(CollectionName.leaderboards, ref => ref.where('category', '==', category).where('sameLevel', '==', sameLevel).where('players', 'in', playersCounts)).valueChanges({idField: 'id'});
+  }
+
+  getWrs(category: CategoryOption, sameLevel: boolean, playerCount: number) {
+    this.checkAuthenticated();
+    return this.firestore.collection<DbPb>(CollectionName.personalBests, ref => ref.where('category', '==', category).where('sameLevel', '==', sameLevel).where('playerCount', '==', playerCount).where('wasWr', '==', true)).valueChanges({idField: 'id'});
+  }
+
   getRuns() {
     this.checkAuthenticated();
     return this.firestore.collection<Run>(CollectionName.runs, ref => ref.where('data.mode', '==', 0)).valueChanges({idField: 'runId'});
@@ -145,6 +168,32 @@ export class FireStoreService {
       await this.newStyleRuns.doc<DbRun>(id).set(JSON.parse(JSON.stringify(run)));
     else
       await this.newStyleRuns.doc<DbRun>().set(JSON.parse(JSON.stringify(run)));
+  }
+
+  async addPb(run: DbPb) {
+    this.checkAuthenticated();
+    //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
+    if (run.userIds instanceof Map)
+      run.userIds = Object.fromEntries(run.userIds);
+    
+    const id = run.id;
+    run.id = undefined;
+    if (id)
+      await this.personalBests.doc<DbPb>(id).set(JSON.parse(JSON.stringify(run)));
+    else
+      await this.personalBests.doc<DbPb>().set(JSON.parse(JSON.stringify(run)));
+  }
+  
+  async putLeaderboard(leaderboard: DbLeaderboard) {
+    this.checkAuthenticated();
+    //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
+    const id = leaderboard.id;
+    leaderboard.id = undefined;
+    console.log("Cat:" + leaderboard.category + " P:" + leaderboard.players + " S:" + leaderboard.sameLevel, leaderboard);
+    if (id)
+      await this.leaderboards.doc<DbLeaderboard>(id).set(JSON.parse(JSON.stringify(leaderboard)));
+    else
+      await this.leaderboards.doc<DbLeaderboard>().set(JSON.parse(JSON.stringify(leaderboard)));
   }
 
   async deleteRun(id: string) {

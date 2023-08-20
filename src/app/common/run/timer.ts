@@ -105,6 +105,15 @@ export class Timer {
         return time;
     }
 
+    public static msToTimeTextFormat(ms: number) {
+        let hour = Timer.getHour(ms);
+        let time = "";
+        if (hour)
+            time += hour + "h ";
+        time +=  + Timer.getMinutes(ms) + "m " + Timer.getSecond(ms) + "s";
+        return time;
+    }
+
     public static timeToMs(time: string): number {
         if (time === "DNF")
             return 0;

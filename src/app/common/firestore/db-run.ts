@@ -1,8 +1,13 @@
+import { FireStoreService } from "src/app/services/fire-store.service";
+import { CategoryOption } from "../run/category";
 import { Run } from "../run/run";
 import { RunData } from "../run/run-data";
 import { Timer } from "../run/timer";
+import { DbLeaderboard } from "./db-leaderboard";
+import { DbLeaderboardPb } from "./db-leaderboard-pb";
 import { DbTeam } from "./db-team";
 import { DbUsersCollection } from "./db-users-collection";
+import { DbPb } from "./db-pb";
 
 export class DbRun {
     data: RunData;
@@ -59,6 +64,66 @@ export class DbRun {
         });
 
         return this;
+    }
+
+
+    checkUploadPbs(firestoreService: FireStoreService) {
+        if (this.data.category === CategoryOption.Custom) return;
+
+        let leaderboards: DbLeaderboard[] = [];
+
+        //fill leaderboards list
+        let playerCounts: number[] = this.teams
+            .filter(x => x.endTimeMs !== 0)
+            .flatMap(x => x.players.length)
+            .filter((value, index, array) => array.indexOf(value) === index);
+        
+        if (playerCounts.length === 0) return;
+        
+        const lbSubscription = firestoreService.getLeaderboards(this.data.category, this.data.requireSameLevel, playerCounts).subscribe(dbLeaderboards => {
+            lbSubscription.unsubscribe();
+            if (!dbLeaderboards) return;
+            leaderboards = dbLeaderboards;
+
+            playerCounts.forEach(count => {
+                let leaderboard = dbLeaderboards.find(x => x.players === count);
+                if (!leaderboard)
+                    leaderboards.push(new DbLeaderboard(this.data.category, this.data.requireSameLevel, count));
+            });
+
+            
+    
+            //fill leaderboards with pbs
+            this.teams.filter(x => x.endTimeMs !== 0).forEach(team => {
+                let leaderboard = leaderboards.find(x => x.players === team.players.length);
+                if (!leaderboard) return;
+    
+                const runnerIds = team.players.flatMap(x => x.user.id);
+                let previousPb = leaderboard.pbs.find(x => this.arraysEqual(runnerIds, x.userIds));
+    
+                if (!previousPb || previousPb.endTimeMs > team.endTimeMs) {
+                    leaderboard.pbs = leaderboard.pbs.sort((a, b) => a.endTimeMs - b.endTimeMs);
+                    let newPb = DbPb.convertToFromRun(this, team, leaderboard.pbs.length === 0 || leaderboard.pbs[0].endTimeMs > team.endTimeMs);
+                    leaderboard.pbs.push(DbLeaderboardPb.convertToFromPb(newPb)); //needs to come before pb being added since it removes id
+                    
+                    firestoreService.addPb(newPb);
+                    if (previousPb)
+                        leaderboard.pbs = leaderboard.pbs.filter(x => x.id !== previousPb!.id);
+                    
+                    const leaderboardId = leaderboard.id;
+                    firestoreService.putLeaderboard(leaderboard);
+                    leaderboard.id = leaderboardId; //id gets removed at upload this is a "quick fix" as it's needed for other teams
+                }
+            });
+        });
+        return;
+    }
+
+    arraysEqual(array1: string[], array2: string[]): boolean {
+        if (array1.length === array2.length)
+            return array1.every(element => array2.includes(element));
+
+        return false;
     }
 
 }

@@ -397,6 +397,7 @@ export class RunHandler {
                     if (isMaster && this.run?.timer.runState === RunState.Ended && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit)) {
                         let run = DbRun.convertToFromRun(this.run);
                         this.firestoreService.addNewStyleRun(run);
+                        run.checkUploadPbs(this.firestoreService);
                     }
                 });
                 break;
