@@ -35,7 +35,7 @@
             </ng-container>
             <ng-container matColumnDef="players">
                 <th mat-header-cell *matHeaderCellDef> Players </th>
-                <td mat-cell class="no-wrap" *matCellDef="let run"> {{run.playerIds.length}} 
+                <td mat-cell class="no-wrap" *matCellDef="let run"> {{run.userIds.size}}
                     <span *ngIf="run.teams.length !== 1">({{run.teams.length}} teams)</span> </td>
             </ng-container>
 

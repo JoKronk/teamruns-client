@@ -82,13 +82,17 @@ export class Run {
         return this.teams.every(x => x.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit));
     }
 
-    checkTeamEnd(task: Task): void {
+    endTeamRun(task: Task): void {
         let team = this.getPlayerTeam(task.obtainedById);
         if (!team) return;
         if (team.players.every(y => y.state === PlayerState.Finished))
-            team.endTime = "DNF";
-        else if (team.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit)) 
-            team.endTime = task.obtainedAt;
+            team.endTimeMs = Timer.timeToMs(task.obtainedAt);
+    }
+
+    endAllTeamsRun(task: Task): void {
+        this.teams.forEach((team, index) => {
+            this.teams[index].endTimeMs = Timer.timeToMs(task.obtainedAt);
+        });
     }
 
     updateState(playerId: string, state: GameState): void {

@@ -9,7 +9,7 @@ export class Team {
     players: Player[] = [];
     tasks: Task[];
     cellCount: number;
-    endTime: string;
+    endTimeMs: number = 0;
 
     constructor(id: number, name: string) {
         this.id = id;

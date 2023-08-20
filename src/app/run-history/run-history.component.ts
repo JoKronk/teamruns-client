@@ -40,9 +40,11 @@ export class RunHistoryComponent {
       if (!this.usersCollection) return;
       const runsSubscription = firestoreService.getUserRuns(_user.user.id).subscribe(runs => {
         runsSubscription.unsubscribe();
+        runs.sort((a, b) => b.date - a.date);
         runs.forEach((run, index) => {
           runs[index] = Object.assign(new DbRun(), run);
-          runs[index].fillFrontendValues(this.usersCollection!, _user.user.id);
+          runs[index].userIdsToMap();
+          runs[index].fillFrontendValues(this.usersCollection!);
         });
 
         this.runs = runs;
@@ -50,9 +52,5 @@ export class RunHistoryComponent {
       });
     });
 
-  }
-
-  routeToLobby() {
-    this.router.navigate(['/lobby' ]);
   }
 }

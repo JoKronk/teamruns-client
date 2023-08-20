@@ -21,6 +21,7 @@ import { Player } from "../player/player";
 import { PositionData } from "../opengoal/position-data";
 import { Category } from "./category";
 import { DbRun } from "../firestore/db-run";
+import { DbPb } from "../firestore/db-pb";
 
 export class RunHandler {
     
@@ -391,10 +392,11 @@ export class RunHandler {
             case EventType.EndPlayerRun:  
                 this.zone.run(() => { 
                     this.run?.endPlayerRun(event.userId, event.value.gameTask === Task.forfeit);
-                    this.run?.checkTeamEnd(event.value);
+                    this.run?.isMode(RunMode.Lockout) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
 
                     if (isMaster && this.run?.timer.runState === RunState.Ended && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit)) {
-                        this.firestoreService.addNewStyleRun(DbRun.convertToFromRun(this.run));
+                        let run = DbRun.convertToFromRun(this.run);
+                        this.firestoreService.addNewStyleRun(run);
                     }
                 });
                 break;

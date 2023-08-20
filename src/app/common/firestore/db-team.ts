@@ -6,7 +6,7 @@ import { DbPlayer } from "./db-player";
 export class DbTeam {
     id: number;
     name: string;
-    endTime: string;
+    endTimeMs: number;
     players: DbPlayer[] = [];
     tasks: Task[];
     cellCount: number;
@@ -14,7 +14,7 @@ export class DbTeam {
     constructor(team: Team) {
         this.id = team.id;
         this.name = team.name;
-        this.endTime = team.endTime;
+        this.endTimeMs = team.endTimeMs;
         this.tasks = team.tasks;
         this.cellCount = team.cellCount;
         team.players.forEach(player => {
