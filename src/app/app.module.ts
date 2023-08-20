@@ -5,6 +5,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NgChartsModule } from 'ng2-charts';
 
 import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
@@ -12,6 +13,7 @@ import {MatDialogModule} from '@angular/material/dialog';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTableModule} from '@angular/material/table';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
 
 import { NavBoardComponent } from './nav-board/nav-board.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
@@ -33,6 +35,7 @@ import { ConfirmComponent } from './dialogs/confirm/confirm.component';
 import { InfoComponent } from './dialogs/info/info.component';
 import { NewUpdateComponent } from './dialogs/new-update/new-update.component';
 import { InputDialogComponent } from './dialogs/input-dialog/input-dialog.component';
+import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { HeaderComponent } from './header/header.component';
 import { RunHistoryComponent } from './run-history/run-history.component';
 
@@ -55,6 +58,7 @@ import { RunHistoryComponent } from './run-history/run-history.component';
     InfoComponent,
     NewUpdateComponent,
     InputDialogComponent,
+    LeaderboardComponent,
     HeaderComponent,
     RunHistoryComponent
   ],
@@ -63,12 +67,14 @@ import { RunHistoryComponent } from './run-history/run-history.component';
     FormsModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    NgChartsModule,
     MatSidenavModule,
     MatSnackBarModule,
     MatDialogModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatTableModule,
+    MatButtonToggleModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule,
     AngularFireAuthModule

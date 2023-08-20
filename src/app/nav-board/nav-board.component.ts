@@ -35,6 +35,10 @@ export class NavBoardComponent {
     this.router.navigate(['/history' ]);
   }
 
+  navLeaderboard() {
+    this.router.navigate(['/leaderboard' ]);
+  }
+
   openPathConfig() {
     this.dialog.open(SetPathComponent);
     this._user.viewSettings = false;
