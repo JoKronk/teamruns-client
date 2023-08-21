@@ -43,9 +43,15 @@ export class FireStoreService {
     });
   }
 
+  // ----- GET -----
+
   getOpenLobbies() {
     this.checkAuthenticated();
     return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('visible', '==', true)).valueChanges();
+  }
+  getLobbyDoc(id: string) {
+    this.checkAuthenticated();
+    return this.lobbies.doc(id);
   }
 
   getUserLobby(userId: string) {
@@ -53,64 +59,9 @@ export class FireStoreService {
     return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('runners', 'array-contains', userId)).valueChanges();
   }
 
-  getLobbyDoc(id: string) {
-    this.checkAuthenticated();
-    return this.firestore.collection<Lobby>(CollectionName.lobbies).doc(id);
-  }
-
-  async addLobby(lobby: Lobby) {
-    this.checkAuthenticated();
-    await this.lobbies.doc<Lobby>(lobby.id).set(JSON.parse(JSON.stringify(lobby)));
-  }
-
-  async updateLobby(lobby: Lobby) {
-    this.checkAuthenticated();
-    await this.addLobby(lobby); //they happen to be the same command, just trying to avoid confusion when looking for an update method
-  }
-
-  async deleteOldLobbies() {
-    this.checkAuthenticated();
-    const expireDate = new Date();
-    expireDate.setHours(expireDate.getHours() - 4);
-
-    (await this.lobbies.ref.get()).forEach(async (lobbySnapshot) => {
-      let lobby = lobbySnapshot.data();
-      if (new Date(lobby.creationDate) < expireDate) {
-        await this.deleteLobby(lobbySnapshot.id);
-      }
-    });
-  }
-
-  async deleteLobby(id: string) {
-    this.checkAuthenticated();
-    await this.deleteLobbySubCollections(id);
-    await this.lobbies.doc<Lobby>(id).delete();
-  }
-
-  async deleteLobbySubCollections(id: string) {
-    this.checkAuthenticated();
-    let lobbyConnections = this.lobbies.doc<Lobby>(id).collection(CollectionName.peerConnections);
-    (await lobbyConnections.ref.get()).forEach(conSnapshot => {
-      lobbyConnections.doc<RTCPeer>(conSnapshot.id).delete();
-    });
-    let lobbyCommunicationConnections = this.lobbies.doc<Lobby>(id).collection(CollectionName.serverEventCommuncation);
-    (await lobbyCommunicationConnections.ref.get()).forEach(conSnapshot => {
-      lobbyCommunicationConnections.doc<DataChannelEvent>(conSnapshot.id).delete();
-    });
-  }
-
-  async deleteLobbyServerCommunication(lobbyId: string, id: string) {
-    await this.lobbies.doc<Lobby>(lobbyId).collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(id).delete();
-  }
-
   async getUsers() {
     this.checkAuthenticated();
     return (await this.globalData.doc("users").ref.get()).data();
-  }
-
-  async updateUsers(userCollection: DbUsersCollection) {
-    this.checkAuthenticated();
-    await this.globalData.doc<DbUsersCollection>("users").set(JSON.parse(JSON.stringify(userCollection)));
   }
 
   async getRun(id: string) {
@@ -135,12 +86,29 @@ export class FireStoreService {
 
   getRuns() {
     this.checkAuthenticated();
-    return this.firestore.collection<DbRun>(CollectionName.runs).valueChanges();
+    return this.runs.valueChanges();
   }
 
   getUserRuns(userId: string) {
     this.checkAuthenticated();
     return this.firestore.collection<DbRun>(CollectionName.runs, ref => ref.where('userIds.' + userId, '==', true)).valueChanges({idField: 'id'});
+  }
+
+  async getPreset(id: string) {
+    this.checkAuthenticated();
+    return (await this.firestore.collection<Preset>(CollectionName.presets).doc<Preset>(id).ref.get()).data();
+  }
+
+  // ----- POST/PUT -----
+
+  async addLobby(lobby: Lobby) {
+    this.checkAuthenticated();
+    await this.lobbies.doc<Lobby>(lobby.id).set(JSON.parse(JSON.stringify(lobby)));
+  }
+
+  async updateLobby(lobby: Lobby) {
+    this.checkAuthenticated();
+    await this.addLobby(lobby); //they happen to be the same command, just trying to avoid confusion when looking for an update method
   }
 
   async addRun(run: DbRun) {
@@ -183,13 +151,50 @@ export class FireStoreService {
       await this.leaderboards.doc<DbLeaderboard>().set(JSON.parse(JSON.stringify(leaderboard)));
   }
 
+  async updateUsers(userCollection: DbUsersCollection) {
+    this.checkAuthenticated();
+    await this.globalData.doc<DbUsersCollection>("users").set(JSON.parse(JSON.stringify(userCollection)));
+  }
+
+  // ----- DELETE -----
+
+  async deleteOldLobbies() {
+    this.checkAuthenticated();
+    const expireDate = new Date();
+    expireDate.setHours(expireDate.getHours() - 4);
+
+    (await this.lobbies.ref.get()).forEach(async (lobbySnapshot) => {
+      let lobby = lobbySnapshot.data();
+      if (new Date(lobby.creationDate) < expireDate) {
+        await this.deleteLobby(lobbySnapshot.id);
+      }
+    });
+  }
+
+  async deleteLobby(id: string) {
+    this.checkAuthenticated();
+    await this.deleteLobbySubCollections(id);
+    await this.lobbies.doc<Lobby>(id).delete();
+  }
+
+  async deleteLobbySubCollections(id: string) {
+    this.checkAuthenticated();
+    let lobbyConnections = this.lobbies.doc<Lobby>(id).collection(CollectionName.peerConnections);
+    (await lobbyConnections.ref.get()).forEach(conSnapshot => {
+      lobbyConnections.doc<RTCPeer>(conSnapshot.id).delete();
+    });
+    let lobbyCommunicationConnections = this.lobbies.doc<Lobby>(id).collection(CollectionName.serverEventCommuncation);
+    (await lobbyCommunicationConnections.ref.get()).forEach(conSnapshot => {
+      lobbyCommunicationConnections.doc<DataChannelEvent>(conSnapshot.id).delete();
+    });
+  }
+
+  async deleteLobbyServerCommunication(lobbyId: string, id: string) {
+    await this.lobbies.doc<Lobby>(lobbyId).collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(id).delete();
+  }
+
   async deleteRun(id: string) {
     this.checkAuthenticated();
     await this.runs.doc<DbRun>(id).delete();
-  }
-
-  async getPreset(id: string) {
-    this.checkAuthenticated();
-    return (await this.firestore.collection<Preset>(CollectionName.presets).doc<Preset>(id).ref.get()).data();
   }
 }
