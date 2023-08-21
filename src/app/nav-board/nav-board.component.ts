@@ -26,9 +26,16 @@ export class NavBoardComponent {
     this._user.viewSettings = false;
   }
 
-  getObsLink() {
-    this._user.copyLink("https://teamrun.web.app/obs?user=" + this._user.getId() + "&height=800&bgColor=4e4e4e&timerBorder=true");
+  getUserKey() {
+    this._user.copyLink(this._user.getId());
     this._user.viewSettings = false;
+    this._user.sendNotification("User Key Copied");
+  }
+
+  getObsLink() {
+    this._user.copyLink("https://teamrun.web.app/obs?user=" + this._user.getId() + "&height=780&bgColor=4e4e4e&timerBorder=true");
+    this._user.viewSettings = false;
+    this._user.sendNotification("Obs Link Copied");
   }
 
   navHistory() {
