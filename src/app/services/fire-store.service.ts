@@ -21,8 +21,7 @@ export class FireStoreService {
 
   private personalBests: AngularFirestoreCollection<DbPb>;
   private leaderboards: AngularFirestoreCollection<DbLeaderboard>;
-  private runs: AngularFirestoreCollection<Run>;
-  private newStyleRuns: AngularFirestoreCollection<DbRun>;
+  private runs: AngularFirestoreCollection<DbRun>;
   private globalData: AngularFirestoreCollection<DbUsersCollection>;
   private lobbies: AngularFirestoreCollection<Lobby>;
   private isAuthenticated: boolean = false;
@@ -31,8 +30,7 @@ export class FireStoreService {
 
     this.personalBests = firestore.collection<DbPb>(CollectionName.personalBests);
     this.leaderboards = firestore.collection<DbLeaderboard>(CollectionName.leaderboards);
-    this.runs = firestore.collection<Run>(CollectionName.runs);
-    this.newStyleRuns = firestore.collection<DbRun>(CollectionName.newStyleRuns);
+    this.runs = firestore.collection<DbRun>(CollectionName.runs);
     this.globalData = firestore.collection<DbUsersCollection>(CollectionName.globalData);
     this.lobbies = firestore.collection<Lobby>(CollectionName.lobbies);
   }
@@ -137,26 +135,15 @@ export class FireStoreService {
 
   getRuns() {
     this.checkAuthenticated();
-    return this.firestore.collection<Run>(CollectionName.runs, ref => ref.where('data.mode', '==', 0)).valueChanges({idField: 'runId'});
+    return this.firestore.collection<DbRun>(CollectionName.runs).valueChanges();
   }
 
   getUserRuns(userId: string) {
     this.checkAuthenticated();
-    return this.firestore.collection<DbRun>(CollectionName.newStyleRuns, ref => ref.where('userIds.' + userId, '==', true)).valueChanges({idField: 'id'});
+    return this.firestore.collection<DbRun>(CollectionName.runs, ref => ref.where('userIds.' + userId, '==', true)).valueChanges({idField: 'id'});
   }
 
-  getNewStyleRuns() {
-    this.checkAuthenticated();
-    return this.firestore.collection<DbRun>(CollectionName.newStyleRuns, ref => ref.orderBy('date')).valueChanges({idField: 'id'});
-  }
-
-  async addRun(run: Run) {
-    this.checkAuthenticated();
-    //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
-    await this.runs.doc<Run>().set(JSON.parse(JSON.stringify(run)));
-  }
-
-  async addNewStyleRun(run: DbRun) {
+  async addRun(run: DbRun) {
     this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
     if (run.userIds instanceof Map)
@@ -165,9 +152,9 @@ export class FireStoreService {
     const id = run.id;
     run.id = undefined;
     if (id)
-      await this.newStyleRuns.doc<DbRun>(id).set(JSON.parse(JSON.stringify(run)));
+      await this.runs.doc<DbRun>(id).set(JSON.parse(JSON.stringify(run)));
     else
-      await this.newStyleRuns.doc<DbRun>().set(JSON.parse(JSON.stringify(run)));
+      await this.runs.doc<DbRun>().set(JSON.parse(JSON.stringify(run)));
   }
 
   async addPb(run: DbPb) {
@@ -198,12 +185,7 @@ export class FireStoreService {
 
   async deleteRun(id: string) {
     this.checkAuthenticated();
-    await this.runs.doc<Run>(id).delete();
-  }
-
-  async deleteNewStyleRun(id: string) {
-    this.checkAuthenticated();
-    await this.newStyleRuns.doc<DbRun>(id).delete();
+    await this.runs.doc<DbRun>(id).delete();
   }
 
   async getPreset(id: string) {
