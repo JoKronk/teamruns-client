@@ -10,6 +10,8 @@ import { Lobby } from '../common/firestore/lobby';
 import { RunMode } from '../common/run/run-mode';
 import { InputDialogComponent } from '../dialogs/input-dialog/input-dialog.component';
 import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
+import { MatTableDataSource } from '@angular/material/table';
+import { Category } from '../common/run/category';
 
 @Component({
   selector: 'app-lobby',
@@ -19,14 +21,18 @@ import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
 export class LobbyComponent implements OnDestroy {
 
   runMode = RunMode;
+  categoryOptions: Category[] = Category.GetGategories();
 
   buildVersion: string = pkg.version;
-  showPlayers: boolean = true;
   avaliableLobbies: Lobby[] = [];
   unavaliableLobbies: Lobby[] = [];
 
   selectedLobby: Lobby | null = null;
   hideViewer: boolean = true;
+  
+  dataSource: MatTableDataSource<Lobby> = new MatTableDataSource();
+  dataSourceUnavailable: MatTableDataSource<Lobby> = new MatTableDataSource();
+  columns: string[] = ["name", "mode", "category", "teams", "players"];
 
   lobbiesSubscription: Subscription;
 
@@ -58,7 +64,9 @@ export class LobbyComponent implements OnDestroy {
 
       const version = this.buildVersion.slice(0, -2);
       this.avaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) === version).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
+      this.dataSource = new MatTableDataSource(this.avaliableLobbies);
       this.unavaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) !== version).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
+      this.dataSourceUnavailable = new MatTableDataSource(this.unavaliableLobbies);
       this.selectedLobby = this.avaliableLobbies[0];
     });
   }
@@ -95,7 +103,8 @@ export class LobbyComponent implements OnDestroy {
     this._user.viewSettings = !this._user.viewSettings;
   }
 
-  deleteLobby(lobby: Lobby) {
+  deleteLobby(event: Event, lobby: Lobby) {
+    event.stopPropagation();
     const dialogRef = this.dialog.open(ConfirmComponent, { data: "Delete " + lobby.runData.name + "?" });
     const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
       dialogSubscription.unsubscribe();

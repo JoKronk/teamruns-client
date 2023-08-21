@@ -1,14 +1,26 @@
 <div *ngIf="lobby" class="viewer" [style.opacity]="hide ? '0' : '1'">
     <h2>{{ lobby.runData.name }}</h2>
+    <span>{{ categoryOptions[lobby.runData.category].displayName }}</span>
     <span>{{ runMode[lobby.runData.mode] }}</span>
     <span>Host: {{ lobby.host?.name }}</span>
     <br />
-    <span>Teams: {{ lobby.runData.teams }}</span>
-    <span>Require Same Level: {{ lobby.runData.requireSameLevel }}</span>
-    <span>Allow Solo Zoomers: {{ lobby.runData.allowSoloHubZoomers }}</span>
+    
+    <span>Version: {{ lobby.runData.buildVersion }}</span>
     <br />
-    <span>{{ lobby.runData.buildVersion }}</span>
 
+    <div *ngIf="lobby.runData.category === 0">
+        <h3>Settings</h3>
+        <span>No LTS: {{ lobby.runData.noLTS }}</span>
+        <span>Citadel Skip: {{ citadelOptions[lobby.runData.citadelSkip] }}</span>
+        <br />
+        
+        <span>Show Other Player: {{ lobby.runData.showOtherPlayers }}</span>
+        <span>Require Same Level: {{ lobby.runData.requireSameLevel }}</span>
+        <span>Allow Solo Zoomers: {{ lobby.runData.allowSoloHubZoomers }}</span>
+        <span>Normal Cell Cost: {{ lobby.runData.normalCellCost }}</span>
+        <span>Globally Shared Warp Gate: {{ lobby.runData.sharedWarpGatesBetweenTeams }}</span>
+    
+    </div>
     <div class="viewer-group">
         <p>Runners:</p>
         <div *ngFor="let user of lobby.users">

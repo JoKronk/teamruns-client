@@ -4,6 +4,7 @@ span {
 
 .viewer {
     padding: 14px;
+    padding-top: 92px;
     font-family: 'jak';
     color: #b4b4b4;
     transition: 0.2s ease-in-out;
@@ -14,6 +15,10 @@ span {
         margin: 0;
         border-bottom: 1px solid #b4b4b4;
     }
+}
+
+h3 {
+    margin: 5px 0;
 }
 
 .backtext {

@@ -1,6 +1,7 @@
 <div>
-  <mat-sidenav-container fullscreen>
-    <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="players">
+  <div class="background-image"></div>
+  <mat-sidenav-container fullscreen class="container">
+    <mat-sidenav mode="side" position="end" class="sidenav players" [opened]="true">
       <app-lobby-viewer [lobby]="selectedLobby" [hide]="hideViewer"></app-lobby-viewer>
     </mat-sidenav>
 
@@ -9,50 +10,61 @@
         <app-header [showLobbyButtons]="true"></app-header>
       </div>
 
-      <div class="run-cont">
+      <div class="lobbies-cont">
+        <table mat-table [dataSource]="dataSource" multiTemplateDataRows>
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef> Lobby </th>
+            <td mat-cell *matCellDef="let lobby"><span *ngIf="lobby.creatorId === _user.user.id" class="lobbies-delete"
+                (click)="deleteLobby($event, lobby)">X</span> {{lobby.runData.name}}</td>
+          </ng-container>
+          <ng-container matColumnDef="mode">
+            <th mat-header-cell *matHeaderCellDef> Mode </th>
+            <td mat-cell *matCellDef="let lobby"> {{runMode[lobby.runData.mode]}}</td>
+          </ng-container>
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef> Category </th>
+            <td mat-cell *matCellDef="let lobby"> {{categoryOptions[lobby.runData.category].displayName}} </td>
+          </ng-container>
+          <ng-container matColumnDef="teams">
+            <th mat-header-cell *matHeaderCellDef> Teams </th>
+            <td mat-cell *matCellDef="let lobby"> {{lobby.runData.teams}} </td>
+          </ng-container>
+          <ng-container matColumnDef="players">
+            <th mat-header-cell *matHeaderCellDef> In Lobby </th>
+            <td mat-cell *matCellDef="let lobby"> {{lobby.users.length}} </td>
+          </ng-container>
 
-        <div *ngFor="let lobby of avaliableLobbies" class="run-cont-inner">
-          <div class="run" (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)">
-            <div class="run-info">
-              <h2 class="run-title"><img *ngIf="lobby.password" src="./assets/other/lock.png">{{ lobby.runData.name }}</h2>
-              <div>
-                <span>Teams: {{ lobby.runData.teams }}</span>
-                <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
-              </div>
-            </div>
-            <div class="run-info">
-              <div>
-                <span>In Lobby: {{ lobby.users.length }}</span>
-                <span>Version: {{ lobby.runData.buildVersion }}</span>
-              </div>
-            </div>
-            <button (click)="routeToRun(lobby)">Join</button>
-          </div>
-          <div class="run-delete-cont">
-            <div *ngIf="lobby.creatorId === _user.user.id" class="run-delete" (click)="deleteLobby(lobby)">X</div>
-          </div>
-        </div>
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let lobby; columns: columns;" class="run-row" (click)="routeToRun(lobby)"
+            (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)"></tr>
+        </table>
 
-        <div *ngFor="let lobby of unavaliableLobbies" class="run-cont-inner">
-          <div class="run run-disabled" (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)">
-            <div class="run-info">
-              <h2 class="run-title"><img *ngIf="lobby.password" src="./assets/other/lock.png">{{ lobby.runData.name }}</h2>
-              <div>
-                <span>Teams: {{ lobby.runData.teams }}</span>
-                <span>Mode: {{ runMode[lobby.runData.mode] }}</span>
-              </div>
-            </div>
-            <div class="run-info">
-              <div>
-                <span>In Lobby: {{ lobby.users.length }}</span>
-                <span>Version: {{ lobby.runData.buildVersion }}</span>
-              </div>
-            </div>
-            <button disabled>Join</button>
-          </div>
-          <div class="run-delete-cont">
-            <div *ngIf="lobby.creatorId === _user.user.id" class="run-delete" (click)="deleteLobby(lobby)">X</div>
-          </div>
+        <div *ngIf="unavaliableLobbies.length !== 0" class="lobbies-old">
+          <h2>Unavailable (Version Missmatch)</h2>
+          <table mat-table [dataSource]="dataSourceUnavailable" multiTemplateDataRows>
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef> Lobby </th>
+              <td mat-cell *matCellDef="let lobby"> {{lobby.runData.name}}</td>
+            </ng-container>
+            <ng-container matColumnDef="mode">
+              <th mat-header-cell *matHeaderCellDef> Mode </th>
+              <td mat-cell *matCellDef="let lobby"> {{runMode[lobby.runData.mode]}}</td>
+            </ng-container>
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef> Category </th>
+              <td mat-cell *matCellDef="let lobby"> {{categoryOptions[lobby.runData.category].displayName}} </td>
+            </ng-container>
+            <ng-container matColumnDef="teams">
+              <th mat-header-cell *matHeaderCellDef> Teams </th>
+              <td mat-cell *matCellDef="let lobby"> {{lobby.runData.teams}} </td>
+            </ng-container>
+            <ng-container matColumnDef="players">
+              <th mat-header-cell *matHeaderCellDef> In Lobby </th>
+              <td mat-cell *matCellDef="let lobby"> {{lobby.users.length}} </td>
+            </ng-container>
+  
+            <tr mat-row *matRowDef="let lobby; columns: columns;" class="run-row" (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)"></tr>
+          </table>
         </div>
 
       </div>
