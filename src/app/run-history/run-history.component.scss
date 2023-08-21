@@ -16,7 +16,7 @@
     &-table {
         overflow: auto;
         flex-grow: 1;
-        margin: 0px 12px 46px;
+        margin: 5px 12px 46px;
     }
 }
 
@@ -133,13 +133,13 @@ tr.run-row:not(.run-expanded-row-open):active {
     padding: 0;
 }
 
-.mat-mdc-row:nth-child(2n+1){
+.mat-mdc-row:nth-child(2n+1) {
     background-color: #3e3e3e;
 }
-.mat-mdc-row:not(:nth-child(4n+1)){
+.mat-mdc-row:not(:nth-child(4n+1)) {
     background-color:#3b3b3b;
 }
-.mat-mdc-row:nth-child(even){
+.mat-mdc-row:nth-child(even) {
     background-color: #d49012;
 }
 
@@ -150,4 +150,8 @@ border-bottom-width: 0;
 
 .mat-mdc-table {
     background: none !important;
+}
+
+.mat-mdc-row {
+    height: 42px;
 }
