@@ -48,6 +48,22 @@
             display: flex;
         }
     }
+    &-hidden {
+        display: none;
+        visibility: hidden;
+    }
+    &-none {
+        margin-top: 32px;
+        font-size: 24px;
+        font-family: 'jak';
+        color: #a8a8a8;
+        text-align: center;
+        & h3 {
+            display: inline-block;
+            border-bottom: 4px solid #380000;
+            border-radius: 4px;
+        }
+    }
     &-old {
         margin-top:52px;
         color: #d49012;
@@ -77,6 +93,9 @@
             flex-shrink: 1;
             display: inline-block;
         }
+    }
+    &-subtext {
+        white-space: nowrap;
     }
 }
 

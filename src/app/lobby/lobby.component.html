@@ -11,33 +11,41 @@
       </div>
 
       <div class="lobbies-cont">
-        <table mat-table [dataSource]="dataSource" multiTemplateDataRows>
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef> Lobby </th>
-            <td mat-cell *matCellDef="let lobby"><span *ngIf="lobby.creatorId === _user.user.id" class="lobbies-delete"
-                (click)="deleteLobby($event, lobby)">X</span> {{lobby.runData.name}}</td>
-          </ng-container>
-          <ng-container matColumnDef="mode">
-            <th mat-header-cell *matHeaderCellDef> Mode </th>
-            <td mat-cell *matCellDef="let lobby"> {{runMode[lobby.runData.mode]}}</td>
-          </ng-container>
-          <ng-container matColumnDef="category">
-            <th mat-header-cell *matHeaderCellDef> Category </th>
-            <td mat-cell *matCellDef="let lobby"> {{categoryOptions[lobby.runData.category].displayName}} </td>
-          </ng-container>
-          <ng-container matColumnDef="teams">
-            <th mat-header-cell *matHeaderCellDef> Teams </th>
-            <td mat-cell *matCellDef="let lobby"> {{lobby.runData.teams}} </td>
-          </ng-container>
-          <ng-container matColumnDef="players">
-            <th mat-header-cell *matHeaderCellDef> In Lobby </th>
-            <td mat-cell *matCellDef="let lobby"> {{lobby.users.length}} </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="columns"></tr>
-          <tr mat-row *matRowDef="let lobby; columns: columns;" class="run-row" (click)="routeToRun(lobby)"
-            (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)"></tr>
-        </table>
+        <div [class.lobbies-hidden]="avaliableLobbies.length === 0 && unavaliableLobbies.length === 0">
+          <table mat-table [dataSource]="dataSource" multiTemplateDataRows>
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef> Lobby </th>
+              <td mat-cell *matCellDef="let lobby"><span *ngIf="lobby.creatorId === _user.user.id" class="lobbies-delete"
+                  (click)="deleteLobby($event, lobby)">X</span> {{lobby.runData.name}}</td>
+            </ng-container>
+            <ng-container matColumnDef="mode">
+              <th mat-header-cell *matHeaderCellDef> Mode </th>
+              <td mat-cell *matCellDef="let lobby"> {{runMode[lobby.runData.mode]}}</td>
+            </ng-container>
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef> Category </th>
+              <td mat-cell *matCellDef="let lobby"> 
+                {{categoryOptions[lobby.runData.category].displayName}}
+                <span class="lobbies-subtext" *ngIf="lobby.runData.requireSameLevel"> (Same level)</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="teams">
+              <th mat-header-cell *matHeaderCellDef> Teams </th>
+              <td mat-cell *matCellDef="let lobby"> {{lobby.runData.teams}} </td>
+            </ng-container>
+            <ng-container matColumnDef="players">
+              <th mat-header-cell *matHeaderCellDef> In Lobby </th>
+              <td mat-cell *matCellDef="let lobby"> {{lobby.users.length}} </td>
+            </ng-container>
+  
+            <tr mat-header-row *matHeaderRowDef="columns"></tr>
+            <tr mat-row *matRowDef="let lobby; columns: columns;" class="run-row" (click)="routeToRun(lobby)"
+              (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)"></tr>
+          </table>
+        </div>
+        <div *ngIf="avaliableLobbies.length === 0 && unavaliableLobbies.length === 0 && loaded" class="lobbies-none">
+          <h3>No current lobbies <br /> Create one under "NEW RUN"</h3>
+        </div>
 
         <div *ngIf="unavaliableLobbies.length !== 0" class="lobbies-old">
           <h2>Unavailable (Version Missmatch)</h2>
@@ -52,7 +60,10 @@
             </ng-container>
             <ng-container matColumnDef="category">
               <th mat-header-cell *matHeaderCellDef> Category </th>
-              <td mat-cell *matCellDef="let lobby"> {{categoryOptions[lobby.runData.category].displayName}} </td>
+              <td mat-cell *matCellDef="let lobby">
+                {{categoryOptions[lobby.runData.category].displayName}} 
+                <span *ngIf="lobby.runData.requireSameLevel"> (Same Level)</span>
+              </td>
             </ng-container>
             <ng-container matColumnDef="teams">
               <th mat-header-cell *matHeaderCellDef> Teams </th>

@@ -26,6 +26,7 @@ export class LobbyComponent implements OnDestroy {
   buildVersion: string = pkg.version;
   avaliableLobbies: Lobby[] = [];
   unavaliableLobbies: Lobby[] = [];
+  loaded: boolean = false;
 
   selectedLobby: Lobby | null = null;
   hideViewer: boolean = true;
@@ -68,6 +69,7 @@ export class LobbyComponent implements OnDestroy {
       this.unavaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) !== version).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
       this.dataSourceUnavailable = new MatTableDataSource(this.unavaliableLobbies);
       this.selectedLobby = this.avaliableLobbies[0];
+      this.loaded = true;
     });
   }
 

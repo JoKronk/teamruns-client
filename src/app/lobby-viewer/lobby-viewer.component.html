@@ -1,10 +1,13 @@
 <div *ngIf="lobby" class="viewer" [style.opacity]="hide ? '0' : '1'">
     <h2>{{ lobby.runData.name }}</h2>
-    <span>{{ categoryOptions[lobby.runData.category].displayName }}</span>
+    <span>
+        {{ categoryOptions[lobby.runData.category].displayName }}
+        <span class="subtext" *ngIf="lobby.runData.requireSameLevel" >(Same Level)</span>
+    </span>
     <span>{{ runMode[lobby.runData.mode] }}</span>
-    <span>Host: {{ lobby.host?.name }}</span>
+
     <br />
-    
+    <span>Host: {{ lobby.host?.name }}</span>
     <span>Version: {{ lobby.runData.buildVersion }}</span>
     <br />
 
@@ -15,7 +18,6 @@
         <br />
         
         <span>Show Other Player: {{ lobby.runData.showOtherPlayers }}</span>
-        <span>Require Same Level: {{ lobby.runData.requireSameLevel }}</span>
         <span>Allow Solo Zoomers: {{ lobby.runData.allowSoloHubZoomers }}</span>
         <span>Normal Cell Cost: {{ lobby.runData.normalCellCost }}</span>
         <span>Globally Shared Warp Gate: {{ lobby.runData.sharedWarpGatesBetweenTeams }}</span>
