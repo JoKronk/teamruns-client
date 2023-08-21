@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
 import pkg from 'app/package.json';
@@ -19,7 +20,7 @@ export class HeaderComponent {
   @Input() inRun: boolean;
   @Input() showLobbyButtons: boolean;
   
-  constructor(public _user: UserService, private router: Router, private dialog: MatDialog) {
+  constructor(public _user: UserService, private router: Router, private location: Location,  private dialog: MatDialog) {
     
   }
   
@@ -33,9 +34,9 @@ export class HeaderComponent {
   }
   
 
-  routeToLobby() {
+  routeBack() {
     if (!this.inRun) {
-      this.router.navigate(['/lobby' ]);
+      this.location.back();
       return;
     }
 
