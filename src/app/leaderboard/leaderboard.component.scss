@@ -127,21 +127,17 @@ td {
 tr.run-expanded-row {
 height: 0;
 }
-tr.run-row:not(.run-expanded-row-open) {
+tr.run-row {
     transition: 0.2s;
 }
 
-tr.run-row:not(.run-expanded-row-open):hover {
+tr.run-row:hover {
     background-color: rgba(204, 204, 204, 0.1);
     cursor: pointer;
 }
 
-tr.run-row:not(.run-expanded-row-open):active {
+tr.run-row:active {
     background-color: rgba(204, 204, 204, 0.2);
-}
-
-.mdc-data-table__cell {
-    padding: 0;
 }
 
 .mat-mdc-row:nth-child(2n+1){
@@ -158,10 +154,6 @@ border-bottom-width: 0;
 
 .mat-mdc-table {
     background: none !important;
-}
-
-.mat-mdc-header-cell {
-    padding-left: 0 !important;
 }
 
 .mat-mdc-row {
