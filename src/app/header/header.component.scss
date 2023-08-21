@@ -74,10 +74,14 @@
             }
         }
     }
+    & .space {
+        flex: 2;
+        height: 100%;
+    }
     & .logo {
-        margin-left: auto;
         &-container {
             display: flex;
+            justify-content: center;
             flex: 2;
             height: 100%;
         }
