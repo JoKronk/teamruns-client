@@ -58,20 +58,24 @@ export class LeaderboardComponent {
 
 
   updateContent(iscontentToggle: boolean = false) {
-    if (iscontentToggle)
-    this.showWrHistory = !this.showWrHistory;
-    else
+    if (!iscontentToggle)
       this.toggleSaved = false;
+    
 
-    if (!this.showWrHistory)
+    if (iscontentToggle ? this.showWrHistory : !this.showWrHistory)
       this.updateLeaderboard();
     else
       this.getWrChartData();
+
+    
+    if (iscontentToggle) {
+      this.toggleSaved = true;
+      this.showWrHistory = !this.showWrHistory;
+    }
   }
 
   updateLeaderboard() {
     if (!this.usersCollection || this.toggleSaved) return;
-    this.toggleSaved = true;
 
     const leaderboardSubscription = this.firestoreService.getLeaderboard(this.selectedCategory, this.sameLevel === "true", this.players).subscribe(dbLeaderboards => {
       leaderboardSubscription.unsubscribe();
@@ -94,7 +98,6 @@ export class LeaderboardComponent {
 
   getWrChartData() {
     if (this.toggleSaved && this.wrHistoryLoaded) return;
-    this.toggleSaved = true;
     this.wrHistoryLoaded = true;
 
     const wrSubscription = this.firestoreService.getWrs(this.selectedCategory, this.sameLevel === "true", this.players).subscribe(wrs => {

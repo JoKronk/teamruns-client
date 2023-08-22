@@ -27,7 +27,7 @@
 
   </div>
   <div class="page-table">
-    <div *ngIf="!showWrHistory">
+    <div [class.hide]="showWrHistory">
       <table *ngIf="leaderboard.pbs.length !== 0" mat-table [dataSource]="dataSource" multiTemplateDataRows>
           <ng-container matColumnDef="position">
               <th mat-header-cell *matHeaderCellDef> # </th>
