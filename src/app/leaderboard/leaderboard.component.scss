@@ -12,6 +12,19 @@
     }
     &-info {
         flex-shrink: 1;
+        &-link {
+            margin-left: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #a56d06;
+            & a {
+                color: #380000;
+                text-decoration: none;
+                &:hover {
+                    color: #a8a8a8;
+                }
+            }
+        }
     }
     &-table {
         overflow: auto;
@@ -56,23 +69,23 @@
 .subcategory {
     display: inline-block;
     margin: 0 10px;
-}
-.players {
-    & input, select {
-        border: 2px solid rgba(7, 7, 7, 0.8);
-        background: rgba(14, 14, 14, 0.8);
-        border-radius: 4px;
-        height: 36px;
-        width: 120px;
-        transition: 0.3s;
-        transition-timing-function: ease;
-        color: #ffffff;
-        font-size: 18px;
-    }
-    & textarea:focus, input:focus{
-        outline: none;
-        border: 2px solid rgba(0, 0, 0, 1);
-        background: rgba(24, 24, 24, 0.5);
+    &-players {
+        & input, select {
+            border: 2px solid rgba(7, 7, 7, 0.8);
+            background: rgba(14, 14, 14, 0.8);
+            border-radius: 4px;
+            height: 36px;
+            width: 120px;
+            transition: 0.3s;
+            transition-timing-function: ease;
+            color: #ffffff;
+            font-size: 18px;
+        }
+        & textarea:focus, input:focus{
+            outline: none;
+            border: 2px solid rgba(0, 0, 0, 1);
+            background: rgba(24, 24, 24, 0.5);
+        }
     }
 }
 

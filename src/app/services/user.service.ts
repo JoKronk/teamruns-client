@@ -42,7 +42,6 @@ export class UserService implements OnDestroy {
   }
 
   public writeUserDataChangeToLocal() {
-    console.log("writing tho")
     this.writeSettings();
     this.UserCopy = this.user.getCopy();
   }

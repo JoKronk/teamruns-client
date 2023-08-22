@@ -3,7 +3,7 @@
       <app-header></app-header>
   </div>
   <div class="page-info">
-    <h2>Leaderboards</h2>
+    <h2>Leaderboards <span class="page-info-link">- Official leaderboard at <a target="_blank" href="https://www.speedrun.com/og1_teamrun">speedrun.com</a></span></h2>
     <div class="category" *ngFor="let category of categoryOptions">
       <div *ngIf="category.key !== 0" (click)="changeCategory(category.key)" class="category-button" [class.category-button-selected]="selectedCategory === category.key">{{category.displayName}}</div>
     </div>
@@ -15,7 +15,7 @@
           <mat-button-toggle value="true">Same Level</mat-button-toggle>
         </mat-button-toggle-group>
       </div>
-      <div class="subcategory players">
+      <div class="subcategory subcategory-players">
         <select [(ngModel)]="players" (change)="updateContent()">
           <option *ngFor="let playerCount of playerOptions" [ngValue]="playerCount">{{ playerCount }} players</option>
       </select>
