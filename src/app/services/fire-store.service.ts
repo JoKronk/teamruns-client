@@ -86,7 +86,7 @@ export class FireStoreService {
 
   getRuns() {
     this.checkAuthenticated();
-    return this.runs.valueChanges();
+    return this.runs.valueChanges({idField: 'id'});
   }
 
   getUserRuns(userId: string) {
