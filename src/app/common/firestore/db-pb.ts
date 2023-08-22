@@ -1,4 +1,3 @@
-import { Task } from "../opengoal/task";
 import { CategoryOption } from "../run/category";
 import { DbLeaderboardPb } from "./db-leaderboard-pb";
 import { DbPlayer } from "./db-player";
@@ -12,7 +11,6 @@ export class DbPb extends DbLeaderboardPb {
     cellCount: number;
     playerCount: number;
     players: DbPlayer[] = [];
-    tasks: Task[];
     wasRace: boolean;
     wasWr: boolean;
     playback: any;
@@ -24,6 +22,7 @@ export class DbPb extends DbLeaderboardPb {
 
         pb.version = run.data.buildVersion;
         pb.date = run.date;
+        pb.tasks = team.tasks;
         pb.endTimeMs = team.endTimeMs;
         pb.playbackAvailable = false;
 
@@ -37,7 +36,6 @@ export class DbPb extends DbLeaderboardPb {
         pb.playerCount = team.players.length;
         pb.cellCount = team.cellCount;
         pb.players = team.players;
-        pb.tasks = team.tasks;
         pb.wasRace = run.teams.length !== 0;
         pb.wasWr = isWr;
         return pb;

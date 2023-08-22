@@ -1,13 +1,13 @@
-import { RunData } from "../run/run-data";
+import { Task } from "../opengoal/task";
 import { Timer } from "../run/timer";
 import { DbPb } from "./db-pb";
-import { DbTeam } from "./db-team";
 import { DbUsersCollection } from "./db-users-collection";
 
 export class DbLeaderboardPb {
     version: string;
     date: number;
     userIds: string[];
+    tasks: Task[];
     endTimeMs: number;
     playbackAvailable: boolean;
 
@@ -30,6 +30,7 @@ export class DbLeaderboardPb {
             pb.userIds = Array.from(new Map(Object.entries(run.userIds)).keys());
         }
 
+        pb.tasks = run.tasks;
         pb.endTimeMs = run.endTimeMs;
         pb.playbackAvailable = run.playbackAvailable;
         return pb;
