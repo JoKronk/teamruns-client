@@ -12,7 +12,7 @@ export class RunData {
     //run settings
     countdownSeconds: number = 10;
     mode: RunMode = RunMode.Speedrun;
-    showOtherPlayers: boolean = true;
+    hideOtherPlayers: boolean = false;
     requireSameLevel: boolean = false;
 
     //category settings

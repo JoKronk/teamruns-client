@@ -79,7 +79,7 @@ export class RunHandler {
                     this.info = this.run.data.name + "\n\n" + RunMode[this.run.data.mode] + "\nCategory: " + Category.GetGategories()[this.run.data.category].displayName + "\nSame Level: " + this.run.data.requireSameLevel;
 
                 //setup position listener
-                if (this.run.data.showOtherPlayers) {
+                if (!this.run.data.hideOtherPlayers) {
                     this.positionListener = (window as any).electron.receive("og-position-update", (target: PositionData) => {
                         target.userId = this.localPlayer.user.id;
                         this.sendPosition(target);
@@ -185,7 +185,7 @@ export class RunHandler {
 
     setupMaster() {
         console.log("Setting up master!");
-        this.localMaster = new RTCPeerMaster(this.userService.user.createUserBaseFromDisplayName(), this.run!.data.showOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id));
+        this.localMaster = new RTCPeerMaster(this.userService.user.createUserBaseFromDisplayName(), !this.run!.data.hideOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id));
         this.dataSubscription = this.localMaster.eventChannel.subscribe(event => {
             if (!this.localMaster?.isBeingDestroyed)
             this.onDataChannelEvent(event, true);
@@ -200,7 +200,7 @@ export class RunHandler {
 
     setupSlave() {
         console.log("Setting up slave!");
-        this.localSlave = new RTCPeerSlave(this.userService.user.createUserBaseFromDisplayName(), this.run!.data.showOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id), this.lobby!.host!);
+        this.localSlave = new RTCPeerSlave(this.userService.user.createUserBaseFromDisplayName(), !this.run!.data.hideOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id), this.lobby!.host!);
         this.dataSubscription = this.localSlave.eventChannel.subscribe(event => {
             if (!this.localSlave?.isBeingDestroyed)
                 this.onDataChannelEvent(event, false);
