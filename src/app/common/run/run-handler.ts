@@ -18,10 +18,11 @@ import { User, UserBase } from "../user/user";
 import { FireStoreService } from "src/app/services/fire-store.service";
 import { CitadelOption } from "./run-data";
 import { Player } from "../player/player";
-import { PositionData } from "../opengoal/position-data";
 import { Category } from "./category";
 import { DbRun } from "../firestore/db-run";
 import { DbPb } from "../firestore/db-pb";
+import { PositionData, UserPositionDataTimestamp } from "../playback/position-data";
+import { PositionHandler } from "../playback/position-handler";
 
 export class RunHandler {
     
@@ -46,6 +47,8 @@ export class RunHandler {
     positionSubscription: Subscription;
     lobbySubscription: Subscription;
     positionListener: any;
+
+    positionHandler: PositionHandler = new PositionHandler();
 
     constructor(lobbyId: string, firestoreService: FireStoreService, userService: UserService, localUser: LocalPlayerData, zone: NgZone, obsUserId: string | null = null) {
         this.firestoreService = firestoreService;
@@ -81,8 +84,7 @@ export class RunHandler {
                 //setup position listener
                 if (!this.run.data.hideOtherPlayers) {
                     this.positionListener = (window as any).electron.receive("og-position-update", (target: PositionData) => {
-                        target.userId = this.localPlayer.user.id;
-                        this.sendPosition(target);
+                        this.sendPosition(new UserPositionDataTimestamp(target, this.run?.timer.totalMs ?? 0, this.localPlayer.user.id));
                     });
                 }
             }
@@ -223,7 +225,7 @@ export class RunHandler {
             this.onDataChannelEvent(event, true);
     }
 
-    sendPosition(target: PositionData) {
+    sendPosition(target: UserPositionDataTimestamp) {
         if (this.localSlave) {
             this.localSlave.peer.sendPosition(target);
         }
@@ -231,12 +233,13 @@ export class RunHandler {
         this.localMaster?.relayPositionToSlaves(target);
     }
 
-    onPostionChannelUpdate(target: PositionData, isMaster: boolean) {
+    onPostionChannelUpdate(target: UserPositionDataTimestamp, isMaster: boolean) {
         //send updates from master to all slaves
         if (isMaster)
             this.localMaster?.relayPositionToSlaves(target);
         
-        OG.updatePlayerPosition(target);
+        if (target.userId !== this.userService.getId())
+            this.positionHandler.updatePosition(target);
     }
 
     onDataChannelEvent(event: DataChannelEvent, isMaster: boolean) {
@@ -563,6 +566,7 @@ export class RunHandler {
 
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
+        this.positionListener();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself
             if (wasHost) {

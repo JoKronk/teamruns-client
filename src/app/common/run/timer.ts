@@ -6,6 +6,7 @@ export class Timer {
     timeMs: string;
     startDateMs: number | null;
     countdownSeconds: number;
+    totalMs: number = 0;
 
     runState: RunState;
 
@@ -60,13 +61,13 @@ export class Timer {
         }
 
 
-        var difference = currentTimeMs - this.startDateMs!;
+        this.totalMs = currentTimeMs - this.startDateMs!;
 
         this.time = this.runState === RunState.Started
-            ? (Timer.msToTimeFormat(difference))
-            : ("-0:00:" + Timer.getSecond(difference));
+            ? (Timer.msToTimeFormat(this.totalMs))
+            : ("-0:00:" + Timer.getSecond(this.totalMs));
 
-        this.timeMs = "." + this.getMs(difference);
+        this.timeMs = "." + this.getMs(this.totalMs);
 
         await sleep(100);
         

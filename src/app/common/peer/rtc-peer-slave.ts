@@ -4,9 +4,9 @@ import { CollectionName } from "../firestore/collection-name";
 import { Lobby } from "../firestore/lobby";
 import { UserBase } from "../user/user";
 import { DataChannelEvent } from "./data-channel-event";
-import { PositionData } from "../opengoal/position-data";
 import { RTCPeer } from "./rtc-peer";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
+import { UserPositionDataTimestamp } from "../playback/position-data";
 
 export class RTCPeerSlave {
     private currentMasterSdp: string | undefined;
@@ -20,7 +20,7 @@ export class RTCPeerSlave {
     connectionLogs: string[] = ["Setting up connection..."];
     isBeingDestroyed: boolean = false;
     eventChannel: Subject<DataChannelEvent> = new Subject();
-    positionChannel: Subject<PositionData> | null = null;
+    positionChannel: Subject<UserPositionDataTimestamp> | null = null;
 
     constructor(user: UserBase, createPositionChannel: boolean, doc: AngularFirestoreDocument<Lobby>, host: UserBase) {
         this.peerDoc = doc.collection<RTCPeer>(CollectionName.peerConnections).doc(user.id);

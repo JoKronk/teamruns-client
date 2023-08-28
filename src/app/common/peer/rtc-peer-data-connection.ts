@@ -6,8 +6,8 @@ import { DataChannelEvent } from "./data-channel-event";
 import { EventType } from "./event-type";
 import { RTCPeer } from "./rtc-peer";
 import { UserBase } from "../user/user";
-import { PositionData } from "../opengoal/position-data";
 import { OG } from "../opengoal/og";
+import { UserPositionDataTimestamp } from "../playback/position-data";
 
 export class RTCPeerDataConnection {
 
@@ -24,7 +24,7 @@ export class RTCPeerDataConnection {
     private serverComSubscriptions: Subscription;
 
 
-    constructor(eventChannel: Subject<DataChannelEvent>, positionChannel: Subject<PositionData> | null, self: UserBase, peer: UserBase, lobbyDoc: AngularFirestoreDocument<Lobby>, creatorIsMaster: boolean, connectionLog: string[] | null = null) {
+    constructor(eventChannel: Subject<DataChannelEvent>, positionChannel: Subject<UserPositionDataTimestamp> | null, self: UserBase, peer: UserBase, lobbyDoc: AngularFirestoreDocument<Lobby>, creatorIsMaster: boolean, connectionLog: string[] | null = null) {
         this.connection = new RTCPeerConnection({
             iceServers: [
               { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
@@ -181,7 +181,7 @@ export class RTCPeerDataConnection {
         }
     }
 
-    sendPosition(target: PositionData) {
+    sendPosition(target: UserPositionDataTimestamp) {
         if (this.positionChannelToPeer?.readyState === "open" && !this.usesServerCommunication)
             this.positionChannelToPeer.send(JSON.stringify(target));
     }
