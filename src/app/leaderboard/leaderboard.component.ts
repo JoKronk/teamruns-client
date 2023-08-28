@@ -2,19 +2,17 @@ import { Component } from '@angular/core';
 import { UserService } from '../services/user.service';
 import { FireStoreService } from '../services/fire-store.service';
 import { Subscription } from 'rxjs';
-import pkg from 'app/package.json';
 import { DbUsersCollection } from '../common/firestore/db-users-collection';
 import { Category, CategoryOption } from '../common/run/category';
-import { DbRun } from '../common/firestore/db-run';
 import { MatTableDataSource } from '@angular/material/table';
 import { DbLeaderboardPb } from '../common/firestore/db-leaderboard-pb';
-import { DbTeam } from '../common/firestore/db-team';
 import { DbLeaderboard } from '../common/firestore/db-leaderboard';
 import { Chart } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 Chart.register(zoomPlugin);
 import 'chartjs-adapter-date-fns';
 import { Timer } from '../common/run/timer';
+import { Team } from '../common/run/team';
 
 @Component({
   selector: 'app-leaderboard',
@@ -42,6 +40,8 @@ export class LeaderboardComponent {
   dataSource: MatTableDataSource<DbLeaderboardPb> = new MatTableDataSource();
   columns: string[] = ["position", "players", "time", "date", "version"];
 
+  selectedRun: DbLeaderboardPb | null = null;
+  selectedTeam: Team | null = null;
 
   constructor(public _user: UserService, private firestoreService: FireStoreService) {
 
@@ -53,6 +53,12 @@ export class LeaderboardComponent {
 
   changeCategory(category: number) {
     this.selectedCategory = category;
+    this.updateContent();
+  }
+
+  changePlayerCount() {
+    if (this.players === 1)
+      this.sameLevel = "false";
     this.updateContent();
   }
 
@@ -72,6 +78,9 @@ export class LeaderboardComponent {
       this.toggleSaved = true;
       this.showWrHistory = !this.showWrHistory;
     }
+
+    this.selectedRun = null;
+    this.selectedTeam = null;
   }
 
   updateLeaderboard() {
@@ -115,10 +124,10 @@ export class LeaderboardComponent {
           datasets: [{
             data: Array.from(wrs, wr => wr.endTimeMs),
             stepped: true,
-            borderColor: "black",
+            borderColor: "#665229",
             borderWidth: 2,
             pointBorderWidth: 2,
-            pointRadius: 4,
+            pointRadius: 5,
             pointBackgroundColor: '#d49012',
             pointBorderColor: '#d49012',
             pointStyle: 'triangle'
@@ -185,7 +194,6 @@ export class LeaderboardComponent {
       });
     });
   }
-
+  
 }
-
 
