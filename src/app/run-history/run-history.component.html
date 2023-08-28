@@ -1,3 +1,5 @@
+
+<div class="background-image"></div>
 <div class="page-container">
     <div class="page-header">
         <app-header></app-header>
@@ -5,7 +7,7 @@
     <div class="page-info">
     </div>
     <div class="page-table">
-        <h2>Run History</h2>
+        <h2 class="page-title">Run History</h2>
         <table mat-table [dataSource]="dataSource" multiTemplateDataRows>
             <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef> Name </th>
@@ -53,6 +55,9 @@
                                     </div>
                                     <app-run-splits [team]="team" class="team-splits"></app-run-splits>
                                 </div>
+                                <div class="backtext">
+                                    <h1>Splits</h1>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -65,11 +70,6 @@
                 (click)="expandedRun = expandedRun === run ? null : run"></tr>
             <tr mat-row *matRowDef="let row; columns: ['expandedRun']" class="run-expanded-row"></tr>
         </table>
-    </div>
-
-
-    <div class="backtext">
-        <h1>History</h1>
     </div>
 
     <p id="name" class="text-in-background" [title]="_user.user.name">{{ _user.user.name }}</p>
