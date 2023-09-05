@@ -1,6 +1,6 @@
-<div class="timer" *ngIf="run" [class.timer-no-border]="hideBorder">
+<div class="timer" *ngIf="timer" [class.timer-no-border]="hideBorder">
     <p *ngIf="!hideText" class="timer-title text-in-background" title="Timer">Timer</p>
     <time class="timer-clock">
-      {{ run.timer.time }}<span class="timer-ms">{{ run.timer.timeMs }}</span>
+      {{ timer.time }}<span class="timer-ms">{{ timer.timeMs }}</span>
     </time>
   </div>

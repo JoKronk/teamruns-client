@@ -6,12 +6,14 @@ import { RunComponent } from './run/run.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { RunHistoryComponent } from './run-history/run-history.component';
+import { PracticeComponent } from './practice/practice.component';
 
 const routes: Routes = [
   { path: 'lobby', component: LobbyComponent },
   { path: 'run', component: RunComponent },
   { path: 'leaderboard', component: LeaderboardComponent },
   { path: 'history', component: RunHistoryComponent },
+  { path: 'practice', component: PracticeComponent },
   { path: 'close', component: CloseScreenComponent },
   { path: '', component: StartScreenComponent, pathMatch: 'full' }
 ];

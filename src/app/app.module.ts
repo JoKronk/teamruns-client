@@ -14,6 +14,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTableModule} from '@angular/material/table';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatSliderModule} from '@angular/material/slider';
 
 import { NavBoardComponent } from './nav-board/nav-board.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
@@ -38,6 +39,7 @@ import { InputDialogComponent } from './dialogs/input-dialog/input-dialog.compon
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { HeaderComponent } from './header/header.component';
 import { RunHistoryComponent } from './run-history/run-history.component';
+import { PracticeComponent } from './practice/practice.component';
 
 @NgModule({
   declarations: [
@@ -60,7 +62,8 @@ import { RunHistoryComponent } from './run-history/run-history.component';
     InputDialogComponent,
     LeaderboardComponent,
     HeaderComponent,
-    RunHistoryComponent
+    RunHistoryComponent,
+    PracticeComponent
   ],
   imports: [
     BrowserModule,
@@ -75,6 +78,7 @@ import { RunHistoryComponent } from './run-history/run-history.component';
     MatProgressSpinnerModule,
     MatTableModule,
     MatButtonToggleModule,
+    MatSliderModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule,
     AngularFireAuthModule

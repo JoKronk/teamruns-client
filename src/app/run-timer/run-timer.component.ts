@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Run } from '../common/run/run';
+import { Timer } from '../common/run/timer';
 
 @Component({
   selector: 'app-run-timer',
@@ -8,7 +8,7 @@ import { Run } from '../common/run/run';
 })
 export class RunTimerComponent {
   
-  @Input() run: Run | undefined;
+  @Input() timer: Timer | undefined;
   @Input() hideText: boolean = false;
   @Input() hideBorder: boolean = false;
 
