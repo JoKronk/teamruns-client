@@ -1,3 +1,5 @@
+import { UserBase } from "../user/user";
+
 export class PositionData {
     transX: number;
     transY: number;
@@ -38,3 +40,32 @@ export class UserPositionDataTimestamp extends PositionDataTimestamp {
         this.userId = userId;
     }
 }
+
+
+
+export class CurrentPositionData extends PositionData {
+    playerId: number;
+    user: UserBase;
+
+    constructor(user: UserBase, playerId: number) {
+        super();
+        this.user = user;
+        this.playerId = playerId;
+    }
+
+    updatePosition(positionData: PositionData) {
+        this.quatW = positionData.quatW;
+        this.quatX = positionData.quatX;
+        this.quatY = positionData.quatY;
+        this.quatZ = positionData.quatZ;
+        this.tgtState = positionData.tgtState;
+        this.transX = positionData.transX;
+        this.transY = positionData.transY;
+        this.transZ = positionData.transZ;
+    }
+
+
+}
+
+
+

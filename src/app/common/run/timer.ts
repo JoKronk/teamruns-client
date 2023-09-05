@@ -33,10 +33,17 @@ export class Timer {
         this.runState = RunState.Waiting;
         this.time = "-0:00:" + ("0" + this.countdownSeconds).slice(-2);
         this.timeMs = ".0";
-        this.resetEverything = false;
+        this.totalMs = 0;
     }
 
-    startTimer(startMs: number) {
+    startTimer(startMs: number | undefined = undefined) {
+        this.resetEverything = false;
+
+        if (!startMs) {
+            let startDate = new Date();
+            startDate.setSeconds(startDate.getSeconds() + (this.countdownSeconds > 0 ? (this.countdownSeconds - 1) : this.countdownSeconds));
+            startMs = startDate.getTime();
+        }
         this.startDateMs = startMs;
         this.runState = RunState.Countdown;
         this.updateTimer();

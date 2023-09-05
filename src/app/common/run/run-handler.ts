@@ -84,7 +84,8 @@ export class RunHandler {
                 //setup position listener
                 if (!this.run.data.hideOtherPlayers) {
                     this.positionListener = (window as any).electron.receive("og-position-update", (target: PositionData) => {
-                        this.sendPosition(new UserPositionDataTimestamp(target, this.run?.timer.totalMs ?? 0, this.localPlayer.user.id));
+                        if (this.localPlayer.team !== undefined)
+                            this.sendPosition(new UserPositionDataTimestamp(target, this.run?.timer.totalMs ?? 0, this.localPlayer.user.id));
                     });
                 }
             }
@@ -477,7 +478,9 @@ export class RunHandler {
                 
             case EventType.ChangeTeam:
                 this.zone.run(() => { 
-                    this.run?.changeTeam(this.getUser(event.userId)?.user, event.value);
+                    const user = this.getUser(event.userId)?.user;
+                    this.run?.changeTeam(user, event.value);
+                    this.positionHandler.checkRegisterPlayer(user);
 
                     //check set team for obs window, set from run component if normal user
                     if (this.obsUserId && this.obsUserId === event.userId) { 
@@ -538,6 +541,7 @@ export class RunHandler {
                     if (this.run!.toggleVoteReset(event.userId, event.value)) {
                         OG.runCommand("(send-event *target* 'loading)");
                         this.localPlayer.state = PlayerState.Neutral;
+                        this.positionHandler.onTimerReset();
                     }
                 });  
                 break;
@@ -566,7 +570,9 @@ export class RunHandler {
 
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
+        
         this.positionListener();
+        this.positionHandler.destroy();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself
             if (wasHost) {

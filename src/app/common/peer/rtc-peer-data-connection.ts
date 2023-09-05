@@ -99,9 +99,6 @@ export class RTCPeerDataConnection {
                 }
             }
             else if (channel.label === positionChannelId && positionChannel) {
-                OG.runCommand("(set! (-> *multiplayer-info* players 1 username) \"" + peer.name + "\")");
-                OG.runCommand("(set! (-> *multiplayer-info* players 1 mp_state) (mp-tgt-state mp-tgt-connected))");
-                OG.runCommand("(set! (-> *self-player-info* color) (tgt-color normal))");
                 channel.onmessage = (target) => {
                     positionChannel.next(JSON.parse(target.data));
                 }
