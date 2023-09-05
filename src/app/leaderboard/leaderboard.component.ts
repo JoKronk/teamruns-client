@@ -194,6 +194,24 @@ export class LeaderboardComponent {
       });
     });
   }
-  
+
+
+  selectRun(run: DbLeaderboardPb) {
+    if (run.id === this.selectedRun?.id) {
+      this.selectedRun = null;
+      this.selectedTeam = null;
+    }
+    else {
+      this.selectedRun = run;
+      let team = new Team(0, "");
+      team.tasks = this.selectedRun.tasks;
+      team.tasks.forEach((task, index) => {
+        team.tasks[index].obtainedByName = this.usersCollection?.users.find(x => x.id === task.obtainedById)?.name ?? "Unknown";
+      });
+      team.cellCount = this.selectedRun.tasks.filter(x => x.isCell).length;
+      this.selectedTeam = team;
+    }
+  }
+
 }
 
