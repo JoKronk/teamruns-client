@@ -38,14 +38,6 @@ export class NavBoardComponent {
     this._user.sendNotification("Obs Link Copied");
   }
 
-  navHistory() {
-    this.router.navigate(['/history' ]);
-  }
-
-  navLeaderboard() {
-    this.router.navigate(['/leaderboard' ]);
-  }
-
   openPathConfig() {
     this.dialog.open(SetPathComponent);
     this._user.viewSettings = false;

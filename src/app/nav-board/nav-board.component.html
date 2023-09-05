@@ -7,10 +7,10 @@
         </div>
 
         <h4>Navigation</h4>
-        <div class="list-item" (click)="navHistory()">
+        <div class="list-item"  [routerLink]="['/history']">
             <p>Runs History</p>
         </div>
-        <div class="list-item" (click)="navLeaderboard()">
+        <div class="list-item" [routerLink]="['/leaderboard']">
             <p>Leaderboards</p>
         </div>
         <div class="list-item" (click)="openInfo()">
