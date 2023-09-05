@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserService } from './services/user.service';
 
@@ -20,5 +20,10 @@ export class AppComponent {
 
   close() {
     this.router.navigate(['/close']);
+  }
+  
+  @HostListener('window:keydown.control.shift.b', ['$event']) onKeydownHandler(event: KeyboardEvent) {
+    event.preventDefault();
+    (window as any).electron.send('settings-reset-size');
   }
 }
