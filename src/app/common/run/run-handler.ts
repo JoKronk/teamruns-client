@@ -48,11 +48,12 @@ export class RunHandler {
     lobbySubscription: Subscription;
     positionListener: any;
 
-    positionHandler: PositionHandler = new PositionHandler();
+    positionHandler: PositionHandler;
 
     constructor(lobbyId: string, firestoreService: FireStoreService, userService: UserService, localUser: LocalPlayerData, zone: NgZone, obsUserId: string | null = null) {
         this.firestoreService = firestoreService;
         this.userService = userService;
+        this.positionHandler = new PositionHandler(this.userService);
         this.localPlayer = localUser;
         this.zone = zone;
         this.obsUserId = obsUserId;

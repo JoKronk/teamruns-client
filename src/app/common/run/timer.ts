@@ -7,13 +7,15 @@ export class Timer {
     startDateMs: number | null;
     countdownSeconds: number;
     totalMs: number = 0;
+    spawnInGeyserOnZero: boolean;
 
     runState: RunState;
 
     private resetEverything: boolean = false; //used to flag a reset to the update cycle
 
-    constructor(countdownSeconds: number) {
+    constructor(countdownSeconds: number, spawnInGeyserOnZero: boolean = true) {
         this.countdownSeconds = countdownSeconds;
+        this.spawnInGeyserOnZero = spawnInGeyserOnZero;
         this.resetTimer();
     }
 
@@ -59,7 +61,7 @@ export class Timer {
 
         //start run check
         if (this.runState === RunState.Countdown) {
-            if (!hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
+            if (this.spawnInGeyserOnZero && !hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
                 OG.startRun();
                 hasSpawnedPlayer = true;
             }

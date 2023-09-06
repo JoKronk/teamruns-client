@@ -53,7 +53,7 @@ export class CurrentPositionData extends PositionData {
         this.playerId = playerId;
     }
 
-    updatePosition(positionData: PositionData) {
+    updateCurrentPosition(positionData: PositionData) {
         this.quatW = positionData.quatW;
         this.quatX = positionData.quatX;
         this.quatY = positionData.quatY;
