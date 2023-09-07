@@ -7,17 +7,19 @@ export class DbUserPositionData {
     playback: PositionDataTimestamp[] = [];
 
     timeFrontend?: string;
-
+    nameFrontend?: string;
 
     constructor(userId: string) {
         this.userId = userId;
     }
 
-    fillFrontendValues() {
+    fillFrontendValues(name: string) {
+        this.nameFrontend = name;
         this.timeFrontend = this.playback.length === 0 ? "0s" : Timer.msToTimeFormat(this.playback[0].time, true, true);
     }
 
     clean() {
         this.timeFrontend = undefined;
+        this.nameFrontend = undefined;
     }
 }

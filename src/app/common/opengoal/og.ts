@@ -1,4 +1,4 @@
-import { PositionData } from "../playback/position-data";
+import { CurrentPositionData } from "../playback/position-data";
 
 export class OG {
   static startGame(): void {
@@ -15,8 +15,10 @@ export class OG {
     this.runCommand("(dm-give-cell (game-task " + taskName + "))");
   }
 
-  static updatePlayerPosition(target: PositionData, ogId: number) {
-    this.runCommand("(manual-position-update " + ogId + " " + target.transX.toFixed(4) + " " + target.transY.toFixed(4) + " " + target.transZ.toFixed(4) + " " + target.quatY.toFixed(4) + " " + target.quatZ.toFixed(4) + " " + target.quatW.toFixed(4) + " \"" + target.tgtState + "\")");
+  static updatePlayerPositions(players: CurrentPositionData[]) {
+    players.forEach(target => {
+      this.runCommand("(manual-position-update " + target.playerId + " " + target.transX.toFixed(4) + " " + target.transY.toFixed(4) + " " + target.transZ.toFixed(4) + " " + target.quatY.toFixed(4) + " " + target.quatZ.toFixed(4) + " " + target.quatW.toFixed(4) + " \"" + target.tgtState + "\")");
+    });
   }
 
   static giveFinalBossAccess(currentLevel: string) {

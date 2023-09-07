@@ -22,27 +22,49 @@ export class PositionHandler {
         this.lastDrawTime = 0;
     }
 
-    clearGetRecordings(): DbUserPositionData[] {
+    resetGetRecordings(): DbUserPositionData[] {
         const recordings = this.userPositionRecording;
+        this.players.forEach(player => {
+            OG.runCommand("(set! (-> *multiplayer-info* players " + player.playerId + " mp_state) (mp-tgt-state mp-tgt-disconnected))");
+        });
+
         this.userPositionRecording = [];
         this.recordings = [];
+        this.players = [];
         return recordings;
     }
 
+    removePlayer(userId: string) {
+        this.recordings = this.recordings.filter(x => x.userId !== userId);
+        this.userPositionRecording = this.userPositionRecording.filter(x => x.userId !== userId);
+        const player = this.players.find(x => x.user.id === userId);
+        if (!player) return;
+
+        this.players = this.players.filter(x => x.user.id !== userId);
+        OG.runCommand("(set! (-> *multiplayer-info* players " + player.playerId + " mp_state) (mp-tgt-state mp-tgt-disconnected))");
+    }
+
     checkRegisterPlayer(user: UserBase | undefined) {
-        if (this.players.length === 0)
-            this.players.push(new CurrentPositionData(this.userService.user, 0));
+        if (!user || this.players.find(x => x.user.id === user.id) || user.id === this.userService.getId()) return;
 
-        if (!user || this.players.find(x => x.user.id === user.id)) return;
-
-        const playerId = this.players.length;
+        const playerId = this.findOpenPlayerId();
         this.players.push(new CurrentPositionData(user, playerId));
         
-        if (user.id !== this.userService.getId()) {
-            OG.runCommand("(set! (-> *multiplayer-info* players " + playerId + " username) \"" + user.name + "\")");
-            OG.runCommand("(set! (-> *multiplayer-info* players " + playerId + " mp_state) (mp-tgt-state mp-tgt-connected))");
-            OG.runCommand("(set! (-> *self-player-info* color) (tgt-color normal))");
+        OG.runCommand("(set! (-> *multiplayer-info* players " + playerId + " username) \"" + user.name + "\")");
+        OG.runCommand("(set! (-> *multiplayer-info* players " + playerId + " mp_state) (mp-tgt-state mp-tgt-connected))");
+        OG.runCommand("(set! (-> *self-player-info* color) (tgt-color normal))");
+    }
+
+    private findOpenPlayerId() {
+        this.players.sort((a, b) => a.playerId - b.playerId);
+    
+        for (var i = 0; i < this.players.length; i++) {
+            if (this.players[i].playerId !== i + 1) {
+                return i + 1;
+          }
         }
+    
+        return this.players.length + 1;
     }
 
 
@@ -57,8 +79,10 @@ export class PositionHandler {
     updatePosition(positionData: UserPositionDataTimestamp) {
         let player = this.players.find(x => x.user.id === positionData.userId);
         
-        if (!player) return;
-        player.updateCurrentPosition(positionData);
+        if (player)
+            player.updateCurrentPosition(positionData);
+        else if (positionData.userId !== this.userService.getId())
+            return;
 
         let userRecording = this.userPositionRecording.find(x => x.userId === positionData.userId);
         
@@ -89,11 +113,8 @@ export class PositionHandler {
             currentPlayer.updateCurrentPosition(positionData);
         });
 
-        const userId = this.userService.getId();
-        this.players.forEach(player => {
-            if (player.user.id !== userId)
-                OG.updatePlayerPosition(player, player.playerId)
-        });
+        OG.updatePlayerPositions(this.players);
+        
     }
 
     destroy() {

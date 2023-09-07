@@ -16,21 +16,23 @@ import { OG } from '../common/opengoal/og';
 })
 export class PracticeComponent implements OnDestroy {
 
-  timer: Timer = new Timer(1, false);
   runState = RunState;
+  timer: Timer = new Timer(1, false);
   positionHandler: PositionHandler;
 
   positionListener: any;
 
   loadOnRecord: string = "false";
+  usePlayback: string = "true";
 
   replay: boolean = false;
   replayId: string = crypto.randomUUID();
-  usePlayback: string = "true";
+  nextRecordingId: number = 1;
   currentRecording: string = "none";
+
   recordings: DbUserPositionData[] = [];
   dataSource: MatTableDataSource<DbUserPositionData> = new MatTableDataSource(this.recordings);
-  columns: string[] = ["player", "time", "options"];
+  columns: string[] = ["player","time", "options"];
 
 
   constructor(public _user: UserService) {
@@ -52,7 +54,6 @@ export class PracticeComponent implements OnDestroy {
     if (this.loadOnRecord === "true")
       this.loadCheckpoint();
 
-    this.positionHandler.checkRegisterPlayer(this._user.user);
     this.timer.startTimer();
   }
 
@@ -60,9 +61,10 @@ export class PracticeComponent implements OnDestroy {
     const saveRecording = this.timer.totalMs > 0;
 
     this.checkStop();
-    this.positionHandler.clearGetRecordings().forEach(recording => {
+    this.positionHandler.resetGetRecordings().forEach(recording => {
       if (saveRecording) {
-        recording.fillFrontendValues();
+        recording.fillFrontendValues("Recording-" + this.nextRecordingId);
+        this.nextRecordingId += 1;
         this.recordings.push(recording);
       }
     });
@@ -103,10 +105,10 @@ export class PracticeComponent implements OnDestroy {
     this.replayId = crypto.randomUUID();
     const startId = this.replayId;
 
-    this.positionHandler.clearGetRecordings();
+    this.positionHandler.resetGetRecordings();
     this.currentRecording = giveRecordings.length === 1 ? giveRecordings[0].id : "all";
     giveRecordings.forEach((rec, index) => {
-      this.positionHandler.addRecording(rec, new UserBase(rec.id, "Recording-" + (index + 1)));
+      this.positionHandler.addRecording(rec, new UserBase(rec.id, rec.nameFrontend ?? "Name not found"));
     })
 
     const longestRecordingTime = this.getLongestRecordingTime(giveRecordings);
