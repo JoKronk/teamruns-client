@@ -1,5 +1,5 @@
 .container {
-    padding: 10px 20px 30px;
+    padding: 20px 20px 30px;
     width: 380px;
     font-family: 'jak';
     font-weight: bold;
@@ -42,12 +42,12 @@ p {
     color: #b4b4b4;
 }
 
-h2 {
-    margin-top: 4px;
-    margin-bottom: 4px;
-    color: #380000;
+#title {
     font-family: 'precursor';
-    font-size: 36px;
+    color: #380000;
+    position: absolute;
+    top: -14px;
+    left: 6px;
 }
 
 .buttons {
