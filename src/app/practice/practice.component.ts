@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, NgZone, OnDestroy } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { UserService } from '../services/user.service';
 import { PositionData, UserPositionDataTimestamp } from '../common/playback/position-data';
@@ -8,6 +8,8 @@ import { DbUserPositionData } from '../common/playback/db-user-position-data';
 import { UserBase } from '../common/user/user';
 import { RunState } from '../common/run/run-state';
 import { OG } from '../common/opengoal/og';
+import { MatDialog } from '@angular/material/dialog';
+import { ImportFileComponent } from '../dialogs/import-file/import-file.component';
 
 @Component({
   selector: 'app-practice',
@@ -32,10 +34,10 @@ export class PracticeComponent implements OnDestroy {
 
   recordings: DbUserPositionData[] = [];
   dataSource: MatTableDataSource<DbUserPositionData> = new MatTableDataSource(this.recordings);
-  columns: string[] = ["player","time", "options"];
+  columns: string[] = ["player", "time", "options"];
 
 
-  constructor(public _user: UserService) {
+  constructor(public _user: UserService, private dialog: MatDialog, private zone: NgZone) {
     this.positionHandler = new PositionHandler(_user);
 
     this.positionListener = (window as any).electron.receive("og-position-update", (target: PositionData) => {
@@ -79,6 +81,30 @@ export class PracticeComponent implements OnDestroy {
     OG.runCommand("(spawn-temp-checkpoint)");
   }
 
+  importRecording() {
+    const dialogRef = this.dialog.open(ImportFileComponent, { data: "Recording-" + this.nextRecordingId });
+    const dialogSubscription = dialogRef.afterClosed().subscribe(recording => {
+      dialogSubscription.unsubscribe();
+      if (!recording) return;
+      if (typeof recording === 'string') this._user.sendNotification(recording);
+      
+      this.nextRecordingId += 1;
+      this.recordings.push(recording);
+      this.zone.run(() => {
+        this.dataSource = new MatTableDataSource(this.recordings);
+      });
+    });
+  }
+
+  exportRecording(recording: DbUserPositionData) {
+    const fileData = JSON.stringify(recording.playback);
+    const blob = new Blob([fileData], {type: "text/plain"});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = 'recording.json';
+    link.href = url;
+    link.click();
+  }
 
 
   deleteRecording(id: string) {

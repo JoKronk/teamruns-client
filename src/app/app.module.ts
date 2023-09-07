@@ -40,6 +40,8 @@ import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { HeaderComponent } from './header/header.component';
 import { RunHistoryComponent } from './run-history/run-history.component';
 import { PracticeComponent } from './practice/practice.component';
+import { ImportFileComponent } from './dialogs/import-file/import-file.component';
+import { DragDropDirective } from './common/directives/drag-drop.directive';
 
 @NgModule({
   declarations: [
@@ -63,7 +65,9 @@ import { PracticeComponent } from './practice/practice.component';
     LeaderboardComponent,
     HeaderComponent,
     RunHistoryComponent,
-    PracticeComponent
+    PracticeComponent,
+    ImportFileComponent,
+    DragDropDirective
   ],
   imports: [
     BrowserModule,

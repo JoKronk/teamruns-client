@@ -2,7 +2,7 @@
 
 .page {
     &-container {
-        padding: 0 20px;
+        padding: 0 0 0 20px;
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -16,6 +16,7 @@
         flex-shrink: 1;
     }
     &-info {
+        padding-right: 20px;
         flex-shrink: 1;
     }
     &-table {
@@ -32,13 +33,14 @@
 
     &-container {
         display: flex;
+        flex-wrap: wrap;
     }
     &-button {
         border: 1px solid #575757;
         border-radius: 6px;
         background-color: #000000;
         color: #f5f5f5;
-        padding: 8px 20px;
+        padding: 8px 18px;
         margin: 0 5px;
         margin-bottom: 6px;
         cursor: pointer;
@@ -96,27 +98,35 @@
 }
 
 .playback {
-    display: inline-block;
-    width: 21px;
-    height: 21px;
-    border-radius: 21px;
-    font-size: 21px;
-    line-height: 21px;
-    text-align: center;
-    margin-right: 14px;
-    border: 2px solid #a8a8a8;
-    transition: 0.15s;
-    &:hover {
-        color: #a56d06;
-        border: 2px solid #a56d06;
-        cursor: pointer;
+
+    & span {
+        flex: 1;
+        flex-wrap: nowrap;
+        display: inline-block;
+        width: 21px;
+        height: 21px;
+        border-radius: 21px;
+        font-size: 21px;
+        line-height: 21px;
+        text-align: center;
+        margin-right: 14px;
+        border: 2px solid #a8a8a8;
+        transition: 0.15s;
+        &:hover {
+            color: #a56d06;
+            border: 2px solid #a56d06;
+            cursor: pointer;
+        }
+    }
+    & mat-slider {
+        flex-shrink: 1;
     }
 }
 
 .btn {
     &-record {
         text-align: center;
-        width: 115px;
+        width: 112px;
         &-stop {
             background-color: #380000;
         }
@@ -126,6 +136,33 @@
         width: 55px;
         &-cancel {
             background-color: #575757;
+        }
+    }
+}
+
+.download {
+    height: 18px;
+    & g {
+        fill: #929292;
+        transition: 0.22s;
+    }
+    &:hover {
+        cursor: pointer;
+        & g {
+            fill: #a56d06;
+        }
+        & .download-lower {
+            stroke: #a56d06;
+        }
+    }
+    &:focus {
+        outline: none;
+    }
+    &-lower {
+        transition: 0.22s;
+        stroke: #929292;
+        &:focus {
+            outline: none;
         }
     }
 }
@@ -217,6 +254,10 @@ tr.run-row:nth-child(2n+1):hover {
 tr.run-row:nth-child(even):hover {
     background-color: rgba(0, 0, 0, 0.09);
     cursor: default;
+}
+
+.mat-column-player {
+  min-width: 200px !important;
 }
 
 .mat-button-toggle{

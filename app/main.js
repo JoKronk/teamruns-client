@@ -101,6 +101,10 @@ function createWindow() {
   ipcMain.on('og-tracker-connected-read', () => {
     openGoal.sendClientTrackerState();
   });
+    
+  ipcMain.on('file-fetch', (event, filepath) => {
+    readFile(filepath);
+  });
 
   ipcMain.on('settings-write', (event, settings) => {
     writeSettings(settings);
@@ -207,6 +211,13 @@ function readSettings() {
       
       userSettings = user;
     }
+  });
+}
+
+function readFile(filepath) {
+  fs.readFile(filepath, 'utf8', function (err, data) {
+    if (err) console.log(err)
+    else if (data) win.webContents.send("file-get", JSON.parse(data));
   });
 }
 
