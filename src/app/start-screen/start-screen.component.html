@@ -12,7 +12,7 @@
         </div>
         <div class="input-container">
             <p>Username</p>
-            <input [(ngModel)]="_user.user.name" (keyup.enter)="sendToLobby()">
+            <input [(ngModel)]="_user.user.name" (keyup.enter)="sendToLobby()" maxlength="20">
         </div>
         <div class="input-container-buttons">
             <button (click)="openUserImport()">Import User</button>
