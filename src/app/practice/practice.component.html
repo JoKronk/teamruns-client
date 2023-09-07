@@ -72,6 +72,15 @@
               </div>
             </td>
           </ng-container>
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef> Name </th>
+            <td mat-cell *matCellDef="let recording"> 
+              <div class="playback-name">
+                <span *ngIf="recordingBeingEdited !== recording.id" (click)="recordingBeingEdited = recording.id" class="team-name">{{ recording.nameFrontend }}</span>
+                <input *ngIf="recordingBeingEdited === recording.id" (keyup.enter)="recordingBeingEdited = null" [(ngModel)]="recording.nameFrontend" maxlength="20">
+              </div>
+            </td>
+          </ng-container>
           <ng-container matColumnDef="time">
             <th mat-header-cell *matHeaderCellDef> Time </th>
             <td mat-cell *matCellDef="let recording"> {{ recording.timeFrontend }} </td>

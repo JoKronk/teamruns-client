@@ -121,6 +121,19 @@
     & mat-slider {
         flex-shrink: 1;
     }
+
+    &-name {
+        & span {
+            transition: 0.15s;
+            &:hover {
+                cursor: pointer;
+                color: #a56d06;
+            }
+        }
+        & input {
+            max-width: 100px;
+        }
+    }
 }
 
 .btn {

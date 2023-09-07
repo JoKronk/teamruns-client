@@ -31,10 +31,11 @@ export class PracticeComponent implements OnDestroy {
   replayId: string = crypto.randomUUID();
   nextRecordingId: number = 1;
   currentRecording: string = "none";
+  recordingBeingEdited: string | null = null;
 
   recordings: DbUserPositionData[] = [];
   dataSource: MatTableDataSource<DbUserPositionData> = new MatTableDataSource(this.recordings);
-  columns: string[] = ["player", "time", "options"];
+  columns: string[] = ["player", "name", "time", "options"];
 
 
   constructor(public _user: UserService, private dialog: MatDialog, private zone: NgZone) {
