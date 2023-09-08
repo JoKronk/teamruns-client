@@ -38,8 +38,7 @@ export class PracticeComponent implements OnDestroy {
     this.positionHandler.timer.setStartConditions(1, false);
 
     this.positionListener = (window as any).electron.receive("og-position-update", (target: PositionData) => {
-      if (this.positionHandler.timer.totalMs === 0) return;
-        this.positionHandler.updatePosition(new UserPositionDataTimestamp(target, this.positionHandler.timer.totalMs, this._user.getId()));
+      this.positionHandler.updatePosition(new UserPositionDataTimestamp(target, this.positionHandler.timer.totalMs, this._user.getId()));
     });
   }
 

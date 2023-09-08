@@ -78,22 +78,21 @@ export class PositionService implements OnDestroy {
   updatePosition(positionData: UserPositionDataTimestamp) {
     let player = this.players.find(x => x.user.id === positionData.userId);
 
-    if (player)
-      player.updateCurrentPosition(positionData);
-    else if (positionData.userId !== this.userService.getId())
-      return;
+    if (player) player.updateCurrentPosition(positionData);
+    else if (positionData.userId !== this.userService.getId()) return;
 
+
+    if (this.timer.totalMs === 0) return;
+    //handle user position recording
     let userRecording = this.userPositionRecording.find(x => x.userId === positionData.userId);
 
     //registner new if missing
     if (!userRecording) {
       userRecording = new Recording(positionData.userId);
-      this.userPositionRecording.unshift(userRecording);
+      this.userPositionRecording.push(userRecording);
     }
 
-    //log if timer has started
-    if (positionData.time !== 0)
-      userRecording.playback.unshift(new PositionDataTimestamp(positionData, positionData.time));
+    userRecording.playback.unshift(new PositionDataTimestamp(positionData, positionData.time));
   }
 
   startDrawPlayers() {
@@ -115,14 +114,17 @@ export class PositionService implements OnDestroy {
   private async drawPlayers() {
     if (!this.drawPositions) return;
 
-    this.recordings.forEach(player => {
-      const positionData = player.playback.find(x => x.time < this.timer.totalMs);
-      if (!positionData) return;
-      const currentPlayer = this.players.find(x => x.user.id === player.userId);
-      if (!currentPlayer) return;
-
-      currentPlayer.updateCurrentPosition(positionData);
-    });
+    
+    if (this.timer.totalMs > 0) {
+      this.recordings.forEach(player => {
+        const positionData = player.playback.find(x => x.time < this.timer.totalMs);
+        if (positionData) {
+          const currentPlayer = this.players.find(x => x.user.id === player.userId);
+          if (currentPlayer)
+            currentPlayer.updateCurrentPosition(positionData);
+        }
+      });
+    }
 
     OG.updatePlayerPositions(this.players);
     await new Promise(r => setTimeout(r, this.positionUpdateRateMs));
