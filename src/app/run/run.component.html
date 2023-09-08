@@ -6,7 +6,7 @@
     </div>
 
     <!-- TIMER -->
-    <app-run-timer *ngIf="runHandler.connected" [timer]="runHandler.run?.timer"></app-run-timer>
+    <app-run-timer *ngIf="runHandler.connected"></app-run-timer>
 
     <app-run-spectators *ngIf="runHandler.connected && runHandler.run" [spectators]="runHandler.run.spectators" [isHost]="runHandler.lobby?.host?.id === localPlayer.user.id" [userId]="localPlayer.user.id" (onKick)="kickPlayer($event)"></app-run-spectators>
   </mat-sidenav>

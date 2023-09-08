@@ -1,7 +1,7 @@
 import { Timer } from "../run/timer";
 import { PositionDataTimestamp } from "./position-data";
 
-export class DbUserPositionData {
+export class Recording {
     id: string = crypto.randomUUID();
     userId: string;
     playback: PositionDataTimestamp[] = [];

@@ -11,16 +11,16 @@ import { RunState } from "./run-state";
 import { MultiLevel } from "../opengoal/levels";
 import { OG } from "../opengoal/og";
 import { UserBase } from "../user/user";
+import { TimerService } from "src/app/services/timer.service";
 
 export class Run {
     data: RunData;
     teams: Team[] = [];
     spectators: Player[] = [];
-    timer: Timer;
 
-    constructor(runData: RunData) {
+    constructor(runData: RunData, public timer: TimerService) {
         this.data = runData;
-        this.timer = new Timer(this.data.countdownSeconds);
+        this.timer.setStartConditions(this.data.countdownSeconds);
 
         if (this.data.teams > 1) {
             for (let i = 0; i < this.data.teams; i++)
@@ -289,7 +289,6 @@ export class Run {
             teams.push(Object.assign(new Team(team.id, team.name), team));
         }
         this.teams = teams;
-        this.timer = Object.assign(new Timer(this.timer.countdownSeconds), this.timer);
         if (this.timer.runIsOngoing())
             this.timer.updateTimer();
 

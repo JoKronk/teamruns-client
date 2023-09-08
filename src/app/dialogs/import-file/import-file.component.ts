@@ -1,6 +1,6 @@
 import { Component, ElementRef, Inject, OnDestroy, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { DbUserPositionData } from 'src/app/common/playback/db-user-position-data';
+import { Recording } from 'src/app/common/playback/recording';
 import { PositionDataTimestamp } from 'src/app/common/playback/position-data';
 
 @Component({
@@ -28,7 +28,7 @@ export class ImportFileComponent implements OnDestroy {
       if (!Array.isArray(data) || data.length === 0 || !(data[0] instanceof PositionDataTimestamp))
         this.dialogRef.close("File was not recognized as a recording.");
         
-      const recording: DbUserPositionData = new DbUserPositionData(crypto.randomUUID());
+      const recording: Recording = new Recording(crypto.randomUUID());
       recording.userId = recording.id;
       recording.playback = data;
       recording.fillFrontendValues(this.name);

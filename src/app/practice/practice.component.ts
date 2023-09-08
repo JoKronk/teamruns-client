@@ -2,14 +2,13 @@ import { AfterViewInit, Component, NgZone, OnDestroy } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { UserService } from '../services/user.service';
 import { PositionData, UserPositionDataTimestamp } from '../common/playback/position-data';
-import { Timer } from '../common/run/timer';
-import { PositionHandler } from '../common/playback/position-handler';
-import { DbUserPositionData } from '../common/playback/db-user-position-data';
+import { Recording } from '../common/playback/recording';
 import { UserBase } from '../common/user/user';
 import { RunState } from '../common/run/run-state';
 import { OG } from '../common/opengoal/og';
 import { MatDialog } from '@angular/material/dialog';
 import { ImportFileComponent } from '../dialogs/import-file/import-file.component';
+import { PositionService } from '../services/position.service';
 
 @Component({
   selector: 'app-practice',
@@ -19,9 +18,6 @@ import { ImportFileComponent } from '../dialogs/import-file/import-file.componen
 export class PracticeComponent implements OnDestroy {
 
   runState = RunState;
-  timer: Timer = new Timer(1, false);
-  positionHandler: PositionHandler;
-
   positionListener: any;
 
   loadOnRecord: string = "false";
@@ -33,17 +29,17 @@ export class PracticeComponent implements OnDestroy {
   currentRecording: string = "none";
   recordingBeingEdited: string | null = null;
 
-  recordings: DbUserPositionData[] = [];
-  dataSource: MatTableDataSource<DbUserPositionData> = new MatTableDataSource(this.recordings);
+  recordings: Recording[] = [];
+  dataSource: MatTableDataSource<Recording> = new MatTableDataSource(this.recordings);
   columns: string[] = ["player", "name", "time", "options"];
 
 
-  constructor(public _user: UserService, private dialog: MatDialog, private zone: NgZone) {
-    this.positionHandler = new PositionHandler(_user);
+  constructor(public _user: UserService, public positionHandler: PositionService, private dialog: MatDialog, private zone: NgZone) {
+    this.positionHandler.timer.setStartConditions(1, false);
 
     this.positionListener = (window as any).electron.receive("og-position-update", (target: PositionData) => {
-      if (this.timer.totalMs === 0) return;
-        this.positionHandler.updatePosition(new UserPositionDataTimestamp(target, this.timer.totalMs, this._user.getId()));
+      if (this.positionHandler.timer.totalMs === 0) return;
+        this.positionHandler.updatePosition(new UserPositionDataTimestamp(target, this.positionHandler.timer.totalMs, this._user.getId()));
     });
   }
 
@@ -57,11 +53,11 @@ export class PracticeComponent implements OnDestroy {
     if (this.loadOnRecord === "true")
       this.loadCheckpoint();
 
-    this.timer.startTimer();
+    this.positionHandler.timer.startTimer();
   }
 
   stopRecording() {
-    const saveRecording = this.timer.totalMs > 0;
+    const saveRecording = this.positionHandler.timer.totalMs > 0;
 
     this.checkStop();
     this.positionHandler.resetGetRecordings().forEach(recording => {
@@ -97,7 +93,7 @@ export class PracticeComponent implements OnDestroy {
     });
   }
 
-  exportRecording(recording: DbUserPositionData) {
+  exportRecording(recording: Recording) {
     const fileData = JSON.stringify(recording.playback);
     const blob = new Blob([fileData], {type: "text/plain"});
     const url = URL.createObjectURL(blob);
@@ -127,7 +123,7 @@ export class PracticeComponent implements OnDestroy {
   }
 
 
-  startPlayback(giveRecordings: DbUserPositionData[], selfStop: boolean) {
+  startPlayback(giveRecordings: Recording[], selfStop: boolean) {
     this.replay = true;
     this.replayId = crypto.randomUUID();
     const startId = this.replayId;
@@ -144,22 +140,23 @@ export class PracticeComponent implements OnDestroy {
       setTimeout(() => {
         if (this.replayId === startId)
           this.checkStop();
-      }, longestRecordingTime + (this.timer.countdownSeconds * 1000) - 1000);
+      }, longestRecordingTime + (this.positionHandler.timer.countdownSeconds * 1000) - 1000);
     }
 
-    this.timer.startTimer();
+    this.positionHandler.timer.startTimer();
+    this.positionHandler.startDrawPlayers();
   }
 
   checkStop(): boolean {
-    if (this.timer.runState !== RunState.Waiting) {
-      this.timer.reset();
-      this.positionHandler.onTimerReset();
+    if (this.positionHandler.timer.runState !== RunState.Waiting) {
+      this.positionHandler.timer.reset();
+      this.positionHandler.stopDrawPlayers();
       return true;
     }
     return false;
   }
 
-  getLongestRecordingTime(recordings: DbUserPositionData[]): number {
+  getLongestRecordingTime(recordings: Recording[]): number {
     if (recordings.length === 0) return 0;
 
     let longest: number = recordings[0].playback[0].time;
@@ -175,7 +172,6 @@ export class PracticeComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.positionListener();
-    this.positionHandler.destroy();
   }
 
 }

@@ -20,9 +20,8 @@ import { CitadelOption } from "./run-data";
 import { Player } from "../player/player";
 import { Category } from "./category";
 import { DbRun } from "../firestore/db-run";
-import { DbPb } from "../firestore/db-pb";
 import { PositionData, UserPositionDataTimestamp } from "../playback/position-data";
-import { PositionHandler } from "../playback/position-handler";
+import { PositionService } from "src/app/services/position.service";
 
 export class RunHandler {
     
@@ -37,24 +36,22 @@ export class RunHandler {
     localMaster: RTCPeerMaster | undefined;
     localSlave: RTCPeerSlave | undefined;
 
-    firestoreService: FireStoreService;
     userService: UserService;
-    private localPlayer: LocalPlayerData;
     private obsUserId: string | null;
 
-    zone: NgZone;
     dataSubscription: Subscription;
     positionSubscription: Subscription;
     lobbySubscription: Subscription;
     positionListener: any;
 
-    positionHandler: PositionHandler;
-
-    constructor(lobbyId: string, firestoreService: FireStoreService, userService: UserService, localUser: LocalPlayerData, zone: NgZone, obsUserId: string | null = null) {
-        this.firestoreService = firestoreService;
-        this.userService = userService;
-        this.positionHandler = new PositionHandler(this.userService);
-        this.localPlayer = localUser;
+    constructor(lobbyId: string,
+        public firestoreService: FireStoreService,
+        public positionHandler: PositionService,
+        private localPlayer: LocalPlayerData,
+        public zone: NgZone,
+        obsUserId: string | null = null) {
+        
+        this.userService = positionHandler.userService;
         this.zone = zone;
         this.obsUserId = obsUserId;
 
@@ -69,7 +66,7 @@ export class RunHandler {
             //create run if it doesn't exist
             if (!this.run) {
                 console.log("Creating Run!");
-                this.run = new Run(this.lobby.runData);
+                this.run = new Run(this.lobby.runData, positionHandler.timer);
 
                 //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
                 this.localPlayer.user = this.userService.user.createUserBaseFromDisplayName();
@@ -374,7 +371,8 @@ export class RunHandler {
 
                     //update run
                     let run: Run = JSON.parse(JSON.stringify(event.value)); //to not cause referece so that import can run properly on the run after
-                    this.run = Object.assign(new Run(run.data), run).reconstructRun();
+                    this.positionHandler.timer.importTimer(run.timer);
+                    this.run = Object.assign(new Run(run.data, this.positionHandler.timer), run).reconstructRun();
                     
                     //update player and team
                     this.localPlayer.mode = this.run.data.mode;
@@ -542,7 +540,6 @@ export class RunHandler {
                     if (this.run!.toggleVoteReset(event.userId, event.value)) {
                         OG.runCommand("(send-event *target* 'loading)");
                         this.localPlayer.state = PlayerState.Neutral;
-                        this.positionHandler.onTimerReset();
                     }
                 });  
                 break;
@@ -573,7 +570,6 @@ export class RunHandler {
         this.lobbySubscription?.unsubscribe();
         
         this.positionListener();
-        this.positionHandler.destroy();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself
             if (wasHost) {

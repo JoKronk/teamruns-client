@@ -1,6 +1,6 @@
 <mat-sidenav-container fullscreen>
   <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true">
-    <app-run-timer [timer]="timer"></app-run-timer>
+    <app-run-timer></app-run-timer>
   </mat-sidenav>
 
   <mat-sidenav-content>
@@ -12,9 +12,9 @@
         <h2 class="page-title">Recording Tool</h2>
         <div class="category-container">
           <div class="category">
-            <div class="category-button btn-record" [class.btn-record-stop]="timer.runState !== runState.Waiting && !replay"
-              (click)="timer.runState !== runState.Waiting && !replay ? stopRecording() : startRecording()">
-              {{timer.runState !== runState.Waiting && !replay ? "Stop Recording" : "Start Recording" }}
+            <div class="category-button btn-record" [class.btn-record-stop]="positionHandler.timer.runState !== runState.Waiting && !replay"
+              (click)="positionHandler.timer.runState !== runState.Waiting && !replay ? stopRecording() : startRecording()">
+              {{positionHandler.timer.runState !== runState.Waiting && !replay ? "Stop Recording" : "Start Recording" }}
             </div>
           </div>
           <div class="category">
@@ -31,14 +31,14 @@
 
         <div class="category-container">
           <div class="category">
-            <div class="category-button subcategory btn-play" [class.btn-play-cancel]="timer.runState !== runState.Waiting" (click)="playAllRecordings()">
-              {{timer.runState !== runState.Waiting ? "Cancel" : "Play All" }}
+            <div class="category-button subcategory btn-play" [class.btn-play-cancel]="positionHandler.timer.runState !== runState.Waiting" (click)="playAllRecordings()">
+              {{positionHandler.timer.runState !== runState.Waiting ? "Cancel" : "Play All" }}
               
             </div>
           </div>
           <div class="category category-select">
             <span>Countdown:</span>
-            <input [disabled]="timer.runState !== runState.Waiting" type="number" min="0" [(ngModel)]="timer.countdownSeconds" (change)="timer.reset()">
+            <input [disabled]="positionHandler.timer.runState !== runState.Waiting" type="number" min="0" [(ngModel)]="positionHandler.timer.countdownSeconds" (change)="positionHandler.timer.reset()">
           </div>
           <div class="category category-select">
             <span>Load on Record:</span>
@@ -67,7 +67,7 @@
                 <span (click)="playRecording(recording.id)">&#x23F5;</span>
                 <mat-slider *ngIf="recording.playback.length !== 0" disabled min="0"
                   [max]="currentRecording === 'all' || currentRecording === recording.id ? recording.playback[0].time : 0">
-                  <input matSliderThumb [(ngModel)]="timer.totalMs">
+                  <input matSliderThumb [(ngModel)]="positionHandler.timer.totalMs">
                 </mat-slider>
               </div>
             </td>
