@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { RunState } from '../common/run/run-state';
 import { Timer } from '../common/run/timer';
 import { OG } from '../common/opengoal/og';
@@ -6,7 +6,7 @@ import { OG } from '../common/opengoal/og';
 @Injectable({
   providedIn: 'root'
 })
-export class TimerService {
+export class TimerService implements OnDestroy {
   time: string;
   timeMs: string;
   startDateMs: number | null;
@@ -38,7 +38,7 @@ export class TimerService {
     this.spawnInGeyserOnZero = spawnInGeyserOnZero;
     this.resetTimer();
   }
-  
+
   reset() {
     if (this.runIsOngoing())
       this.resetEverything = true;
@@ -108,5 +108,9 @@ export class TimerService {
 
   private getMs(ms: number): number {
     return this.runState === RunState.Started ? Math.trunc(Math.floor((ms % 1000)) / 100) : Math.trunc(Math.abs(Math.floor((ms % 1000)) / 100));
+  }
+
+  ngOnDestroy(): void {
+    this.reset();
   }
 }
