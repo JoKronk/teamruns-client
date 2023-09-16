@@ -15,10 +15,9 @@ import { PositionService } from '../services/position.service';
   templateUrl: './practice.component.html',
   styleUrls: ['./practice.component.scss']
 })
-export class PracticeComponent implements OnDestroy {
+export class PracticeComponent {
 
   runState = RunState;
-  positionListener: any;
 
   loadOnRecord: string = "false";
   usePlayback: string = "true";
@@ -36,10 +35,6 @@ export class PracticeComponent implements OnDestroy {
 
   constructor(public _user: UserService, public positionHandler: PositionService, private dialog: MatDialog, private zone: NgZone) {
     this.positionHandler.timer.setStartConditions(1, false);
-
-    this.positionListener = (window as any).electron.receive("og-position-update", (target: PositionData) => {
-      this.positionHandler.updatePosition(new UserPositionDataTimestamp(target, this.positionHandler.timer.totalMs, this._user.getId()));
-    });
   }
 
   startRecording() {
@@ -167,10 +162,6 @@ export class PracticeComponent implements OnDestroy {
     }
 
     return longest;
-  }
-
-  ngOnDestroy(): void {
-    this.positionListener();
   }
 
 }

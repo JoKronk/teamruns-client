@@ -1,3 +1,4 @@
+import { WebSocketSubject } from "rxjs/webSocket";
 import { CurrentPositionData } from "../playback/position-data";
 
 export class OG {
@@ -13,13 +14,6 @@ export class OG {
 
   static giveCell(taskName: string) {
     this.runCommand("(dm-give-cell (game-task " + taskName + "))");
-  }
-
-  static updatePlayerPositions(players: CurrentPositionData[]) {
-    players.forEach(target => {
-      if (target.transX)
-        this.runCommand("(manual-position-update " + target.playerId + " " + target.transX.toFixed(4) + " " + target.transY.toFixed(4) + " " + target.transZ.toFixed(4) + " " + target.quatY.toFixed(4) + " " + target.quatZ.toFixed(4) + " " + target.quatW.toFixed(4) + " \"" + target.tgtState + "\")");
-    });
   }
 
   static giveFinalBossAccess(currentLevel: string) {

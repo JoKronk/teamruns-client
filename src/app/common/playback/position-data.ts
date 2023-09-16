@@ -1,3 +1,5 @@
+import { Color } from "../opengoal/color";
+import { MultiplayerState } from "../opengoal/multiplayer-state";
 import { UserBase } from "../user/user";
 
 export class PositionData {
@@ -44,13 +46,17 @@ export class UserPositionDataTimestamp extends PositionDataTimestamp {
 
 
 export class CurrentPositionData extends PositionData {
-    playerId: number;
-    user: UserBase;
+    userId: string;
+    username: string;
+    color: Color;
+    mpState: MultiplayerState;
 
-    constructor(user: UserBase, playerId: number) {
+    constructor(user: UserBase) {
         super();
-        this.user = user;
-        this.playerId = playerId;
+        this.username = user.name;
+        this.userId = user.id;
+        this.mpState = MultiplayerState.connected;
+        this.color = Color.normal;
     }
 
     updateCurrentPosition(positionData: PositionData) {

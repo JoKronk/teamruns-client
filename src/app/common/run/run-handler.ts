@@ -81,7 +81,7 @@ export class RunHandler {
 
                 //setup position listener
                 if (!this.run.data.hideOtherPlayers) {
-                    this.positionListener = (window as any).electron.receive("og-position-update", (target: PositionData) => {
+                    this.positionHandler.ogSocket.subscribe(target => {
                         if (this.localPlayer.team !== undefined)
                             this.sendPosition(new UserPositionDataTimestamp(target, this.run?.timer.totalMs ?? 0, this.localPlayer.user.id));
                     });

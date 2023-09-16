@@ -19,7 +19,6 @@ const validIpcChannelsIn = [
 const validIpcChannelsOut = [
     "og-task-update",
     "og-state-update",
-    "og-position-update",
     "og-tracker-connected",
     "backend-message",
     "backend-error",

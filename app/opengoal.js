@@ -90,17 +90,6 @@ class OpenGoal {
             this.sendClientMessage("OG Error!: " + data.toString());
         });
 
-        //On data
-        ogSpawn.stdout.on('data', (data) => {
-            try {
-                let playerPos = JSON.parse(data);
-                this.sendClientPositionUpdate(playerPos);
-            }
-            catch (ex) {
-                console.log("Failed to parse: " + data);
-            }
-        });
-
         //On kill
         ogSpawn.stdout.on('end', () => {
             this.sendClientMessage("OG Disconneted!");
@@ -249,10 +238,6 @@ class OpenGoal {
 
     sendClientStateUpdate() {
         win.webContents.send("og-state-update", openGoalGameState);
-    }
-
-    sendClientPositionUpdate(pos) {
-        win.webContents.send("og-position-update", pos);
     }
 
     sendClientMessage(msg) {

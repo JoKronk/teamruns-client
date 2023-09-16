@@ -5,6 +5,8 @@ import { UserService } from './user.service';
 import { TimerService } from './timer.service';
 import { OG } from '../common/opengoal/og';
 import { UserBase } from '../common/user/user';
+import { WebSocketSubject, webSocket } from "rxjs/webSocket";
+import { MultiplayerState } from '../common/opengoal/multiplayer-state';
 
 @Injectable({
   providedIn: 'root'
@@ -16,56 +18,46 @@ export class PositionService implements OnDestroy {
 
   private players: CurrentPositionData[] = [];
   private drawPositions: boolean = false;
-  private positionUpdateRateMs: number = 100;
+  private positionUpdateRateMs: number = 16;
+
+  ogSocket: WebSocketSubject<any> = webSocket('ws://localhost:8111');
 
 
   constructor(public userService: UserService, public timer: TimerService) {
+
+    this.checkRegisterPlayer(this.userService.user);
+
+    this.ogSocket.subscribe(target => {
+      this.updatePosition(new UserPositionDataTimestamp(target, this.timer.totalMs, this.userService.getId()));
+    });
   }
 
   resetGetRecordings(): Recording[] {
     const recordings = this.userPositionRecording;
     this.players.forEach(player => {
-      OG.runCommand("(set! (-> *multiplayer-info* players " + player.playerId + " mp_state) (mp-tgt-state mp-tgt-disconnected))");
+      player.mpState = MultiplayerState.disconnected;
     });
+    this.updatePlayersInOpengoal();
+    
 
     this.userPositionRecording = [];
     this.recordings = [];
     this.players = [];
+    this.checkRegisterPlayer(this.userService.user);
     return recordings;
   }
 
   removePlayer(userId: string) {
     this.recordings = this.recordings.filter(x => x.userId !== userId);
     this.userPositionRecording = this.userPositionRecording.filter(x => x.userId !== userId);
-    const player = this.players.find(x => x.user.id === userId);
-    if (!player) return;
-
-    this.players = this.players.filter(x => x.user.id !== userId);
-    OG.runCommand("(set! (-> *multiplayer-info* players " + player.playerId + " mp_state) (mp-tgt-state mp-tgt-disconnected))");
+    this.players = this.players.filter(x => x.userId !== userId);
   }
 
   checkRegisterPlayer(user: UserBase | undefined) {
-    if (!user || this.players.find(x => x.user.id === user.id) || user.id === this.userService.getId()) return;
+    if (!user || this.players.find(x => x.userId === user.id)) return;
 
-    const playerId = this.findOpenPlayerId();
-    this.players.push(new CurrentPositionData(user, playerId));
-
-    OG.runCommand("(set! (-> *multiplayer-info* players " + playerId + " username) \"" + user.name + "\")");
-    OG.runCommand("(set! (-> *self-player-info* color) (tgt-color normal))");
+    this.players.push(new CurrentPositionData(user));
   }
-
-  private findOpenPlayerId() {
-    this.players.sort((a, b) => a.playerId - b.playerId);
-
-    for (var i = 0; i < this.players.length; i++) {
-      if (this.players[i].playerId !== i + 1) {
-        return i + 1;
-      }
-    }
-
-    return this.players.length + 1;
-  }
-
 
   addRecording(recording: Recording, user: UserBase) {
     recording.userId = recording.id;
@@ -76,7 +68,7 @@ export class PositionService implements OnDestroy {
 
 
   updatePosition(positionData: UserPositionDataTimestamp) {
-    let player = this.players.find(x => x.user.id === positionData.userId);
+    let player = this.players.find(x => x.userId === positionData.userId);
 
     if (player) player.updateCurrentPosition(positionData);
     else if (positionData.userId !== this.userService.getId()) return;
@@ -100,15 +92,16 @@ export class PositionService implements OnDestroy {
     this.drawPositions = true;
     this.drawPlayers();
     this.players.forEach(player => {
-      OG.runCommand("(set! (-> *multiplayer-info* players " + player.playerId + " mp_state) (mp-tgt-state mp-tgt-connected))");
+      player.mpState = MultiplayerState.connected;
     })
   }
 
   stopDrawPlayers() {
     this.drawPositions = false;
     this.players.forEach(player => {
-      OG.runCommand("(set! (-> *multiplayer-info* players " + player.playerId + " mp_state) (mp-tgt-state mp-tgt-disconnected))");
+      player.mpState = MultiplayerState.disconnected;
     })
+    this.updatePlayersInOpengoal();
   }
 
   private async drawPlayers() {
@@ -119,22 +112,28 @@ export class PositionService implements OnDestroy {
       this.recordings.forEach(player => {
         const positionData = player.playback.find(x => x.time < this.timer.totalMs);
         if (positionData) {
-          const currentPlayer = this.players.find(x => x.user.id === player.userId);
+          const currentPlayer = this.players.find(x => x.userId === player.userId);
           if (currentPlayer)
             currentPlayer.updateCurrentPosition(positionData);
         }
       });
     }
 
-    OG.updatePlayerPositions(this.players);
+    this.updatePlayersInOpengoal();
     await new Promise(r => setTimeout(r, this.positionUpdateRateMs));
 
     this.drawPlayers();
   }
 
+  private updatePlayersInOpengoal() {
+    this.ogSocket.next(this.players);
+  }
+
   ngOnDestroy(): void {
     this.players.forEach(player => {
-      OG.runCommand("(set! (-> *multiplayer-info* players " + player.playerId + " mp_state) (mp-tgt-state mp-tgt-disconnected))");
-    })
+      player.mpState = MultiplayerState.disconnected;
+    });
+    this.updatePlayersInOpengoal();
+    this.ogSocket.complete();
   }
 }
