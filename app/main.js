@@ -63,7 +63,6 @@ function createWindow() {
   });
 
   openGoal = new OpenGoal(win);
-  openGoal.readGameState();
 
   win.on('resized', () => {
     const size = win.getSize();

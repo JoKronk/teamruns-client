@@ -35,7 +35,6 @@ export class RunComponent implements OnDestroy {
 
   editingName: boolean;
 
-  private stateListener: any;
   private taskListener: any;
 
 
@@ -77,7 +76,7 @@ export class RunComponent implements OnDestroy {
   }
 
   switchTeam(teamId: number) {
-    if (this.runHandler.run?.timer.runState !== RunState.Waiting && this.isSpectatorOrNull()) return;
+    if (this.runHandler.run?.timer.runState !== RunState.Waiting && this.runHandler.isSpectatorOrNull()) return;
     this.runHandler.sendEvent(EventType.ChangeTeam, teamId);
     this.localPlayer.team = this.runHandler.run?.getTeam(teamId) ?? undefined;
     this.runHandler.getPlayerState();
@@ -112,58 +111,10 @@ export class RunComponent implements OnDestroy {
   }
 
   setupListeners() {
-    //state update
-    this.stateListener = (window as any).electron.receive("og-state-update", (state: GameState) => {
-      this.zone.run(() => {
-        if (!this.runHandler.run || !state || this.isSpectatorOrNull()) return;
-
-        this.localPlayer.gameState.cellCount = state.cellCount;
-        this.localPlayer.checkDesync(this.runHandler.run);
-
-        //handle task status updates
-        if (this.localPlayer.gameState.hasSharedTaskChange(state) && this.runHandler.run.timer.runIsOngoing()) {
-          this.localPlayer.gameState.sharedTasks = state.sharedTasks;
-          this.runHandler.sendEvent(EventType.NewTaskStatusUpdate, state.sharedTasks);
-        }
-
-        //handle state change
-        if (this.localPlayer.gameState.hasPlayerStateChange(state) && this.localPlayer.state !== PlayerState.Finished) {
-
-          //this is purely to save unnecessary writes to db if user is on client-server communication
-          const insignificantChange = (((this.runHandler.localSlave && this.runHandler.localSlave.peer.usesServerCommunication) || (this.runHandler.localMaster && this.runHandler.localMaster.peers.every(x => x.peer.usesServerCommunication))) && !this.localPlayer.gameState.hasSignificantPlayerStateChange(state));
-          
-          this.localPlayer.gameState.currentLevel = state.currentLevel;
-          this.localPlayer.gameState.currentCheckpoint = state.currentCheckpoint;
-          this.localPlayer.gameState.onZoomer = state.onZoomer;
-
-          //check death
-          if (this.localPlayer.gameState.hasDied(state)) {
-            this.localPlayer.gameState.deathCount = state.deathCount;
-  
-            //handle citadel elevator
-            this.localPlayer.checkCitadelElevator();
-          }
-
-          if (!insignificantChange)
-            this.runHandler.sendEvent(EventType.NewPlayerState, state);
-          
-          //handle klaww kill
-          this.localPlayer.checkKillKlaww();
-        }
-
-        //handle no LTS
-        if (this.runHandler.run.data.noLTS)
-          this.localPlayer.checkNoLTS();
-
-        //handle Citadel Skip
-        this.localPlayer.checkCitadelSkip(this.runHandler.run);
-      });
-    });
-
     //on task get
     this.taskListener = (window as any).electron.receive("og-task-update", (task: string) => {
       this.zone.run(() => {
-        if (!this.runHandler.run || this.isSpectatorOrNull()) return;
+        if (!this.runHandler.run || this.runHandler.isSpectatorOrNull()) return;
 
         if (Task.isCell(task) && !this.localPlayer.cellsRecivedFromOG.includes(task))
           this.localPlayer.cellsRecivedFromOG.push(task);
@@ -185,10 +136,6 @@ export class RunComponent implements OnDestroy {
     });
   }
 
-  private isSpectatorOrNull() {
-    return !this.localPlayer.user.id || this.localPlayer.user.id === "" || this.runHandler.lobby?.hasSpectator(this.localPlayer.user.id);
-  }
-
   private shouldAddTask(task: string): boolean {
     if (this.runHandler.run!.timer.runState !== RunState.Started || this.localPlayer.state === PlayerState.Finished || this.localPlayer.state === PlayerState.Forfeit)
       return false;
@@ -205,7 +152,6 @@ export class RunComponent implements OnDestroy {
 
 
   destory() {
-    this.stateListener();
     this.taskListener();
     this.runHandler.destroy();
   }

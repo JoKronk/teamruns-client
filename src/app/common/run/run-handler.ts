@@ -22,6 +22,7 @@ import { Category } from "./category";
 import { DbRun } from "../firestore/db-run";
 import { PositionData, UserPositionDataTimestamp } from "../playback/position-data";
 import { PositionService } from "src/app/services/position.service";
+import { GameState } from "../player/game-state";
 
 export class RunHandler {
     
@@ -82,8 +83,61 @@ export class RunHandler {
                 //setup position listener
                 if (!this.run.data.hideOtherPlayers) {
                     this.positionHandler.ogSocket.subscribe(target => {
+                        //handle position
                         if (this.localPlayer.team !== undefined)
-                            this.sendPosition(new UserPositionDataTimestamp(target, this.run?.timer.totalMs ?? 0, this.localPlayer.user.id));
+                            this.sendPosition(new UserPositionDataTimestamp(target.position, this.run?.timer.totalMs ?? 0, this.localPlayer.user.id));
+                        
+                        //handle game state
+                        if (target.state) {
+                            this.zone.run(() => {
+                                const state: GameState = target.state;
+                                if (!this.run || !state || this.isSpectatorOrNull()) return;
+                                
+                                if (this.localPlayer.gameState.cellCount !== state.cellCount)
+                                {
+                                    this.localPlayer.gameState.cellCount = state.cellCount;
+                                    this.localPlayer.checkDesync(this.run);
+                                }
+    
+                                //handle task status updates
+                                if (this.localPlayer.gameState.hasSharedTaskChange(state) && this.run.timer.runIsOngoing()) {
+                                this.localPlayer.gameState.sharedTasks = state.sharedTasks;
+                                this.sendEvent(EventType.NewTaskStatusUpdate, state.sharedTasks);
+                                }
+    
+                                //handle state change
+                                if (this.localPlayer.gameState.hasPlayerStateChange(state) && this.localPlayer.state !== PlayerState.Finished) {
+    
+                                //this is purely to save unnecessary writes to db if user is on client-server communication
+                                const insignificantChange = (((this.localSlave && this.localSlave.peer.usesServerCommunication) || (this.localMaster && this.localMaster.peers.every(x => x.peer.usesServerCommunication))) && !this.localPlayer.gameState.hasSignificantPlayerStateChange(state));
+                                
+                                this.localPlayer.gameState.currentLevel = state.currentLevel;
+                                this.localPlayer.gameState.currentCheckpoint = state.currentCheckpoint;
+                                this.localPlayer.gameState.onZoomer = state.onZoomer;
+    
+                                //check death
+                                if (this.localPlayer.gameState.hasDied(state)) {
+                                    this.localPlayer.gameState.deathCount = state.deathCount;
+                        
+                                    //handle citadel elevator
+                                    this.localPlayer.checkCitadelElevator();
+                                }
+    
+                                if (!insignificantChange)
+                                    this.sendEvent(EventType.NewPlayerState, state);
+                                
+                                //handle klaww kill
+                                this.localPlayer.checkKillKlaww();
+                                }
+    
+                                //handle no LTS
+                                if (this.run.data.noLTS)
+                                this.localPlayer.checkNoLTS();
+    
+                                //handle Citadel Skip
+                                this.localPlayer.checkCitadelSkip(this.run);
+                            });
+                        }
                     });
                 }
             }
@@ -157,6 +211,10 @@ export class RunHandler {
     
     getUser(userId: string): Player | undefined {
         return this.run?.getPlayer(userId);
+    }
+    
+    isSpectatorOrNull() {
+        return !this.localPlayer.user.id || this.localPlayer.user.id === "" || this.lobby?.hasSpectator(this.localPlayer.user.id);
     }
 
     getNewBackupHost() {

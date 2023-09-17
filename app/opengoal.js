@@ -7,12 +7,8 @@ const spawn = require('child_process').spawn;
 const { app } = require('electron');
 let win = null;
 
-var modFilesPath = "/data";
-
 var openGoalGk = null;
 var openGoalTracker = null;
-var openGoalWatcher = null;
-var openGoalGameState = null;
 var trackerConnectedState = false;
 var openGoalIsRunning = false;
 var openGoalHasStarted = false;
@@ -23,7 +19,6 @@ class OpenGoal {
 
     constructor(window) {
         win = window;
-        this.readGameState(null);
      }
      
 
@@ -45,9 +40,6 @@ class OpenGoal {
         this.startOG(ogPath);
         await sleep(2500);
         
-        this.runStateWatcher(ogPath);
-        
-
         openGoalGk.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
         openGoalGk.on('connect', async () => {
             this.setupOG();
@@ -188,56 +180,14 @@ class OpenGoal {
         }
     }
 
-    runStateWatcher(ogPath) {
-        if (openGoalWatcher)
-            openGoalWatcher.close();
-
-        let path = ogPath + modFilesPath;
-        this.checkCreateFileExists(path + "/mod-states.json");
-
-        openGoalWatcher = fs.watch(path, (event, filename) => {
-            if (event != "change") return;
-
-            if (filename == "mod-states.json")
-                this.readGameState(path + "/" + filename);
-        });
-    }
-
     checkCreateFileExists(file) {
         if (!fs.existsSync(file)) {
             fs.writeFileSync(file, "");
         }
     }
 
-    async readGameState(path) {
-        path ??= await getOpenGoalPath() + modFilesPath + "/mod-states.json";
-        console.log("reading from " + path);
-        fs.readFile(path, 'utf8', (err, data) => {
-            if (err) {
-                console.log(err);
-                return;
-            }
-            if (!data) return;
-            try {
-                let gameState = JSON.parse(data);
-                if (JSON.stringify(openGoalGameState) !== JSON.stringify(gameState)) {
-                    openGoalGameState = gameState;
-                    console.log("STATE UPDATE!");
-                    this.sendClientStateUpdate();
-                }
-            }
-            catch (ex) {
-                this.sendClientMessage("Failed to parse: " + data);
-            }
-        });
-    }
-
     sendClientTrackerState() {
       win.webContents.send("og-tracker-connected", trackerConnectedState);
-    }
-
-    sendClientStateUpdate() {
-        win.webContents.send("og-state-update", openGoalGameState);
     }
 
     sendClientMessage(msg) {

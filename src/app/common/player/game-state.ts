@@ -1,4 +1,5 @@
 export class GameState {
+    debugModeActive: boolean = false;
     currentLevel: string = "";
     currentCheckpoint: string = "";
     onZoomer: boolean = false;
