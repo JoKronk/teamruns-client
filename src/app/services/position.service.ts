@@ -3,7 +3,6 @@ import { Recording } from '../common/playback/recording';
 import { CurrentPositionData, PositionDataTimestamp, UserPositionDataTimestamp } from '../common/playback/position-data';
 import { UserService } from './user.service';
 import { TimerService } from './timer.service';
-import { OG } from '../common/opengoal/og';
 import { UserBase } from '../common/user/user';
 import { WebSocketSubject, webSocket } from "rxjs/webSocket";
 import { MultiplayerState } from '../common/opengoal/multiplayer-state';
@@ -28,17 +27,14 @@ export class PositionService implements OnDestroy {
     this.checkRegisterPlayer(this.userService.user);
 
     this.ogSocket.subscribe(target => {
-      this.updatePosition(new UserPositionDataTimestamp(target, this.timer.totalMs, this.userService.getId()));
+      if (target.position) 
+        this.updatePosition(new UserPositionDataTimestamp(target.position, this.timer.totalMs, this.userService.getId()));
     });
   }
 
   resetGetRecordings(): Recording[] {
     const recordings = this.userPositionRecording;
-    this.players.forEach(player => {
-      player.mpState = MultiplayerState.disconnected;
-    });
-    this.updatePlayersInOpengoal();
-    
+    this.cleanupPlayers();
 
     this.userPositionRecording = [];
     this.recordings = [];
@@ -98,10 +94,7 @@ export class PositionService implements OnDestroy {
 
   stopDrawPlayers() {
     this.drawPositions = false;
-    this.players.forEach(player => {
-      player.mpState = MultiplayerState.disconnected;
-    })
-    this.updatePlayersInOpengoal();
+    this.cleanupPlayers();
   }
 
   private async drawPlayers() {
@@ -129,11 +122,27 @@ export class PositionService implements OnDestroy {
     this.ogSocket.next(this.players);
   }
 
-  ngOnDestroy(): void {
+  private cleanupPlayers() {
+    if (!this.players.some(x => x.mpState === MultiplayerState.connected)) return;
+
+    this.players.forEach((player, i) => {
+      player.username = "";
+      player.transX = -247935.5 + 18000 * Math.cos(2 * Math.PI * i / this.players.length);
+      player.transZ = -113691.5 + 18000 * Math.sin(2 * Math.PI * i / this.players.length);
+      player.transY = 45472.035;
+    });
+    this.updatePlayersInOpengoal();
+    
     this.players.forEach(player => {
       player.mpState = MultiplayerState.disconnected;
     });
-    this.updatePlayersInOpengoal();
+    setTimeout(() => {
+      this.updatePlayersInOpengoal();
+    }, this.positionUpdateRateMs);
+  }
+
+  ngOnDestroy(): void {
+    this.cleanupPlayers();
     this.ogSocket.complete();
   }
 }
