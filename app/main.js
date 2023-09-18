@@ -85,6 +85,7 @@ function createWindow() {
 
   ipcMain.on('og-start-run', () => {
     openGoal.writeGoalCommand("(progress-fast-save-and-start-speedrun (speedrun-category full-game))");
+    openGoal.writeGoalCommand("(set! (-> *pc-settings* ps2-actor-vis?) #f)");
     openGoal.writeGoalCommand("(set! *allow-cell-pickup?* #t)");
     openGoal.writeGoalCommand("(set! *allow-final-boss?* #t)");
   });
