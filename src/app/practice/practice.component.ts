@@ -15,12 +15,14 @@ import { PositionService } from '../services/position.service';
   templateUrl: './practice.component.html',
   styleUrls: ['./practice.component.scss']
 })
-export class PracticeComponent {
+export class PracticeComponent implements OnDestroy {
 
   runState = RunState;
 
   loadOnRecord: string = "false";
   usePlayback: string = "true";
+  inFreecam: boolean = false;
+  hasStoredCheckpoint: boolean = false;
 
   replay: boolean = false;
   replayId: string = crypto.randomUUID();
@@ -66,10 +68,27 @@ export class PracticeComponent {
 
   storeCheckpoint() {
     OG.runCommand("(store-temp-checkpoint)");
+    this.hasStoredCheckpoint = true;
   }
 
   loadCheckpoint() {
     OG.runCommand("(spawn-temp-checkpoint)");
+  }
+
+  toggleFreecam() {
+    if (!this.inFreecam) {
+      if (!this.hasStoredCheckpoint)
+        this.storeCheckpoint();
+
+      OG.runCommand("(send-event *camera* 'change-state cam-free-floating 0)");
+      OG.runCommand("(process-grab? *target*)");
+    }
+    else {
+      this.loadCheckpoint();
+      OG.runCommand("(send-event *camera* 'change-state cam-string 0)");
+      OG.runCommand("(process-release? *target*)");
+    }
+    this.inFreecam = !this.inFreecam;
   }
 
   importRecording() {
@@ -172,6 +191,11 @@ export class PracticeComponent {
     }
 
     return longest;
+  }
+
+  ngOnDestroy(): void {
+    if (this.inFreecam)
+      this.toggleFreecam();
   }
 
 }
