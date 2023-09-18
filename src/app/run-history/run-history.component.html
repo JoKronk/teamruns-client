@@ -2,12 +2,11 @@
 <div class="background-image"></div>
 <div class="page-container">
     <div class="page-header">
-        <app-header></app-header>
+        <app-header title="Run History"></app-header>
     </div>
     <div class="page-info">
     </div>
     <div class="page-table">
-        <h2 class="page-title">Run History</h2>
         <table mat-table [dataSource]="dataSource" multiTemplateDataRows>
             <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef> Name </th>

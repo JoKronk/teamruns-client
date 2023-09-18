@@ -13,7 +13,7 @@
 
   <mat-sidenav-content class="run">
     <!-- HEADER -->
-    <app-header [runInfo]="runHandler.info" [inRun]="this.localPlayer.team != null"></app-header>
+    <app-header [runInfo]="runHandler.info" [inRun]="this.localPlayer.team != null" [title]="runHandler.run?.data?.name ?? ''"></app-header>
 
     <div class="run-body" *ngIf="runHandler.connected && runHandler.run">
       <!-- TEAMS -->

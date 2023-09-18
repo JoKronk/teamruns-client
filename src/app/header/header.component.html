@@ -19,9 +19,12 @@
         </g>
       </svg>
 
+      <div class="title" [class.title-run]="runInfo" *ngIf="!showLobbyButtons && title">
+        <h2>{{ title }}</h2>
+      </div>
     </div>
 
-    <div class="options-container" *ngIf="showLobbyButtons == true">
+    <div class="options-container" *ngIf="showLobbyButtons">
       <div class="options">
         <button (click)="openInfo()">Help/Info</button>
         <button (click)="createLobby()">New Run</button>

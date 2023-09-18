@@ -1,11 +1,10 @@
 <div class="background-image"></div>
 <div class="page-container">
   <div class="page-header">
-    <app-header></app-header>
+    <app-header title="Leaderboards"></app-header>
   </div>
   <div class="page-info">
-    <h2 class="page-title">Leaderboards <span class="page-info-link">- Official leaderboard at <a target="_blank"
-          href="https://www.speedrun.com/og1_teamrun">speedrun.com</a></span></h2>
+    <h2 class="page-title"> <span class="page-info-link">Official leaderboard at <a target="_blank" href="https://www.speedrun.com/og1_teamrun">speedrun.com</a></span></h2>
     <div class="category" *ngFor="let category of categoryOptions">
       <div *ngIf="category.key !== 0" (click)="changeCategory(category.key)" class="category-button"
         [class.category-button-selected]="selectedCategory === category.key">{{category.displayName}}</div>

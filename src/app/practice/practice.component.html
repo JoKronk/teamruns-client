@@ -6,10 +6,9 @@
   <mat-sidenav-content>
     <div class="page-container">
       <div class="page-header">
-        <app-header></app-header>
+        <app-header  title="Recording Tool"></app-header>
       </div>
       <div class="page-info">
-        <h2 class="page-title">Recording Tool</h2>
         <div class="category-container">
           <div class="category">
             <div class="category-button btn-record" [class.btn-record-stop]="positionHandler.timer.runState !== runState.Waiting && !replay"
