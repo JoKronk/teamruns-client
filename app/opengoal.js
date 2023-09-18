@@ -75,7 +75,7 @@ class OpenGoal {
 
     startOG(ogPath) {
         
-        ogSpawn = spawn(ogPath + "\\gk.exe", ["-boot", "-fakeiso", "-debug"]);
+        ogSpawn = spawn(ogPath + "\\gk.exe", ["--game", "jak1", "--", "-boot", "-fakeiso", "-debug"]);
         //On error
         ogSpawn.stderr.on('data', (data) => {
             console.log("OG Error!: " + data.toString());
