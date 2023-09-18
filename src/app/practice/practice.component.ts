@@ -88,6 +88,16 @@ export class PracticeComponent {
   }
 
   exportRecording(recording: Recording) {
+    recording.playback.forEach(position => {
+      position.transX = Math.round((position.transX + Number.EPSILON) * 100) / 100;
+      position.transY = Math.round((position.transY + Number.EPSILON) * 100) / 100;
+      position.transZ = Math.round((position.transZ + Number.EPSILON) * 100) / 100;
+
+      position.quatW = Math.round((position.quatW + Number.EPSILON) * 1000) / 1000;
+      position.quatX = Math.round((position.quatX + Number.EPSILON) * 1000) / 1000;
+      position.quatY = Math.round((position.quatY + Number.EPSILON) * 1000) / 1000;
+      position.quatZ = Math.round((position.quatZ + Number.EPSILON) * 1000) / 1000;
+    })
     const fileData = JSON.stringify(recording.playback);
     const blob = new Blob([fileData], {type: "text/plain"});
     const url = URL.createObjectURL(blob);
