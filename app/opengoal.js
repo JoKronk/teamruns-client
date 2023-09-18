@@ -100,7 +100,7 @@ class OpenGoal {
         console.log("Writing setup commands!")
         this.writeGoalCommand("(lt)", true);
         this.writeGoalCommand("(set! *debug-segment* #f)", true);
-        this.writeGoalCommand("(mi)", true);
+        this.writeGoalCommand("(mng)", true);
         this.writeGoalCommand("(set! *cheat-mode* #f)", true);
         this.writeGoalCommand("(set! (-> *pc-settings* speedrunner-mode?) #t)", true);
         //!TODO: Swap this one out as soon as possible
