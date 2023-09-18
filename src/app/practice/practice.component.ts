@@ -125,7 +125,7 @@ export class PracticeComponent {
     this.positionHandler.resetGetRecordings();
     this.currentRecording = giveRecordings.length === 1 ? giveRecordings[0].id : "all";
     giveRecordings.forEach((rec, index) => {
-      this.positionHandler.addRecording(rec, new UserBase(rec.id, rec.nameFrontend ?? "Name not found"));
+      this.positionHandler.addRecording(rec, new UserBase(rec.id, " "));
     })
 
     const longestRecordingTime = this.getLongestRecordingTime(giveRecordings);

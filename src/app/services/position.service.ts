@@ -12,6 +12,7 @@ import { MultiplayerState } from '../common/opengoal/multiplayer-state';
 })
 export class PositionService implements OnDestroy {
 
+  hasDrawnRecordingNames:boolean = false;
   recordings: Recording[] = [];
   userPositionRecording: Recording[] = [];
 
@@ -49,7 +50,7 @@ export class PositionService implements OnDestroy {
     this.players = this.players.filter(x => x.userId !== userId);
   }
 
-  checkRegisterPlayer(user: UserBase | undefined) {
+  checkRegisterPlayer(user: UserBase | undefined, isRecording: boolean = false) {
     if (!user || this.players.find(x => x.userId === user.id)) return;
 
     this.players.push(new CurrentPositionData(user));
@@ -102,14 +103,23 @@ export class PositionService implements OnDestroy {
 
     
     if (this.timer.totalMs > 0) {
-      this.recordings.forEach(player => {
-        const positionData = player.playback.find(x => x.time < this.timer.totalMs);
+      this.recordings.forEach(recording => {
+        const positionData = recording.playback.find(x => x.time < this.timer.totalMs);
         if (positionData) {
-          const currentPlayer = this.players.find(x => x.userId === player.userId);
+          const currentPlayer = this.players.find(x => x.userId === recording.userId);
           if (currentPlayer)
             currentPlayer.updateCurrentPosition(positionData);
         }
       });
+    }
+
+    if (this.timer.totalMs > 200) {
+      if (!this.hasDrawnRecordingNames) {
+        this.recordings.forEach(recording => {
+          const currentPlayer = this.players.find(x => x.userId === recording.userId);
+          if (currentPlayer) currentPlayer.username = recording.nameFrontend ?? "BLANK";
+        });
+      }
     }
 
     this.updatePlayersInOpengoal();
@@ -132,6 +142,7 @@ export class PositionService implements OnDestroy {
       player.transY = 45472.035;
     });
     this.updatePlayersInOpengoal();
+    this.hasDrawnRecordingNames = false;
     
     this.players.forEach(player => {
       player.mpState = MultiplayerState.disconnected;
