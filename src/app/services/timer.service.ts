@@ -7,12 +7,16 @@ import { OG } from '../common/opengoal/og';
   providedIn: 'root'
 })
 export class TimerService implements OnDestroy {
+
   time: string;
   timeMs: string;
-  startDateMs: number | null;
   countdownSeconds: number = 15;
+
   totalMs: number = 0;
-  spawnInGeyserOnZero: boolean = true;
+  startDateMs: number | null;
+  private pauseDateMs: number | null = null;
+
+  hasSpawnedPlayer: boolean = false;
 
   runState: RunState;
 
@@ -28,14 +32,12 @@ export class TimerService implements OnDestroy {
     this.startDateMs = timer.startDateMs;
     this.countdownSeconds = timer.countdownSeconds;
     this.totalMs = timer.totalMs;
-    this.spawnInGeyserOnZero = timer.spawnInGeyserOnZero;
     this.runState = timer.runState;
     this.resetEverything = timer.resetEverything;
   }
 
-  setStartConditions(countdownSeconds: number, spawnInGeyserOnZero: boolean = true) {
+  setStartConditions(countdownSeconds: number) {
     this.countdownSeconds = countdownSeconds;
-    this.spawnInGeyserOnZero = spawnInGeyserOnZero;
     this.resetTimer();
   }
 
@@ -46,19 +48,33 @@ export class TimerService implements OnDestroy {
       this.resetTimer();
   }
 
+  togglePause() { //!NOTE: Don't know if this can be relied up in runs due to start time ms dependancies, check before usage there
+    if (!this.startDateMs) return;
+
+    if (!this.pauseDateMs)
+      this.pauseDateMs = new Date().getTime();
+    else {
+      var currentTimeMs = new Date().getTime();
+      this.startDateMs += (currentTimeMs - this.pauseDateMs);
+      this.pauseDateMs = null;
+    }
+  }
+
   runIsOngoing() {
     return this.runState === RunState.Countdown || this.runState === RunState.Started;
   }
 
   private resetTimer() {
     this.startDateMs = null;
+    this.hasSpawnedPlayer = false;
+    this.pauseDateMs = 0;
     this.runState = RunState.Waiting;
     this.time = "-0:00:" + ("0" + this.countdownSeconds).slice(-2);
     this.timeMs = ".0";
     this.totalMs = 0;
   }
 
-  startTimer(startDateMs: number | undefined = undefined) {
+  startTimer(startDateMs: number | undefined = undefined, spawnInGeyser: boolean = true) {
     this.resetEverything = false;
 
     if (!startDateMs) {
@@ -68,12 +84,14 @@ export class TimerService implements OnDestroy {
     }
     this.startDateMs = startDateMs;
     this.runState = RunState.Countdown;
+    if (!spawnInGeyser)
+      this.hasSpawnedPlayer = true;
     this.updateTimer();
   }
 
 
 
-  async updateTimer(hasSpawnedPlayer: boolean = false) { //parameter as we can't store local player data in run model currently
+  async updateTimer() {
     if (this.runState === RunState.Ended)
       return;
 
@@ -81,16 +99,16 @@ export class TimerService implements OnDestroy {
 
     //start run check
     if (this.runState === RunState.Countdown) {
-      if (this.spawnInGeyserOnZero && !hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
+      if (!this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
         OG.startRun();
-        hasSpawnedPlayer = true;
+        this.hasSpawnedPlayer = true;
       }
       if (this.startDateMs! <= currentTimeMs)
         this.runState = RunState.Started;
     }
 
-
-    this.totalMs = currentTimeMs - this.startDateMs!;
+    if (!this.pauseDateMs)
+      this.totalMs = currentTimeMs - this.startDateMs!;
 
     this.time = this.runState === RunState.Started
       ? (Timer.msToTimeFormat(this.totalMs))
@@ -103,7 +121,7 @@ export class TimerService implements OnDestroy {
     if (this.resetEverything)
       this.resetTimer();
     else
-      this.updateTimer(hasSpawnedPlayer);
+      this.updateTimer();
   }
 
   private getMs(ms: number): number {

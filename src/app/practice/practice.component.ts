@@ -38,7 +38,7 @@ export class PracticeComponent implements OnDestroy {
   fileListener: any;
 
   constructor(public _user: UserService, public positionHandler: PositionService, private dialog: MatDialog, private zone: NgZone) {
-    this.positionHandler.timer.setStartConditions(1, false);
+    this.positionHandler.timer.setStartConditions(1);
     
     //recording import listener
     this.fileListener = (window as any).electron.receive("file-get", (data: any) => {
@@ -74,7 +74,7 @@ export class PracticeComponent implements OnDestroy {
     if (this.loadOnRecord === "true")
       this.loadCheckpoint();
 
-    this.positionHandler.timer.startTimer();
+    this.positionHandler.timer.startTimer(undefined, false);
   }
 
   stopRecording() {
@@ -171,7 +171,7 @@ export class PracticeComponent implements OnDestroy {
       this.positionHandler.addRecording(rec, new UserBase(rec.id, " "));
     })
 
-    const longestRecordingTime = this.getLongestRecordingTime(giveRecordings);
+    const longestRecordingTime = this.getLongestRecordingTimeMs(giveRecordings);
 
     if (selfStop && giveRecordings.length !== 0) {
       setTimeout(() => {
@@ -180,7 +180,7 @@ export class PracticeComponent implements OnDestroy {
       }, longestRecordingTime + (this.positionHandler.timer.countdownSeconds * 1000) - 1000);
     }
 
-    this.positionHandler.timer.startTimer();
+    this.positionHandler.timer.startTimer(undefined, false);
     this.positionHandler.startDrawPlayers();
   }
 
@@ -188,12 +188,13 @@ export class PracticeComponent implements OnDestroy {
     if (this.positionHandler.timer.runState !== RunState.Waiting) {
       this.positionHandler.timer.reset();
       this.positionHandler.stopDrawPlayers();
+      this.replay = false;
       return true;
     }
     return false;
   }
 
-  getLongestRecordingTime(recordings: Recording[]): number {
+  getLongestRecordingTimeMs(recordings: Recording[]): number {
     if (recordings.length === 0) return 0;
 
     let longest: number = recordings[0].playback[0].time;
@@ -222,7 +223,7 @@ export class PracticeComponent implements OnDestroy {
 
   checkAddImport() {
     if (this.imports.length != 0)
-      (window as any).electron.send('file-fetch', this.imports[0].path); 
+      (window as any).electron.send('file-fetch', this.imports[0].path);
   }
 
 
