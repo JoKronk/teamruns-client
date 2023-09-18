@@ -9,6 +9,7 @@ import { OG } from '../common/opengoal/og';
 import { MatDialog } from '@angular/material/dialog';
 import { PositionService } from '../services/position.service';
 import { RecordingImport } from '../common/playback/recording-import';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-practice',
@@ -36,6 +37,7 @@ export class PracticeComponent implements OnDestroy {
 
   imports: RecordingImport[] = [];
   fileListener: any;
+  timerEndSubscription: Subscription;
 
   constructor(public _user: UserService, public positionHandler: PositionService, private dialog: MatDialog, private zone: NgZone) {
     this.positionHandler.timer.setStartConditions(1);
@@ -61,6 +63,11 @@ export class PracticeComponent implements OnDestroy {
       this.imports.shift();
       this.checkAddImport();
 
+    });
+
+    //timer end listener
+    this.timerEndSubscription = this.positionHandler.timer.timerEndSubject.subscribe(ended => {
+      this.checkStop();
     });
   }
 
@@ -173,14 +180,7 @@ export class PracticeComponent implements OnDestroy {
 
     const longestRecordingTime = this.getLongestRecordingTimeMs(giveRecordings);
 
-    if (selfStop && giveRecordings.length !== 0) {
-      setTimeout(() => {
-        if (this.replayId === startId)
-          this.checkStop();
-      }, longestRecordingTime + (this.positionHandler.timer.countdownSeconds * 1000) - 1000);
-    }
-
-    this.positionHandler.timer.startTimer(undefined, false);
+    this.positionHandler.timer.startTimer(undefined, false, selfStop && giveRecordings.length !== 0 ? longestRecordingTime : null);
     this.positionHandler.startDrawPlayers();
   }
 
@@ -233,6 +233,7 @@ export class PracticeComponent implements OnDestroy {
       this.toggleFreecam();
 
     this.fileListener();
+    this.timerEndSubscription.unsubscribe();
   }
 
 }

@@ -2,6 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { RunState } from '../common/run/run-state';
 import { Timer } from '../common/run/timer';
 import { OG } from '../common/opengoal/og';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -15,8 +16,10 @@ export class TimerService implements OnDestroy {
   totalMs: number = 0;
   startDateMs: number | null;
   private pauseDateMs: number | null = null;
+  private endTimeMs: number | null = null;
 
   hasSpawnedPlayer: boolean = false;
+  timerEndSubject: Subject<boolean> = new Subject();
 
   runState: RunState;
 
@@ -74,7 +77,7 @@ export class TimerService implements OnDestroy {
     this.totalMs = 0;
   }
 
-  startTimer(startDateMs: number | undefined = undefined, spawnInGeyser: boolean = true) {
+  startTimer(startDateMs: number | undefined = undefined, spawnInGeyser: boolean = true, endTimeMs: number | null = null) {
     this.resetEverything = false;
 
     if (!startDateMs) {
@@ -83,6 +86,7 @@ export class TimerService implements OnDestroy {
       startDateMs = startDate.getTime();
     }
     this.startDateMs = startDateMs;
+    this.endTimeMs = endTimeMs;
     this.runState = RunState.Countdown;
     if (!spawnInGeyser)
       this.hasSpawnedPlayer = true;
@@ -116,7 +120,12 @@ export class TimerService implements OnDestroy {
 
     this.timeMs = "." + this.getMs(this.totalMs);
 
-    await new Promise(r => setTimeout(r, 100));
+    if (!this.endTimeMs || this.endTimeMs >= this.totalMs)
+      await new Promise(r => setTimeout(r, 100));
+    else {
+      this.timerEndSubject.next(true);
+      this.resetEverything = true;
+    }
 
     if (this.resetEverything)
       this.resetTimer();
