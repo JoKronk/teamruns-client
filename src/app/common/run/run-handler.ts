@@ -584,7 +584,6 @@ export class RunHandler {
                 this.zone.run(() => { 
                     this.run!.start(new Date());
                     this.run!.setOrbCosts(this.localPlayer.user.id);
-                    this.getPlayerState();
                 });  
                 //!TODO: could be done in some more elegant way
                 setTimeout(() => {
@@ -612,11 +611,6 @@ export class RunHandler {
         if (!this.lobby || !(this.lobby?.backupHost?.id === this.localPlayer.user.id || this.lobby?.host?.id === this.localPlayer.user.id || this.lobby?.host === null)) return;
         this.lobby.lastUpdateDate = new Date().toUTCString();
         await this.firestoreService.updateLobby(this.lobby);
-    }
-
-    getPlayerState(): void {
-        if ((window as any).electron)
-            (window as any).electron.send('og-state-read');
     }
 
 

@@ -81,8 +81,6 @@ export class UserService implements OnDestroy {
     //tracker update
     this.trackerListener = (window as any).electron.receive("og-tracker-connected", (connected: true) => {
       this.trackerConnected = connected;
-      if (connected)
-         (window as any).electron.send('og-state-read');
     });
     
     //settings get

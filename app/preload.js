@@ -4,7 +4,6 @@ const validIpcChannelsIn = [
     "og-start-game",
     "og-start-run",
     "og-command",
-    "og-state-read",
     "og-tracker-connected-read",
     "window-close",
     "window-minimize",
