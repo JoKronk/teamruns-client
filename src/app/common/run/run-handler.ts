@@ -43,7 +43,6 @@ export class RunHandler {
     dataSubscription: Subscription;
     positionSubscription: Subscription;
     lobbySubscription: Subscription;
-    positionListener: any;
 
     constructor(lobbyId: string,
         public firestoreService: FireStoreService,
@@ -620,8 +619,6 @@ export class RunHandler {
 
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
-        
-        this.positionListener();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself
             if (wasHost) {
