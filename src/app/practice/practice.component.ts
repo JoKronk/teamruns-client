@@ -55,7 +55,7 @@ export class PracticeComponent implements OnDestroy {
     
     //recording import listener
     this.fileListener = (window as any).electron.receive("file-get", (data: any) => {
-      if (!Array.isArray(data) || data.length === 0 || !(data[0] instanceof PositionDataTimestamp)) {
+      if (!Array.isArray(data) || data.length === 0 || !(data[0].transX !== undefined && data[0].quatW !== undefined && data[0].tgtState !== undefined)) {
         this._user.sendNotification("File was not recognized as a recording.");
         this.imports.shift();
         this.checkAddImport();
