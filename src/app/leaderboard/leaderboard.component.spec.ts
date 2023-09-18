@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { LeaderboardComponent } from './leaderboard.component';
 
-import LeaderboardComponent from './leaderboard.component';
 
 describe('LeaderboardComponent', () => {
   let component: LeaderboardComponent;
