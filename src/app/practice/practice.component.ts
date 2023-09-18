@@ -21,7 +21,7 @@ export class PracticeComponent implements OnDestroy {
   runState = RunState;
 
   //checks
-  loadOnRecord: string = "false";
+  loadOnRecord: string = "true";
   usePlayback: string = "true";
   inFreecam: boolean = false;
   hasStoredCheckpoint: boolean = false;
