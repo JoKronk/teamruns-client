@@ -26,6 +26,11 @@ export class NavBoardComponent {
     this._user.viewSettings = false;
   }
 
+  navigate(path: string) {
+    this._user.viewSettings = !this._user.viewSettings;
+    this.router.navigate([path]);
+  }
+
   getUserKey() {
     this._user.copyLink(this._user.getId());
     this._user.viewSettings = false;
