@@ -20,24 +20,35 @@ export class PracticeComponent implements OnDestroy {
 
   runState = RunState;
 
+  //checks
   loadOnRecord: string = "false";
   usePlayback: string = "true";
   inFreecam: boolean = false;
   hasStoredCheckpoint: boolean = false;
 
+  //replay
   replay: boolean = false;
   replayId: string = crypto.randomUUID();
   nextRecordingId: number = 1;
   currentRecording: string = "none";
   recordingBeingEdited: string | null = null;
 
+  //recording mediaplayer
+  recordingsEndtime: number = 0;
+  recordingDragStart: number = 0;
+  recordingPaused: boolean = false;
+  recordingPausedBeforeDrag: boolean = false;
+
+  //recordings
+  imports: RecordingImport[] = [];
   recordings: Recording[] = [];
   dataSource: MatTableDataSource<Recording> = new MatTableDataSource(this.recordings);
   columns: string[] = ["player", "name", "time", "options"];
 
-  imports: RecordingImport[] = [];
+  //listeners
   fileListener: any;
   timerEndSubscription: Subscription;
+
 
   constructor(public _user: UserService, public positionHandler: PositionService, private dialog: MatDialog, private zone: NgZone) {
     this.positionHandler.timer.setStartConditions(1);
@@ -147,11 +158,34 @@ export class PracticeComponent implements OnDestroy {
     link.click();
   }
 
-
   deleteRecording(id: string) {
     this.recordings = this.recordings.filter(x => x.id !== id);
     this.dataSource = new MatTableDataSource(this.recordings);
   }
+
+
+
+  shiftPlaybackStart() {
+    this.recordingPausedBeforeDrag = this.recordingPaused;
+    if (!this.recordingPausedBeforeDrag)
+      this.pause();
+
+    this.recordingDragStart = this.positionHandler.timer.totalMs;
+  }
+
+  shiftPlaybackEnd() {
+    this.positionHandler.timer.shiftTimerByMs(this.recordingDragStart - this.positionHandler.timer.totalMs);
+    this.recordingDragStart = 0;
+
+    if (!this.recordingPausedBeforeDrag)
+    this.pause();
+  }
+
+  pause() {
+    this.positionHandler.timer.togglePause();
+    this.recordingPaused = this.positionHandler.timer.isPaused();
+  }
+
 
   playRecording(id: string) {
     const rec = this.recordings.find(x => x.id === id);
@@ -166,7 +200,6 @@ export class PracticeComponent implements OnDestroy {
     this.startPlayback(this.recordings, selfStop);
   }
 
-
   startPlayback(giveRecordings: Recording[], selfStop: boolean) {
     this.replay = true;
     this.replayId = crypto.randomUUID();
@@ -178,9 +211,9 @@ export class PracticeComponent implements OnDestroy {
       this.positionHandler.addRecording(rec, new UserBase(rec.id, " "));
     })
 
-    const longestRecordingTime = this.getLongestRecordingTimeMs(giveRecordings);
+    this.recordingsEndtime = this.getLongestRecordingTimeMs(giveRecordings);
 
-    this.positionHandler.timer.startTimer(undefined, false, selfStop && giveRecordings.length !== 0 ? longestRecordingTime : null);
+    this.positionHandler.timer.startTimer(undefined, false, selfStop && giveRecordings.length !== 0 ? this.recordingsEndtime : null);
     this.positionHandler.startDrawPlayers();
   }
 
@@ -188,6 +221,7 @@ export class PracticeComponent implements OnDestroy {
     if (this.positionHandler.timer.runState !== RunState.Waiting) {
       this.positionHandler.timer.reset();
       this.positionHandler.stopDrawPlayers();
+      this.recordingPaused = false;
       this.replay = false;
       return true;
     }

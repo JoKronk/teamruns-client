@@ -63,14 +63,23 @@ export class TimerService implements OnDestroy {
     }
   }
 
+  isPaused() {
+    return this.pauseDateMs !== null;
+  }
+
   runIsOngoing() {
     return this.runState === RunState.Countdown || this.runState === RunState.Started;
+  }
+
+  shiftTimerByMs(ms: number) {
+    if (this.startDateMs)
+      this.startDateMs += ms;
   }
 
   private resetTimer() {
     this.startDateMs = null;
     this.hasSpawnedPlayer = false;
-    this.pauseDateMs = 0;
+    this.pauseDateMs = null;
     this.runState = RunState.Waiting;
     this.time = "-0:00:" + ("0" + this.countdownSeconds).slice(-2);
     this.timeMs = ".0";

@@ -8,10 +8,6 @@
         flex-direction: column;
         position: relative;
     }
-    &-title {
-        color: #696969;
-        margin-bottom: 6px;
-    }
     &-header {
         flex-shrink: 1;
     }
@@ -24,6 +20,52 @@
             overflow: auto;
             flex-grow: 1;
             margin: 0px 12px 46px;
+        }
+    }
+    &-player {
+        border-top: 2px solid #383838;
+        flex-shrink: 1;
+        margin-right: 20px;
+        margin-bottom: 8px;
+
+        & .playback-button {
+            flex-shrink: 1;
+            margin-right: 8px;
+            text-align: center;
+    
+            & span {
+                -webkit-user-select: none;
+                border: 3px solid #a8a8a8;
+                width: 26px;
+                height: 26px;
+                font-size: 26px;
+                line-height: 25px;
+                color: #a8a8a8;
+                transition: 0.25s;
+                &:hover {
+                    color: #a56d06;
+                    border: 3px solid #a56d06;
+                    cursor: pointer;
+                }
+            }
+
+            &-stop span {
+                line-height: 21px !important;
+                color: #380000;
+                border: 3px solid #380000;
+            }
+
+            &-record span {
+                line-height: 22px;
+                color: #920000 !important;
+                border: 3px solid #920000 !important;
+            }
+
+            &-cancel span {
+                line-height: 27px;
+                color: #380000;
+                border: 3px solid #380000;
+            }
         }
     }
 }
@@ -102,28 +144,35 @@
 }
 
 .playback {
+    display: flex;
+    flex-wrap: nowrap;
 
-    & span {
-        flex: 1;
-        flex-wrap: nowrap;
-        display: inline-block;
-        width: 21px;
-        height: 21px;
-        border-radius: 21px;
-        font-size: 21px;
-        line-height: 21px;
+    &-button {
+        flex-shrink: 1;
+        margin-right: 8px;
         text-align: center;
-        margin-right: 14px;
-        border: 2px solid #a8a8a8;
-        transition: 0.15s;
-        &:hover {
-            color: #a56d06;
-            border: 2px solid #a56d06;
-            cursor: pointer;
+
+        & span {
+            -webkit-user-select: none;
+            display: inline-block;
+            width: 21px;
+            height: 21px;
+            border-radius: 21px;
+            font-size: 21px;
+            line-height: 21px;
+            margin-top: 11px;
+            border: 2px solid #a8a8a8;
+            transition: 0.15s;
+            &:hover {
+                color: #a56d06;
+                border: 2px solid #a56d06;
+                cursor: pointer;
+            }
         }
     }
     & mat-slider {
-        flex-shrink: 1;
+        flex-grow: 1;
+        margin-left: 12px;
     }
 
     &-name {
@@ -136,23 +185,6 @@
         }
         & input {
             max-width: 100px;
-        }
-    }
-}
-
-.btn {
-    &-record {
-        text-align: center;
-        width: 112px;
-        &-stop {
-            background-color: #380000;
-        }
-    }
-    &-play {
-        text-align: center;
-        width: 55px;
-        &-cancel {
-            background-color: #575757;
         }
     }
 }
