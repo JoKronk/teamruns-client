@@ -1,14 +1,14 @@
 import { AfterViewInit, Component, NgZone, OnDestroy } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { UserService } from '../services/user.service';
-import { PositionData, UserPositionDataTimestamp } from '../common/playback/position-data';
+import {  PositionDataTimestamp, UserPositionDataTimestamp } from '../common/playback/position-data';
 import { Recording } from '../common/playback/recording';
 import { UserBase } from '../common/user/user';
 import { RunState } from '../common/run/run-state';
 import { OG } from '../common/opengoal/og';
 import { MatDialog } from '@angular/material/dialog';
-import { ImportFileComponent } from '../dialogs/import-file/import-file.component';
 import { PositionService } from '../services/position.service';
+import { RecordingImport } from '../common/playback/recording-import';
 
 @Component({
   selector: 'app-practice',
@@ -34,9 +34,34 @@ export class PracticeComponent implements OnDestroy {
   dataSource: MatTableDataSource<Recording> = new MatTableDataSource(this.recordings);
   columns: string[] = ["player", "name", "time", "options"];
 
+  imports: RecordingImport[] = [];
+  fileListener: any;
 
   constructor(public _user: UserService, public positionHandler: PositionService, private dialog: MatDialog, private zone: NgZone) {
     this.positionHandler.timer.setStartConditions(1, false);
+    
+    //recording import listener
+    this.fileListener = (window as any).electron.receive("file-get", (data: any) => {
+      if (!Array.isArray(data) || data.length === 0 || !(data[0] instanceof PositionDataTimestamp)) {
+        this._user.sendNotification("File was not recognized as a recording.");
+        this.imports.shift();
+        this.checkAddImport();
+        return;
+      }
+        
+      const recording: Recording = new Recording(crypto.randomUUID());
+      recording.userId = recording.id;
+      recording.playback = data;
+      recording.fillFrontendValues(this.imports[0].name);
+      this.nextRecordingId += 1;
+      this.recordings.push(recording);
+      this.zone.run(() => {
+        this.dataSource = new MatTableDataSource(this.recordings);
+      });
+      this.imports.shift();
+      this.checkAddImport();
+
+    });
   }
 
   startRecording() {
@@ -91,19 +116,8 @@ export class PracticeComponent implements OnDestroy {
     this.inFreecam = !this.inFreecam;
   }
 
-  importRecording() {
-    const dialogRef = this.dialog.open(ImportFileComponent, { data: "Recording-" + this.nextRecordingId });
-    const dialogSubscription = dialogRef.afterClosed().subscribe(recording => {
-      dialogSubscription.unsubscribe();
-      if (!recording) return;
-      if (typeof recording === 'string') this._user.sendNotification(recording);
-      
-      this.nextRecordingId += 1;
-      this.recordings.push(recording);
-      this.zone.run(() => {
-        this.dataSource = new MatTableDataSource(this.recordings);
-      });
-    });
+  importRecordings(event: any) {
+    this.onFilesDrop(event.target.files);
   }
 
   exportRecording(recording: Recording) {
@@ -193,9 +207,31 @@ export class PracticeComponent implements OnDestroy {
     return longest;
   }
 
+
+  //--- IMPORT HANDLING ---
+  onFilesDrop(files: FileList) {
+    for (let i = 0; i < files.length; i++) {
+      this.imports.push(new RecordingImport(files.item(i)));
+    }
+    this.checkAddImport();
+  }
+
+  handleImport(event: any) {
+    this.onFilesDrop(event.target.files)
+  }
+
+  checkAddImport() {
+    if (this.imports.length != 0)
+      (window as any).electron.send('file-fetch', this.imports[0].path); 
+  }
+
+
+
   ngOnDestroy(): void {
     if (this.inFreecam)
       this.toggleFreecam();
+
+    this.fileListener();
   }
 
 }

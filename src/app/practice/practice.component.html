@@ -1,4 +1,4 @@
-<mat-sidenav-container fullscreen>
+<mat-sidenav-container fullscreen [dragdrop]="['.json']" (fileDropped)="onFilesDrop($event)">
   <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true">
     <app-run-timer></app-run-timer>
   </mat-sidenav>
@@ -24,7 +24,8 @@
             <div class="category-button" (click)="storeCheckpoint()">Set Checkpoint</div>
           </div>
           <div class="category">
-            <div class="category-button" (click)="importRecording()">Import</div>
+            <input type="file" id="import" multiple [accept]="['.json']" (change)="importRecordings($event)" />
+            <label class="category-button" for="import">Import</label>
           </div>
           <div class="category">
             <div class="category-button" (click)="toggleFreecam()">{{ inFreecam ? "Normal" : "Freecam"}}</div>
@@ -108,7 +109,7 @@
 
 
       <div class="backtext">
-        <h1>Practice</h1>
+        <h1>Playback</h1>
       </div>
 
       <p id="name" class="text-in-background" [title]="_user.user.name">{{ _user.user.name }}</p>

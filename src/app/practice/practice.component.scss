@@ -36,6 +36,7 @@
         flex-wrap: wrap;
     }
     &-button {
+        display: inline-block;
         border: 1px solid #575757;
         border-radius: 6px;
         background-color: #000000;
@@ -57,6 +58,9 @@
                 background-color: #a56d06;
             }
         }
+    }
+    & #import {
+        display: none;
     }
     &-select {
         position: relative;
@@ -179,6 +183,14 @@
         }
     }
 }
+  
+.fileover .backtext {
+    color: #929292 !important;
+  }
+  
+  .wrongfileover .backtext {
+    color: #380000 !important;
+  }
 
 .delete {
     margin-left: 12px;
@@ -208,6 +220,7 @@ hr {
 }
 
 .backtext {
+    transition: 0.4s;
     -webkit-user-select: none;
     position: absolute;
     top: 50%;

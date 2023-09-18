@@ -35,11 +35,14 @@ export class DragDropDirective {
     evt.preventDefault();
     evt.stopPropagation();
     this.fileOver = false;
+    let validTypes = true;
     if (evt.dataTransfer.files.length > 0) {
-      let file = evt.dataTransfer.files.item(0);
-      if (this.allowedFileTypes.find(x => x === "." + file.name.split(".").pop())) {
-        this.fileDropped.emit(file);
+      for (let i = 0; i < evt.dataTransfer.files.length; i++) {
+        if (!this.allowedFileTypes.find(x => x === "." + evt.dataTransfer.files.item(i).name.split(".").pop()))
+          validTypes = false;
       }
+      if (validTypes)
+        this.fileDropped.emit(evt.dataTransfer.files);
       else {
         this.deny = true;
         setTimeout(() => { this.deny = false; }, 300);
