@@ -7,13 +7,13 @@ const spawn = require('child_process').spawn;
 const { app } = require('electron');
 let win = null;
 
-var openGoalGk = null;
+var openGoalREPL = null;
 var openGoalTracker = null;
 var trackerConnectedState = false;
 var openGoalIsRunning = false;
 var openGoalHasStarted = false;
 
-var ogSpawn = null;
+var openGoalGk = null;
 
 class OpenGoal {
 
@@ -28,20 +28,20 @@ class OpenGoal {
         let ogPath = await getOpenGoalPath();
         
         this.sendClientMessage("(1/3) Starting OpenGOAL!");
-        if (openGoalGk) {
-            openGoalGk.end();
-            openGoalGk.destroy();
+        if (openGoalREPL) {
+            openGoalREPL.end();
+            openGoalREPL.destroy();
         }
 
-        openGoalGk = new net.Socket();
+        openGoalREPL = new net.Socket();
 
         this.killOG();
         await sleep(1500);
         this.startOG(ogPath);
         await sleep(2500);
         
-        openGoalGk.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
-        openGoalGk.on('connect', async () => {
+        openGoalREPL.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
+        openGoalREPL.on('connect', async () => {
             this.setupOG();
             this.runTracker();
 
@@ -49,7 +49,7 @@ class OpenGoal {
             openGoalHasStarted = true;
         });
 
-        openGoalGk.on('error', (ex) => {
+        openGoalREPL.on('error', (ex) => {
             if (!openGoalHasStarted)
                 this.sendClientMessage("Failed to start the client properly, please relaunch!");
         });
@@ -75,9 +75,9 @@ class OpenGoal {
 
     startOG(ogPath) {
         
-        ogSpawn = spawn(ogPath + "\\gk.exe", ["--game", "jak1", "--", "-boot", "-fakeiso", "-debug"]);
+        openGoalGk = spawn(ogPath + "\\gk.exe", ["--game", "jak1", "--", "-boot", "-fakeiso", "-debug"]);
         //On error
-        ogSpawn.stderr.on('data', (data) => {
+        openGoalGk.stderr.on('data', (data) => {
             const msg = data.toString();
             if (!msg.startsWith("[DECI2] Got message:")) {
                 console.log("OG Error!: " + data.toString());
@@ -86,7 +86,7 @@ class OpenGoal {
         });
 
         //On kill
-        ogSpawn.stdout.on('end', () => {
+        openGoalGk.stdout.on('end', () => {
             this.sendClientMessage("OG Disconneted!");
         });
 
@@ -120,7 +120,7 @@ class OpenGoal {
         var data = utf8Encode.encode(args);
         var bb = new ByteBuffer().LE().writeInt(data.length).writeInt(10).writeString(args).flip().toBuffer();
         console.log("writing ", args);
-        openGoalGk.write(bb);
+        openGoalREPL.write(bb);
     }
 
 
