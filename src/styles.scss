@@ -9,11 +9,76 @@
 // Be sure that you only ever include this mixin once!
 @include mat.core();
 
+$teamrun-orange: (
+  50 : #faf2e3,
+  100 : #f2deb8,
+  200 : #eac889,
+  300 : #e1b159,
+  400 : #daa136,
+  500 : #d49012,
+  600 : #cf8810,
+  700 : #c97d0d,
+  800 : #c3730a,
+  900 : #b96105,
+  A100 : #fff0e3,
+  A200 : #ffd4b0,
+  A400 : #ffb87d,
+  A700 : #ffab64,
+  contrast: (
+      50 : #000000,
+      100 : #000000,
+      200 : #000000,
+      300 : #000000,
+      400 : #000000,
+      500 : #000000,
+      600 : #000000,
+      700 : #000000,
+      800 : #ffffff,
+      900 : #ffffff,
+      A100 : #000000,
+      A200 : #000000,
+      A400 : #000000,
+      A700 : #000000,
+  )
+);
+$teamrun-grey: (
+  50 : #eae9e9,
+  100 : #cac8c7,
+  200 : #a6a4a2,
+  300 : #827f7c,
+  400 : #686360,
+  500 : #4d4844,
+  600 : #46413e,
+  700 : #3d3835,
+  800 : #34302d,
+  900 : #25211f,
+  A100 : #f9aa75,
+  A200 : #f78c44,
+  A400 : #ff6c09,
+  A700 : #ef6000,
+  contrast: (
+      50 : #000000,
+      100 : #000000,
+      200 : #000000,
+      300 : #ffffff,
+      400 : #ffffff,
+      500 : #ffffff,
+      600 : #ffffff,
+      700 : #ffffff,
+      800 : #ffffff,
+      900 : #ffffff,
+      A100 : #000000,
+      A200 : #000000,
+      A400 : #000000,
+      A700 : #ffffff,
+  )
+);
+
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
-$teamrun-client-primary: mat.define-palette(mat.$indigo-palette);
-$teamrun-client-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+$teamrun-client-primary: mat.define-palette($teamrun-orange, 500);
+$teamrun-client-accent: mat.define-palette($teamrun-grey, A100);
 
 // The warn palette is optional (defaults to red).
 $teamrun-client-warn: mat.define-palette(mat.$red-palette);
