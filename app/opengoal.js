@@ -78,8 +78,11 @@ class OpenGoal {
         ogSpawn = spawn(ogPath + "\\gk.exe", ["--game", "jak1", "--", "-boot", "-fakeiso", "-debug"]);
         //On error
         ogSpawn.stderr.on('data', (data) => {
-            console.log("OG Error!: " + data.toString());
-            this.sendClientMessage("OG Error!: " + data.toString());
+            const msg = data.toString();
+            if (!msg.startsWith("[DECI2] Got message:")) {
+                console.log("OG Error!: " + data.toString());
+                this.sendClientMessage("OG Error!: " + data.toString());
+            }
         });
 
         //On kill
