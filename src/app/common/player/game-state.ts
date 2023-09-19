@@ -3,6 +3,7 @@ export class GameState {
     currentLevel: string = "";
     currentCheckpoint: string = "";
     onZoomer: boolean = false;
+    justSpawned: boolean = false;
     cellCount: number = 0;
     deathCount: number = 0;
     sharedTasks: any = null;
