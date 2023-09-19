@@ -89,8 +89,13 @@ export class PracticeComponent implements OnDestroy {
     this.usePlayback === "true" ? this.playAllRecordings(false) : this.replayId = crypto.randomUUID();
     this.replay = false;
 
-    if (this.loadOnRecord === "true")
+    if (this.inFreecam && this.loadOnRecord !== "true")
+      this.toggleFreecam();
+
+    if (this.loadOnRecord === "true") {
       this.loadCheckpoint();
+      this.inFreecam = false;
+    }
 
     this.positionHandler.timer.startTimer(undefined, false);
   }
