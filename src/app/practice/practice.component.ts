@@ -51,8 +51,8 @@ export class PracticeComponent implements OnDestroy {
 
 
   constructor(public _user: UserService, public positionHandler: PositionService, private dialog: MatDialog, private zone: NgZone) {
-    this.positionHandler.timer.setStartConditions(1);
-    
+    this.positionHandler.timer.setStartConditions(3);
+
     //recording import listener
     this.fileListener = (window as any).electron.receive("file-get", (data: any) => {
       if (!Array.isArray(data) || data.length === 0 || !(data[0].transX !== undefined && data[0].quatW !== undefined && data[0].tgtState !== undefined)) {

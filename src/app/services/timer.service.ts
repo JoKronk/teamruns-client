@@ -21,6 +21,7 @@ export class TimerService implements OnDestroy {
   hasSpawnedPlayer: boolean = false;
   timerEndSubject: Subject<boolean> = new Subject();
 
+  freezePlayerInCountdown: boolean = true;
   runState: RunState;
 
   private resetEverything: boolean = false; //used to flag a reset to the update cycle
@@ -39,7 +40,8 @@ export class TimerService implements OnDestroy {
     this.resetEverything = timer.resetEverything;
   }
 
-  setStartConditions(countdownSeconds: number) {
+  setStartConditions(countdownSeconds: number, freezeWhileInCountdown: boolean = true) {
+    this.freezePlayerInCountdown = freezeWhileInCountdown;
     this.countdownSeconds = countdownSeconds;
     this.resetTimer();
   }
@@ -61,6 +63,11 @@ export class TimerService implements OnDestroy {
       this.startDateMs += (currentTimeMs - this.pauseDateMs);
       this.pauseDateMs = null;
     }
+  }
+
+  onPlayerLoad() {
+    if (this.runState === RunState.Countdown && this.freezePlayerInCountdown)
+      OG.runCommand("(process-grab? *target*)");
   }
 
   isPaused() {
@@ -97,8 +104,10 @@ export class TimerService implements OnDestroy {
     this.startDateMs = startDateMs;
     this.endTimeMs = endTimeMs;
     this.runState = RunState.Countdown;
+
     if (!spawnInGeyser)
       this.hasSpawnedPlayer = true;
+    
     this.updateTimer();
   }
 
@@ -110,25 +119,30 @@ export class TimerService implements OnDestroy {
 
     var currentTimeMs = new Date().getTime();
 
+
     //start run check
     if (this.runState === RunState.Countdown) {
       if (!this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
+        OG.runCommand("(process-release? *target*)");
         OG.startRun();
         this.hasSpawnedPlayer = true;
       }
+      else if (this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 10)
+        OG.runCommand("(process-release? *target*)");
+      
       if (this.startDateMs! <= currentTimeMs)
         this.runState = RunState.Started;
     }
 
+
     if (!this.pauseDateMs)
       this.totalMs = currentTimeMs - this.startDateMs!;
 
-    this.time = this.runState === RunState.Started
-      ? (Timer.msToTimeFormat(this.totalMs))
-      : ("-0:00:" + Timer.getSecond(this.totalMs));
-
+    this.time = this.runState === RunState.Started ? (Timer.msToTimeFormat(this.totalMs)) : ("-0:00:" + Timer.getSecond(this.totalMs));
     this.timeMs = "." + this.getMs(this.totalMs);
 
+
+    
     if (!this.endTimeMs || this.endTimeMs >= this.totalMs)
       await new Promise(r => setTimeout(r, 100));
     else {
@@ -141,6 +155,8 @@ export class TimerService implements OnDestroy {
     else
       this.updateTimer();
   }
+
+
 
   private getMs(ms: number): number {
     return this.runState === RunState.Started ? Math.trunc(Math.floor((ms % 1000)) / 100) : Math.trunc(Math.abs(Math.floor((ms % 1000)) / 100));

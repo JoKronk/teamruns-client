@@ -30,6 +30,9 @@ export class PositionService implements OnDestroy {
     this.ogSocket.subscribe(target => {
       if (target.position) 
         this.updatePosition(new UserPositionDataTimestamp(target.position, this.timer.totalMs, this.userService.getId()));
+
+      if (target.state && target.state.justSpawned)
+        this.timer.onPlayerLoad();
     });
   }
 
