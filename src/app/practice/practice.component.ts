@@ -106,7 +106,7 @@ export class PracticeComponent implements OnDestroy {
     this.checkStop();
     this.positionHandler.resetGetRecordings().forEach(recording => {
       if (saveRecording) {
-        recording.fillFrontendValues("Recording-" + this.nextRecordingId);
+        recording.fillFrontendValues("Rec-" + this.nextRecordingId);
         this.nextRecordingId += 1;
         this.recordings.push(recording);
       }
