@@ -615,6 +615,12 @@ export class RunHandler {
 
             //handle Citadel Skip
             this.localPlayer.checkCitadelSkip(this.run);
+
+            //check adjust player spawn point on countdown
+            if (state.justSpawned && this.positionHandler.timer.runState === RunState.Countdown) {
+                let playerId: number = this.run.teams.flatMap(team => team.players.flatMap(x => x.user.id)).indexOf(this.localPlayer.user.id);
+                OG.runCommand("(+! (-> *target* root trans x) (meters " + playerId * 2 + ".0))");
+            }
         });
     }
 
