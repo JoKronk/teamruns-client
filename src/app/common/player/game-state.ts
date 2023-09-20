@@ -20,16 +20,19 @@ export class GameState {
         return this.currentLevel != state.currentLevel 
         || this.currentCheckpoint != state.currentCheckpoint
         || this.hasDied(state)
-        || this.onZoomer != state.onZoomer;
+        || this.onZoomer != state.onZoomer
+        || this.justSpawned != state.justSpawned
+        || this.debugModeActive != state.debugModeActive;
     }
 
     hasDied(state: GameState): boolean {
-        return this.deathCount != state.deathCount;
+        return this.deathCount != state.deathCount && state.justSpawned;
     }
 
     hasSignificantPlayerStateChange(state: GameState): boolean {
         return this.currentLevel != state.currentLevel 
         || (this.currentCheckpoint != state.currentCheckpoint && state.currentCheckpoint === "citadel-elevator")
-        || this.onZoomer != state.onZoomer;
+        || this.onZoomer != state.onZoomer
+        || this.debugModeActive != state.debugModeActive;
     }
 }
