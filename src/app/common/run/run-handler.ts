@@ -20,7 +20,7 @@ import { CitadelOption } from "./run-data";
 import { Player } from "../player/player";
 import { Category } from "./category";
 import { DbRun } from "../firestore/db-run";
-import { PositionData, UserPositionDataTimestamp } from "../playback/position-data";
+import { UserPositionDataTimestamp } from "../playback/position-data";
 import { PositionService } from "src/app/services/position.service";
 import { GameState } from "../player/game-state";
 
@@ -55,7 +55,7 @@ export class RunHandler {
         this.zone = zone;
         this.obsUserId = obsUserId;
 
-        //when loaded listen on lobby
+        //lobby listener
         this.lobbySubscription = this.firestoreService.getLobbyDoc(lobbyId).snapshotChanges().subscribe(snapshot => {
             if (snapshot.payload.metadata.hasPendingWrites || this.isBeingDestroyed) return;
             let lobby = snapshot.payload.data();
@@ -64,86 +64,23 @@ export class RunHandler {
             this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
 
             //create run if it doesn't exist
-            if (!this.run) {
-                console.log("Creating Run!");
-                this.run = new Run(this.lobby.runData, positionHandler.timer);
-
-                //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
-                this.localPlayer.user = this.userService.user.createUserBaseFromDisplayName();
-                this.localPlayer.mode = this.run.data.mode;
-                this.run.spectators.push(new Player(this.localPlayer.user));
-
-                //set run info
-                if (this.run.data.category == 0)
-                    this.info = this.run.data.name + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOption[this.run.data.citadelSkip];
-                else
-                    this.info = this.run.data.name + "\n\n" + RunMode[this.run.data.mode] + "\nCategory: " + Category.GetGategories()[this.run.data.category].displayName + "\nSame Level: " + this.run.data.requireSameLevel;
-
-                //setup position listener
-                if (!this.run.data.hideOtherPlayers) {
-                    this.positionHandler.ogSocket.subscribe(target => {
-                        //handle position
-                        if (this.localPlayer.team !== undefined)
-                            this.sendPosition(new UserPositionDataTimestamp(target.position, this.run?.timer.totalMs ?? 0, this.localPlayer.user.id));
-                        
-                        //handle game state
-                        if (target.state) {
-                            this.zone.run(() => {
-                                const state: GameState = target.state;
-                                if (!this.run || !state || this.isSpectatorOrNull()) return;
-                                
-                                if (this.localPlayer.gameState.cellCount !== state.cellCount)
-                                {
-                                    this.localPlayer.gameState.cellCount = state.cellCount;
-                                    this.localPlayer.checkDesync(this.run);
-                                }
-    
-                                //handle task status updates
-                                if (this.localPlayer.gameState.hasSharedTaskChange(state) && this.run.timer.runIsOngoing()) {
-                                this.localPlayer.gameState.sharedTasks = state.sharedTasks;
-                                this.sendEvent(EventType.NewTaskStatusUpdate, state.sharedTasks);
-                                }
-    
-                                //handle state change
-                                if (this.localPlayer.gameState.hasPlayerStateChange(state) && this.localPlayer.state !== PlayerState.Finished) {
-    
-                                //this is purely to save unnecessary writes to db if user is on client-server communication
-                                const insignificantChange = (((this.localSlave && this.localSlave.peer.usesServerCommunication) || (this.localMaster && this.localMaster.peers.every(x => x.peer.usesServerCommunication))) && !this.localPlayer.gameState.hasSignificantPlayerStateChange(state));
-                                
-                                this.localPlayer.gameState.currentLevel = state.currentLevel;
-                                this.localPlayer.gameState.currentCheckpoint = state.currentCheckpoint;
-                                this.localPlayer.gameState.onZoomer = state.onZoomer;
-    
-                                //check death
-                                if (this.localPlayer.gameState.hasDied(state)) {
-                                    this.localPlayer.gameState.deathCount = state.deathCount;
-                        
-                                    //handle citadel elevator
-                                    this.localPlayer.checkCitadelElevator();
-                                }
-    
-                                if (!insignificantChange)
-                                    this.sendEvent(EventType.NewPlayerState, state);
-                                
-                                //handle klaww kill
-                                this.localPlayer.checkKillKlaww();
-                                }
-    
-                                //handle no LTS
-                                if (this.run.data.noLTS)
-                                this.localPlayer.checkNoLTS();
-    
-                                //handle Citadel Skip
-                                this.localPlayer.checkCitadelSkip(this.run);
-                            });
-                        }
-                    });
-                }
-            }
+            if (!this.run)
+                this.setupRun();
 
             this.onLobbyChange();
         });
+        
+        //position listener
+        this.positionHandler.ogSocket.subscribe(target => {
 
+            //handle position
+            if (this.localPlayer.team !== undefined)
+                this.sendPosition(new UserPositionDataTimestamp(target.position, this.run?.timer.totalMs ?? 0, this.localPlayer.user.id));
+            
+            //handle game state changes for current player
+            if (target.state)
+                this.handleStateChange(target.state);
+        });
     }
 
 
@@ -240,6 +177,24 @@ export class RunHandler {
         this.updateFirestoreLobby();
     }
 
+
+    setupRun() {
+        if (!this.lobby) return;
+
+        console.log("Creating Run!");
+        this.run = new Run(this.lobby.runData, this.positionHandler.timer);
+
+        //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
+        this.localPlayer.user = this.userService.user.createUserBaseFromDisplayName();
+        this.localPlayer.mode = this.run.data.mode;
+        this.run.spectators.push(new Player(this.localPlayer.user));
+
+        //set run info
+        if (this.run.data.category == 0)
+            this.info = this.run.data.name + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOption[this.run.data.citadelSkip];
+        else
+            this.info = this.run.data.name + "\n\n" + RunMode[this.run.data.mode] + "\nCategory: " + Category.GetGategories()[this.run.data.category].displayName + "\nSame Level: " + this.run.data.requireSameLevel;
+    }
 
     setupMaster() {
         console.log("Setting up master!");
@@ -610,6 +565,57 @@ export class RunHandler {
         if (!this.lobby || !(this.lobby?.backupHost?.id === this.localPlayer.user.id || this.lobby?.host?.id === this.localPlayer.user.id || this.lobby?.host === null)) return;
         this.lobby.lastUpdateDate = new Date().toUTCString();
         await this.firestoreService.updateLobby(this.lobby);
+    }
+
+
+    handleStateChange(state: GameState) {
+        this.zone.run(() => {
+            if (!this.run|| this.isSpectatorOrNull()) return;
+            
+            if (this.localPlayer.gameState.cellCount !== state.cellCount)
+            {
+                this.localPlayer.gameState.cellCount = state.cellCount;
+                this.localPlayer.checkDesync(this.run);
+            }
+
+            //handle task status updates
+            if (this.localPlayer.gameState.hasSharedTaskChange(state) && this.run.timer.runIsOngoing()) {
+            this.localPlayer.gameState.sharedTasks = state.sharedTasks;
+            this.sendEvent(EventType.NewTaskStatusUpdate, state.sharedTasks);
+            }
+
+            //handle state change
+            if (this.localPlayer.gameState.hasPlayerStateChange(state) && this.localPlayer.state !== PlayerState.Finished) {
+
+                //this is purely to save unnecessary writes to db if user is on client-server communication
+                const insignificantChange: boolean = (((this.localSlave?.peer.usesServerCommunication || this.localMaster?.peers.every(x => x.peer.usesServerCommunication)) ?? false) && !this.localPlayer.gameState.hasSignificantPlayerStateChange(state));
+                
+                this.localPlayer.gameState.currentLevel = state.currentLevel;
+                this.localPlayer.gameState.currentCheckpoint = state.currentCheckpoint;
+                this.localPlayer.gameState.onZoomer = state.onZoomer;
+
+                //check death
+                if (this.localPlayer.gameState.hasDied(state)) {
+                    this.localPlayer.gameState.deathCount = state.deathCount;
+        
+                    //handle citadel elevator
+                    this.localPlayer.checkCitadelElevator();
+                }
+
+                if (!insignificantChange)
+                    this.sendEvent(EventType.NewPlayerState, state);
+                
+                //handle klaww kill
+                this.localPlayer.checkKillKlaww();
+            }
+
+            //handle no LTS
+            if (this.run.data.noLTS)
+                this.localPlayer.checkNoLTS();
+
+            //handle Citadel Skip
+            this.localPlayer.checkCitadelSkip(this.run);
+        });
     }
 
 
