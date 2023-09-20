@@ -10,6 +10,7 @@ export class DbTeam {
     players: DbPlayer[] = [];
     tasks: Task[];
     cellCount: number;
+    hasUsedDebugMode: boolean;
 
     constructor(team: Team) {
         this.id = team.id;
@@ -17,6 +18,7 @@ export class DbTeam {
         this.endTimeMs = team.endTimeMs;
         this.tasks = team.tasks;
         this.cellCount = team.cellCount;
+        this.hasUsedDebugMode = team.hasUsedDebugMode;
         team.players.forEach(player => {
             this.players.push(new DbPlayer(player));
         });

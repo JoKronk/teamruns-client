@@ -74,7 +74,7 @@ export class DbRun {
 
         //fill leaderboards list
         let playerCounts: number[] = this.teams
-            .filter(x => x.endTimeMs !== 0)
+            .filter(x => x.endTimeMs !== 0 && !x.hasUsedDebugMode)
             .flatMap(x => x.players.length)
             .filter((value, index, array) => array.indexOf(value) === index);
         
@@ -94,7 +94,7 @@ export class DbRun {
             
     
             //fill leaderboards with pbs
-            this.teams.filter(x => x.endTimeMs !== 0).forEach(team => {
+            this.teams.filter(x => x.endTimeMs !== 0 && !x.hasUsedDebugMode).forEach(team => {
                 let leaderboard = leaderboards.find(x => x.players === team.players.length);
                 if (!leaderboard) return;
     

@@ -410,9 +410,9 @@ export class RunHandler {
                     this.run?.isMode(RunMode.Lockout) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
 
                     if (isMaster && this.run?.timer.runState === RunState.Ended && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit)) {
-                        let run = DbRun.convertToFromRun(this.run);
-                        this.firestoreService.addRun(run);
-                        run.checkUploadPbs(this.firestoreService);
+                        let run: DbRun = DbRun.convertToFromRun(this.run);
+                        this.firestoreService.addRun(run); //history
+                        run.checkUploadPbs(this.firestoreService); //pb & leadeboard
                     }
                 });
                 break;
@@ -469,10 +469,10 @@ export class RunHandler {
             case EventType.NewPlayerState: 
                 if (!this.run) return;
                 this.zone.run(() => { 
-                    this.run!.updateState(event.userId, event.value);
+                    this.run!.updateState(event.userId, event.value, this.userService);
                 });
                 
-                this.run.onUserStateChange(this.localPlayer, this.run.getPlayer(userId));
+                this.run.updateSelfRestrictions(this.localPlayer);
                 if (event.userId !== userId)
                     this.localPlayer.checkForZoomerTalkSkip(event.value);
                 break;
@@ -542,7 +542,7 @@ export class RunHandler {
                 //!TODO: could be done in some more elegant way
                 setTimeout(() => {
                     this.localPlayer.resetRunDependentProperties();
-                }, this.run!.timer.countdownSeconds * 1000)
+                }, this.run!.timer.countdownSeconds * 1000);
                 break;
 
 

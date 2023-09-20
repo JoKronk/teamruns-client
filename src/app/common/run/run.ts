@@ -12,6 +12,7 @@ import { MultiLevel } from "../opengoal/levels";
 import { OG } from "../opengoal/og";
 import { UserBase } from "../user/user";
 import { TimerService } from "src/app/services/timer.service";
+import { UserService } from "src/app/services/user.service";
 
 export class Run {
     data: RunData;
@@ -95,10 +96,19 @@ export class Run {
         });
     }
 
-    updateState(playerId: string, state: GameState): void {
+    updateState(playerId: string, state: GameState, userService: UserService): void {
         let player = this.getPlayer(playerId);
         if (!player) return;
+
+        if (!player.gameState.debugModeActive && state.debugModeActive)
+            userService.sendNotification(player.user.name + " just activated debug mode!");
+
         player.gameState = state;
+
+        if (state.debugModeActive) {
+            const team = this.getPlayerTeam(playerId);
+            if (team) team.hasUsedDebugMode = true;
+        }
     }
 
     reconnectPlayer(playerId: string) {
@@ -229,7 +239,7 @@ export class Run {
 
                 //state update checks
                 if (localImportedPlayer) {
-                    this.onUserStateChange(localPlayer, localImportedPlayer);
+                    this.updateSelfRestrictions(localPlayer, localImportedPlayer);
                 }
             }
         });
@@ -246,12 +256,14 @@ export class Run {
         }
     }
 
-    onUserStateChange(localPlayer: LocalPlayerData, player: Player | undefined) {
+    updateSelfRestrictions(localPlayer: LocalPlayerData, player: Player | undefined = undefined) {
+        if (!player)
+            player = this.getPlayer(localPlayer.user.id);
         if (!player) return;
         const team = this.getPlayerTeam(player.user.id);
         if (!team) return;
 
-        let levelToCheck = team.players[0]?.gameState.currentLevel;
+        let levelToCheck = player.gameState.currentLevel;
 
         //if all on same level hub zoomer
         if (!localPlayer.restrictedZoomerLevels.includes(player.gameState.currentLevel) || team.players.every(x => x.gameState.onZoomer && x.gameState.currentLevel === levelToCheck) || this.isMode(RunMode.Lockout) && this.teams.length === 1) {

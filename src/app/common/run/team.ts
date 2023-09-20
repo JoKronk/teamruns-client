@@ -11,6 +11,8 @@ export class Team {
     cellCount: number;
     endTimeMs: number = 0;
 
+    hasUsedDebugMode: boolean = false;
+
     constructor(id: number, name: string) {
         this.id = id;
         this.name = name;
