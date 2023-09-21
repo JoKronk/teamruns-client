@@ -385,6 +385,7 @@ export class RunHandler {
                     let run: Run = JSON.parse(JSON.stringify(event.value)); //to not cause referece so that import can run properly on the run after
                     this.positionHandler.timer.importTimer(run.timer);
                     this.run = Object.assign(new Run(run.data, this.positionHandler.timer), run).reconstructRun();
+                    this.run.reconstructTimer(this.positionHandler.timer);
                     
                     //update player and team
                     this.localPlayer.mode = this.run.data.mode;

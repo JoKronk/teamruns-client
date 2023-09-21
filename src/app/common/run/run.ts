@@ -301,9 +301,13 @@ export class Run {
             teams.push(Object.assign(new Team(team.id, team.name), team));
         }
         this.teams = teams;
+        return this;
+    }
+
+    reconstructTimer(timer: TimerService) {
+        this.timer = timer;
         if (this.timer.runIsOngoing())
             this.timer.updateTimer();
 
-        return this;
     }
 }
