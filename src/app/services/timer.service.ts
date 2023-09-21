@@ -18,6 +18,8 @@ export class TimerService implements OnDestroy {
   private pauseDateMs: number | null = null;
   private endTimeMs: number | null = null;
 
+  private timerUpdateRateMs: number = 10;
+
   hasSpawnedPlayer: boolean = false;
   timerEndSubject: Subject<boolean> = new Subject();
 
@@ -134,17 +136,22 @@ export class TimerService implements OnDestroy {
         this.runState = RunState.Started;
     }
 
+    const newTotalTimeMs = currentTimeMs - this.startDateMs!
+    const updateText: boolean = Math.floor(newTotalTimeMs / 100) !== Math.floor(this.totalMs / 100);
 
     if (!this.pauseDateMs)
-      this.totalMs = currentTimeMs - this.startDateMs!;
+      this.totalMs = newTotalTimeMs;
+      
 
-    this.time = this.runState === RunState.Started ? (Timer.msToTimeFormat(this.totalMs)) : ("-0:00:" + Timer.getSecond(this.totalMs));
-    this.timeMs = "." + this.getMs(this.totalMs);
-
+    //only update text if timer has increased by .1
+    if (updateText) {
+      this.time = this.runState === RunState.Started ? (Timer.msToTimeFormat(this.totalMs)) : ("-0:00:" + Timer.getSecond(this.totalMs));
+      this.timeMs = "." + this.getMs(this.totalMs);
+    }
 
     
     if (!this.endTimeMs || this.endTimeMs >= this.totalMs)
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, this.timerUpdateRateMs));
     else {
       this.timerEndSubject.next(true);
       this.resetEverything = true;
