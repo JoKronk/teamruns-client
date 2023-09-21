@@ -75,7 +75,7 @@ export class RunHandler {
 
             //handle position
             if (this.localPlayer.team !== undefined)
-                this.sendPosition(new UserPositionDataTimestamp(target.position, this.run?.timer.totalMs ?? 0, this.localPlayer.user.id));
+                this.sendPosition(new UserPositionDataTimestamp(target.position, this.run?.timer.totalMs ?? 0, this.localPlayer.user));
             
             //handle game state changes for current player
             if (target.state)
@@ -250,7 +250,7 @@ export class RunHandler {
             this.localMaster?.relayPositionToSlaves(target);
         
         if (target.userId !== this.userService.getId())
-            this.positionHandler.updatePosition(target);
+            this.positionHandler.updatePlayerPosition(target);
     }
 
     onDataChannelEvent(event: DataChannelEvent, isMaster: boolean) {
@@ -492,7 +492,6 @@ export class RunHandler {
                 this.zone.run(() => { 
                     const user = this.getUser(event.userId)?.user;
                     this.run?.changeTeam(user, event.value);
-                    this.positionHandler.checkRegisterPlayer(user);
 
                     //check set team for obs window, set from run component if normal user
                     if (this.obsUserId && this.obsUserId === event.userId) { 

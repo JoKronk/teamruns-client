@@ -40,7 +40,7 @@ export class PositionService implements OnDestroy {
   private connectToOpengoal() {
     this.ogSocket.subscribe(target => {
       if (target.position) 
-        this.updatePosition(new UserPositionDataTimestamp(target.position, this.timer.totalMs, this.userService.getId()));
+        this.updatePlayerPosition(new UserPositionDataTimestamp(target.position, this.timer.totalMs, this.userService.user));
 
       if (target.state && target.state.justSpawned)
         this.timer.onPlayerLoad();
@@ -81,12 +81,15 @@ export class PositionService implements OnDestroy {
   }
 
 
-  updatePosition(positionData: UserPositionDataTimestamp) {
+  updatePlayerPosition(positionData: UserPositionDataTimestamp) {
     let player = this.players.find(x => x.userId === positionData.userId);
 
     if (player) player.updateCurrentPosition(positionData);
-    else if (positionData.userId !== this.userService.getId()) return;
-
+    else {
+      this.checkRegisterPlayer(new UserBase(positionData.userId, positionData.username));
+      if (positionData.userId !== this.userService.getId() && this.players.length > 1)
+        this.players.sort((a, b) => a.userId === this.userService.user.id ? -1 : b.userId === this.userService.user.id ? 1 : 0); //make sure current user is player 0
+    }
 
     if (this.timer.totalMs === 0) return;
     //handle user position recording
@@ -103,6 +106,7 @@ export class PositionService implements OnDestroy {
 
   startDrawPlayers() {
     if (this.drawPositions) return;
+    this.players.sort((a, b) => a.userId === this.userService.user.id ? -1 : b.userId === this.userService.user.id ? 1 : 0); //make sure current user is player 0
     this.drawPositions = true;
     this.drawPlayers();
     this.players.forEach(player => {
