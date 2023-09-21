@@ -64,8 +64,10 @@ export class RunHandler {
             this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
 
             //create run if it doesn't exist
-            if (!this.run)
+            if (!this.run) {
                 this.setupRun();
+                this.positionHandler.startDrawPlayers();
+            }
 
             this.onLobbyChange();
         });
@@ -538,7 +540,6 @@ export class RunHandler {
                 this.zone.run(() => { 
                     this.run!.start(new Date());
                     this.run!.setOrbCosts(this.localPlayer.user.id);
-                    this.positionHandler.startDrawPlayers();
                 });  
                 //!TODO: could be done in some more elegant way
                 setTimeout(() => {
