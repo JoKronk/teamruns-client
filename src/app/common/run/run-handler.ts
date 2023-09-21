@@ -539,6 +539,7 @@ export class RunHandler {
                 this.zone.run(() => { 
                     this.run!.start(new Date());
                     this.run!.setOrbCosts(this.localPlayer.user.id);
+                    this.positionHandler.startDrawPlayers();
                 });  
                 //!TODO: could be done in some more elegant way
                 setTimeout(() => {
