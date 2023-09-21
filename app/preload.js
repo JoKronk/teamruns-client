@@ -16,6 +16,7 @@ const validIpcChannelsIn = [
     "update-install"
 ];
 const validIpcChannelsOut = [
+    "og-launched",
     "og-task-update",
     "og-tracker-connected",
     "backend-message",

@@ -40,6 +40,7 @@ class OpenGoal {
         this.startOG(ogPath);
         await sleep(2500);
         
+        win.webContents.send("og-launched", true);
         openGoalREPL.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
         openGoalREPL.on('connect', async () => {
             this.setupOG();
@@ -87,6 +88,7 @@ class OpenGoal {
 
         //On kill
         openGoalGk.stdout.on('end', () => {
+            win.webContents.send("og-launched", false);
             this.sendClientMessage("OG Disconneted!");
         });
 

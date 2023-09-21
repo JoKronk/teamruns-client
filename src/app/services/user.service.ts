@@ -13,10 +13,12 @@ export class UserService implements OnDestroy {
   private UserCopy: User = new User();
   
   viewSettings: boolean = false;
+  gameLaunched: boolean = false;
   trackerConnected: boolean = false;
 
   isBrowser: boolean;
 
+  private launchListener: any;
   private trackerListener: any;
   private settingsListener: any;
   private messageListener: any;
@@ -78,8 +80,13 @@ export class UserService implements OnDestroy {
   private setupReceiver(): void {
     if (this.isBrowser) return;
 
+    //game launch & kill
+    this.launchListener = (window as any).electron.receive("og-launched", (launched: boolean) => {
+      this.gameLaunched = launched;
+    });
+
     //tracker update
-    this.trackerListener = (window as any).electron.receive("og-tracker-connected", (connected: true) => {
+    this.trackerListener = (window as any).electron.receive("og-tracker-connected", (connected: boolean) => {
       this.trackerConnected = connected;
     });
     
@@ -133,6 +140,7 @@ export class UserService implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.launchListener();
     this.trackerListener();
     this.settingsListener();
     this.messageListener();

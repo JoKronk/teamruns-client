@@ -21,18 +21,32 @@ export class PositionService implements OnDestroy {
   private positionUpdateRateMs: number = 16;
 
   ogSocket: WebSocketSubject<any> = webSocket('ws://localhost:8111');
+  private launchListener: any;
 
 
   constructor(public userService: UserService, public timer: TimerService) {
 
     this.checkRegisterPlayer(this.userService.user);
 
+    if (this.userService.gameLaunched)
+      this.connectToOpengoal();
+    
+    this.launchListener = (window as any).electron.receive("og-launched", (launched: boolean) => {
+      if (launched)
+        this.connectToOpengoal();
+    });
+  }
+  
+  private connectToOpengoal() {
     this.ogSocket.subscribe(target => {
       if (target.position) 
         this.updatePosition(new UserPositionDataTimestamp(target.position, this.timer.totalMs, this.userService.getId()));
 
       if (target.state && target.state.justSpawned)
         this.timer.onPlayerLoad();
+    },
+    error => {
+      console.log("Opengoal socket error, did the game shut down?");
     });
   }
 
@@ -157,6 +171,7 @@ export class PositionService implements OnDestroy {
 
   ngOnDestroy(): void {
     this.cleanupPlayers();
+    this.launchListener();
     this.ogSocket.complete();
   }
 }
