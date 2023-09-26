@@ -1,5 +1,5 @@
 import { OG } from "../opengoal/og";
-import { GameState } from "../player/game-state";
+import { GameState } from "../opengoal/game-state";
 import { PlayerState } from "../player/player-state";
 import { RunMode } from "../run/run-mode";
 import { Task } from "../opengoal/task";
@@ -8,6 +8,8 @@ import { Team } from "../run/team";
 import { Level } from "../opengoal/levels";
 import { UserBase } from "./user";
 import { CitadelOption } from "../run/run-data";
+import { GameTask } from "../opengoal/game-task";
+import { TaskStatus } from "../opengoal/task-status";
 
 export class LocalPlayerData {
   user: UserBase;
@@ -17,8 +19,6 @@ export class LocalPlayerData {
   state: PlayerState = PlayerState.Neutral;
 
   restrictedZoomerLevels: string[];
-  cellsRecivedFromOG: string[]; //!TODO: gets updated but unused atm as this can currently desync from the run if the player leaves the run and comes back mid run
-  tasksStatus: Map<string, number>;
 
   killKlawwOnSpot: boolean;
   hasCitadelSkipAccess: boolean;
@@ -31,12 +31,30 @@ export class LocalPlayerData {
 
   resetRunDependentProperties() {
     this.restrictedZoomerLevels = [Level.fireCanyon, Level.mountainPass, Level.lavaTube];
-    this.cellsRecivedFromOG = [];
-    this.tasksStatus = new Map();
     this.killKlawwOnSpot = false;
     this.hasCitadelSkipAccess = true;
   }
 
+
+  checkLockoutRestrictions(run: Run) {
+    const playerTeam = run.getPlayerTeam(this.user.id);
+    if (playerTeam) {
+        if (run.teams.length !== 1) {
+            if (this.gameState.cellCount < 73 || run.teams.some(team => team.id !== playerTeam.id && team.cellCount > playerTeam.cellCount))
+                OG.removeFinalBossAccess(this.gameState.currentLevel);
+            else
+                OG.giveFinalBossAccess(this.gameState.currentLevel);
+        }
+        //free for all Lockout
+        else {
+            const localPlayer = run.getPlayer(this.user.id)!;
+            if (this.gameState.cellCount < 73 || playerTeam.players.some(player => player.user.id !== localPlayer.user.id && player.cellsCollected > localPlayer.cellsCollected))
+                OG.removeFinalBossAccess(this.gameState.currentLevel);
+            else
+                OG.giveFinalBossAccess(this.gameState.currentLevel);
+        }
+    }
+  }
 
 
   checkKillKlaww() {
@@ -62,13 +80,13 @@ export class LocalPlayerData {
       setTimeout(() => {  //give the player some time to spawn in
         if (!run.isMode(RunMode.Lockout)) {
           team!.tasks.filter(x => x.isCell).forEach(cell => {
-            run.giveCellToUser(cell, this.user.id);
+            run.checUpdateTaskForUser(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName), cell.obtainedAt), this.user.id);
           });
         }
         else {
           run.teams.forEach(runTeam => {
             runTeam.tasks.filter(x => x.isCell).forEach(cell => {
-              run.giveCellToUser(cell, this.user.id);
+              run.checUpdateTaskForUser(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName), cell.obtainedAt), this.user.id);
             });
           });
         }
@@ -82,49 +100,7 @@ export class LocalPlayerData {
     //if you accidentally loaded a file with more cells than the run in it, and even though low I think the chance for that is higher than a desync this way
 
   }
-
-
-
-  checkForFirstOrbCellFromMultiSeller(task: string) {
-    if (task === "village1-oracle-money1") {
-      OG.runCommand("(close-specific-task! (game-task village1-oracle-money1) (task-status need-introduction))");
-      OG.runCommand("(close-specific-task! (game-task village1-oracle-money2) (task-status need-introduction))");
-    }
-    else if (task === "village2-oracle-money1") {
-      OG.runCommand("(close-specific-task! (game-task village2-oracle-money1) (task-status need-introduction))");
-      OG.runCommand("(close-specific-task! (game-task village2-oracle-money2) (task-status need-introduction))");
-    }
-    else if (task === "village3-oracle-money1") {
-      OG.runCommand("(close-specific-task! (game-task village3-oracle-money1) (task-status need-introduction))");
-      OG.runCommand("(close-specific-task! (game-task village3-oracle-money2) (task-status need-introduction))");
-    }
-    else if (task === "village3-miner-money1") {
-      OG.runCommand("(close-specific-task! (game-task village3-miner-money1) (task-status need-introduction))");
-      OG.runCommand("(close-specific-task! (game-task village3-miner-money2) (task-status need-introduction))");
-      OG.runCommand("(close-specific-task! (game-task village3-miner-money3) (task-status need-introduction))");
-      OG.runCommand("(close-specific-task! (game-task village3-miner-money4) (task-status need-introduction))");
-    }
-  }
-
-  //unused and doesn't work currently as cell pickup calls are only sent to client on the first pickup
-  checkFixDupedCellBuy(task: string, run: Run): boolean {
-    if (Task.isCellWithCost(task) && this.cellsRecivedFromOG.includes(task)) {
-      let newTask = task.slice(0, -1) + (+task.slice(-1) + 1);
-      if (Task.isCellWithCost(newTask)) {
-        OG.giveCell(newTask);
-        return true;
-      }
-      else {
-        if (task.includes("oracle"))
-          OG.runCommand("(send-event *target* 'get-pickup 5 " + (run.data.normalCellCost ? 120 : 240) + ".0)");
-        else
-          OG.runCommand("(send-event *target* 'get-pickup 5 " + (run.data.normalCellCost ? 90 : 180) + ".0)");
-      }
-    }
-    return false;
-  }
-
-
+  
 
   checkForZoomerTalkSkip(playerGameState: GameState) {
     if (playerGameState.currentLevel === Level.fireCanyon && playerGameState.onZoomer && this.restrictedZoomerLevels.includes(Level.fireCanyon))
@@ -135,61 +111,40 @@ export class LocalPlayerData {
 
 
 
-  updateTaskStatus(tasks: Map<string, string>, isLocalPlayer: boolean, checkWarpgatesOnly: boolean) {
-    const taskStatusValues = Task.getTaskStatusValues();
-    for (let [key, value] of tasks) {
-      const taskValue = taskStatusValues.get(value) ?? 1;
+  onExternalTaskUpdate(task: GameTask, checkWarpgatesOnly: boolean) {
+    if (checkWarpgatesOnly && !Task.isWarpGate(task.name)) return;
 
-      if ((!checkWarpgatesOnly || Task.isWarpGate(key)) && (this.tasksStatus.get(key) ?? 0) < taskValue) {
-        this.tasksStatus.set(key, taskValue);
-        if (isLocalPlayer || taskValue < taskStatusValues.get("need-reminder-a")!) continue;
-
-        switch (key) {
-          //handle hub warp gates
-          case "village2-levitator":
-            OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder-a))");
-            if (this.gameState.currentLevel !== "village1") break;
-            OG.runCommand("(reset-actors 'life)");
-            OG.runCommand("(process-release? *target*)");
-            break;
-          case "village3-button":
-            OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-introduction))");
-            if (this.gameState.currentLevel !== "village1" && this.gameState.currentLevel !== "village2") break;
-            OG.runCommand("(reset-actors 'life)");
-            OG.runCommand("(process-release? *target*)");
-            break;
-          case "village4-button":
-            OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reward-speech))");
-            if (this.gameState.currentLevel !== "village1" && this.gameState.currentLevel !== "village2" && this.gameState.currentLevel !== "village3") break;
-            OG.runCommand("(reset-actors 'life)");
-            OG.runCommand("(process-release? *target*)");
-            break;
-          //handle none cell tasks
-          case "lavatube-balls":
-            OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-resolution))");
-            break;
-          case "plunger-lurker-hit":
-            //!TODO: softlocks sometimes
-            /*
-            OG.runCommand("(close-specific-task! (game-task plunger-lurker-hit) (task-status need-hint))");
-            OG.runCommand('(process-entity-status! (process-by-ename "plunger-lurker-3")(entity-perm-status complete) #t)');
-            OG.runCommand('(cleanup-for-death (the-as (process-by-ename "plunger-lurker-3")))');
-            OG.runCommand('(deactivate (process-by-ename "plunger-lurker-3"))');
-            */
-            break;
-          //handle cell tasks
-          default:
-            if (Task.isCell(key)) {
-              if (taskValue === 5) {
-                OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-introduction))");
-                OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder-a))");
-              }
-              else
-                OG.runCommand("(close-specific-task! (game-task " + key + ") (task-status need-reminder))");
-            }
-        }
-      }
-    };
+    switch (task.name) {
+      //handle hub warp gates
+      case "village2-levitator":
+        if (task.status !== TaskStatus.needReminderA || this.gameState.currentLevel !== "village1") break;
+        OG.runCommand("(reset-actors 'life)");
+        OG.runCommand("(process-release? *target*)");
+        break;
+      case "village3-button":
+        if (task.status !== TaskStatus.needIntroduction || (this.gameState.currentLevel !== "village1" && this.gameState.currentLevel !== "village2")) break;
+        OG.runCommand("(reset-actors 'life)");
+        OG.runCommand("(process-release? *target*)");
+        break;
+      case "village4-button":
+        if (task.status !== TaskStatus.needRewardSpeech || (this.gameState.currentLevel !== "village1" && this.gameState.currentLevel !== "village2" && this.gameState.currentLevel !== "village3")) break;
+        OG.runCommand("(reset-actors 'life)");
+        OG.runCommand("(process-release? *target*)");
+        break;
+      //handle none cell tasks
+      case "plunger-lurker-hit":
+        //!TODO: softlocks sometimes
+        /*
+        OG.runCommand("(close-specific-task! (game-task plunger-lurker-hit) (task-status need-hint))");
+        OG.runCommand('(process-entity-status! (process-by-ename "plunger-lurker-3")(entity-perm-status complete) #t)');
+        OG.runCommand('(cleanup-for-death (the-as (process-by-ename "plunger-lurker-3")))');
+        OG.runCommand('(deactivate (process-by-ename "plunger-lurker-3"))');
+        */
+        break;
+      //handle cell tasks
+      default:
+        break;
+    }
   }
 
   checkNoLTS() {

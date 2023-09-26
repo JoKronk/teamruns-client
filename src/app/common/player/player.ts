@@ -1,4 +1,4 @@
-import { GameState } from "./game-state";
+import { GameState } from "../opengoal/game-state";
 import { PlayerState } from "./player-state";
 import { UserBase } from "../user/user";
 

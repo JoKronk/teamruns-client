@@ -8,8 +8,6 @@ const { app } = require('electron');
 let win = null;
 
 var openGoalREPL = null;
-var openGoalTracker = null;
-var trackerConnectedState = false;
 var openGoalIsRunning = false;
 var openGoalHasStarted = false;
 
@@ -27,7 +25,7 @@ class OpenGoal {
         
         let ogPath = await getOpenGoalPath();
         
-        this.sendClientMessage("(1/3) Starting OpenGOAL!");
+        this.sendClientMessage("(1/2) Starting OpenGOAL!");
         if (openGoalREPL) {
             openGoalREPL.end();
             openGoalREPL.destroy();
@@ -44,7 +42,6 @@ class OpenGoal {
         openGoalREPL.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
         openGoalREPL.on('connect', async () => {
             this.setupOG();
-            this.runTracker();
 
             await sleep(2000);
             openGoalHasStarted = true;
@@ -67,9 +64,6 @@ class OpenGoal {
             }
             openGoalIsRunning = false;
             openGoalHasStarted = false;
-
-            if (openGoalTracker) 
-                spawn("taskkill", ["/pid", openGoalTracker.pid, '/f', '/t']);
         }
         catch (e) { this.sendClientMessage(e); }
     }
@@ -110,8 +104,7 @@ class OpenGoal {
         this.writeGoalCommand("(set! (-> *pc-settings* speedrunner-mode?) #t)", true);
         //!TODO: Swap this one out as soon as possible
         //this.writeGoalCommand("(set! *pc-settings-built-sha* \"rev. 20f132 \\nTeamRun Version " + app.getVersion() + "\")", true);
-        this.writeGoalCommand("(send-event *target* 'loading)", true);
-        this.writeGoalCommand("(send-event *target* 'get-pickup (pickup-type eco-red) 1.0)", true);
+        this.writeGoalCommand("(mark-repl-connected)", true);
         console.log(".done");
     }
 
@@ -125,75 +118,6 @@ class OpenGoal {
         openGoalREPL.write(bb);
     }
 
-
-    
-    // --- TRACKING ---
-   runTracker() {
-        console.log("Running Tracker!");
-        try {
-            openGoalTracker = spawn(path.join(__dirname, '../tracker/JakTracker.exe'), [path.join(__dirname, '../tracker/')]);     
-        }
-        catch (err) {
-            this.sendClientMessage("Error: " + err);
-        }
-
-        //On error
-        openGoalTracker.stderr.on('data', (data) => {
-            console.log("Tracker Error!: " + data.toString());
-            //this.sendClientMessage("Tracker Error!: " + data.toString());
-        });
-
-        //On data
-        openGoalTracker.stdout.on('data', (data) => {
-
-            //might contain multiple json objects in invalid format if written to quickly in succession
-            for (let jsonString of data.toString().replace(/(\r\n|\n|\r)/gm, "").replace("}{", "}|{").split('|'))
-                this.handleTrackerJsonString(jsonString);
-        });
-
-        //On kill
-        openGoalTracker.stdout.on('end', () => {
-            trackerConnectedState = false;
-            this.sendClientTrackerState();
-            if (openGoalHasStarted);
-                this.sendClientMessage("Tracker Disconneted!");
-            this.killOG(true);
-        });
-        
-        this.sendClientMessage("(2/3) Startup successful! Connecting...");
-
-    }
-
-    handleTrackerJsonString(jsonString) {
-        //sends invalid json string on opengoal shutdown
-        try {
-            const trackerObj = JSON.parse(jsonString);
-            if (trackerObj.event && trackerObj.event.obtained)
-                sendClientTaskUpdate(trackerObj.event.gameTask);
-            else if (trackerObj.error)
-                this.sendClientMessage("Error: " + trackerObj.error);
-            else if (trackerObj.message && trackerObj.message.startsWith("Tracker connected!")) {
-                this.writeGoalCommand("(send-event *target* 'loading)");
-                this.writeGoalCommand("(send-event *target* 'get-pickup (pickup-type eco-yellow) 1.0)");
-                trackerConnectedState = true;
-                this.sendClientTrackerState();
-                this.sendClientMessage("(3/3) OpenGOAL fully connected!");
-            }
-        }
-        catch (err) {
-            //this.sendClientMessage("Tracker Error!: " + jsonString);
-        }
-    }
-
-    checkCreateFileExists(file) {
-        if (!fs.existsSync(file)) {
-            fs.writeFileSync(file, "");
-        }
-    }
-
-    sendClientTrackerState() {
-      win.webContents.send("og-tracker-connected", trackerConnectedState);
-    }
 
     sendClientMessage(msg) {
         win.webContents.send("backend-message", msg);
@@ -215,11 +139,6 @@ function getOpenGoalPath() {
                 resolve(JSON.parse(data).ogFolderpath);
         });
     });
-}
-
-// --- FRONTEND COM ---
-function sendClientTaskUpdate(obj) {
-  win.webContents.send("og-task-update", obj);
 }
 
 module.exports = { OpenGoal };

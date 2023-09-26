@@ -1,6 +1,8 @@
 import { Player } from "../player/player";
 import { Task } from "../opengoal/task";
 import { PlayerState } from "../player/player-state";
+import { GameTask } from "../opengoal/game-task";
+import { TaskStatus } from "../opengoal/task-status";
 
 
 export class Team {
@@ -10,6 +12,8 @@ export class Team {
     tasks: Task[];
     cellCount: number;
     endTimeMs: number = 0;
+    
+    tasksStatus: Map<string, number>;
 
     hasUsedDebugMode: boolean = false;
 
@@ -21,6 +25,7 @@ export class Team {
 
     resetForRun() {
         this.tasks = [];
+        this.tasksStatus = new Map();
         this.cellCount = 0;
 
         if (this.players.length === 0) return;
@@ -42,5 +47,14 @@ export class Team {
 
     hasTask(task: string): boolean {
         return this.tasks.some(x => x.gameTask === task) ?? false;
+    }
+
+    isNewTaskUpdateAdd(task: GameTask): boolean {
+      const statusValue: number = TaskStatus.getEnumValue(task.status) ?? 1;
+      const isNewUpdate = !this.tasksStatus.has(task.name) || this.tasksStatus.get(task.name)! < statusValue;
+      if (isNewUpdate)
+        this.tasksStatus.set(task.name, statusValue);
+      
+      return isNewUpdate;
     }
 }

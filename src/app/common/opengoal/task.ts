@@ -1,4 +1,6 @@
 import { UserBase } from "../user/user";
+import { GameTask } from "./game-task";
+import { TaskStatus } from "./task-status";
 
 export class Task {
     gameTask: string;
@@ -7,29 +9,16 @@ export class Task {
     obtainedById: string;
     obtainedAt: string;
 
-    constructor(task: string, user: UserBase, timerTime: string) {
-        this.gameTask = task;
-        this.isCell = Task.isCell(task);
-        this.obtainedById = user.id;
-        this.obtainedByName = user.name;
-        this.obtainedAt = timerTime;
+    constructor(task: GameTask) {
+        this.gameTask = task.name;
+        this.isCell = Task.isCell(task.name);
+        this.obtainedById = task.user.id;
+        this.obtainedByName = task.user.name;
+        this.obtainedAt = task.timerTime;
     }
 
-    public static lastboss = "int-finalboss-movies";
-    public static forfeit = "int-finalboss-forfeit";
-
-    public static getTaskStatusValues(): Map<string, number> {
-        return new Map([
-            ["invalid", 8], //is 0 in game but making it 8 here as it's set last
-            ["unknown", 1],
-            ["need-hint", 2],
-            ["need-introduction", 3],
-            ["need-reminder-a", 4],
-            ["need-reminder", 5],
-            ["need-reward-speech", 6],
-            ["need-resolution", 7]
-        ])
-    }
+    public static lastboss = "finalboss-movies";
+    public static forfeit = "finalboss-forfeit";
 
     public static getCellEname(task: string): string | undefined {
         return new Map([
@@ -60,6 +49,25 @@ export class Task {
             ["cave-robot-climb", "fuel-cell-57"],
             ["cave-swing-poles", "fuel-cell-56"],
         ]).get(task);
+    }
+
+    private static isEnding(task: GameTask) {
+        console.log("checking", task)
+        console.log("checking status", task.status === TaskStatus.unknown)
+        console.log("checking b0ss", task.name === Task.lastboss)
+        return task.status === TaskStatus.unknown && (task.name === Task.lastboss || task.name === Task.forfeit);
+    }
+
+    public static isCompleted(task: GameTask) {
+        return (task.status === TaskStatus.needResolution) || this.isEnding(task);
+    }
+
+    public static isSplit(task: GameTask) {
+        return this.isCellCollect(task) || this.isEnding(task);
+    }
+
+    public static isCellCollect(task: GameTask) {
+        return this.isCell(task.name) && task.status === TaskStatus.needResolution;
     }
 
     public static isCell(gameTask: string) {

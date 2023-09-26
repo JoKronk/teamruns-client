@@ -1,5 +1,7 @@
 import { WebSocketSubject } from "rxjs/webSocket";
 import { CurrentPositionData } from "../playback/position-data";
+import { GameTask } from "./game-task";
+import { Task } from "./task";
 
 export class OG {
   static startGame(): void {
@@ -12,8 +14,14 @@ export class OG {
     (window as any).electron.send('og-start-run');
   }
 
-  static giveCell(taskName: string) {
-    this.runCommand("(dm-give-cell (game-task " + taskName + "))");
+  static updateTask(task: GameTask) {
+    this.runCommand("(close-specific-task! (game-task " + task.name + ") (task-status " + task.status + "))");
+    
+    if (Task.isCellCollect(task)) {
+      let openFuelCell = Task.getCellEname(task.name);
+      if (openFuelCell)
+      this.runCommand('(+! (-> (the fuel-cell (process-by-ename "' + openFuelCell + '")) base y) (meters -200.0))');
+    }
   }
 
   static giveFinalBossAccess(currentLevel: string) {

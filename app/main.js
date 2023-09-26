@@ -94,10 +94,6 @@ function createWindow() {
     openGoal.writeGoalCommand(command);
   });
 
-  ipcMain.on('og-tracker-connected-read', () => {
-    openGoal.sendClientTrackerState();
-  });
-    
   ipcMain.on('file-fetch', (event, filepath) => {
     readFile(filepath);
   });

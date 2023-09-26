@@ -1,11 +1,9 @@
 import { Component, HostListener, NgZone, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { GameState } from '../common/player/game-state';
 import { Task } from '../common/opengoal/task';
 import { UserService } from '../services/user.service';
 import pkg from 'app/package.json';
 import { FireStoreService } from '../services/fire-store.service';
-import { Subscription } from 'rxjs';
 import { LocalPlayerData } from '../common/user/local-player-data';
 import { RunMode } from '../common/run/run-mode';
 import { PlayerState } from '../common/player/player-state';
@@ -16,6 +14,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
 import { UserBase } from '../common/user/user';
 import { PositionService } from '../services/position.service';
+import { GameTask } from '../common/opengoal/game-task';
+import { TaskStatus } from '../common/opengoal/task-status';
 
 @Component({
   selector: 'app-run',
@@ -35,11 +35,7 @@ export class RunComponent implements OnDestroy {
 
   editingName: boolean;
 
-  private taskListener: any;
-
-
   constructor(public _user: UserService, private positionHandler: PositionService, private firestoreService: FireStoreService, private route: ActivatedRoute, private zone: NgZone, private dialog: MatDialog, private router: Router) {
-    this.setupListeners();
     
     //on parameter get (was swapped from route as electon had issues getting routes containing more than one (/) path)
     this.route.queryParamMap.subscribe((params) => {
@@ -58,8 +54,8 @@ export class RunComponent implements OnDestroy {
       dialogSubscription.unsubscribe();
       if (confirmed) {
         this.localPlayer.state = PlayerState.Forfeit;
-        let task = new Task(Task.forfeit, this.localPlayer.user, this.runHandler.run!.getTimerShortenedFormat());
-        this.runHandler.sendEvent(EventType.NewCell, task);
+        let task = new GameTask(Task.forfeit, this.localPlayer.user, this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
+        this.runHandler.sendEvent(EventType.NewTaskUpdate, task);
         this.runHandler.sendEvent(EventType.EndPlayerRun, task);
       }
     });
@@ -109,49 +105,8 @@ export class RunComponent implements OnDestroy {
       this.runHandler.sendEvent(EventType.Kick, user);
   }
 
-  setupListeners() {
-    //on task get
-    this.taskListener = (window as any).electron.receive("og-task-update", (task: string) => {
-      this.zone.run(() => {
-        if (!this.runHandler.run || this.runHandler.isSpectatorOrNull()) return;
-
-        if (Task.isCell(task) && !this.localPlayer.cellsRecivedFromOG.includes(task))
-          this.localPlayer.cellsRecivedFromOG.push(task);
-
-        if (this.shouldAddTask(task)) {  
-          if (task === "citadel-sage-green")
-            this.localPlayer.hasCitadelSkipAccess = false;
-
-          var cell = new Task(task, this.localPlayer.user, this.runHandler.run.getTimerShortenedFormat());
-          this.runHandler.sendEvent(EventType.NewCell, cell);
-          
-          //run end
-          if (task === Task.lastboss) {
-            this.localPlayer.state = PlayerState.Finished;
-            this.runHandler.sendEvent(EventType.EndPlayerRun, cell);
-          }
-        }
-      });
-    });
-  }
-
-  private shouldAddTask(task: string): boolean {
-    if (this.runHandler.run!.timer.runState !== RunState.Started || this.localPlayer.state === PlayerState.Finished || this.localPlayer.state === PlayerState.Forfeit)
-      return false;
-    if (task === Task.lastboss)
-      return true;
-    if (Task.isCell(task)) {
-      if (this.runHandler.run?.isMode(RunMode.Lockout) && !this.runHandler.run.runHasCell(task))
-        return true;
-      else if (!this.runHandler.run?.playerTeamHasCell(task, this.localPlayer.user.id))
-        return true;
-    }
-    return false;
-  }
-
 
   destory() {
-    this.taskListener();
     this.runHandler.destroy();
   }
 

@@ -2,7 +2,8 @@ import { LocalPlayerData } from "../user/local-player-data";
 import { Player } from "../player/player";
 import { RunMode } from "./run-mode";
 import { RunData } from "./run-data";
-import { GameState } from "../player/game-state";
+import { GameState } from "../opengoal/game-state";
+import { GameTask } from "../opengoal/game-task";
 import { Task } from "../opengoal/task";
 import { Team } from "./team";
 import { Timer } from "./timer";
@@ -83,16 +84,16 @@ export class Run {
         return this.teams.every(x => x.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit));
     }
 
-    endTeamRun(task: Task): void {
-        let team = this.getPlayerTeam(task.obtainedById);
+    endTeamRun(task: GameTask): void {
+        let team = this.getPlayerTeam(task.user.id);
         if (!team) return;
         if (team.players.every(y => y.state === PlayerState.Finished))
-            team.endTimeMs = Timer.timeToMs(task.obtainedAt);
+            team.endTimeMs = Timer.timeToMs(task.timerTime);
     }
 
-    endAllTeamsRun(task: Task): void {
+    endAllTeamsRun(task: GameTask): void {
         this.teams.forEach((team, index) => {
-            this.teams[index].endTimeMs = Timer.timeToMs(task.obtainedAt);
+            this.teams[index].endTimeMs = Timer.timeToMs(task.timerTime);
         });
     }
 
@@ -225,11 +226,11 @@ export class Run {
             let importTeam = run.teams.find(x => x.id === team.id);
             if (importTeam) {
                 //localPlayer player class, use to check if this is curernt players TEAM
-                let localImportedPlayer = team.players.find(x => x.user.id === localPlayer.user.id);
+                let theLocallyImportedPlayer = team.players.find(x => x.user.id === localPlayer.user.id);
                 //check for new tasks to give player
-                if (localImportedPlayer || this.isMode(RunMode.Lockout)) {
+                if (theLocallyImportedPlayer || this.isMode(RunMode.Lockout)) {
                     importTeam.tasks.filter(x => x.isCell && !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
-                        this.giveCellToUser(task, localImportedPlayer?.user.id);
+                        this.checUpdateTaskForUser(new GameTask(task.gameTask, new UserBase(task.obtainedById, task.obtainedByName), task.obtainedAt), theLocallyImportedPlayer?.user.id);
                     });
                 }
 
@@ -238,21 +239,18 @@ export class Run {
                 team.cellCount = importTeam.cellCount;
 
                 //state update checks
-                if (localImportedPlayer) {
-                    this.updateSelfRestrictions(localPlayer, localImportedPlayer);
+                if (theLocallyImportedPlayer) {
+                    this.updateSelfRestrictions(localPlayer, theLocallyImportedPlayer);
                 }
             }
         });
     }
 
-    giveCellToUser(task: Task, playerId: string | undefined) {
-        if (!playerId || !task.isCell) return;
+    checUpdateTaskForUser(task: GameTask, playerId: string | undefined) {
+        if (!playerId) return;
 
-        if ((this.getPlayerTeam(task.obtainedById)?.id === this.getPlayerTeam(playerId)?.id || this.isMode(RunMode.Lockout))) {
-            let fuelCell = Task.getCellEname(task.gameTask);
-            if (fuelCell)
-                OG.runCommand('(+! (-> (the fuel-cell (process-by-ename "' + fuelCell + '")) base y) (meters -200.0))');
-            OG.giveCell(task.gameTask);
+        if (this.isMode(RunMode.Lockout) || this.getPlayerTeam(task.user.id)?.id === this.getPlayerTeam(playerId)?.id) {
+            OG.updateTask(task);
         }
     }
 

@@ -14,7 +14,7 @@ export class UserService implements OnDestroy {
   
   viewSettings: boolean = false;
   gameLaunched: boolean = false;
-  trackerConnected: boolean = false;
+  replConnected: boolean = false;
 
   isBrowser: boolean;
 
@@ -28,7 +28,6 @@ export class UserService implements OnDestroy {
     this.isBrowser = !(window as any).electron;
     this.setupReceiver();
     this.readSettings();
-    this.checkTrackerConnection();
   }
 
   public getId() {
@@ -83,11 +82,7 @@ export class UserService implements OnDestroy {
     //game launch & kill
     this.launchListener = (window as any).electron.receive("og-launched", (launched: boolean) => {
       this.gameLaunched = launched;
-    });
-
-    //tracker update
-    this.trackerListener = (window as any).electron.receive("og-tracker-connected", (connected: boolean) => {
-      this.trackerConnected = connected;
+      this.replConnected = false;
     });
     
     //settings get
@@ -107,12 +102,6 @@ export class UserService implements OnDestroy {
       console.log(message);
       this.sendNotification(message);
     });
-  }
-
-  //settings read
-  checkTrackerConnection(): void {
-    if (this.isBrowser) return;
-    (window as any).electron.send('og-tracker-connected-read');
   }
 
   //settings write

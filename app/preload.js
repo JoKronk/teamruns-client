@@ -4,7 +4,6 @@ const validIpcChannelsIn = [
     "og-start-game",
     "og-start-run",
     "og-command",
-    "og-tracker-connected-read",
     "window-close",
     "window-minimize",
     "file-fetch",
@@ -17,8 +16,6 @@ const validIpcChannelsIn = [
 ];
 const validIpcChannelsOut = [
     "og-launched",
-    "og-task-update",
-    "og-tracker-connected",
     "backend-message",
     "backend-error",
     "file-get",

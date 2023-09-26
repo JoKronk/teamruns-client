@@ -22,10 +22,13 @@ import { Category } from "./category";
 import { DbRun } from "../firestore/db-run";
 import { UserPositionDataTimestamp } from "../playback/position-data";
 import { PositionService } from "src/app/services/position.service";
-import { GameState } from "../player/game-state";
+import { GameState } from "../opengoal/game-state";
+import { GameTask } from "../opengoal/game-task";
+import { Team } from "./team";
+import { TaskStatus } from "../opengoal/task-status";
 
 export class RunHandler {
-    
+
     lobby: Lobby | undefined;
     run: Run | undefined;
 
@@ -43,6 +46,7 @@ export class RunHandler {
     dataSubscription: Subscription;
     positionSubscription: Subscription;
     lobbySubscription: Subscription;
+    private launchListener: any;
 
     constructor(lobbyId: string,
         public firestoreService: FireStoreService,
@@ -50,7 +54,7 @@ export class RunHandler {
         private localPlayer: LocalPlayerData,
         public zone: NgZone,
         obsUserId: string | null = null) {
-        
+
         this.userService = positionHandler.userService;
         this.zone = zone;
         this.obsUserId = obsUserId;
@@ -71,14 +75,26 @@ export class RunHandler {
 
             this.onLobbyChange();
         });
-        
+
         //position listener
+        if (this.userService.gameLaunched)
+            this.setupSocketListener();
+        this.launchListener = (window as any).electron.receive("og-launched", (launched: boolean) => {
+            if (launched) this.setupSocketListener();
+        });
+    }
+
+    private setupSocketListener() {
         this.positionHandler.ogSocket.subscribe(target => {
 
             //handle position
             if (this.localPlayer.team !== undefined)
                 this.sendPosition(new UserPositionDataTimestamp(target.position, this.run?.timer.totalMs ?? 0, this.localPlayer.user));
-            
+
+            //task updates
+            if (target.task)
+                this.handleTaskUpdate(target.task);
+
             //handle game state changes for current player
             if (target.state)
                 this.handleStateChange(target.state);
@@ -98,13 +114,13 @@ export class RunHandler {
 
             console.log("Becomming host!");
             await this.firestoreService.deleteLobbySubCollections(this.lobby.id);
-            
+
             if (this.localSlave)
                 this.run?.removePlayer(this.localSlave.hostId);
 
             this.resetUser();
             this.lobby.host = player.user;
-            
+
             if (this.lobby.backupHost?.id === userId) //replace backup host if user was backup, host is kicked out of user list and lobby host role by backupHost on data channel disconnect
                 this.getNewBackupHost();
 
@@ -112,7 +128,7 @@ export class RunHandler {
                 this.lobby.addUser(new LobbyUser(this.localPlayer.user, false));
 
             this.lobby.users = this.lobby.users.filter(x => x.isRunner || this.run?.hasSpectator(x.id));
-            
+
             await this.updateFirestoreLobby();
             this.setupMaster();
             this.connected = true;
@@ -146,11 +162,11 @@ export class RunHandler {
 
         this.connected = false;
     }
-    
+
     getUser(userId: string): Player | undefined {
         return this.run?.getPlayer(userId);
     }
-    
+
     isSpectatorOrNull() {
         return !this.localPlayer.user.id || this.localPlayer.user.id === "" || this.lobby?.hasSpectator(this.localPlayer.user.id);
     }
@@ -167,7 +183,7 @@ export class RunHandler {
             return true;
         else
             return false;
-    } 
+    }
 
     dehost() { //used only for testing atm, cannot currently be used if host is in a team as he's removed from the team on dehost
         if (!this.localMaster || !this.lobby) return;
@@ -203,13 +219,13 @@ export class RunHandler {
         this.localMaster = new RTCPeerMaster(this.userService.user.createUserBaseFromDisplayName(), !this.run!.data.hideOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id));
         this.dataSubscription = this.localMaster.eventChannel.subscribe(event => {
             if (!this.localMaster?.isBeingDestroyed)
-            this.onDataChannelEvent(event, true);
+                this.onDataChannelEvent(event, true);
         });
 
         if (!this.localMaster.positionChannel) return;
         this.positionSubscription = this.localMaster.positionChannel.subscribe(target => {
             if (!this.localMaster?.isBeingDestroyed)
-            this.onPostionChannelUpdate(target, true);
+                this.onPostionChannelUpdate(target, true);
         });
     }
 
@@ -243,14 +259,14 @@ export class RunHandler {
             this.localSlave.peer.sendPosition(target);
         }
         else if (this.localMaster && this.lobby?.host?.id === this.localPlayer.user.id && !this.localMaster.isBeingDestroyed)
-        this.localMaster?.relayPositionToSlaves(target);
+            this.localMaster?.relayPositionToSlaves(target);
     }
 
     onPostionChannelUpdate(target: UserPositionDataTimestamp, isMaster: boolean) {
         //send updates from master to all slaves
         if (isMaster)
             this.localMaster?.relayPositionToSlaves(target);
-        
+
         if (target.userId !== this.userService.getId())
             this.positionHandler.updatePlayerPosition(target);
     }
@@ -268,13 +284,13 @@ export class RunHandler {
                 const newUser: UserBase = event.value as UserBase;
                 if (event.userId === "host")
                     this.userService.sendNotification("Client to server fallback communication established,\n please recreate the lobby if peer to peer usually works.", 10000);
-                
+
                 console.log(newUser.name + " connected!");
 
                 if (isMaster) {
                     //handle run
                     const isRunner: boolean = (this.run?.getPlayerTeam(newUser.id) !== undefined);
-                    if (isRunner) 
+                    if (isRunner)
                         this.sendEvent(EventType.Reconnect, newUser.id);
                     else if (!this.run?.hasSpectator(newUser.id))
                         this.run!.spectators.push(new Player(newUser));
@@ -299,11 +315,11 @@ export class RunHandler {
 
 
             case EventType.Disconnect:
-                if(!this.lobby) return;
+                if (!this.lobby) return;
                 const disconnectedUser: UserBase = event.value as UserBase;
                 this.zone.run(() => {
                     this.run?.removePlayer(disconnectedUser.id);
-                }); 
+                });
 
                 //host logic
                 if (isMaster) {
@@ -343,7 +359,7 @@ export class RunHandler {
 
 
             case EventType.Kick:
-                if(this.localPlayer.user.id === event.value.id && (this.lobby?.host?.id === event.userId || this.localPlayer.user.id === event.userId)) {
+                if (this.localPlayer.user.id === event.value.id && (this.lobby?.host?.id === event.userId || this.localPlayer.user.id === event.userId)) {
                     this.userService.sendNotification("You've been kicked from the lobby.");
                     this.userService.routeTo('/lobby');
                 }
@@ -354,16 +370,16 @@ export class RunHandler {
 
             case EventType.Reconnect:
                 this.zone.run(() => {
-                    this.run!.reconnectPlayer(event.value); 
-                }); 
+                    this.run!.reconnectPlayer(event.value);
+                });
                 break;
-               
-                
+
+
             case EventType.RequestRunSync:
                 if (isMaster) {
                     this.localMaster?.respondToSlave(new DataChannelEvent(userId, EventType.RunSync, this.run), event.userId);
                     console.log("Got run request, responding!");
-                    
+
                     //check for self kick if suspected of being tied to client to server communication as host
                     if (this.localMaster && this.localMaster.peers.length > 1 && this.localMaster.peers.every(x => x.peer.usesServerCommunication)) {
                         this.userService.sendNotification("Unfit as host, please rejoin.");
@@ -378,17 +394,17 @@ export class RunHandler {
                     }
                 }
                 break;
-            
+
 
             case EventType.RunSync:
-                this.zone.run(() => { 
+                this.zone.run(() => {
 
                     //update run
                     let run: Run = JSON.parse(JSON.stringify(event.value)); //to not cause referece so that import can run properly on the run after
                     this.run = Object.assign(new Run(run.data, this.positionHandler.timer), run).reconstructRun();
                     this.positionHandler.timer.importTimer(run.timer);
                     this.run.reconstructTimer(this.positionHandler.timer);
-                    
+
                     //update player and team
                     this.localPlayer.mode = this.run.data.mode;
                     let playerTeam = this.run?.getPlayerTeam(this.obsUserId ? this.obsUserId : this.localPlayer.user.id);
@@ -407,9 +423,9 @@ export class RunHandler {
 
 
 
-            case EventType.EndPlayerRun:  
-                this.zone.run(() => { 
-                    this.run?.endPlayerRun(event.userId, event.value.gameTask === Task.forfeit);
+            case EventType.EndPlayerRun:
+                this.zone.run(() => {
+                    this.run?.endPlayerRun(event.userId, event.value.name === Task.forfeit);
                     this.run?.isMode(RunMode.Lockout) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
 
                     if (isMaster && this.run?.timer.runState === RunState.Ended && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit)) {
@@ -421,82 +437,72 @@ export class RunHandler {
                 break;
 
 
-            case EventType.NewCell: 
+            case EventType.NewTaskUpdate:
                 if (!this.run) return;
-                this.zone.run(() => { 
-                    this.run!.addSplit(event.value);
-                });
+
+                const task: GameTask = event.value;
+
+                if (Task.isSplit(task)) {
+                    this.zone.run(() => {
+                        this.run!.addSplit(new Task(task));
+                    });
+                }
+                const playerTeam = this.run.getPlayerTeam(event.userId);
+                if (!playerTeam) return;
+                const isLocalPlayerTeam = playerTeam.id === this.localPlayer.team?.id;
+
+                //task updates
+                if (isLocalPlayerTeam)
+                    this.localPlayer.onExternalTaskUpdate(task, false)
+                else if (this.run.data.sharedWarpGatesBetweenTeams)
+                    this.localPlayer.onExternalTaskUpdate(task, true)
+
 
                 //handle none current user things
                 if (event.userId !== userId) {
-                    this.run.giveCellToUser(event.value, userId);
-                    
-                    if (this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id || this.run.isMode(RunMode.Lockout)) {
+                    if (playerTeam.isNewTaskUpdateAdd(task))
+                        this.run.checUpdateTaskForUser(task, userId);
+
+                    if (this.run.isMode(RunMode.Lockout) || isLocalPlayerTeam) {
                         //handle klaww kill
-                        if ((event.value as Task).gameTask === "ogre-boss") {
+                        if (task.name === "ogre-boss" && task.status === TaskStatus.needReminder) {
                             this.localPlayer.killKlawwOnSpot = true;
                             this.localPlayer.checkKillKlaww();
                         }
                         //handle citadel elevator cell cases
-                        else if ((event.value as Task).gameTask === "citadel-sage-green") {
+                        else if (task.name === "citadel-sage-green" && task.status === TaskStatus.needResolution) {
                             this.localPlayer.checkCitadelSkip(this.run);
                             this.localPlayer.checkCitadelElevator();
                         }
-                        else //check if orb buy
-                            this.localPlayer.checkForFirstOrbCellFromMultiSeller((event.value as Task).gameTask);
                     }
                 }
 
                 //handle Lockout
-                if (this.run.isMode(RunMode.Lockout)) {
-                    const playerTeam = this.run.getPlayerTeam(this.localPlayer.user.id);
-                    if (!playerTeam) break;
-                    if (this.run.teams.length !== 1) {
-                        if (this.localPlayer.gameState.cellCount < 73 || this.run.teams.some(team => team.id !== playerTeam.id && team.cellCount > playerTeam.cellCount))
-                            OG.removeFinalBossAccess(this.localPlayer.gameState.currentLevel);
-                        else
-                            OG.giveFinalBossAccess(this.localPlayer.gameState.currentLevel);
-                    }
-                    //free for all Lockout
-                    else {
-                        const localPlayer = this.run.getPlayer(this.localPlayer.user.id)!;
-                        if (this.localPlayer.gameState.cellCount < 73 || playerTeam.players.some(player => player.user.id !== localPlayer.user.id && player.cellsCollected > localPlayer.cellsCollected))
-                            OG.removeFinalBossAccess(this.localPlayer.gameState.currentLevel);
-                        else
-                            OG.giveFinalBossAccess(this.localPlayer.gameState.currentLevel);
-                    }
-                }
+                if (this.run.isMode(RunMode.Lockout))
+                    this.localPlayer.checkLockoutRestrictions(this.run);
+
                 break;
 
 
-            case EventType.NewPlayerState: 
+            case EventType.NewPlayerState:
                 if (!this.run) return;
-                this.zone.run(() => { 
+                this.zone.run(() => {
                     this.run!.updateState(event.userId, event.value, this.userService);
                 });
-                
+
                 this.run.updateSelfRestrictions(this.localPlayer);
                 if (event.userId !== userId)
                     this.localPlayer.checkForZoomerTalkSkip(event.value);
                 break;
 
 
-            case EventType.NewTaskStatusUpdate:
-                if (!this.run) return;
-                if (this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id && !(this.run.isMode(RunMode.Lockout) && this.run.teams.length === 1))
-                    this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.userId === userId, false);
-                else if (this.run.data.sharedWarpGatesBetweenTeams)
-                    this.localPlayer.updateTaskStatus(new Map(Object.entries(event.value)), event.userId === userId, true);
-                break;
-
-                
             case EventType.ChangeTeam:
-                this.zone.run(() => { 
+                this.zone.run(() => {
                     const user = this.getUser(event.userId)?.user;
                     this.run?.changeTeam(user, event.value);
 
                     //check set team for obs window, set from run component if normal user
-                    if (this.obsUserId && this.obsUserId === event.userId) { 
+                    if (this.obsUserId && this.obsUserId === event.userId) {
                         this.localPlayer.team = this.run?.getPlayerTeam(this.obsUserId);
                     }
                 });
@@ -511,36 +517,36 @@ export class RunHandler {
                 this.updateFirestoreLobby();
                 break;
 
-            
+
             case EventType.ChangeTeamName:
                 let team = this.run?.getPlayerTeam(event.userId);
                 if (!team) return;
-                this.zone.run(() => { 
+                this.zone.run(() => {
                     team!.name = event.value;
                 });
                 break;
 
 
             case EventType.Ready:
-                this.zone.run(() => { 
-                    this.run!.toggleReady(event.userId, event.value); 
-                });  
-                
+                this.zone.run(() => {
+                    this.run!.toggleReady(event.userId, event.value);
+                });
+
                 //check if everyone is ready, send start call if so
                 if (isMaster && event.value === PlayerState.Ready && this.run!.everyoneIsReady()) {
                     this.lobby!.visible = false;
                     this.updateFirestoreLobby();
-                    
+
                     this.sendEvent(EventType.StartRun, new Date().toUTCString());
-                }     
+                }
                 break;
-            
+
 
             case EventType.StartRun:
-                this.zone.run(() => { 
+                this.zone.run(() => {
                     this.run!.start(new Date());
                     this.run!.setOrbCosts(this.localPlayer.user.id);
-                });  
+                });
                 //!TODO: could be done in some more elegant way
                 setTimeout(() => {
                     this.localPlayer.resetRunDependentProperties();
@@ -549,12 +555,12 @@ export class RunHandler {
 
 
             case EventType.ToggleReset:
-                this.zone.run(() => { 
+                this.zone.run(() => {
                     if (this.run!.toggleVoteReset(event.userId, event.value)) {
                         OG.runCommand("(send-event *target* 'loading)");
                         this.localPlayer.state = PlayerState.Neutral;
                     }
-                });  
+                });
                 break;
 
 
@@ -570,46 +576,62 @@ export class RunHandler {
     }
 
 
+    handleTaskUpdate(task: GameTask) {
+        this.zone.run(() => {
+            if (!this.run || this.isSpectatorOrNull()) return;
+
+            //check duped cell buy
+            if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.tasksStatus.has(task.name) && this.localPlayer.team.tasksStatus.get(task.name)! === TaskStatus.getEnumValue(TaskStatus.needResolution)) {
+                if (task.name.includes("oracle"))
+                    OG.runCommand("(send-event *target* 'get-pickup 5 " + (this.run.data.normalCellCost ? 120 : 240) + ".0)");
+                else
+                    OG.runCommand("(send-event *target* 'get-pickup 5 " + (this.run.data.normalCellCost ? 90 : 180) + ".0)");
+            }
+
+            if (!this.localPlayer.team || !this.localPlayer.team.isNewTaskUpdateAdd(task)) return;
+
+            if (this.shouldSendTaskUpdate(task) || task.name === Task.lastboss) {
+                task.timerTime = this.run.getTimerShortenedFormat();
+                task.user = this.localPlayer.user;
+
+                if (task.name === "citadel-sage-green")
+                    this.localPlayer.hasCitadelSkipAccess = false;
+
+                this.sendEvent(EventType.NewTaskUpdate, task);
+
+                //run end
+                if (task.name === Task.lastboss && Task.isCompleted(task)) {
+                    this.localPlayer.state = PlayerState.Finished;
+                    this.sendEvent(EventType.EndPlayerRun, task);
+                }
+            }
+        });
+    }
+
+    private shouldSendTaskUpdate(task: GameTask): boolean {
+        return this.run!.timer.runState === RunState.Started && this.localPlayer.state !== PlayerState.Finished && this.localPlayer.state !== PlayerState.Forfeit;
+    }
+
     handleStateChange(state: GameState) {
         this.zone.run(() => {
-            if (!this.run|| this.isSpectatorOrNull()) return;
-            
+            if (!this.run || this.isSpectatorOrNull() || this.localPlayer.state === PlayerState.Finished) return;
+
             if (this.localPlayer.gameState.cellCount !== state.cellCount)
-            {
-                this.localPlayer.gameState.cellCount = state.cellCount;
                 this.localPlayer.checkDesync(this.run);
-            }
 
-            //handle task status updates
-            if (this.localPlayer.gameState.hasSharedTaskChange(state) && this.run.timer.runIsOngoing()) {
-            this.localPlayer.gameState.sharedTasks = state.sharedTasks;
-            this.sendEvent(EventType.NewTaskStatusUpdate, state.sharedTasks);
-            }
+            //this check is purely to save unnecessary writes to db if user is on client-server communication
+            if (this.shouldSendStateUpdate(state))
+                this.sendEvent(EventType.NewPlayerState, state);
 
-            //handle state change
-            if (this.localPlayer.gameState.hasPlayerStateChange(state) && this.localPlayer.state !== PlayerState.Finished) {
 
-                //this is purely to save unnecessary writes to db if user is on client-server communication
-                const insignificantChange: boolean = (((this.localSlave?.peer.usesServerCommunication || this.localMaster?.peers.every(x => x.peer.usesServerCommunication)) ?? false) && !this.localPlayer.gameState.hasSignificantPlayerStateChange(state));
-                
-                this.localPlayer.gameState.currentLevel = state.currentLevel;
-                this.localPlayer.gameState.currentCheckpoint = state.currentCheckpoint;
-                this.localPlayer.gameState.onZoomer = state.onZoomer;
+            this.localPlayer.gameState = state;
 
-                //check death
-                if (this.localPlayer.gameState.hasDied(state)) {
-                    this.localPlayer.gameState.deathCount = state.deathCount;
-        
-                    //handle citadel elevator
-                    this.localPlayer.checkCitadelElevator();
-                }
+            //handle citadel elevator
+            if (this.localPlayer.gameState.justSpawned)
+                this.localPlayer.checkCitadelElevator();
 
-                if (!insignificantChange)
-                    this.sendEvent(EventType.NewPlayerState, state);
-                
-                //handle klaww kill
-                this.localPlayer.checkKillKlaww();
-            }
+            //handle klaww kill
+            this.localPlayer.checkKillKlaww();
 
             //handle no LTS
             if (this.run.data.noLTS)
@@ -627,6 +649,10 @@ export class RunHandler {
         })
     }
 
+    private shouldSendStateUpdate(newState: GameState) {
+        return !((this.localSlave?.peer.usesServerCommunication || this.localMaster?.peers.every(x => x.peer.usesServerCommunication)) ?? false) || GameState.hasSignificantPlayerStateChange(this.localPlayer.gameState, newState);
+    }
+
 
     destroy() {
         this.isBeingDestroyed = true;
@@ -634,6 +660,7 @@ export class RunHandler {
 
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
+        this.launchListener();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself
             if (wasHost) {

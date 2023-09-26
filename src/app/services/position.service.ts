@@ -44,6 +44,11 @@ export class PositionService implements OnDestroy {
 
       if (target.state && target.state.justSpawned)
         this.timer.onPlayerLoad();
+
+      if (target.connected) {
+        this.userService.replConnected = true;
+        this.userService.sendNotification("(2/2) Teamrun fully connected to OpenGOAL!")
+      }
     },
     error => {
       console.log("Opengoal socket error, did the game shut down?");
