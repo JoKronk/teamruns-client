@@ -428,7 +428,7 @@ export class RunHandler {
                     this.run?.endPlayerRun(event.userId, event.value.name === Task.forfeit);
                     this.run?.isMode(RunMode.Lockout) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
 
-                    if (isMaster && this.run?.timer.runState === RunState.Ended && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit)) {
+                    if (isMaster && this.run?.timer.runState === RunState.Ended && !this.run.teams.every(x => x.hasUsedDebugMode) && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit)) {
                         let run: DbRun = DbRun.convertToFromRun(this.run);
                         this.firestoreService.addRun(run); //history
                         run.checkUploadPbs(this.firestoreService); //pb & leadeboard
