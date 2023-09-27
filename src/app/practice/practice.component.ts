@@ -158,7 +158,7 @@ export class PracticeComponent implements OnDestroy {
     const blob = new Blob([fileData], {type: "text/plain"});
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.download = 'recording.json';
+    link.download = recording.nameFrontend + '.json';
     link.href = url;
     link.click();
   }
