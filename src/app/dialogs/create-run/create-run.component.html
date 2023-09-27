@@ -37,7 +37,7 @@
                     </select>
                 </div>
             </div>
-            <button (click)="createRun()">Create Run</button>
+            <button [disabled]="runData.name.length === 0" (click)="createRun()">Create Run</button>
             
         </div>
         <div class="tab">

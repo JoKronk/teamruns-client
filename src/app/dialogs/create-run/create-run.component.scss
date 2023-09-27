@@ -69,9 +69,9 @@ button {
     border: 1px solid #636363;
     border-radius: 6px;
     outline: none;
-    cursor: pointer;
     transition: 0.3s;
-    &:hover {
+    &:not([disabled]):hover {
+        cursor: pointer;
         color: rgba(255, 255, 255, 1);
         background-color: #a56d06;
         border: 1px solid rgb(99, 99, 99, 0.6);
