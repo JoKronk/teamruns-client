@@ -26,7 +26,8 @@ export class PositionService implements OnDestroy {
 
   constructor(public userService: UserService, public timer: TimerService) {
 
-    this.checkRegisterPlayer(this.userService.user);
+    if (this.userService.user.name) //if client is fully reloaded in a place where position service is started at same time as use we pick up user on movement instead
+      this.checkRegisterPlayer(this.userService.user);
 
     if (this.userService.gameLaunched)
       this.connectToOpengoal();
@@ -75,7 +76,13 @@ export class PositionService implements OnDestroy {
   checkRegisterPlayer(user: UserBase | undefined, isRecording: boolean = false) {
     if (!user || this.players.find(x => x.userId === user.id)) return;
 
-    this.players.push(new CurrentPositionData(user));
+    if (user.id === this.userService.getId())
+      this.players.unshift(new CurrentPositionData(user));
+    else
+      this.players.push(new CurrentPositionData(user));
+    
+    if (this.players.length > 1 && this.players[0].userId !== this.userService.getId())
+      this.players.sort((a, b) => a.userId === this.userService.user.id ? -1 : b.userId === this.userService.user.id ? 1 : 0); //make sure current user is player 0
   }
 
   addRecording(recording: Recording, user: UserBase) {
@@ -90,11 +97,8 @@ export class PositionService implements OnDestroy {
     let player = this.players.find(x => x.userId === positionData.userId);
 
     if (player) player.updateCurrentPosition(positionData);
-    else {
+    else 
       this.checkRegisterPlayer(new UserBase(positionData.userId, positionData.username));
-      if (positionData.userId !== this.userService.getId() && this.players.length > 1)
-        this.players.sort((a, b) => a.userId === this.userService.user.id ? -1 : b.userId === this.userService.user.id ? 1 : 0); //make sure current user is player 0
-    }
 
     if (this.timer.totalMs === 0) return;
     //handle user position recording
