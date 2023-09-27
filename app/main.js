@@ -79,8 +79,12 @@ function createWindow() {
   });
     
 // --- FRONTEND COM ---
+  ipcMain.on('og-start-repl', () => {
+    openGoal.preStartREPL();
+  });
+
   ipcMain.on('og-start-game', () => {
-    openGoal.runGameSetup();
+    openGoal.startOG();
   });
 
   ipcMain.on('og-start-run', () => {

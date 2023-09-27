@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
    
 const validIpcChannelsIn = [
+    "og-start-repl",
     "og-start-game",
     "og-start-run",
     "og-command",

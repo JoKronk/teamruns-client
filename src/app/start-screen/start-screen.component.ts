@@ -117,6 +117,10 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     setTimeout(() => {
       if (this.video.nativeElement.readyState === 4) {
         this.blackscreen.nativeElement.classList.add('blackscreen-fade');
+
+        if ((window as any).electron) 
+          (window as any).electron.send('og-start-repl');
+
         return;
       }
       else 

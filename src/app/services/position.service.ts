@@ -47,7 +47,7 @@ export class PositionService implements OnDestroy {
 
       if (target.connected) {
         this.userService.replConnected = true;
-        this.userService.sendNotification("(2/2) Teamrun fully connected to OpenGOAL!")
+        console.log("REPL Connected!");
       }
     },
     error => {

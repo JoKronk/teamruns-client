@@ -8,10 +8,13 @@ const { app } = require('electron');
 let win = null;
 
 var openGoalREPL = null;
-var openGoalIsRunning = false;
-var openGoalHasStarted = false;
+var replHasStarted = false;
+var replIsRunning = false;
 
+var openGoalIsRunning = false;
 var openGoalGk = null;
+
+var firstStart = true;
 
 class OpenGoal {
 
@@ -21,55 +24,90 @@ class OpenGoal {
      
 
     // --- GOAL COMUNICATION ---
-    async runGameSetup() {
-        
+    async preStartREPL() {
+
         let ogPath = await getOpenGoalPath();
-        
-        this.sendClientMessage("(1/2) Starting OpenGOAL!");
+
         if (openGoalREPL) {
             openGoalREPL.end();
             openGoalREPL.destroy();
         }
-
         openGoalREPL = new net.Socket();
 
-        this.killOG();
-        await sleep(1500);
-        this.startOG(ogPath);
-        await sleep(2500);
-        
-        win.webContents.send("og-launched", true);
-        openGoalREPL.connect(8181, '127.0.0.1', function () { console.log('Connection made with OG!'); });
-        openGoalREPL.on('connect', async () => {
-            this.setupOG();
+        if (replHasStarted || firstStart) {
+            this.killOG();
+            firstStart = false;
+            await sleep(1500);
+        }
 
-            await sleep(2000);
-            openGoalHasStarted = true;
+        //start REPL
+        try {
+            var shell = new winax.Object('Shell.Application');
+            //shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 0);
+            shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open", 0);
+            replHasStarted = true;
+        }
+        catch (e) { this.sendClientMessage(e); }
+        
+        await sleep(2500);
+
+        //connect to REPL
+        openGoalREPL.connect(8181, '127.0.0.1', function () { console.log('Connection made with REPL!'); });
+        openGoalREPL.on('connect', async () => {
+            replIsRunning = true;
+            this.writeGoalCommand("(mng)");
         });
 
         openGoalREPL.on('error', (ex) => {
-            if (!openGoalHasStarted)
+            if (!openGoalIsRunning)
                 this.sendClientMessage("Failed to start the client properly, please relaunch!");
         });
     }
 
 
-    killOG(spareGk = false) {
-        try {
-            if (openGoalIsRunning) {
-                var shell = new winax.Object('WScript.Shell');
-                if (!spareGk)
-                    shell.Exec("taskkill /F /IM gk.exe");
-                shell.Exec("taskkill /F /IM goalc.exe");
-            }
-            openGoalIsRunning = false;
-            openGoalHasStarted = false;
+
+    async startOG() {
+        if (openGoalIsRunning) {
+            this.killOG();
+            await sleep(1500);
         }
-        catch (e) { this.sendClientMessage(e); }
+
+        this.sendClientMessage("Starting OpenGOAL!");
+        this.startGK(await getOpenGoalPath());
+
+        if (!replIsRunning)
+            await this.preStartREPL();
+        
+
+        if (!replHasStarted)
+            this.sendClientMessage("Startup failed, REPL never launched");
+        
+        
+
+        if (replHasStarted && !replIsRunning) {
+            console.log("Starting pre REPL (lt) connection sleep 1")
+            await sleep(1500);
+        }
+
+        if (replHasStarted && !replIsRunning) {
+            console.log("Starting pre REPL (lt) connection sleep 2")
+            await sleep(3500);
+        }
+        
+        console.log("Connecting to OG and writing setup commands!")
+        this.writeGoalCommand("(lt)");
+        //this.writeGoalCommand("(set! *debug-segment* #f)");
+        this.writeGoalCommand("(set! *cheat-mode* #f)");
+        this.writeGoalCommand("(set! (-> *pc-settings* speedrunner-mode?) #t)");
+        //!TODO: Swap this one out as soon as possible
+        //this.writeGoalCommand("(set! *pc-settings-built-sha* \"rev. 20f132 \\nTeamRun Version " + app.getVersion() + "\")");
+        this.writeGoalCommand("(mark-repl-connected)");
+
+        console.log(".done");
+        win.webContents.send("og-launched", true);
     }
 
-    startOG(ogPath) {
-        
+    startGK(ogPath) {
         openGoalGk = spawn(ogPath + "\\gk.exe", ["--game", "jak1", "--", "-boot", "-fakeiso", "-debug"]);
         //On error
         openGoalGk.stderr.on('data', (data) => {
@@ -85,31 +123,42 @@ class OpenGoal {
             win.webContents.send("og-launched", false);
             this.sendClientMessage("OG Disconneted!");
         });
+        openGoalIsRunning = true;
+    }
 
+
+    killOG() {
+        this.killREPL();
+        this.killGK();
+    }
+
+    killREPL() {
+        if (!replHasStarted && !firstStart) return;
         try {
-            var shell = new winax.Object('Shell.Application');
-            //shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 0);
-            shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open", 0);
-            openGoalIsRunning = true;
+            var shell = new winax.Object('WScript.Shell');
+            shell.Exec("taskkill /F /IM goalc.exe");
+
+            replHasStarted = false;
+            replIsRunning = false;
         }
         catch (e) { this.sendClientMessage(e); }
     }
 
-    setupOG() {
-        console.log("Writing setup commands!")
-        this.writeGoalCommand("(lt)", true);
-        //this.writeGoalCommand("(set! *debug-segment* #f)", true);
-        this.writeGoalCommand("(mng)", true);
-        this.writeGoalCommand("(set! *cheat-mode* #f)", true);
-        this.writeGoalCommand("(set! (-> *pc-settings* speedrunner-mode?) #t)", true);
-        //!TODO: Swap this one out as soon as possible
-        //this.writeGoalCommand("(set! *pc-settings-built-sha* \"rev. 20f132 \\nTeamRun Version " + app.getVersion() + "\")", true);
-        this.writeGoalCommand("(mark-repl-connected)", true);
-        console.log(".done");
+    killGK() {
+        if (!openGoalIsRunning && !firstStart) return;
+        try {
+            var shell = new winax.Object('WScript.Shell');
+            shell.Exec("taskkill /F /IM gk.exe");
+
+            openGoalIsRunning = false;
+        }
+        catch (e) { this.sendClientMessage(e); }
     }
 
-    writeGoalCommand(args, isStartupCommand = false) {
-        if (!openGoalHasStarted && !isStartupCommand) return;
+
+
+    writeGoalCommand(args) {
+        if (!replIsRunning) return;
 
         let utf8Encode = new TextEncoder();
         var data = utf8Encode.encode(args);
