@@ -26,11 +26,13 @@ import { GameState } from "../opengoal/game-state";
 import { GameTask } from "../opengoal/game-task";
 import { Team } from "./team";
 import { TaskStatus } from "../opengoal/task-status";
+import { LevelHandler } from "../level/level-handler";
 
 export class RunHandler {
 
     lobby: Lobby | undefined;
     run: Run | undefined;
+    levelHandler: LevelHandler = new LevelHandler();
 
     connected: boolean = false;
     info: string = "";
@@ -98,6 +100,18 @@ export class RunHandler {
             //handle game state changes for current player
             if (target.state)
                 this.handleStateChange(target.state);
+
+            if (target.buzzer)
+                this.sendEvent(EventType.NewScoutflyCollected, target.buzzer);
+
+            if (target.orb)
+                this.sendEvent(EventType.NewOrbCollected, target.orb);
+
+            if (target.crate)
+                this.sendEvent(EventType.NewCrateDestoryed, target.crate);
+
+            if (target.levels)
+                this.levelHandler.onLevelsUpdate(target.levels);
         });
     }
 
@@ -272,6 +286,7 @@ export class RunHandler {
     }
 
     onDataChannelEvent(event: DataChannelEvent, isMaster: boolean) {
+        
         const userId = this.userService.getId();
 
         //send updates from master to all slaves | this should be here and not moved up to sendEvent as it's not the only method triggering this
@@ -447,6 +462,9 @@ export class RunHandler {
                         this.run!.addSplit(new Task(task));
                     });
                 }
+                if (Task.isCellCollect(task))
+                    this.levelHandler.onNewCell(task);
+
                 const playerTeam = this.run.getPlayerTeam(event.userId);
                 if (!playerTeam) return;
                 const isLocalPlayerTeam = playerTeam.id === this.localPlayer.team?.id;
@@ -493,6 +511,21 @@ export class RunHandler {
                 this.run.updateSelfRestrictions(this.localPlayer);
                 if (event.userId !== userId)
                     this.localPlayer.checkForZoomerTalkSkip(event.value);
+                break;
+            
+            case EventType.NewScoutflyCollected:
+                if (event.userId !== userId && (this.run?.isMode(RunMode.Lockout) ||  this.run?.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
+                    this.levelHandler.onBuzzerCollect(event.value);
+                break;
+            
+            case EventType.NewOrbCollected:
+                if (event.userId !== userId && (this.run?.isMode(RunMode.Lockout) ||  this.run?.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
+                    this.levelHandler.onOrbCollect(event.value);
+                break;
+            
+            case EventType.NewCrateDestoryed:
+                if (event.userId !== userId && (this.run?.isMode(RunMode.Lockout) ||  this.run?.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
+                    this.levelHandler.onCrateDestroy(event.value);
                 break;
 
 

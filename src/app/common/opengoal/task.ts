@@ -1,5 +1,6 @@
 import { UserBase } from "../user/user";
 import { GameTask } from "./game-task";
+import { Level } from "./levels";
 import { TaskStatus } from "./task-status";
 
 export class Task {
@@ -49,6 +50,37 @@ export class Task {
             ["cave-robot-climb", "fuel-cell-57"],
             ["cave-swing-poles", "fuel-cell-56"],
         ]).get(task);
+    }
+
+    public static getCellLevelByEname(ename: string): string | undefined {
+        return new Map([
+            ["fuel-cell-55", Level.geyser],
+            ["fuel-cell-53", Level.geyser],
+            ["fuel-cell-54", Level.geyser],
+            ["fuel-cell-40", Level.beach],
+            ["fuel-cell-42", Level.beach],
+            ["fuel-cell-46", Level.jungle],
+            ["fuel-cell-49", Level.jungle],
+            ["fuel-cell-1", Level.jungle],
+            ["fuel-cell-11", Level.misty],
+            ["fuel-cell-12", Level.misty],
+            ["fuel-cell-51", Level.misty],
+            ["fuel-cell-50", Level.misty],
+            ["fuel-cell-45", Level.basin],
+            ["fuel-cell-24", Level.lpcTopPart],
+            ["fuel-cell-26", "sunken-sharks"],
+            ["fuel-cell-25", "sunken-top-of-helix"],
+            ["fuel-cell-52", Level.lpcTopPart],
+            ["fuel-cell-15", Level.boggy],
+            ["fuel-cell-62", Level.mountainPass],
+            ["fuel-cell-30", Level.snowy],
+            ["fuel-cell-28", Level.snowy],
+            ["fuel-cell-60", Level.spiderCave,],
+            ["fuel-cell-59", Level.darkCave],
+            ["fuel-cell-58", Level.spiderRobotCave],
+            ["fuel-cell-57", Level.spiderRobotCave],
+            ["fuel-cell-56", Level.spiderRobotCave]
+        ]).get(ename);
     }
 
     private static isEnding(task: GameTask) {
