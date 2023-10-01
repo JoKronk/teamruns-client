@@ -286,7 +286,7 @@ export class RunHandler {
     }
 
     onDataChannelEvent(event: DataChannelEvent, isMaster: boolean) {
-        
+        if (!this.run) return;
         const userId = this.userService.getId();
 
         //send updates from master to all slaves | this should be here and not moved up to sendEvent as it's not the only method triggering this
@@ -304,10 +304,10 @@ export class RunHandler {
 
                 if (isMaster) {
                     //handle run
-                    const isRunner: boolean = (this.run?.getPlayerTeam(newUser.id) !== undefined);
+                    const isRunner: boolean = (this.run.getPlayerTeam(newUser.id) !== undefined);
                     if (isRunner)
                         this.sendEvent(EventType.Reconnect, newUser.id);
-                    else if (!this.run?.hasSpectator(newUser.id))
+                    else if (!this.run.hasSpectator(newUser.id))
                         this.run!.spectators.push(new Player(newUser));
 
                     //handle lobby
@@ -323,7 +323,7 @@ export class RunHandler {
                 else if (event.userId === this.localPlayer.user.id) {
                     this.sendEvent(EventType.RequestRunSync);
                 }
-                else if (!this.run?.hasSpectator(newUser.id))
+                else if (!this.run.hasSpectator(newUser.id))
                     this.run!.spectators.push(new Player(newUser));
 
                 break;
@@ -422,7 +422,7 @@ export class RunHandler {
 
                     //update player and team
                     this.localPlayer.mode = this.run.data.mode;
-                    let playerTeam = this.run?.getPlayerTeam(this.obsUserId ? this.obsUserId : this.localPlayer.user.id);
+                    let playerTeam = this.run.getPlayerTeam(this.obsUserId ? this.obsUserId : this.localPlayer.user.id);
                     if (playerTeam) {
                         //clean out collectables so that potentially missed ones are given on import
                         if (!this.obsUserId)
@@ -453,8 +453,6 @@ export class RunHandler {
 
 
             case EventType.NewTaskUpdate:
-                if (!this.run) return;
-
                 const task: GameTask = event.value;
 
                 if (Task.isSplit(task)) {
@@ -503,7 +501,6 @@ export class RunHandler {
 
 
             case EventType.NewPlayerState:
-                if (!this.run) return;
                 this.zone.run(() => {
                     this.run!.updateState(event.userId, event.value, this.userService);
                 });
@@ -514,17 +511,17 @@ export class RunHandler {
                 break;
             
             case EventType.NewScoutflyCollected:
-                if (event.userId !== userId && (this.run?.isMode(RunMode.Lockout) ||  this.run?.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
+                if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
                     this.levelHandler.onBuzzerCollect(event.value);
                 break;
             
             case EventType.NewOrbCollected:
-                if (event.userId !== userId && (this.run?.isMode(RunMode.Lockout) ||  this.run?.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
+                if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
                     this.levelHandler.onOrbCollect(event.value);
                 break;
             
             case EventType.NewCrateDestoryed:
-                if (event.userId !== userId && (this.run?.isMode(RunMode.Lockout) ||  this.run?.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
+                if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
                     this.levelHandler.onCrateDestroy(event.value);
                 break;
 
@@ -552,7 +549,7 @@ export class RunHandler {
 
 
             case EventType.ChangeTeamName:
-                let team = this.run?.getPlayerTeam(event.userId);
+                let team = this.run.getPlayerTeam(event.userId);
                 if (!team) return;
                 this.zone.run(() => {
                     team!.name = event.value;
