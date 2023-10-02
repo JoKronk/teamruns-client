@@ -2,7 +2,7 @@ import { BuzzerBase } from "./buzzer";
 import { CrateBase } from "./crate";
 import { OrbBase } from "./orb";
 
-export class LevelUpdateStorage {
+export class LevelCollectables {
     
     levelName: string;
     cellUpdates: string[] = [];

@@ -14,6 +14,7 @@ import { OG } from "../opengoal/og";
 import { UserBase } from "../user/user";
 import { TimerService } from "src/app/services/timer.service";
 import { UserService } from "src/app/services/user.service";
+import { RunStateMapper } from "../level/run-state-mapper";
 
 export class Run {
     data: RunData;
@@ -230,7 +231,7 @@ export class Run {
                 //check for new tasks to give player
                 if (theLocallyImportedPlayer || this.isMode(RunMode.Lockout)) {
                     importTeam.tasks.filter(x => x.isCell && !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
-                        this.checUpdateTaskForUser(new GameTask(task.gameTask, new UserBase(task.obtainedById, task.obtainedByName), task.obtainedAt), theLocallyImportedPlayer?.user.id);
+                        OG.updateTask(new GameTask(task.gameTask, new UserBase(task.obtainedById, task.obtainedByName), task.obtainedAt));
                     });
                 }
 
@@ -244,14 +245,6 @@ export class Run {
                 }
             }
         });
-    }
-
-    checUpdateTaskForUser(task: GameTask, playerId: string | undefined) {
-        if (!playerId) return;
-
-        if (this.isMode(RunMode.Lockout) || this.getPlayerTeam(task.user.id)?.id === this.getPlayerTeam(playerId)?.id) {
-            OG.updateTask(task);
-        }
     }
 
     updateSelfRestrictions(localPlayer: LocalPlayerData, player: Player | undefined = undefined) {
@@ -296,7 +289,9 @@ export class Run {
         //update run
         let teams: Team[] = [];
         for (let team of this.teams) {
-            teams.push(Object.assign(new Team(team.id, team.name), team));
+            const assignedTeam = Object.assign(new Team(team.id, team.name), team);
+            assignedTeam.runState = Object.assign(new RunStateMapper(), assignedTeam.runState);
+            teams.push(assignedTeam);
         }
         this.teams = teams;
         return this;

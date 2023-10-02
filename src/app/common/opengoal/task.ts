@@ -83,19 +83,8 @@ export class Task {
         ]).get(ename);
     }
 
-    private static isEnding(task: GameTask) {
-        console.log("checking", task)
-        console.log("checking status", task.status === TaskStatus.unknown)
-        console.log("checking b0ss", task.name === Task.lastboss)
+    public static isRunEnd(task: GameTask) {
         return task.status === TaskStatus.unknown && (task.name === Task.lastboss || task.name === Task.forfeit);
-    }
-
-    public static isCompleted(task: GameTask) {
-        return (task.status === TaskStatus.needResolution) || this.isEnding(task);
-    }
-
-    public static isSplit(task: GameTask) {
-        return this.isCellCollect(task) || this.isEnding(task);
     }
 
     public static isCellCollect(task: GameTask) {

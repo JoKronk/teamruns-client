@@ -22,7 +22,7 @@ export class TaskStatus {
         ]);
     }
     
-    public static getEnumValue(status: string): number | undefined {
-        return this.getEnumValues().get(status);
+    public static getEnumValue(status: string): number {
+        return this.getEnumValues().get(status) ?? 1;
     }
 }

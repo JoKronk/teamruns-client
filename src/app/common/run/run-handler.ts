@@ -457,45 +457,36 @@ export class RunHandler {
 
 
             case EventType.NewTaskUpdate:
+                if (!this.localPlayer.team) return;
                 const task: GameTask = event.value;
+                const isCell: boolean = Task.isCellCollect(task);
 
-                if (Task.isSplit(task)) {
+                if (isCell || Task.isRunEnd(task)) {
                     this.zone.run(() => {
                         this.run!.addSplit(new Task(task));
                     });
                 }
-                if (Task.isCellCollect(task))
-                    this.levelHandler.onNewCell(task);
 
                 const playerTeam = this.run.getPlayerTeam(event.userId);
                 if (!playerTeam) return;
-                const isLocalPlayerTeam = playerTeam.id === this.localPlayer.team?.id;
-
-                //task updates
-                if (isLocalPlayerTeam)
-                    this.localPlayer.onExternalTaskUpdate(task, false)
-                else if (this.run.data.sharedWarpGatesBetweenTeams)
-                    this.localPlayer.onExternalTaskUpdate(task, true)
-
+                const isLocalPlayerTeam = playerTeam.id === this.localPlayer.team.id;
+                
 
                 //handle none current user things
-                if (event.userId !== userId) {
-                    if (playerTeam.isNewTaskUpdateAdd(task))
-                        this.run.checUpdateTaskForUser(task, userId);
+                if (event.userId !== userId && this.run.isMode(RunMode.Lockout) || isLocalPlayerTeam) {
 
-                    if (this.run.isMode(RunMode.Lockout) || isLocalPlayerTeam) {
-                        //handle klaww kill
-                        if (task.name === "ogre-boss" && task.status === TaskStatus.needReminder) {
-                            this.localPlayer.killKlawwOnSpot = true;
-                            this.localPlayer.checkKillKlaww();
-                        }
-                        //handle citadel elevator cell cases
-                        else if (task.name === "citadel-sage-green" && task.status === TaskStatus.needResolution) {
-                            this.localPlayer.checkCitadelSkip(this.run);
-                            this.localPlayer.checkCitadelElevator();
-                        }
-                    }
+                    //task updates
+                    OG.updateTask(task, isCell);
+
+                    //cell updates
+                    if (isCell)
+                        this.levelHandler.onNewCell(task);
+
+                    this.localPlayer.checkTaskUpdateSpecialCases(task, this.run, (this.run.data.sharedWarpGatesBetweenTeams || isLocalPlayerTeam));
                 }
+                
+                //add to team run state
+                playerTeam.runState.addTask(task);
 
                 //handle Lockout
                 if (this.run.isMode(RunMode.Lockout))
@@ -515,22 +506,34 @@ export class RunHandler {
                 break;
             
             case EventType.NewScoutflyCollected:
-                if (event.userId !== userId && this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id)
+                if (!this.localPlayer.team) return;
+
+                if (event.userId !== userId && this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team.id)
                     this.levelHandler.onBuzzerCollect(event.value);
+
+                this.run.getPlayerTeam(event.userId)?.runState.addBuzzer(event.value);
                 break;
             
             case EventType.NewOrbCollected:
-                if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
+                if (!this.localPlayer.team) return;
+                if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team.id))
                     this.levelHandler.onOrbCollect(event.value);
+                
+                this.run.getPlayerTeam(event.userId)?.runState.addOrb(event.value);
                 break;
             
             case EventType.NewCrateDestoryed:
-                if (event.userId !== userId && ((this.run.isMode(RunMode.Lockout) && event.value.typ === Crate.typeWithOrbs) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
+                if (!this.localPlayer.team) return;
+                if (event.userId !== userId && ((this.run.isMode(RunMode.Lockout) && event.value.typ === Crate.typeWithOrbs) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team.id))
                     this.levelHandler.onCrateDestroy(event.value);
+
+                if (event.value.type === Crate.typeWithBuzzer || event.value.type === Crate.typeWithOrbs)
+                    this.run.getPlayerTeam(event.userId)?.runState.addCrate(event.value);
                 break;
             
             case EventType.NewEcoPickup:
-                if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
+                if (!this.localPlayer.team) return;
+                if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team.id))
                     this.levelHandler.onEcoPickup(event.value);
                 break;
 
@@ -620,14 +623,14 @@ export class RunHandler {
             if (!this.run || this.isSpectatorOrNull()) return;
 
             //check duped cell buy
-            if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.tasksStatus.has(task.name) && this.localPlayer.team.tasksStatus.get(task.name)! === TaskStatus.getEnumValue(TaskStatus.needResolution)) {
+            if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.tasksStatuses.has(task.name) && this.localPlayer.team.runState.tasksStatuses.get(task.name)! === TaskStatus.getEnumValue(TaskStatus.needResolution)) {
                 if (task.name.includes("oracle"))
                     OG.runCommand("(send-event *target* 'get-pickup 5 " + (this.run.data.normalCellCost ? 120 : 240) + ".0)");
                 else
                     OG.runCommand("(send-event *target* 'get-pickup 5 " + (this.run.data.normalCellCost ? 90 : 180) + ".0)");
             }
 
-            if (!this.localPlayer.team || !this.localPlayer.team.isNewTaskUpdateAdd(task)) return;
+            if (!this.localPlayer.team || !this.localPlayer.team.runState.isNewTaskStatus(task)) return;
 
             if (this.shouldSendTaskUpdate(task) || task.name === Task.lastboss) {
                 task.timerTime = this.run.getTimerShortenedFormat();
@@ -639,7 +642,7 @@ export class RunHandler {
                 this.sendEvent(EventType.NewTaskUpdate, task);
 
                 //run end
-                if (task.name === Task.lastboss && Task.isCompleted(task)) {
+                if (task.name === Task.lastboss) {
                     this.localPlayer.state = PlayerState.Finished;
                     this.sendEvent(EventType.EndPlayerRun, task);
                 }

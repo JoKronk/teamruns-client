@@ -4,13 +4,13 @@ import { OG } from "../opengoal/og";
 import { Orb, OrbBase } from "./orb";
 import { Task } from "../opengoal/task";
 import { LevelStatus } from "./level-status";
-import { LevelUpdateStorage } from "./level-update-storage";
 import { Crate, CrateBase } from "./crate";
 import { Eco } from "./eco";
+import { RunStateMapper } from "./run-state-mapper";
 
 export class LevelHandler {
 
-    levelStorages: LevelUpdateStorage[] = [];
+    uncollectedLevelItems: RunStateMapper = new RunStateMapper();
     levels: LevelStatus[] = [];
 
     constructor() {
@@ -30,16 +30,17 @@ export class LevelHandler {
 
 
     onNewCell(cell: GameTask) {
+        OG.updateTask(cell, true);
+
         const ename = Task.getCellEname(cell.name);
         if (!ename) return;
         const levelName = Task.getCellLevelByEname(ename);
         if (!levelName) return;
 
-        if (!this.levelIsActive(levelName)) {
-            const level = this.getCreateLevel(levelName);
-            level.cellUpdates.push(ename);
-            return;
-        }
+        if (this.levelIsActive(levelName))
+            this.setCollectedCell(ename, true);
+        else
+            this.uncollectedLevelItems.addCell(levelName, ename);
     }
 
     onBuzzerCollect(buzzer: Buzzer) {
@@ -47,10 +48,8 @@ export class LevelHandler {
         
         if (this.levelIsActive(buzzer.level))
             this.setCollectedBuzzer(buzzer);
-        else {
-            const level = this.getCreateLevel(buzzer.level);
-            level.buzzerUpdates.push(new BuzzerBase(buzzer));
-        }
+        else
+            this.uncollectedLevelItems.addBuzzer(buzzer);
     }
 
     onOrbCollect(orb: Orb) {
@@ -58,19 +57,15 @@ export class LevelHandler {
         
         if (this.levelIsActive(orb.level))
             this.setCollectedOrb(orb, true);
-        else {
-            const level = this.getCreateLevel(orb.level);
-            level.orbUpdates.push(new OrbBase(orb));
-        }
+        else
+            this.uncollectedLevelItems.addOrb(orb);
     }
 
     onCrateDestroy(crate: Crate) {
         if (!this.levelIsActive(crate.level))
             this.destroyCrate(crate);
-        else if (crate.type === Crate.typeWithBuzzer || crate.type === Crate.typeWithOrbs) {
-            const level = this.getCreateLevel(crate.level);
-            level.crateUpdates.push(new CrateBase(crate));
-        }
+        else if (crate.type === Crate.typeWithBuzzer || crate.type === Crate.typeWithOrbs)
+            this.uncollectedLevelItems.addCrate(crate);
     }
 
     onEcoPickup(eco: Eco) {
@@ -93,24 +88,15 @@ export class LevelHandler {
         return level.status === LevelStatus.Active;
     }
 
-    private getCreateLevel(levelName: string): LevelUpdateStorage {
-        let level = this.levelStorages.find(x => x.levelName === levelName);
-        if (!level) {
-            level = new LevelUpdateStorage(levelName);
-            this.levelStorages.push(level);
-        }
-        return level;
-    }
-
     private onLevelActive(levelName: string) {
-        let level = this.levelStorages.find(x => x.levelName === levelName);
+        let level = this.uncollectedLevelItems.levels.find(x => x.levelName === levelName);
         if (!level || (level.orbUpdates.length === 0 && level.buzzerUpdates.length === 0 && level.cellUpdates.length === 0)) return;
         
         level.crateUpdates.forEach(crate => {
             this.destroyCrate(crate);
         });
         level.cellUpdates.forEach(ename => {
-            OG.runCommand('(process-entity-status! (the-as fuel-cell (process-by-ename "' + ename + '")) (entity-perm-status dead) #t)');
+            this.setCollectedCell(ename, false);
         });
         level.buzzerUpdates.forEach(buzzer => {
             this.setCollectedBuzzer(buzzer);
@@ -130,6 +116,12 @@ export class LevelHandler {
 
 
     // ----- collection logic ----- | these are stored here instead of being methods of their own type so we don't have to Object.assign() every collectable
+    
+    private setCollectedCell(ename: string, kill: boolean) {
+        OG.runCommand('(process-entity-status! (the-as fuel-cell (process-by-ename "' + ename + '")) (entity-perm-status dead) #t)');
+        if (kill)
+            OG.runCommand('(kill-by-name "' + ename + '" *active-pool*)');
+    }
     
     private setCollectedBuzzer(buzzer: BuzzerBase) {
         if (buzzer.parentEname.startsWith("crate-"))

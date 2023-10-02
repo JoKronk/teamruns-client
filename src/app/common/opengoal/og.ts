@@ -14,14 +14,11 @@ export class OG {
     (window as any).electron.send('og-start-run');
   }
 
-  static updateTask(task: GameTask) {
-    this.runCommand("(close-specific-task! (game-task " + task.name + ") (task-status " + task.status + "))");
-    
-    if (Task.isCellCollect(task)) {
-      let openFuelCell = Task.getCellEname(task.name);
-      if (openFuelCell)
-      this.runCommand('(+! (-> (the fuel-cell (process-by-ename "' + openFuelCell + '")) base y) (meters -200.0))');
-    }
+  static updateTask(task: GameTask, isCell: boolean | undefined = undefined) {
+    if (isCell !== undefined ? isCell : Task.isCellCollect(task))
+      this.runCommand("(dm-give-cell (game-task " + task.name + "))");
+    else
+      this.runCommand("(close-specific-task! (game-task " + task.name + ") (task-status " + task.status + "))");
   }
 
   static giveFinalBossAccess(currentLevel: string) {

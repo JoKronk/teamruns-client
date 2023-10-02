@@ -80,13 +80,13 @@ export class LocalPlayerData {
       setTimeout(() => {  //give the player some time to spawn in
         if (!run.isMode(RunMode.Lockout)) {
           team!.tasks.filter(x => x.isCell).forEach(cell => {
-            run.checUpdateTaskForUser(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName), cell.obtainedAt), this.user.id);
+            OG.updateTask(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName), cell.obtainedAt));
           });
         }
         else {
           run.teams.forEach(runTeam => {
             runTeam.tasks.filter(x => x.isCell).forEach(cell => {
-              run.checUpdateTaskForUser(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName), cell.obtainedAt), this.user.id);
+              OG.updateTask(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName), cell.obtainedAt));
             });
           });
         }
@@ -111,27 +111,24 @@ export class LocalPlayerData {
 
 
 
-  onExternalTaskUpdate(task: GameTask, checkWarpgatesOnly: boolean) {
-    if (checkWarpgatesOnly && !Task.isWarpGate(task.name)) return;
+  checkTaskUpdateSpecialCases(task: GameTask, run: Run, checkWarpgates: boolean) {
 
     switch (task.name) {
-      //handle hub warp gates
-      case "village2-levitator":
-        if (task.status !== TaskStatus.needReminderA || this.gameState.currentLevel !== "village1") break;
-        OG.runCommand("(reset-actors 'life)");
-        OG.runCommand("(process-release? *target*)");
+      //handle klaww kill
+      case "ogre-boss":
+        if (task.status === TaskStatus.needReminder) {
+          this.killKlawwOnSpot = true;
+          this.checkKillKlaww();
+      }
         break;
-      case "village3-button":
-        if (task.status !== TaskStatus.needIntroduction || (this.gameState.currentLevel !== "village1" && this.gameState.currentLevel !== "village2")) break;
-        OG.runCommand("(reset-actors 'life)");
-        OG.runCommand("(process-release? *target*)");
+      //handle citadel elevator cell cases
+      case "citadel-sage-green": 
+      if (task.status === TaskStatus.needResolution) {
+        this.checkCitadelSkip(run);
+        this.checkCitadelElevator();
+    }
         break;
-      case "village4-button":
-        if (task.status !== TaskStatus.needRewardSpeech || (this.gameState.currentLevel !== "village1" && this.gameState.currentLevel !== "village2" && this.gameState.currentLevel !== "village3")) break;
-        OG.runCommand("(reset-actors 'life)");
-        OG.runCommand("(process-release? *target*)");
-        break;
-      //handle none cell tasks
+        
       case "plunger-lurker-hit":
         //!TODO: softlocks sometimes
         /*
@@ -141,7 +138,23 @@ export class LocalPlayerData {
         OG.runCommand('(deactivate (process-by-ename "plunger-lurker-3"))');
         */
         break;
-      //handle cell tasks
+      
+      //handle hub warp gates
+      case "village2-levitator":
+        if (checkWarpgates && (task.status !== TaskStatus.needReminderA || this.gameState.currentLevel !== "village1")) break;
+        OG.runCommand("(reset-actors 'life)");
+        OG.runCommand("(process-release? *target*)");
+        break;
+      case "village3-button":
+        if (checkWarpgates && (task.status !== TaskStatus.needIntroduction || (this.gameState.currentLevel !== "village1" && this.gameState.currentLevel !== "village2"))) break;
+        OG.runCommand("(reset-actors 'life)");
+        OG.runCommand("(process-release? *target*)");
+        break;
+      case "village4-button":
+        if (checkWarpgates && (task.status !== TaskStatus.needRewardSpeech || (this.gameState.currentLevel !== "village1" && this.gameState.currentLevel !== "village2" && this.gameState.currentLevel !== "village3"))) break;
+        OG.runCommand("(reset-actors 'life)");
+        OG.runCommand("(process-release? *target*)");
+        break;
       default:
         break;
     }
