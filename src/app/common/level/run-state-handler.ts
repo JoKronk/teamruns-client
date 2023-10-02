@@ -6,7 +6,7 @@ import { Crate, CrateBase } from "./crate";
 import { LevelCollectables } from "./level-collectables";
 import { Orb, OrbBase } from "./orb";
 
-export class RunStateMapper {
+export class RunStateHandler {
     levels: LevelCollectables[] = [];
 
     ////unused in LevelHandler

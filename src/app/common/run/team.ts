@@ -1,7 +1,7 @@
 import { Player } from "../player/player";
 import { Task } from "../opengoal/task";
 import { PlayerState } from "../player/player-state";
-import { RunStateMapper as RunStateMapper } from "../level/run-state-mapper";
+import { RunStateHandler } from "../level/run-state-handler";
 
 
 export class Team {
@@ -11,7 +11,7 @@ export class Team {
     splits: Task[];
     endTimeMs: number = 0;
     
-    runState: RunStateMapper;
+    runState: RunStateHandler;
 
     hasUsedDebugMode: boolean = false;
 
@@ -23,7 +23,7 @@ export class Team {
 
     resetForRun() {
         this.splits = [];
-        this.runState = new RunStateMapper();
+        this.runState = new RunStateHandler();
 
         if (this.players.length === 0) return;
         this.players.forEach(player => {

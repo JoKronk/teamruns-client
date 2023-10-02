@@ -6,11 +6,11 @@ import { Task } from "../opengoal/task";
 import { LevelStatus } from "./level-status";
 import { Crate, CrateBase } from "./crate";
 import { Eco } from "./eco";
-import { RunStateMapper } from "./run-state-mapper";
+import { RunStateHandler } from "./run-state-handler";
 
 export class LevelHandler {
 
-    uncollectedLevelItems: RunStateMapper = new RunStateMapper();
+    uncollectedLevelItems: RunStateHandler = new RunStateHandler();
     levels: LevelStatus[] = [];
 
     constructor() {

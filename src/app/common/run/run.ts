@@ -14,7 +14,7 @@ import { OG } from "../opengoal/og";
 import { UserBase } from "../user/user";
 import { TimerService } from "src/app/services/timer.service";
 import { UserService } from "src/app/services/user.service";
-import { RunStateMapper } from "../level/run-state-mapper";
+import { RunStateHandler } from "../level/run-state-handler";
 
 export class Run {
     data: RunData;
@@ -278,7 +278,7 @@ export class Run {
         let teams: Team[] = [];
         for (let team of this.teams) {
             const assignedTeam = Object.assign(new Team(team.id, team.name), team);
-            assignedTeam.runState = Object.assign(new RunStateMapper(), assignedTeam.runState);
+            assignedTeam.runState = Object.assign(new RunStateHandler(), assignedTeam.runState);
             teams.push(assignedTeam);
         }
         this.teams = teams;
