@@ -111,6 +111,9 @@ export class RunHandler {
             if (target.crate)
                 this.sendEvent(EventType.NewCrateDestoryed, target.crate);
 
+            if (target.eco)
+                this.sendEvent(EventType.NewEcoPickup, target.eco);
+
             if (target.levels)
                 this.levelHandler.onLevelsUpdate(target.levels);
         });
@@ -524,6 +527,11 @@ export class RunHandler {
             case EventType.NewCrateDestoryed:
                 if (event.userId !== userId && ((this.run.isMode(RunMode.Lockout) && event.value.typ === Crate.typeWithOrbs) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
                     this.levelHandler.onCrateDestroy(event.value);
+                break;
+            
+            case EventType.NewEcoPickup:
+                if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
+                    this.levelHandler.onEcoPickup(event.value);
                 break;
 
 

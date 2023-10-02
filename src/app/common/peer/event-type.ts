@@ -17,6 +17,7 @@ export enum EventType {
     NewScoutflyCollected,
     NewOrbCollected,
     NewCrateDestoryed,
+    NewEcoPickup,
     ChangeTeam,
     ChangeTeamName,
     ToggleReset,

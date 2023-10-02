@@ -6,6 +6,7 @@ import { Task } from "../opengoal/task";
 import { LevelStatus } from "./level-status";
 import { LevelUpdateStorage } from "./level-update-storage";
 import { Crate, CrateBase } from "./crate";
+import { Eco } from "./eco";
 
 export class LevelHandler {
 
@@ -70,6 +71,15 @@ export class LevelHandler {
             const level = this.getCreateLevel(crate.level);
             level.crateUpdates.push(new CrateBase(crate));
         }
+    }
+
+    onEcoPickup(eco: Eco) {
+        if (!this.levelIsActive(eco.level)) return;
+
+        if (eco.parentEname.startsWith("crate-"))
+            OG.runCommand('safe-pickup-crate-eco "' + eco.parentEname + '"');
+        else
+            OG.runCommand('safe-pickup-eco "' + eco.ename + '"');
     }
 
 
