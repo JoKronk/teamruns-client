@@ -97,12 +97,15 @@ export class LevelHandler {
         });
         level.cellUpdates.forEach(ename => {
             this.setCollectedCell(ename, false);
+            this.uncollectedLevelItems.cellCount -= 1;
         });
         level.buzzerUpdates.forEach(buzzer => {
             this.setCollectedBuzzer(buzzer);
+            this.uncollectedLevelItems.buzzerCount -= 1;
         });
         level.orbUpdates.forEach(orb => {
             this.setCollectedOrb(orb, false);
+            this.uncollectedLevelItems.orbCount -= 1;
         });
 
         OG.runCommand("(reset-actors 'life)");

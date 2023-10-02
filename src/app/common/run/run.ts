@@ -237,7 +237,6 @@ export class Run {
 
                 //transfer tasks
                 team.tasks = importTeam.tasks;
-                team.cellCount = importTeam.cellCount;
 
                 //state update checks
                 if (theLocallyImportedPlayer) {

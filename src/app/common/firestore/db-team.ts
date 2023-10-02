@@ -17,7 +17,7 @@ export class DbTeam {
         this.name = team.name;
         this.endTimeMs = team.endTimeMs;
         this.tasks = team.tasks;
-        this.cellCount = team.cellCount;
+        this.cellCount = team.runState.cellCount;
         this.hasUsedDebugMode = team.hasUsedDebugMode;
         team.players.forEach(player => {
             this.players.push(new DbPlayer(player));

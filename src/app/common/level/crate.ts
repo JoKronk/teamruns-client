@@ -1,10 +1,12 @@
 export class CrateBase {
     ename: string;
     type: string;
+    pickupAmount: number;
 
     constructor(crate: Crate) {
         this.ename = crate.ename;
         this.type = crate.type;
+        this.pickupAmount = crate.pickupAmount;
     }
 }
 

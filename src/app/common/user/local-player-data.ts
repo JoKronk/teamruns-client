@@ -40,7 +40,7 @@ export class LocalPlayerData {
     const playerTeam = run.getPlayerTeam(this.user.id);
     if (playerTeam) {
         if (run.teams.length !== 1) {
-            if (this.gameState.cellCount < 73 || run.teams.some(team => team.id !== playerTeam.id && team.cellCount > playerTeam.cellCount))
+            if (this.gameState.cellCount < 73 || run.teams.some(team => team.id !== playerTeam.id && team.runState.cellCount > playerTeam.runState.cellCount))
                 OG.removeFinalBossAccess(this.gameState.currentLevel);
             else
                 OG.giveFinalBossAccess(this.gameState.currentLevel);
@@ -71,15 +71,15 @@ export class LocalPlayerData {
 
   checkDesync(run: Run) {
     if (this.isSyncing) return;
-    let team = run.getPlayerTeam(this.user.id);
-    if (!team) return;
+    if (!this.team) this.team = run.getPlayerTeam(this.user.id);
+    if (!this.team) return;
 
-    if (team.cellCount > this.gameState.cellCount || (run.isMode(RunMode.Lockout) && run.teams.reduce((a, b) => a + (b["cellCount"] || 0), 0) > this.gameState.cellCount)) {
+    if (this.team.runState.cellCount > this.gameState.cellCount || (run.isMode(RunMode.Lockout) && run.teams.reduce((a, b) => a + (b.runState.cellCount || 0), 0) > this.gameState.cellCount)) {
 
       this.isSyncing = true;
       setTimeout(() => {  //give the player some time to spawn in
         if (!run.isMode(RunMode.Lockout)) {
-          team!.tasks.filter(x => x.isCell).forEach(cell => {
+          this.team!.tasks.filter(x => x.isCell).forEach(cell => {
             OG.updateTask(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName), cell.obtainedAt));
           });
         }

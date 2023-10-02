@@ -9,7 +9,6 @@ export class Team {
     name: string;
     players: Player[] = [];
     tasks: Task[];
-    cellCount: number;
     endTimeMs: number = 0;
     
     runState: RunStateMapper;
@@ -25,7 +24,6 @@ export class Team {
     resetForRun() {
         this.tasks = [];
         this.runState = new RunStateMapper();
-        this.cellCount = 0;
 
         if (this.players.length === 0) return;
         this.players.forEach(player => {
@@ -36,7 +34,6 @@ export class Team {
     
     addTask(task: Task) {
         if (task.isCell) {
-            this.cellCount++;
             const player = this.players.find(x => x.user.id === task.obtainedById);
             if (player) player.cellsCollected++;
         }

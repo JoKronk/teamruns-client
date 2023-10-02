@@ -516,10 +516,18 @@ export class RunHandler {
             
             case EventType.NewOrbCollected:
                 if (!this.localPlayer.team) return;
+                
+                const teamOrbLevelState = this.localPlayer.team.runState.getCreateLevel(event.value.level);
+                if (this.localPlayer.team.runState.isOrbDupe(event.value, teamOrbLevelState)) {
+                    if (event.userId === userId) {
+                        OG.runCommand("(send-event *target* 'get-pickup 5 -1.0)");
+                    }
+                    break;
+                }
                 if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team.id))
                     this.levelHandler.onOrbCollect(event.value);
                 
-                this.run.getPlayerTeam(event.userId)?.runState.addOrb(event.value);
+                this.run.getPlayerTeam(event.userId)?.runState.addOrb(event.value, teamOrbLevelState);
                 break;
             
             case EventType.NewCrateDestoryed:

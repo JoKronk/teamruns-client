@@ -8,11 +8,19 @@ import { Orb, OrbBase } from "./orb";
 
 export class RunStateMapper {
     levels: LevelCollectables[] = [];
-    tasksStatuses: Map<string, number>; //unused in LevelHandler
+
+    ////unused in LevelHandler
+    tasksStatuses: Map<string, number>;
+    cellCount: number;
+    buzzerCount: number;
+    orbCount: number;
 
     constructor() {
         this.levels = [];
         this.tasksStatuses = new Map();
+        this.cellCount = 0;
+        this.buzzerCount = 0;
+        this.orbCount = 0;
     }
 
     isNewTaskStatus(task: GameTask) {
@@ -35,16 +43,21 @@ export class RunStateMapper {
     addCell(levelName: string, ename: string) {
         const level = this.getCreateLevel(levelName);
         level.cellUpdates.push(ename);
+        this.cellCount += 1;
     }
 
     addBuzzer(buzzer: Buzzer) {
         const level = this.getCreateLevel(buzzer.level);
         level.buzzerUpdates.push(new BuzzerBase(buzzer));
+        this.buzzerCount += 1;
     }
 
-    addOrb(orb: Orb) {
-        const level = this.getCreateLevel(orb.level);
+    addOrb(orb: Orb, level: LevelCollectables | undefined = undefined) {
+        if (!level)
+            level = this.getCreateLevel(orb.level);
+    
         level.orbUpdates.push(new OrbBase(orb));
+        this.orbCount += 1;
     }
 
     addCrate(crate: Crate) {
@@ -52,12 +65,31 @@ export class RunStateMapper {
         level.crateUpdates.push(new CrateBase(crate));
     }
 
-    private getCreateLevel(levelName: string): LevelCollectables {
+
+    getCreateLevel(levelName: string): LevelCollectables {
         let level = this.levels.find(x => x.levelName === levelName);
         if (!level) {
             level = new LevelCollectables(levelName);
             this.levels.push(level);
         }
         return level;
+    }
+
+
+    isOrbDupe(orb: Orb, level: LevelCollectables | undefined = undefined): boolean {
+        if (!level)
+            level = this.getCreateLevel(orb.level);
+
+        if (orb.parentEname.startsWith("orb-cache-top-"))
+            return 15 < (level.orbUpdates.filter(x => x.parentEname === orb.parentEname).length + 1);
+        else if (orb.parentEname.startsWith("crate-")) {
+            let parentCrate = level.crateUpdates.find(x => x.ename === orb.parentEname);
+            if (parentCrate) 
+                return parentCrate.pickupAmount < (level.orbUpdates.filter(x => x.parentEname === orb.parentEname).length + 1);
+            return false;
+        }
+        else {
+            return level.orbUpdates.find(x => x.ename === orb.ename) !== undefined; 
+        }
     }
 }
