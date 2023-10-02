@@ -139,17 +139,6 @@ export class Run {
         OG.runCommand("(start 'play (get-continue-by-name *game-info* \"village1-hut\"))");
     }
 
-    setOrbCosts(playerId: string) {
-        if (!this.data.normalCellCost && (this.isMode(RunMode.Lockout) || (this.getPlayerTeam(playerId)?.players.length ?? 0) > 1)) {
-            OG.runCommand("(set! (-> *GAME-bank* money-task-inc) 180.0)");
-            OG.runCommand("(set! (-> *GAME-bank* money-oracle-inc) 240.0)");
-        }
-        else {
-            OG.runCommand("(set! (-> *GAME-bank* money-task-inc) 90.0)");
-            OG.runCommand("(set! (-> *GAME-bank* money-oracle-inc) 120.0)");
-        }
-    }
-
     changeTeam(user: UserBase | undefined, teamId: number) {
         if (!user) return;
         let newTeam = this.getTeam(teamId);

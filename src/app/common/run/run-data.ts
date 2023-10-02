@@ -17,7 +17,6 @@ export class RunData {
 
     //category settings
     allowSoloHubZoomers: boolean = false;
-    normalCellCost: boolean = false;
     sharedWarpGatesBetweenTeams: boolean = false;
     noLTS: boolean = true;
     citadelSkip: CitadelOption = CitadelOption.Shared;
@@ -28,7 +27,6 @@ export class RunData {
 
     SetCategoryDefaultSettings(): void {
         this.allowSoloHubZoomers = false;
-        this.normalCellCost = false;
         this.sharedWarpGatesBetweenTeams = false;
         this.citadelSkip = CitadelOption.Shared;
         this.noLTS = false;

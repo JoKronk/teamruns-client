@@ -227,7 +227,7 @@ export class RunHandler {
 
         //set run info
         if (this.run.data.category == 0)
-            this.info = this.run.data.name + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNormal Cell Cost: " + this.run.data.normalCellCost + "\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOption[this.run.data.citadelSkip];
+            this.info = this.run.data.name + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOption[this.run.data.citadelSkip];
         else
             this.info = this.run.data.name + "\n\n" + RunMode[this.run.data.mode] + "\nCategory: " + Category.GetGategories()[this.run.data.category].displayName + "\nSame Level: " + this.run.data.requireSameLevel;
     }
@@ -601,7 +601,6 @@ export class RunHandler {
             case EventType.StartRun:
                 this.zone.run(() => {
                     this.run!.start(new Date());
-                    this.run!.setOrbCosts(this.localPlayer.user.id);
                 });
                 //!TODO: could be done in some more elegant way
                 setTimeout(() => {
@@ -637,12 +636,8 @@ export class RunHandler {
             if (!this.run || this.isSpectatorOrNull()) return;
 
             //check duped cell buy
-            if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.tasksStatuses.has(task.name) && this.localPlayer.team.runState.tasksStatuses.get(task.name)! === TaskStatus.getEnumValue(TaskStatus.needResolution)) {
-                if (task.name.includes("oracle"))
-                    OG.runCommand("(send-event *target* 'get-pickup 5 " + (this.run.data.normalCellCost ? 120 : 240) + ".0)");
-                else
-                    OG.runCommand("(send-event *target* 'get-pickup 5 " + (this.run.data.normalCellCost ? 90 : 180) + ".0)");
-            }
+            if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.tasksStatuses.has(task.name) && this.localPlayer.team.runState.tasksStatuses.get(task.name)! === TaskStatus.getEnumValue(TaskStatus.needResolution))
+                OG.runCommand("(send-event *target* 'get-pickup 5 " + Task.cellCost(task.name) + ".0)");
 
             if (!this.localPlayer.team || !this.localPlayer.team.runState.isNewTaskStatus(task)) return;
 
