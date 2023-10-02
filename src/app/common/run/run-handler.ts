@@ -479,8 +479,14 @@ export class RunHandler {
                     OG.updateTask(task, isCell);
 
                     //cell updates
-                    if (isCell)
+                    if (isCell) {
                         this.levelHandler.onNewCell(task);
+                        if (isLocalPlayerTeam && !this.run.isMode(RunMode.Lockout)) { //need lockout check for free for all scenarios
+                            const cost = Task.cellCost(task.name);
+                            if (cost !== 0)
+                                OG.runCommand("(send-event *target* 'get-pickup 5 -" + cost + ".0)");
+                        }
+                    }
 
                     this.localPlayer.checkTaskUpdateSpecialCases(task, this.run, (this.run.data.sharedWarpGatesBetweenTeams || isLocalPlayerTeam));
                 }

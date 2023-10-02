@@ -33,11 +33,12 @@ export class RunStateMapper {
 
         //add cell if open cell
         const ename = Task.getCellEname(task.name);
-        if (ename) {
-            const levelName = Task.getCellLevelByEname(ename);
-            if (levelName)
-                this.addCell(levelName, ename);
-        }
+        if (!ename) return;
+        const levelName = Task.getCellLevelByEname(ename);
+        if (!levelName) return;
+
+        this.addCell(levelName, ename);
+        this.orbCount -= Task.cellCost(ename);
     }
 
     addCell(levelName: string, ename: string) {

@@ -219,6 +219,15 @@ export class Task {
     }
 
 
+    public static cellCost(gameTask: string) {
+        if (gameTask.includes("-oracle-money"))
+            return 120;
+        else if (gameTask.includes("-money"))
+            return 90;
+        else
+            return 0;
+    }
+
     public static isWarpGate(gameTask: string) {
         return ([
             "village2-levitator",
