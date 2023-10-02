@@ -120,7 +120,7 @@ export class Run {
     }
 
     addSplit(task: Task): void {
-            this.getPlayerTeam(task.obtainedById)?.addTask(task);
+            this.getPlayerTeam(task.obtainedById)?.addSplit(task);
     }
 
     toggleReady(playerId: string, state: PlayerState): void {
@@ -180,21 +180,21 @@ export class Run {
         return this.teams.flatMap(x => x.players);
     }
 
-    getAllTasks(): Task[] {
-        return this.teams.flatMap(x => x.tasks);
+    getAllSplits(): Task[] {
+        return this.teams.flatMap(x => x.splits);
     }
 
-    getPlayerTasks(playerId: string): Task[] {
-        return this.getPlayerTeam(playerId)?.tasks.filter(x => x.obtainedById === playerId) ?? [];
+    getPlayerSplits(playerId: string): Task[] {
+        return this.getPlayerTeam(playerId)?.splits.filter(x => x.obtainedById === playerId) ?? [];
     }
 
 
-    playerTeamHasCell(task: string, playerId: string): boolean {
-        return this.getPlayerTeam(playerId)?.hasTask(task) ?? false;
+    playerTeamHasSplit(taskName: string, playerId: string): boolean {
+        return this.getPlayerTeam(playerId)?.hasSplit(taskName) ?? false;
     }
 
-    runHasCell(task: string): boolean {
-        return this.teams.some(x => x.tasks.some(y => y.gameTask === task));
+    runHasSplit(taskName: string): boolean {
+        return this.teams.some(x => x.splits.some(y => y.gameTask === taskName));
     }
 
     hasSpectator(playerId: string): boolean {
@@ -219,13 +219,13 @@ export class Run {
                 let theLocallyImportedPlayer = team.players.find(x => x.user.id === localPlayer.user.id);
                 //check for new tasks to give player
                 if (theLocallyImportedPlayer || this.isMode(RunMode.Lockout)) {
-                    importTeam.tasks.filter(x => x.isCell && !team.tasks.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
+                    importTeam.splits.filter(x => x.isCell && !team.splits.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
                         OG.updateTask(new GameTask(task.gameTask, new UserBase(task.obtainedById, task.obtainedByName), task.obtainedAt));
                     });
                 }
 
                 //transfer tasks
-                team.tasks = importTeam.tasks;
+                team.splits = importTeam.splits;
 
                 //state update checks
                 if (theLocallyImportedPlayer) {

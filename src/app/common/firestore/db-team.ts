@@ -16,7 +16,7 @@ export class DbTeam {
         this.id = team.id;
         this.name = team.name;
         this.endTimeMs = team.endTimeMs;
-        this.tasks = team.tasks;
+        this.tasks = team.splits;
         this.cellCount = team.runState.cellCount;
         this.hasUsedDebugMode = team.hasUsedDebugMode;
         team.players.forEach(player => {

@@ -79,13 +79,13 @@ export class LocalPlayerData {
       this.isSyncing = true;
       setTimeout(() => {  //give the player some time to spawn in
         if (!run.isMode(RunMode.Lockout)) {
-          this.team!.tasks.filter(x => x.isCell).forEach(cell => {
+          this.team!.splits.filter(x => x.isCell).forEach(cell => {
             OG.updateTask(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName), cell.obtainedAt));
           });
         }
         else {
           run.teams.forEach(runTeam => {
-            runTeam.tasks.filter(x => x.isCell).forEach(cell => {
+            runTeam.splits.filter(x => x.isCell).forEach(cell => {
               OG.updateTask(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName), cell.obtainedAt));
             });
           });
@@ -174,7 +174,7 @@ export class LocalPlayerData {
 
   private handleNoCitadelSkip(run: Run) {
     if (!this.team) return;
-    const hasAllCitadelCells: boolean = (!run.isMode(RunMode.Lockout) ? this.team.tasks : run.getAllTasks()).filter(x => x.gameTask.startsWith("citadel-sage-")).length === 4;
+    const hasAllCitadelCells: boolean = (!run.isMode(RunMode.Lockout) ? this.team.splits : run.getAllSplits()).filter(x => x.gameTask.startsWith("citadel-sage-")).length === 4;
     if (hasAllCitadelCells) return;
 
     if (this.gameState.currentCheckpoint === "citadel-elevator") {
@@ -187,7 +187,7 @@ export class LocalPlayerData {
   }
 
   private handleCitadelSkip(run: Run) {
-    if (this.hasCitadelSkipAccess && this.gameState.currentCheckpoint === "citadel-start" && (run.isMode(RunMode.Lockout) ? run.runHasCell("citadel-sage-green") : this.team?.hasTask("citadel-sage-green"))) {
+    if (this.hasCitadelSkipAccess && this.gameState.currentCheckpoint === "citadel-start" && (run.isMode(RunMode.Lockout) ? run.runHasSplit("citadel-sage-green") : this.team?.hasSplit("citadel-sage-green"))) {
       OG.runCommand('(set-continue! *game-info* "citadel-elevator")');
       //citadel-start is sometimes given to you twice when entering citadel, this is to give you some time to deathwarp
       setTimeout(() => {

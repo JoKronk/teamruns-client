@@ -204,9 +204,9 @@ export class LeaderboardComponent {
     else {
       this.selectedRun = run;
       let team = new Team(0, "");
-      team.tasks = this.selectedRun.tasks;
-      team.tasks.forEach((task, index) => {
-        team.tasks[index].obtainedByName = this.usersCollection?.users.find(x => x.id === task.obtainedById)?.name ?? "Unknown";
+      team.splits = this.selectedRun.tasks;
+      team.splits.forEach((task, index) => {
+        team.splits[index].obtainedByName = this.usersCollection?.users.find(x => x.id === task.obtainedById)?.name ?? "Unknown";
       });
       team.runState.cellCount = this.selectedRun.tasks.filter(x => x.isCell).length;
       this.selectedTeam = team;

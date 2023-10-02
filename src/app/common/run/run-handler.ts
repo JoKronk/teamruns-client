@@ -430,7 +430,7 @@ export class RunHandler {
                     if (playerTeam) {
                         //clean out collectables so that potentially missed ones are given on import
                         if (!this.obsUserId)
-                            playerTeam.tasks = [];
+                            playerTeam.splits = [];
 
                         this.localPlayer.team = playerTeam;
                     }
@@ -641,7 +641,7 @@ export class RunHandler {
 
             if (!this.localPlayer.team || !this.localPlayer.team.runState.isNewTaskStatus(task)) return;
 
-            if (this.shouldSendTaskUpdate(task) || task.name === Task.lastboss) {
+            if (this.shouldSendTaskUpdate() || task.name === Task.lastboss) {
                 task.timerTime = this.run.getTimerShortenedFormat();
                 task.user = this.localPlayer.user;
 
@@ -659,7 +659,7 @@ export class RunHandler {
         });
     }
 
-    private shouldSendTaskUpdate(task: GameTask): boolean {
+    private shouldSendTaskUpdate(): boolean {
         return this.run!.timer.runState === RunState.Started && this.localPlayer.state !== PlayerState.Finished && this.localPlayer.state !== PlayerState.Forfeit;
     }
 

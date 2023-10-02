@@ -8,7 +8,7 @@ export class Team {
     id: number;
     name: string;
     players: Player[] = [];
-    tasks: Task[];
+    splits: Task[];
     endTimeMs: number = 0;
     
     runState: RunStateMapper;
@@ -22,7 +22,7 @@ export class Team {
     }
 
     resetForRun() {
-        this.tasks = [];
+        this.splits = [];
         this.runState = new RunStateMapper();
 
         if (this.players.length === 0) return;
@@ -32,16 +32,16 @@ export class Team {
         })
     }
     
-    addTask(task: Task) {
-        if (task.isCell) {
-            const player = this.players.find(x => x.user.id === task.obtainedById);
+    addSplit(split: Task) {
+        if (split.isCell) {
+            const player = this.players.find(x => x.user.id === split.obtainedById);
             if (player) player.cellsCollected++;
         }
             
-        this.tasks.unshift(task);
+        this.splits.unshift(split);
     }
 
-    hasTask(task: string): boolean {
-        return this.tasks.some(x => x.gameTask === task) ?? false;
+    hasSplit(taskName: string): boolean {
+        return this.splits.some(x => x.gameTask === taskName) ?? false;
     }
 }
