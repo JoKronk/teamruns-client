@@ -27,6 +27,7 @@ import { GameTask } from "../opengoal/game-task";
 import { Team } from "./team";
 import { TaskStatus } from "../opengoal/task-status";
 import { LevelHandler } from "../level/level-handler";
+import { Crate } from "../level/crate";
 
 export class RunHandler {
 
@@ -511,7 +512,7 @@ export class RunHandler {
                 break;
             
             case EventType.NewScoutflyCollected:
-                if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
+                if (event.userId !== userId && this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id)
                     this.levelHandler.onBuzzerCollect(event.value);
                 break;
             
@@ -521,7 +522,7 @@ export class RunHandler {
                 break;
             
             case EventType.NewCrateDestoryed:
-                if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
+                if (event.userId !== userId && ((this.run.isMode(RunMode.Lockout) && event.value.typ === Crate.typeWithOrbs) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team?.id))
                     this.levelHandler.onCrateDestroy(event.value);
                 break;
 

@@ -10,4 +10,8 @@ export class CrateBase {
 
 export class Crate extends CrateBase {
     level: string;
+
+
+    public static typeWithBuzzer = "iron";
+    public static typeWithOrbs = "steel";
 }

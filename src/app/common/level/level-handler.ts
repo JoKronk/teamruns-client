@@ -66,7 +66,7 @@ export class LevelHandler {
     onCrateDestroy(crate: Crate) {
         if (!this.levelIsActive(crate.level))
             this.destroyCrate(crate);
-        else if (crate.type === "iron" || crate.type === "steel") {
+        else if (crate.type === Crate.typeWithBuzzer || crate.type === Crate.typeWithOrbs) {
             const level = this.getCreateLevel(crate.level);
             level.crateUpdates.push(new CrateBase(crate));
         }
