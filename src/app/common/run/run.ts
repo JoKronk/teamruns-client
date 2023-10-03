@@ -207,34 +207,6 @@ export class Run {
 
 
     // --- RUN METHODS INVOLVING OPENGOAL ---
-
-    //used to sync runs between players for user join or in case of desync
-    importTaskChanges(localPlayer: LocalPlayerData, run: Run) {
-
-        //handle team events
-        this.teams.forEach(team => {
-            let importTeam = run.teams.find(x => x.id === team.id);
-            if (importTeam) {
-                //localPlayer player class, use to check if this is curernt players TEAM
-                let theLocallyImportedPlayer = team.players.find(x => x.user.id === localPlayer.user.id);
-                //check for new tasks to give player
-                if (theLocallyImportedPlayer || this.isMode(RunMode.Lockout)) {
-                    importTeam.splits.filter(x => x.isCell && !team.splits.some(({ gameTask: task }) => task === x.gameTask)).forEach(task => {
-                        OG.updateTask(new GameTask(task.gameTask, new UserBase(task.obtainedById, task.obtainedByName), task.obtainedAt));
-                    });
-                }
-
-                //transfer tasks
-                team.splits = importTeam.splits;
-
-                //state update checks
-                if (theLocallyImportedPlayer) {
-                    this.updateSelfRestrictions(localPlayer, theLocallyImportedPlayer);
-                }
-            }
-        });
-    }
-
     updateSelfRestrictions(localPlayer: LocalPlayerData, player: Player | undefined = undefined) {
         if (!player)
             player = this.getPlayer(localPlayer.user.id);

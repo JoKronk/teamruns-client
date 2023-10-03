@@ -21,6 +21,19 @@ export class TaskStatus {
             [this.needResolution, 7]
         ]);
     }
+
+    public static getTaskNames(): string[] {
+        return [
+            this.invalid,
+            this.unknown,
+            this.needHint,
+            this.needIntroduction,
+            this.needReminderA,
+            this.needReminder,
+            this.needRewardSpeech,
+            this.needResolution
+        ];
+    }
     
     public static getEnumValue(status: string): number {
         return this.getEnumValues().get(status) ?? 1;

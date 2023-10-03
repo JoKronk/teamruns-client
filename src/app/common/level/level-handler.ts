@@ -7,6 +7,8 @@ import { LevelStatus } from "./level-status";
 import { Crate, CrateBase } from "./crate";
 import { Eco } from "./eco";
 import { RunStateHandler } from "./run-state-handler";
+import { TaskStatus } from "../opengoal/task-status";
+import { LocalPlayerData } from "../user/local-player-data";
 
 export class LevelHandler {
 
@@ -16,6 +18,49 @@ export class LevelHandler {
     constructor() {
 
     }
+
+    importRunStateHandler(runStateHandler: RunStateHandler, localPlayer: LocalPlayerData, teamPlayerCheckpoint: string) {
+
+        //reset game
+        OG.runCommand("(initialize! *game-info* 'game (the-as game-save #f) (the-as string #f))");
+
+        //import task statuses to game
+        const taskStatuses = TaskStatus.getTaskNames();
+        for (const [name, status] of Object.entries(runStateHandler.tasksStatuses)) {
+            const task: GameTask = new GameTask(name, localPlayer.user, "0.0", taskStatuses[status]);
+            if (!Task.isCellCollect(task))
+                OG.updateTask(task, false);
+          }
+          
+        OG.runCommand("(reset-actors 'life)");
+
+
+        //update collectables
+        runStateHandler.levels.forEach(level => {
+        level.cellUpdates.forEach(taskName => {
+            this.onNewCell(new GameTask(taskName, localPlayer.user, "0.0"));
+            const cost = Task.cellCost(taskName)
+            if (cost !== 0)
+                OG.runCommand("(send-event *target* 'get-pickup 5 -" + cost + ".0)");
+        });
+
+        level.buzzerUpdates.forEach(buzzerBase => {
+            this.onBuzzerCollect(new Buzzer(buzzerBase, level.levelName));
+        });
+
+        level.orbUpdates.forEach(orbBase => {
+            this.onOrbCollect(new Orb(orbBase, level.levelName));
+        });
+
+        level.crateUpdates.forEach(crateBase => {
+            this.onCrateDestroy(new Crate(crateBase, level.levelName));
+        });
+        });
+
+        //tp to first team player checkpoint
+        OG.runCommand("(start 'play (get-continue-by-name *game-info* " + teamPlayerCheckpoint + "))");
+    }
+    
 
     // ----- update handlers -----
 
@@ -40,7 +85,7 @@ export class LevelHandler {
         if (this.levelIsActive(levelName))
             this.setCollectedCell(ename, true);
         else
-            this.uncollectedLevelItems.addCell(levelName, ename);
+            this.uncollectedLevelItems.addCell(cell.name, levelName);
     }
 
     onBuzzerCollect(buzzer: Buzzer) {
@@ -95,9 +140,12 @@ export class LevelHandler {
         level.crateUpdates.forEach(crate => {
             this.destroyCrate(crate);
         });
-        level.cellUpdates.forEach(ename => {
-            this.setCollectedCell(ename, false);
-            this.uncollectedLevelItems.cellCount -= 1;
+        level.cellUpdates.forEach(taskName => {
+            const ename = Task.getCellEname(taskName);
+            if (ename) {
+                this.setCollectedCell(ename, false);
+                this.uncollectedLevelItems.cellCount -= 1;
+            }
         });
         level.buzzerUpdates.forEach(buzzer => {
             this.setCollectedBuzzer(buzzer);

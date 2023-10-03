@@ -28,28 +28,24 @@ export class RunStateHandler {
         return !this.tasksStatuses.has(task.name) || this.tasksStatuses.get(task.name)! < statusValue;
     }
 
-    addTask(task: GameTask) {
+    addTask(task: GameTask, levelName: string) {
         this.tasksStatuses.set(task.name, TaskStatus.getEnumValue(task.status));
 
-        //add cell if open cell
-        const ename = Task.getCellEname(task.name);
-        if (!ename) return;
-        const levelName = Task.getCellLevelByEname(ename);
-        if (!levelName) return;
-
-        this.addCell(levelName, ename);
-        this.orbCount -= Task.cellCost(ename);
+        if (Task.isCellCollect(task)) {
+            this.addCell(task.name, levelName);
+            this.orbCount -= Task.cellCost(task.name);
+        }
     }
 
-    addCell(levelName: string, ename: string) {
+    addCell(taskName: string, levelName: string) {
         const level = this.getCreateLevel(levelName);
-        level.cellUpdates.push(ename);
+        level.cellUpdates.push(taskName);
         this.cellCount += 1;
     }
 
     addBuzzer(buzzer: Buzzer) {
         const level = this.getCreateLevel(buzzer.level);
-        level.buzzerUpdates.push(new BuzzerBase(buzzer));
+        level.buzzerUpdates.push(new BuzzerBase(buzzer.id, buzzer.parentEname));
         this.buzzerCount += 1;
     }
 
@@ -57,13 +53,13 @@ export class RunStateHandler {
         if (!level)
             level = this.getCreateLevel(orb.level);
     
-        level.orbUpdates.push(new OrbBase(orb));
+        level.orbUpdates.push(new OrbBase(orb.ename, orb.parentEname));
         this.orbCount += 1;
     }
 
     addCrate(crate: Crate) {
         const level = this.getCreateLevel(crate.level);
-        level.crateUpdates.push(new CrateBase(crate));
+        level.crateUpdates.push(new CrateBase(crate.ename, crate.type, crate.pickupAmount));
     }
 
 

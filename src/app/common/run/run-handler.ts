@@ -435,7 +435,13 @@ export class RunHandler {
                         this.localPlayer.team = playerTeam;
                     }
 
-                    this.run!.importTaskChanges(this.localPlayer, event.value);
+                    this.levelHandler = new LevelHandler();
+                    if (this.run.teams.length !== 0) {
+                        const importTeam: Team = playerTeam?.runState ? playerTeam : this.run.teams[0];
+                        this.levelHandler.importRunStateHandler(importTeam.runState, this.localPlayer, importTeam.players.length !== 0 ? importTeam.players[0].gameState.currentCheckpoint : "game-start");
+                    }
+                    this.run.updateSelfRestrictions(this.localPlayer);
+
                     this.connected = true;
                 });
                 break;
@@ -492,7 +498,7 @@ export class RunHandler {
                 }
                 
                 //add to team run state
-                playerTeam.runState.addTask(task);
+                playerTeam.runState.addTask(task, this.localPlayer.gameState.currentLevel);
 
                 //handle Lockout
                 if (this.run.isMode(RunMode.Lockout))

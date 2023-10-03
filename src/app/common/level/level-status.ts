@@ -2,8 +2,9 @@ export class LevelStatus {
     name: string;
     status: string;
 
-    constructor() {
-
+    constructor(name: string, status: string) {
+        this.name = name;
+        this.status = status;
     }
 
     public static Active = "active";
