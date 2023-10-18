@@ -11,6 +11,11 @@ export class PositionData {
     quatZ: number;
     quatW: number;
     rotY: number;
+    pickupType: number;
+    pickupAmount: number;
+    pickupEname: string;
+    pickupParent: string;
+    pickupLevel: string;
     tgtState: any;
 
     constructor() {
@@ -28,6 +33,11 @@ export class PositionDataTimestamp extends PositionData {
         this.quatY = positionData.quatY;
         this.quatZ = positionData.quatZ;
         this.rotY = positionData.rotY;
+        this.pickupType = positionData.pickupType;
+        this.pickupAmount = positionData.pickupAmount;
+        this.pickupEname = positionData.pickupEname;
+        this.pickupParent = positionData.pickupParent;
+        this.pickupLevel = positionData.pickupLevel;
         this.tgtState = positionData.tgtState;
         this.transX = positionData.transX;
         this.transY = positionData.transY;
@@ -79,6 +89,11 @@ export class CurrentPositionData extends PositionData {
         this.quatY = positionData.quatY;
         this.quatZ = positionData.quatZ;
         this.rotY = positionData.rotY;
+        this.pickupType = positionData.pickupType;
+        this.pickupAmount = positionData.pickupAmount;
+        this.pickupEname = positionData.pickupEname;
+        this.pickupParent = positionData.pickupParent;
+        this.pickupLevel = positionData.pickupLevel;
         this.tgtState = positionData.tgtState;
         this.transX = positionData.transX;
         this.transY = positionData.transY;
