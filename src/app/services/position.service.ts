@@ -16,6 +16,7 @@ export class PositionService implements OnDestroy {
   recordings: Recording[] = [];
   userPositionRecording: Recording[] = [];
 
+  private self: CurrentPositionData;
   private players: CurrentPositionData[] = [];
   private drawPositions: boolean = false;
   private positionUpdateRateMs: number = 16;
@@ -27,7 +28,7 @@ export class PositionService implements OnDestroy {
   constructor(public userService: UserService, public timer: TimerService) {
 
     if (this.userService.user.name) //if client is fully reloaded in a place where position service is started at same time as use we pick up user on movement instead
-      this.checkRegisterPlayer(this.userService.user);
+      this.checkRegisterPlayer(this.userService.user, MultiplayerState.interactive);
 
     if (this.userService.gameLaunched)
       this.connectToOpengoal();
@@ -63,7 +64,6 @@ export class PositionService implements OnDestroy {
     this.userPositionRecording = [];
     this.recordings = [];
     this.players = [];
-    this.checkRegisterPlayer(this.userService.user);
     return recordings;
   }
 
@@ -73,32 +73,29 @@ export class PositionService implements OnDestroy {
     this.players = this.players.filter(x => x.userId !== userId);
   }
 
-  checkRegisterPlayer(user: UserBase | undefined, isRecording: boolean = false) {
+  checkRegisterPlayer(user: UserBase | undefined, state: MultiplayerState) {
     if (!user || this.players.find(x => x.userId === user.id)) return;
 
-    if (user.id === this.userService.getId())
-      this.players.unshift(new CurrentPositionData(user));
+    if (user.id !== this.userService.getId())
+      this.players.push(new CurrentPositionData(user, state));
     else
-      this.players.push(new CurrentPositionData(user));
-    
-    if (this.players.length > 1 && this.players[0].userId !== this.userService.getId())
-      this.players.sort((a, b) => a.userId === this.userService.user.id ? -1 : b.userId === this.userService.user.id ? 1 : 0); //make sure current user is player 0
+      this.self = new CurrentPositionData(user, MultiplayerState.interactive);
   }
 
-  addRecording(recording: Recording, user: UserBase) {
+  addRecording(recording: Recording, user: UserBase, state: MultiplayerState = MultiplayerState.active) {
     recording.userId = recording.id;
     user.id = recording.id;
-    this.checkRegisterPlayer(user);
+    this.checkRegisterPlayer(user, state);
     this.recordings.push(recording);
   }
 
 
   updatePlayerPosition(positionData: UserPositionDataTimestamp) {
-    let player = this.players.find(x => x.userId === positionData.userId);
+    let player = positionData.userId !== this.userService.user.id ? this.players.find(x => x.userId === positionData.userId) : this.self;
 
     if (player) player.updateCurrentPosition(positionData);
     else 
-      this.checkRegisterPlayer(new UserBase(positionData.userId, positionData.username));
+      this.checkRegisterPlayer(new UserBase(positionData.userId, positionData.username), MultiplayerState.interactive);
 
     if (this.timer.totalMs === 0) return;
     //handle user position recording
@@ -115,12 +112,12 @@ export class PositionService implements OnDestroy {
 
   startDrawPlayers() {
     if (this.drawPositions) return;
-    this.players.sort((a, b) => a.userId === this.userService.user.id ? -1 : b.userId === this.userService.user.id ? 1 : 0); //make sure current user is player 0
     this.drawPositions = true;
     this.drawPlayers();
     this.players.forEach(player => {
-      player.mpState = MultiplayerState.connected;
-    })
+      if (player.mpState === MultiplayerState.disconnected)
+        player.mpState = MultiplayerState.interactive;
+    });
   }
 
   stopDrawPlayers() {
@@ -137,8 +134,9 @@ export class PositionService implements OnDestroy {
         const positionData = recording.playback.find(x => x.time < this.timer.totalMs);
         if (positionData) {
           const currentPlayer = this.players.find(x => x.userId === recording.userId);
-          if (currentPlayer)
-            currentPlayer.updateCurrentPosition(positionData);
+          if (currentPlayer && currentPlayer.updateCurrentPosition(positionData, recording.playback.indexOf(positionData)) && currentPlayer.mpState === MultiplayerState.interactive) {
+            //!TODO: add pickup handling for recordings here
+          }
         }
       });
     }
@@ -163,23 +161,14 @@ export class PositionService implements OnDestroy {
   }
 
   private cleanupPlayers() {
-    if (!this.players.some(x => x.mpState === MultiplayerState.connected)) return;
+    if (!this.players.some(x => x.mpState !== MultiplayerState.disconnected)) return;
 
-    this.players.forEach((player, i) => {
-      player.username = "";
-      player.transX = -247935.5 + 18000 * Math.cos(2 * Math.PI * i / this.players.length);
-      player.transZ = -113691.5 + 18000 * Math.sin(2 * Math.PI * i / this.players.length);
-      player.transY = 45472.035;
-    });
-    this.updatePlayersInOpengoal();
-    this.hasDrawnRecordingNames = false;
-    
     this.players.forEach(player => {
+      player.username = "";
       player.mpState = MultiplayerState.disconnected;
     });
-    setTimeout(() => {
-      this.updatePlayersInOpengoal();
-    }, this.positionUpdateRateMs);
+    
+    this.updatePlayersInOpengoal();
   }
 
   ngOnDestroy(): void {

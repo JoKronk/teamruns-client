@@ -55,14 +55,25 @@ export class CurrentPositionData extends PositionData {
     color: Color;
     mpState: MultiplayerState;
 
-    constructor(user: UserBase) {
+    recordingDataIndex: number | undefined; // only used by recordings
+
+    constructor(user: UserBase, state: MultiplayerState) {
         super();
         this.username = user.name;
         this.userId = user.id;
+        this.mpState = state;
         this.color = Color.normal;
     }
 
-    updateCurrentPosition(positionData: PositionData) {
+    // returns if has updated
+    updateCurrentPosition(positionData: PositionData, recordingDataIndex: number | undefined = undefined) : boolean {
+        if (recordingDataIndex) {
+            if (recordingDataIndex === this.recordingDataIndex)
+                return false;
+            else
+                this.recordingDataIndex = recordingDataIndex;
+        }
+
         this.quatW = positionData.quatW;
         this.quatX = positionData.quatX;
         this.quatY = positionData.quatY;
@@ -72,6 +83,8 @@ export class CurrentPositionData extends PositionData {
         this.transX = positionData.transX;
         this.transY = positionData.transY;
         this.transZ = positionData.transZ;
+
+        return true;
     }
 
 

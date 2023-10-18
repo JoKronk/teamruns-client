@@ -9,6 +9,7 @@ import { OG } from '../common/opengoal/og';
 import { PositionService } from '../services/position.service';
 import { RecordingImport } from '../common/playback/recording-import';
 import { Subscription } from 'rxjs';
+import { MultiplayerState } from '../common/opengoal/multiplayer-state';
 
 @Component({
   selector: 'app-practice',
@@ -18,8 +19,10 @@ import { Subscription } from 'rxjs';
 export class PracticeComponent implements OnDestroy {
 
   runState = RunState;
+  multiplayerStates = MultiplayerState;
 
   //checks
+  recordingsState: MultiplayerState = MultiplayerState.active;
   loadOnRecord: string = "true";
   usePlayback: string = "true";
   inFreecam: boolean = false;
@@ -212,7 +215,7 @@ export class PracticeComponent implements OnDestroy {
     this.positionHandler.resetGetRecordings();
     this.currentRecording = giveRecordings.length === 1 ? giveRecordings[0].id : "all";
     giveRecordings.forEach((rec, index) => {
-      this.positionHandler.addRecording(rec, new UserBase(rec.id, " "));
+      this.positionHandler.addRecording(rec, new UserBase(rec.id, " "), this.recordingsState);
     })
 
     this.recordingsEndtime = this.getLongestRecordingTimeMs(giveRecordings);

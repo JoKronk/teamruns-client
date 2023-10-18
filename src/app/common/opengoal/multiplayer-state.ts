@@ -1,4 +1,5 @@
 export enum MultiplayerState {
     disconnected,
-    connected
+    active,
+    interactive
 }

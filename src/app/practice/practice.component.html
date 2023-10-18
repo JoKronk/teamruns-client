@@ -43,10 +43,17 @@
             </mat-button-toggle-group>
           </div>
           <div class="category category-select">
-            <span>Record with Ghosts:</span>
+            <span>Rec. with Ghosts:</span>
             <mat-button-toggle-group [(ngModel)]="usePlayback" appearance="legacy">
               <mat-button-toggle value="true">On</mat-button-toggle>
               <mat-button-toggle value="false">Off</mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+          <div class="category category-select">
+            <span>Interactive Recordings:</span>
+            <mat-button-toggle-group [(ngModel)]="recordingsState" appearance="legacy">
+              <mat-button-toggle [value]="multiplayerStates.interactive">On</mat-button-toggle>
+              <mat-button-toggle [value]="multiplayerStates.active">Off</mat-button-toggle>
             </mat-button-toggle-group>
           </div>
         </div>
