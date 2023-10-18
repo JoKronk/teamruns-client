@@ -10,6 +10,7 @@ export class PositionData {
     quatY: number;
     quatZ: number;
     quatW: number;
+    rotY: number;
     tgtState: any;
 
     constructor() {
@@ -26,6 +27,7 @@ export class PositionDataTimestamp extends PositionData {
         this.quatX = positionData.quatX;
         this.quatY = positionData.quatY;
         this.quatZ = positionData.quatZ;
+        this.rotY = positionData.rotY;
         this.tgtState = positionData.tgtState;
         this.transX = positionData.transX;
         this.transY = positionData.transY;
@@ -57,7 +59,6 @@ export class CurrentPositionData extends PositionData {
         super();
         this.username = user.name;
         this.userId = user.id;
-        this.mpState = MultiplayerState.connected;
         this.color = Color.normal;
     }
 
@@ -66,6 +67,7 @@ export class CurrentPositionData extends PositionData {
         this.quatX = positionData.quatX;
         this.quatY = positionData.quatY;
         this.quatZ = positionData.quatZ;
+        this.rotY = positionData.rotY;
         this.tgtState = positionData.tgtState;
         this.transX = positionData.transX;
         this.transY = positionData.transY;
