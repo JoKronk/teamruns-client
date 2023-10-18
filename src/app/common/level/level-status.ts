@@ -8,6 +8,7 @@ export class LevelStatus {
     }
 
     public static Active = "active";
+    public static Alive = "alive";
     public static Loaded = "loaded";
     public static Deactive = "deactive";
 }

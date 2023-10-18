@@ -67,7 +67,7 @@ export class LevelHandler {
     onLevelsUpdate(levels: LevelStatus[]) {
         this.levels = levels;
         this.levels.forEach(level => {
-            if (level.status === LevelStatus.Active)
+            if (level.status === LevelStatus.Active || level.status === LevelStatus.Alive)
                 this.onLevelActive(level.name);
         });
     }
@@ -130,7 +130,7 @@ export class LevelHandler {
         let level = this.levels.find(x => x.name === levelName);
         if (!level)
             return false;
-        return level.status === LevelStatus.Active;
+        return level.status === LevelStatus.Active || level.status === LevelStatus.Alive;
     }
 
     private onLevelActive(levelName: string) {
@@ -176,14 +176,14 @@ export class LevelHandler {
     
     private setCollectedBuzzer(buzzer: BuzzerBase) {
         if (buzzer.parentEname.startsWith("crate-"))
-            OG.runCommand('safe-kill-crate-buzzer "' + buzzer.parentEname + '"');
+            OG.runCommand('(safe-kill-crate-buzzer "' + buzzer.parentEname + '")');
     }
 
     private setCollectedOrb(orb: OrbBase, kill: boolean) {
         if (orb.parentEname.startsWith("orb-cache-top-"))
-            OG.runCommand('safe-kill-cache-orb "' + orb.parentEname + '"');
+            OG.runCommand('(safe-kill-cache-orb "' + orb.parentEname + '")');
         else if (orb.parentEname.startsWith("crate-"))
-            OG.runCommand('safe-kill-crate-orb "' + orb.parentEname + '"');
+            OG.runCommand('(safe-kill-crate-orb "' + orb.parentEname + '")');
         else {
             OG.runCommand('(process-entity-status! (the-as money (process-by-ename "' + orb.ename + '")) (entity-perm-status dead) #t)');
             if (kill)
