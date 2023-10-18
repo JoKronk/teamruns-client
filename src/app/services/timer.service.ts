@@ -125,12 +125,12 @@ export class TimerService implements OnDestroy {
     //start run check
     if (this.runState === RunState.Countdown) {
       if (!this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
-        OG.runCommand("(process-release? *target*)");
+        OG.runCommand("(safe-release-from-grab)");
         OG.startRun();
         this.hasSpawnedPlayer = true;
       }
       else if (this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 10)
-        OG.runCommand("(process-release? *target*)");
+        OG.runCommand("(safe-release-from-grab)");
       
       if (this.startDateMs! <= currentTimeMs)
         this.runState = RunState.Started;

@@ -64,7 +64,7 @@ export class LocalPlayerData {
     OG.runCommand('(process-entity-status! (process-by-ename "ogre-bridge-1") (entity-perm-status complete) #t)');
     OG.runCommand('(process-entity-status! (process-by-ename "ogreboss-1") (entity-perm-status complete) #t)');
     OG.runCommand("(reset-actors 'life)");
-    OG.runCommand("(process-release? *target*)");
+    OG.runCommand("(safe-release-from-grab)");
     this.killKlawwOnSpot = false;
   }
 
@@ -143,17 +143,17 @@ export class LocalPlayerData {
       case "village2-levitator":
         if (checkWarpgates && (task.status !== TaskStatus.needReminderA || this.gameState.currentLevel !== "village1")) break;
         OG.runCommand("(reset-actors 'life)");
-        OG.runCommand("(process-release? *target*)");
+        OG.runCommand("(safe-release-from-grab)");
         break;
       case "village3-button":
         if (checkWarpgates && (task.status !== TaskStatus.needIntroduction || (this.gameState.currentLevel !== "village1" && this.gameState.currentLevel !== "village2"))) break;
         OG.runCommand("(reset-actors 'life)");
-        OG.runCommand("(process-release? *target*)");
+        OG.runCommand("(safe-release-from-grab)");
         break;
       case "village4-button":
         if (checkWarpgates && (task.status !== TaskStatus.needRewardSpeech || (this.gameState.currentLevel !== "village1" && this.gameState.currentLevel !== "village2" && this.gameState.currentLevel !== "village3"))) break;
         OG.runCommand("(reset-actors 'life)");
-        OG.runCommand("(process-release? *target*)");
+        OG.runCommand("(safe-release-from-grab)");
         break;
       default:
         break;

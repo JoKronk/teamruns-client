@@ -6,7 +6,6 @@ import { Recording } from '../common/playback/recording';
 import { UserBase } from '../common/user/user';
 import { RunState } from '../common/run/run-state';
 import { OG } from '../common/opengoal/og';
-import { MatDialog } from '@angular/material/dialog';
 import { PositionService } from '../services/position.service';
 import { RecordingImport } from '../common/playback/recording-import';
 import { Subscription } from 'rxjs';
@@ -50,7 +49,7 @@ export class PracticeComponent implements OnDestroy {
   timerEndSubscription: Subscription;
 
 
-  constructor(public _user: UserService, public positionHandler: PositionService, private dialog: MatDialog, private zone: NgZone) {
+  constructor(public _user: UserService, public positionHandler: PositionService, private zone: NgZone) {
     this.positionHandler.timer.setStartConditions(3);
 
     //recording import listener
@@ -134,7 +133,7 @@ export class PracticeComponent implements OnDestroy {
     else {
       this.loadCheckpoint();
       OG.runCommand("(send-event *camera* 'change-state cam-string 0)");
-      OG.runCommand("(process-release? *target*)");
+      OG.runCommand("(safe-release-from-grab)");
     }
     this.inFreecam = !this.inFreecam;
   }
