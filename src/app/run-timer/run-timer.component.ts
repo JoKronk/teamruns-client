@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { Timer } from '../common/run/timer';
-import { TimerService } from '../services/timer.service';
 
 @Component({
   selector: 'app-run-timer',
@@ -9,12 +8,13 @@ import { TimerService } from '../services/timer.service';
 })
 export class RunTimerComponent {
   
+  @Input() timer: Timer | undefined;
   @Input() hideText: boolean = false;
   @Input() hideBorder: boolean = false;
 
   height: number = 80;
 
-  constructor(public timer: TimerService) {
+  constructor() {
     
   }
 }

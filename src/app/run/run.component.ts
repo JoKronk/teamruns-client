@@ -13,7 +13,6 @@ import { EventType } from '../common/peer/event-type';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
 import { UserBase } from '../common/user/user';
-import { PositionService } from '../services/position.service';
 import { GameTask } from '../common/opengoal/game-task';
 import { TaskStatus } from '../common/opengoal/task-status';
 
@@ -35,14 +34,14 @@ export class RunComponent implements OnDestroy {
 
   editingName: boolean;
 
-  constructor(public _user: UserService, private positionHandler: PositionService, private firestoreService: FireStoreService, private route: ActivatedRoute, private zone: NgZone, private dialog: MatDialog, private router: Router) {
+  constructor(public _user: UserService, private firestoreService: FireStoreService, private route: ActivatedRoute, private zone: NgZone, private dialog: MatDialog, private router: Router) {
     
     //on parameter get (was swapped from route as electon had issues getting routes containing more than one (/) path)
     this.route.queryParamMap.subscribe((params) => {
       let runId = params.get('id');
       if (!runId) return;
 
-      this.runHandler = new RunHandler(runId, firestoreService, positionHandler, this.localPlayer, zone);
+      this.runHandler = new RunHandler(runId, firestoreService, _user, this.localPlayer, zone);
     });
   }
 

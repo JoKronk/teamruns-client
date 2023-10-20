@@ -1,9 +1,12 @@
+import { InteractionType } from "../opengoal/interaction-type";
+import { PositionDataTimestamp } from "../playback/position-data";
+
 export class CrateBase {
     ename: string;
-    type: string;
+    type: InteractionType;
     pickupAmount: number;
 
-    constructor(ename: string, type: string, pickupAmount: number) {
+    constructor(ename: string, type: InteractionType, pickupAmount: number) {
         this.ename = ename;
         this.type = type;
         this.pickupAmount = pickupAmount;
@@ -18,6 +21,20 @@ export class Crate extends CrateBase {
         this.level = level;
     }
 
-    public static typeWithBuzzer = "iron";
-    public static typeWithOrbs = "steel";
+    public static fromPositionData(positionData: PositionDataTimestamp): Crate {
+        return {
+            ename: positionData.pickupEname,
+            type: positionData.pickupType,
+            pickupAmount: positionData.pickupAmount,
+            level: positionData.pickupLevel
+        }
+    }
+
+    public static isBuzzerType(type: InteractionType) {
+        return type === InteractionType.crateIron;
+    }
+
+    public static isOrbsType(type: InteractionType) {
+        return type === InteractionType.crateSteel;
+    }
 }

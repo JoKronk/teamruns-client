@@ -1,3 +1,5 @@
+import { UserPositionDataTimestamp } from "../playback/position-data";
+
 export class EcoBase {
     ename: string;
     parentEname: string;
@@ -14,5 +16,13 @@ export class Eco extends EcoBase {
     constructor(base: EcoBase, level: string) {
         super(base.ename, base.parentEname);
         this.level = level;
+    }
+
+    public static fromPositionData(positionData: UserPositionDataTimestamp): Eco {
+        return {
+            ename: positionData.pickupEname,
+            parentEname: positionData.pickupParent,
+            level: positionData.pickupLevel
+        }
     }
 }

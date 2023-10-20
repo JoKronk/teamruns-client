@@ -12,7 +12,6 @@ import { RunState } from "./run-state";
 import { MultiLevel } from "../opengoal/levels";
 import { OG } from "../opengoal/og";
 import { UserBase } from "../user/user";
-import { TimerService } from "src/app/services/timer.service";
 import { UserService } from "src/app/services/user.service";
 import { RunStateHandler } from "../level/run-state-handler";
 
@@ -20,9 +19,11 @@ export class Run {
     data: RunData;
     teams: Team[] = [];
     spectators: Player[] = [];
+    timer: Timer = new Timer();
 
-    constructor(runData: RunData, public timer: TimerService) {
+    constructor(runData: RunData, timer: Timer) {
         this.data = runData;
+        this.timer = timer;
         this.timer.setStartConditions(this.data.countdownSeconds);
 
         if (this.data.teams > 1) {
@@ -150,7 +151,7 @@ export class Run {
         this.spectators = this.spectators.filter(x => x.user.id !== user.id);
 
         //cheap method of forcing screen to re-render old team
-        if (oldTeam) {
+        if (oldTeam && oldTeam.id !== newTeam.id) {
             let players = oldTeam.players.filter(x => x.user.id !== user.id);
             oldTeam.players = [];
             oldTeam.players = players;
@@ -257,7 +258,7 @@ export class Run {
         return this;
     }
 
-    reconstructTimer(timer: TimerService) {
+    reconstructTimer(timer: Timer) {
         this.timer = timer;
         if (this.timer.runIsOngoing())
             this.timer.updateTimer();

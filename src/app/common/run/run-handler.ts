@@ -16,18 +16,24 @@ import { OG } from "../opengoal/og";
 import { LobbyUser } from "../firestore/lobby-user";
 import { User, UserBase } from "../user/user";
 import { FireStoreService } from "src/app/services/fire-store.service";
-import { CitadelOption } from "./run-data";
+import { CitadelOption, RunData } from "./run-data";
 import { Player } from "../player/player";
 import { Category } from "./category";
 import { DbRun } from "../firestore/db-run";
 import { UserPositionDataTimestamp } from "../playback/position-data";
-import { PositionService } from "src/app/services/position.service";
 import { GameState } from "../opengoal/game-state";
 import { GameTask } from "../opengoal/game-task";
 import { Team } from "./team";
 import { TaskStatus } from "../opengoal/task-status";
 import { LevelHandler } from "../level/level-handler";
 import { Crate } from "../level/crate";
+import { InteractionType } from "../opengoal/interaction-type";
+import { Orb } from "../level/orb";
+import { Buzzer } from "../level/buzzer";
+import { Eco } from "../level/eco";
+import pkg from 'app/package.json';
+import { PositionHandler } from "../playback/position-handler";
+import { RunStateHandler } from "../level/run-state-handler";
 
 export class RunHandler {
 
@@ -40,44 +46,61 @@ export class RunHandler {
     isBeingDestroyed: boolean = false;
     becomeHostQuickAccess: boolean;
 
+    isOnlineInstant: boolean = false;
     localMaster: RTCPeerMaster | undefined;
     localSlave: RTCPeerSlave | undefined;
 
-    userService: UserService;
     private obsUserId: string | null;
+    
+    positionHandler: PositionHandler;
 
     dataSubscription: Subscription;
     positionSubscription: Subscription;
     lobbySubscription: Subscription;
+    recordingsSubscription: Subscription;
     private launchListener: any;
 
-    constructor(lobbyId: string,
+    constructor(lobbyId: string | undefined,
         public firestoreService: FireStoreService,
-        public positionHandler: PositionService,
+        public userService: UserService,
         private localPlayer: LocalPlayerData,
         public zone: NgZone,
         obsUserId: string | null = null) {
-
-        this.userService = positionHandler.userService;
+        
+        this.isOnlineInstant = lobbyId !== undefined;
+        this.positionHandler = new PositionHandler(userService);
         this.zone = zone;
         this.obsUserId = obsUserId;
 
         //lobby listener
-        this.lobbySubscription = this.firestoreService.getLobbyDoc(lobbyId).snapshotChanges().subscribe(snapshot => {
-            if (snapshot.payload.metadata.hasPendingWrites || this.isBeingDestroyed) return;
-            let lobby = snapshot.payload.data();
-            if (!lobby) return;
-
-            this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
+        if (this.isOnlineInstant) {
+            this.lobbySubscription = this.firestoreService.getLobbyDoc(lobbyId!).snapshotChanges().subscribe(snapshot => {
+                if (snapshot.payload.metadata.hasPendingWrites || this.isBeingDestroyed) return;
+                let lobby = snapshot.payload.data();
+                if (!lobby) return;
+    
+                this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
+    
+                //create run if it doesn't exist
+                if (!this.run) {
+                    this.setupRun();
+                    this.positionHandler.startDrawPlayers();
+                }
+    
+                this.onLobbyChange();
+            });
+        }
+        //local lobby
+        else {
+            this.lobby = new Lobby(RunData.getFreeroamSettings(pkg.version), this.userService.getId(), null);
 
             //create run if it doesn't exist
-            if (!this.run) {
+            if (!this.run)
                 this.setupRun();
-                this.positionHandler.startDrawPlayers();
-            }
 
             this.onLobbyChange();
-        });
+        }
+
 
         //position listener
         if (this.userService.gameLaunched)
@@ -91,8 +114,12 @@ export class RunHandler {
         this.positionHandler.ogSocket.subscribe(target => {
 
             //handle position
-            if (this.localPlayer.team !== undefined)
-                this.sendPosition(new UserPositionDataTimestamp(target.position, this.run?.timer.totalMs ?? 0, this.localPlayer.user));
+            if (this.localPlayer.team !== undefined) {
+                const positionData = new UserPositionDataTimestamp(target.position, this.run?.timer.totalMs ?? 0, this.localPlayer.user);
+                this.sendPosition(positionData);
+                if (this.run?.timer.runState === RunState.Started)
+                    this.handlePlayerInteractions(positionData);
+            }
 
             //task updates
             if (target.task)
@@ -102,20 +129,12 @@ export class RunHandler {
             if (target.state)
                 this.handleStateChange(target.state);
 
-            if (target.buzzer)
-                this.sendEvent(EventType.NewScoutflyCollected, target.buzzer);
-
-            if (target.orb)
-                this.sendEvent(EventType.NewOrbCollected, target.orb);
-
-            if (target.crate)
-                this.sendEvent(EventType.NewCrateDestoryed, target.crate);
-
-            if (target.eco)
-                this.sendEvent(EventType.NewEcoPickup, target.eco);
-
             if (target.levels)
                 this.levelHandler.onLevelsUpdate(target.levels);
+        });
+
+        this.recordingsSubscription = this.positionHandler.interactiveRecordingPickups.subscribe(positionData => {
+            this.handlePlayerInteractions(positionData);
         });
     }
 
@@ -131,7 +150,8 @@ export class RunHandler {
             if (!player) return;
 
             console.log("Becomming host!");
-            await this.firestoreService.deleteLobbySubCollections(this.lobby.id);
+            if (this.isOnlineInstant)
+                await this.firestoreService.deleteLobbySubCollections(this.lobby.id);
 
             if (this.localSlave)
                 this.run?.removePlayer(this.localSlave.hostId);
@@ -147,14 +167,16 @@ export class RunHandler {
 
             this.lobby.users = this.lobby.users.filter(x => x.isRunner || this.run?.hasSpectator(x.id));
 
-            await this.updateFirestoreLobby();
-            this.setupMaster();
+            if (this.isOnlineInstant) {
+                await this.updateFirestoreLobby();
+                this.setupMaster();
+            }
             this.connected = true;
         }
 
 
         //slave checks on lobby change
-        if (!this.localMaster) {
+        if (this.isOnlineInstant && !this.localMaster) {
             //kill current slave connection if new host
             if (this.localSlave?.hostId !== this.lobby.host?.id)
                 this.resetUser();
@@ -221,9 +243,21 @@ export class RunHandler {
         this.run = new Run(this.lobby.runData, this.positionHandler.timer);
 
         //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
-        this.localPlayer.user = this.userService.user.createUserBaseFromDisplayName();
-        this.localPlayer.mode = this.run.data.mode;
-        this.run.spectators.push(new Player(this.localPlayer.user));
+        if (this.isOnlineInstant) {
+            this.localPlayer.user = this.userService.user.createUserBaseFromDisplayName();
+            this.localPlayer.mode = this.run.data.mode;
+            this.run.spectators.push(new Player(this.localPlayer.user));
+        }
+        else {
+            setTimeout(() => { //lousy way to make sure userId has loaded in before we change team !TODO: Replace
+                this.localPlayer.user = this.userService.user.createUserBaseFromDisplayName();
+                this.localPlayer.mode = this.run!.data.mode;
+                this.run!.spectators.push(new Player(this.localPlayer.user));
+
+                this.sendEvent(EventType.ChangeTeam, 0);
+                this.localPlayer.team = this.run?.getPlayerTeam(this.userService.getId());
+            }, 1000);
+        }
 
         //set run info
         if (this.run.data.category == 0)
@@ -263,16 +297,30 @@ export class RunHandler {
     }
 
     sendEvent(type: EventType, value: any = null) {
-        const event = new DataChannelEvent(this.userService.getId(), type, value);
+        this.sendEventCommonLogic(new DataChannelEvent(this.userService.getId(), type, value));
+    }
+
+    sendInternalEvent(type: EventType, userId: string, value: any = null) {
+        this.sendEventCommonLogic(new DataChannelEvent(userId, type, value));
+    }
+
+    private sendEventCommonLogic(event: DataChannelEvent) {
         if (this.localSlave) {
-            this.localSlave.peer.sendEvent(event);
+            if (this.isOnlineInstant)
+                this.localSlave.peer.sendEvent(event);
             this.onDataChannelEvent(event, false); //to run on a potentially safer but slower mode disable this and send back the event from master/host
         }
         else if (this.localMaster && this.lobby?.host?.id === this.localPlayer.user.id && !this.localMaster.isBeingDestroyed)
             this.onDataChannelEvent(event, true);
+
+        else if (!this.isOnlineInstant)
+            this.onDataChannelEvent(event, true);
     }
 
+
     sendPosition(target: UserPositionDataTimestamp) {
+        if (!this.isOnlineInstant) return;
+
         if (this.localSlave) {
             this.localSlave.peer.sendPosition(target);
         }
@@ -282,11 +330,77 @@ export class RunHandler {
 
     onPostionChannelUpdate(target: UserPositionDataTimestamp, isMaster: boolean) {
         //send updates from master to all slaves
-        if (isMaster)
+        if (isMaster && this.isOnlineInstant)
             this.localMaster?.relayPositionToSlaves(target);
 
-        if (target.userId !== this.userService.getId())
+        if (target.userId !== this.userService.getId()) {
             this.positionHandler.updatePlayerPosition(target);
+        if (this.run?.timer.runState === RunState.Started)
+            this.handlePlayerInteractions(target);
+        }
+    }
+
+    handlePlayerInteractions(positionData: UserPositionDataTimestamp) {
+        if (positionData.pickupType === InteractionType.none || !this.run) return;
+        const userId = this.userService.getId();
+
+        switch (positionData.pickupType) {
+        
+            case InteractionType.buzzer:
+                if (!this.localPlayer.team) return;
+
+                const buzzer = Buzzer.fromPositionData(positionData);
+                if (positionData.userId !== userId && this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id)
+                    this.levelHandler.onBuzzerCollect(buzzer);
+
+                this.run.getPlayerTeam(positionData.userId)?.runState.addBuzzer(buzzer);
+                break;
+            
+
+            case InteractionType.money:
+                if (!this.localPlayer.team) return;
+                
+                const teamOrbLevelState = this.localPlayer.team.runState.getCreateLevel(positionData.pickupLevel);
+                const orb = Orb.fromPositionData(positionData);
+                if (this.localPlayer.team.runState.isOrbDupe(orb, teamOrbLevelState)) {
+                    if (positionData.userId === userId)
+                        OG.runCommand("(send-event *target* 'get-pickup 5 -1.0)");
+                    break;
+                }
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    this.levelHandler.onOrbCollect(orb);
+                
+                this.run.getPlayerTeam(positionData.userId)?.runState.addOrb(orb, teamOrbLevelState);
+                break;
+        
+
+            case InteractionType.ecoBlue:
+            case InteractionType.ecoYellow:
+            case InteractionType.ecoGreen:
+            case InteractionType.ecoRed:
+                if (!this.localPlayer.team) return;
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id)) {
+                    const index = this.positionHandler.getPlayerIngameIndex(positionData.userId);
+                    if (index !== undefined) OG.runCommand("(safe-give-eco-by-target-idx " + index + " " + positionData.pickupType + " " + positionData.pickupAmount + ".0)");
+                    this.levelHandler.onEcoPickup(Eco.fromPositionData(positionData));
+                }
+                break;
+
+
+            case InteractionType.crateNormal:
+            case InteractionType.crateIron:
+            case InteractionType.crateSteel:
+            case InteractionType.crateDarkeco:
+                if (!this.localPlayer.team) return;
+                const crate = Crate.fromPositionData(positionData);
+                if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !Crate.isBuzzerType(crate.type)) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    this.levelHandler.onCrateDestroy(crate);
+
+                if (Crate.isBuzzerType(crate.type) || Crate.isOrbsType(crate.type))
+                    this.run.getPlayerTeam(positionData.userId)?.runState.addCrate(crate);
+                break;
+
+        }
     }
 
     onDataChannelEvent(event: DataChannelEvent, isMaster: boolean) {
@@ -294,7 +408,7 @@ export class RunHandler {
         const userId = this.userService.getId();
 
         //send updates from master to all slaves | this should be here and not moved up to sendEvent as it's not the only method triggering this
-        if (isMaster && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
+        if (isMaster && this.isOnlineInstant && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
             this.localMaster?.relayToSlaves(event);
 
         switch (event.type) {
@@ -347,7 +461,7 @@ export class RunHandler {
                         if (peer) {
                             console.log("Destorying disconnected peer");
                             peer.peer.destroy();
-                            if (peer.peer.usesServerCommunication)
+                            if (peer.peer.usesServerCommunication && this.isOnlineInstant)
                                 this.firestoreService.deleteLobbyServerCommunication(this.lobby.id, disconnectedUser.id);
                             this.localMaster!.peers = this.localMaster!.peers.filter(x => x.user.id !== disconnectedUser.id);
                         }
@@ -435,7 +549,7 @@ export class RunHandler {
                         this.localPlayer.team = playerTeam;
                     }
 
-                    this.levelHandler = new LevelHandler();
+                    this.levelHandler.uncollectedLevelItems = new RunStateHandler();
                     if (this.run.teams.length !== 0) {
                         const importTeam: Team = playerTeam?.runState ? playerTeam : this.run.teams[0];
                         this.levelHandler.importRunStateHandler(importTeam.runState, this.localPlayer, importTeam.players.length !== 0 ? importTeam.players[0].gameState.currentCheckpoint : "game-start");
@@ -453,7 +567,7 @@ export class RunHandler {
                     this.run?.endPlayerRun(event.userId, event.value.name === Task.forfeit);
                     this.run?.isMode(RunMode.Lockout) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
 
-                    if (isMaster && this.run?.timer.runState === RunState.Ended && !this.run.teams.every(x => x.hasUsedDebugMode) && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit)) {
+                    if (isMaster && this.isOnlineInstant && this.run?.timer.runState === RunState.Ended && !this.run.teams.every(x => x.hasUsedDebugMode) && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit)) {
                         let run: DbRun = DbRun.convertToFromRun(this.run);
                         this.firestoreService.addRun(run); //history
                         run.checkUploadPbs(this.firestoreService); //pb & leadeboard
@@ -516,55 +630,13 @@ export class RunHandler {
                 if (event.userId !== userId)
                     this.localPlayer.checkForZoomerTalkSkip(event.value);
                 break;
-            
-            case EventType.NewScoutflyCollected:
-                if (!this.localPlayer.team) return;
-
-                if (event.userId !== userId && this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team.id)
-                    this.levelHandler.onBuzzerCollect(event.value);
-
-                this.run.getPlayerTeam(event.userId)?.runState.addBuzzer(event.value);
-                break;
-            
-            case EventType.NewOrbCollected:
-                if (!this.localPlayer.team) return;
-                
-                const teamOrbLevelState = this.localPlayer.team.runState.getCreateLevel(event.value.level);
-                if (this.localPlayer.team.runState.isOrbDupe(event.value, teamOrbLevelState)) {
-                    if (event.userId === userId) {
-                        OG.runCommand("(send-event *target* 'get-pickup 5 -1.0)");
-                    }
-                    break;
-                }
-                if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team.id))
-                    this.levelHandler.onOrbCollect(event.value);
-                
-                this.run.getPlayerTeam(event.userId)?.runState.addOrb(event.value, teamOrbLevelState);
-                break;
-            
-            case EventType.NewCrateDestoryed:
-                if (!this.localPlayer.team) return;
-                if (event.userId !== userId && ((this.run.isMode(RunMode.Lockout) && event.value.typ === Crate.typeWithOrbs) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team.id))
-                    this.levelHandler.onCrateDestroy(event.value);
-
-                if (event.value.type === Crate.typeWithBuzzer || event.value.type === Crate.typeWithOrbs)
-                    this.run.getPlayerTeam(event.userId)?.runState.addCrate(event.value);
-                break;
-            
-            case EventType.NewEcoPickup:
-                if (!this.localPlayer.team) return;
-                if (event.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(event.userId)?.id === this.localPlayer.team.id))
-                    this.levelHandler.onEcoPickup(event.value);
-                break;
-
 
             case EventType.ChangeTeam:
                 this.zone.run(() => {
                     const user = this.getUser(event.userId)?.user;
                     this.run?.changeTeam(user, event.value);
-
                     //check set team for obs window, set from run component if normal user
-                    if (this.obsUserId && this.obsUserId === event.userId) {
+                    if ( this.obsUserId && this.obsUserId === event.userId) {
                         this.localPlayer.team = this.run?.getPlayerTeam(this.obsUserId);
                     }
                 });
@@ -608,10 +680,7 @@ export class RunHandler {
                 this.zone.run(() => {
                     this.run!.start(new Date());
                 });
-                //!TODO: could be done in some more elegant way
-                setTimeout(() => {
-                    this.localPlayer.resetRunDependentProperties();
-                }, this.run!.timer.countdownSeconds * 1000);
+                this.setupRunStart();
                 break;
 
 
@@ -630,8 +699,22 @@ export class RunHandler {
         }
     }
 
+    //used by both run component and practice/recording tool
+    setupRunStart() {
+        this.levelHandler.uncollectedLevelItems = new RunStateHandler();
+
+        this.run?.teams.forEach(team => {
+            team.runState = new RunStateHandler();
+        });
+
+        //!TODO: could be done in some more elegant way
+        setTimeout(() => {
+            this.localPlayer.resetRunDependentProperties();
+        }, this.run!.timer.countdownSeconds * 1000);
+    }
+
     async updateFirestoreLobby() {
-        if (!this.lobby || !(this.lobby?.backupHost?.id === this.localPlayer.user.id || this.lobby?.host?.id === this.localPlayer.user.id || this.lobby?.host === null)) return;
+        if (!this.isOnlineInstant || !this.lobby || !(this.lobby?.backupHost?.id === this.localPlayer.user.id || this.lobby?.host?.id === this.localPlayer.user.id || this.lobby?.host === null)) return;
         this.lobby.lastUpdateDate = new Date().toUTCString();
         await this.firestoreService.updateLobby(this.lobby);
     }
@@ -707,16 +790,18 @@ export class RunHandler {
     }
 
     private shouldSendStateUpdate(newState: GameState) {
-        return !((this.localSlave?.peer.usesServerCommunication || this.localMaster?.peers.every(x => x.peer.usesServerCommunication)) ?? false) || GameState.hasSignificantPlayerStateChange(this.localPlayer.gameState, newState);
+        return !((this.localSlave?.peer.usesServerCommunication || !this.isOnlineInstant || this.localMaster?.peers.every(x => x.peer.usesServerCommunication)) ?? false) || GameState.hasSignificantPlayerStateChange(this.localPlayer.gameState, newState);
     }
 
 
     destroy() {
         this.isBeingDestroyed = true;
-        const wasHost = this.localMaster && this.lobby?.host?.id === this.localPlayer.user.id;
+        const wasHost = this.localMaster && this.isOnlineInstant && this.lobby?.host?.id === this.localPlayer.user.id;
 
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
+        this.recordingsSubscription?.unsubscribe();
+        this.positionHandler.onDestroy();
         this.launchListener();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself

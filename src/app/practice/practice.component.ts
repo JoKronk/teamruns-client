@@ -6,10 +6,13 @@ import { Recording } from '../common/playback/recording';
 import { UserBase } from '../common/user/user';
 import { RunState } from '../common/run/run-state';
 import { OG } from '../common/opengoal/og';
-import { PositionService } from '../services/position.service';
 import { RecordingImport } from '../common/playback/recording-import';
 import { Subscription } from 'rxjs';
 import { MultiplayerState } from '../common/opengoal/multiplayer-state';
+import { RunHandler } from '../common/run/run-handler';
+import { FireStoreService } from '../services/fire-store.service';
+import { LocalPlayerData } from '../common/user/local-player-data';
+import { EventType } from '../common/peer/event-type';
 
 @Component({
   selector: 'app-practice',
@@ -47,13 +50,17 @@ export class PracticeComponent implements OnDestroy {
   dataSource: MatTableDataSource<Recording> = new MatTableDataSource(this.recordings);
   columns: string[] = ["player", "name", "time", "options"];
 
+  //handlers
+  runHandler: RunHandler;
+
   //listeners
   fileListener: any;
   timerEndSubscription: Subscription;
 
 
-  constructor(public _user: UserService, public positionHandler: PositionService, private zone: NgZone) {
-    this.positionHandler.timer.setStartConditions(3);
+  constructor(public _user: UserService, firestoreSerivce: FireStoreService, private zone: NgZone) {
+    this.runHandler = new RunHandler(undefined, firestoreSerivce, _user, new LocalPlayerData(this._user.user.createUserBaseFromDisplayName()), zone);
+    this.runHandler.positionHandler.timer.setStartConditions(3);
 
     //recording import listener
     this.fileListener = (window as any).electron.receive("file-get", (data: any) => {
@@ -79,7 +86,7 @@ export class PracticeComponent implements OnDestroy {
     });
 
     //timer end listener
-    this.timerEndSubscription = this.positionHandler.timer.timerEndSubject.subscribe(ended => {
+    this.timerEndSubscription = this.runHandler.positionHandler.timer.timerEndSubject.subscribe(ended => {
       this.checkStop();
     });
   }
@@ -99,14 +106,15 @@ export class PracticeComponent implements OnDestroy {
       this.inFreecam = false;
     }
 
-    this.positionHandler.timer.startTimer(undefined, false);
+    this.runHandler.setupRunStart();
+    this.runHandler.positionHandler.timer.startTimer(undefined, false);
   }
 
   stopRecording() {
-    const saveRecording = this.positionHandler.timer.totalMs > 0;
+    const saveRecording = this.runHandler.positionHandler.timer.totalMs > 0;
 
     this.checkStop();
-    this.positionHandler.resetGetRecordings().forEach(recording => {
+    this.runHandler.positionHandler.resetGetRecordings().forEach(recording => {
       if (saveRecording) {
         recording.fillFrontendValues("Rec-" + this.nextRecordingId);
         this.nextRecordingId += 1;
@@ -177,11 +185,11 @@ export class PracticeComponent implements OnDestroy {
     if (!this.recordingPausedBeforeDrag)
       this.pause();
 
-    this.recordingDragStart = this.positionHandler.timer.totalMs;
+    this.recordingDragStart = this.runHandler.positionHandler.timer.totalMs;
   }
 
   shiftPlaybackEnd() {
-    this.positionHandler.timer.shiftTimerByMs(this.recordingDragStart - this.positionHandler.timer.totalMs);
+    this.runHandler.positionHandler.timer.shiftTimerByMs(this.recordingDragStart - this.runHandler.positionHandler.timer.totalMs);
     this.recordingDragStart = 0;
 
     if (!this.recordingPausedBeforeDrag)
@@ -189,8 +197,8 @@ export class PracticeComponent implements OnDestroy {
   }
 
   pause() {
-    this.positionHandler.timer.togglePause();
-    this.recordingPaused = this.positionHandler.timer.isPaused();
+    this.runHandler.positionHandler.timer.togglePause();
+    this.recordingPaused = this.runHandler.positionHandler.timer.isPaused();
   }
 
 
@@ -210,24 +218,33 @@ export class PracticeComponent implements OnDestroy {
   startPlayback(giveRecordings: Recording[], selfStop: boolean) {
     this.replay = true;
     this.replayId = crypto.randomUUID();
-    const startId = this.replayId;
 
-    this.positionHandler.resetGetRecordings();
+    this.runHandler.positionHandler.resetGetRecordings();
     this.currentRecording = giveRecordings.length === 1 ? giveRecordings[0].id : "all";
+
     giveRecordings.forEach((rec, index) => {
-      this.positionHandler.addRecording(rec, new UserBase(rec.id, " "), this.recordingsState);
-    })
+      const recordingUser = new UserBase(rec.id, rec.nameFrontend ?? "");
+      this.runHandler.sendInternalEvent(EventType.Connect, rec.id, recordingUser);
+      this.runHandler.sendInternalEvent(EventType.ChangeTeam, rec.id, 0);
+      this.runHandler.positionHandler.addRecording(rec, recordingUser, this.recordingsState);
+    });
 
     this.recordingsEndtime = this.getLongestRecordingTimeMs(giveRecordings);
 
-    this.positionHandler.timer.startTimer(undefined, false, selfStop && giveRecordings.length !== 0 ? this.recordingsEndtime : null);
-    this.positionHandler.startDrawPlayers();
+    this.runHandler.setupRunStart();
+    this.runHandler.positionHandler.timer.startTimer(undefined, false, selfStop && giveRecordings.length !== 0 ? this.recordingsEndtime : null);
+    this.runHandler.positionHandler.startDrawPlayers();
   }
 
   checkStop(): boolean {
-    if (this.positionHandler.timer.runState !== RunState.Waiting) {
-      this.positionHandler.timer.reset();
-      this.positionHandler.stopDrawPlayers();
+    if (this.runHandler.positionHandler.timer.runState !== RunState.Waiting) {
+      this.runHandler.positionHandler.timer.reset();
+
+      this.runHandler.positionHandler.recordings.forEach(rec => {
+        this.runHandler.sendInternalEvent(EventType.Disconnect, rec.userId, new UserBase(rec.userId, rec.nameFrontend ?? ""));
+      });
+
+      this.runHandler.positionHandler.stopDrawPlayers();
       this.recordingPaused = false;
       this.replay = false;
       return true;
@@ -275,6 +292,7 @@ export class PracticeComponent implements OnDestroy {
 
     this.fileListener();
     this.timerEndSubscription.unsubscribe();
+    this.runHandler.destroy();
   }
 
 }

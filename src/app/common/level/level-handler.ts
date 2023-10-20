@@ -83,33 +83,33 @@ export class LevelHandler {
         if (!levelName) return;
 
         if (this.levelIsActive(levelName))
-            this.setCollectedCell(ename, true);
+            this.killCell(ename, true);
         else
             this.uncollectedLevelItems.addCell(cell.name, levelName);
     }
 
     onBuzzerCollect(buzzer: Buzzer) {
         OG.runCommand('(pickup-collectable! (-> *target* fact-info-target) (pickup-type buzzer) ' + buzzer.id + '.0 (process->handle (-> (-> *target* fact-info-target) process)))');
-        
+
         if (this.levelIsActive(buzzer.level))
-            this.setCollectedBuzzer(buzzer);
+            this.killBuzzer(buzzer);
         else
             this.uncollectedLevelItems.addBuzzer(buzzer);
     }
 
     onOrbCollect(orb: Orb) {
-        OG.runCommand("(send-event *target* 'get-pickup 5 1.0)");
+        OG.runCommand('(safe-give-money-from-level "' + orb.level + '")');
         
         if (this.levelIsActive(orb.level))
-            this.setCollectedOrb(orb, true);
+            this.killOrb(orb);
         else
             this.uncollectedLevelItems.addOrb(orb);
     }
 
     onCrateDestroy(crate: Crate) {
-        if (!this.levelIsActive(crate.level))
+        if (this.levelIsActive(crate.level))
             this.destroyCrate(crate);
-        else if (crate.type === Crate.typeWithBuzzer || crate.type === Crate.typeWithOrbs)
+        else if (Crate.isBuzzerType(crate.type) || Crate.isOrbsType(crate.type))
             this.uncollectedLevelItems.addCrate(crate);
     }
 
@@ -117,9 +117,9 @@ export class LevelHandler {
         if (!this.levelIsActive(eco.level)) return;
 
         if (eco.parentEname.startsWith("crate-"))
-            OG.runCommand('safe-pickup-crate-eco "' + eco.parentEname + '"');
-        else
-            OG.runCommand('safe-pickup-eco "' + eco.ename + '"');
+            OG.runCommand('(safe-pickup-crate-eco "' + eco.parentEname + '")');
+        else if (!eco.ename.startsWith("ecovent-"))
+            OG.runCommand('(safe-pickup-eco "' + eco.ename + '")');
     }
 
 
@@ -134,33 +134,35 @@ export class LevelHandler {
     }
 
     private onLevelActive(levelName: string) {
-        let level = this.uncollectedLevelItems.levels.find(x => x.levelName === levelName);
-        if (!level || (level.orbUpdates.length === 0 && level.buzzerUpdates.length === 0 && level.cellUpdates.length === 0)) return;
-        
-        level.crateUpdates.forEach(crate => {
-            this.destroyCrate(crate);
-        });
-        level.cellUpdates.forEach(taskName => {
-            const ename = Task.getCellEname(taskName);
-            if (ename) {
-                this.setCollectedCell(ename, false);
-                this.uncollectedLevelItems.cellCount -= 1;
-            }
-        });
-        level.buzzerUpdates.forEach(buzzer => {
-            this.setCollectedBuzzer(buzzer);
-            this.uncollectedLevelItems.buzzerCount -= 1;
-        });
-        level.orbUpdates.forEach(orb => {
-            this.setCollectedOrb(orb, false);
-            this.uncollectedLevelItems.orbCount -= 1;
-        });
+        setTimeout(() => {
+            let level = this.uncollectedLevelItems.levels.find(x => x.levelName === levelName);
+            if (!level || (level.orbUpdates.length === 0 && level.buzzerUpdates.length === 0 && level.cellUpdates.length === 0)) return;
+            console.log("killing from level", level)
 
-        OG.runCommand("(reset-actors 'life)");
-        level.cellUpdates = [];
-        level.buzzerUpdates = [];
-        level.orbUpdates = [];
-        level.crateUpdates = [];
+            level.crateUpdates.forEach(crate => {
+                this.destroyCrate(crate);
+            });
+            level.cellUpdates.forEach(taskName => {
+                const ename = Task.getCellEname(taskName);
+                if (ename) {
+                    this.killCell(ename, false);
+                    this.uncollectedLevelItems.cellCount -= 1;
+                }
+            });
+            level.buzzerUpdates.forEach(buzzer => {
+                this.killBuzzer(buzzer);
+                this.uncollectedLevelItems.buzzerCount -= 1;
+            });
+            level.orbUpdates.forEach(orb => {
+                this.killOrb(orb);
+                this.uncollectedLevelItems.orbCount -= 1;
+            });
+    
+            level.cellUpdates = [];
+            level.buzzerUpdates = [];
+            level.orbUpdates = [];
+            level.crateUpdates = [];
+        }, 500);
     }
 
 
@@ -168,30 +170,27 @@ export class LevelHandler {
 
     // ----- collection logic ----- | these are stored here instead of being methods of their own type so we don't have to Object.assign() every collectable
     
-    private setCollectedCell(ename: string, kill: boolean) {
+    private killCell(ename: string, kill: boolean) {
         OG.runCommand('(process-entity-status! (the-as fuel-cell (process-by-ename "' + ename + '")) (entity-perm-status dead) #t)');
         if (kill)
             OG.runCommand('(kill-by-name "' + ename + '" *active-pool*)');
     }
     
-    private setCollectedBuzzer(buzzer: BuzzerBase) {
+    private killBuzzer(buzzer: BuzzerBase) {
         if (buzzer.parentEname.startsWith("crate-"))
             OG.runCommand('(safe-kill-crate-buzzer "' + buzzer.parentEname + '")');
     }
 
-    private setCollectedOrb(orb: OrbBase, kill: boolean) {
+    private killOrb(orb: OrbBase) {
         if (orb.parentEname.startsWith("orb-cache-top-"))
             OG.runCommand('(safe-kill-cache-orb "' + orb.parentEname + '")');
         else if (orb.parentEname.startsWith("crate-"))
             OG.runCommand('(safe-kill-crate-orb "' + orb.parentEname + '")');
-        else {
-            OG.runCommand('(process-entity-status! (the-as money (process-by-ename "' + orb.ename + '")) (entity-perm-status dead) #t)');
-            if (kill)
-                OG.runCommand('(kill-by-name "' + orb.ename + '" *active-pool*)');
-        }
+        else
+            OG.runCommand('(safe-kill-orb "' + orb.ename + '")');
     }
 
     private destroyCrate(crate: CrateBase) {
-        OG.runCommand('(safe-break-crate "' + crate.ename + '"');
+        OG.runCommand('(safe-break-crate "' + crate.ename + '")');
     }
 }

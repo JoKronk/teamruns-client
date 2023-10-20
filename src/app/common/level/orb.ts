@@ -1,3 +1,5 @@
+import { UserPositionDataTimestamp } from "../playback/position-data";
+
 export class OrbBase {
     ename: string;
     parentEname: string;
@@ -14,5 +16,13 @@ export class Orb extends OrbBase {
     constructor(base: OrbBase, level: string) {
         super(base.ename, base.parentEname);
         this.level = level;
+    }
+
+    public static fromPositionData(positionData: UserPositionDataTimestamp): Orb {
+        return {
+            ename: positionData.pickupEname,
+            parentEname: positionData.pickupParent,
+            level: positionData.pickupLevel
+        }
     }
 }

@@ -1,3 +1,5 @@
+import { PositionDataTimestamp } from "../playback/position-data";
+
 export class BuzzerBase {
     id: number;
     parentEname: string;
@@ -14,5 +16,13 @@ export class Buzzer extends BuzzerBase {
     constructor(base: BuzzerBase, level: string) {
         super(base.id, base.parentEname);
         this.level = level;
+    }
+
+    public static fromPositionData(positionData: PositionDataTimestamp): Buzzer {
+        return {
+            id: positionData.pickupAmount,
+            parentEname: positionData.pickupParent,
+            level: positionData.pickupLevel
+        }
     }
 }

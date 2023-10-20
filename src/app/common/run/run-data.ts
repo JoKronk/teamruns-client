@@ -25,7 +25,7 @@ export class RunData {
         this.buildVersion = version;
     }
 
-    SetCategoryDefaultSettings(): void {
+    setCategoryDefaultSettings(): void {
         this.allowSoloHubZoomers = false;
         this.sharedWarpGatesBetweenTeams = false;
         this.citadelSkip = CitadelOption.Shared;
@@ -40,6 +40,14 @@ export class RunData {
                 this.citadelSkip = CitadelOption.Patched;
                 break;
         }
+    }
+
+    public static getFreeroamSettings(version: string): RunData {
+        const rundata = new RunData(version);
+        rundata.category = CategoryOption.Custom;
+        rundata.allowSoloHubZoomers = true;
+        rundata.noLTS = false;
+        return rundata;
     }
 }
 
