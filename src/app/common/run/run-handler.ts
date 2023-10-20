@@ -701,6 +701,7 @@ export class RunHandler {
 
     //used by both run component and practice/recording tool
     setupRunStart() {
+        this.positionHandler.resetOngoingRecordings();
         this.levelHandler.uncollectedLevelItems = new RunStateHandler();
 
         this.run?.teams.forEach(team => {

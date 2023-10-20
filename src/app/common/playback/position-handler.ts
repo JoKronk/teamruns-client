@@ -11,9 +11,9 @@ import { Timer } from "../run/timer";
 
 export class PositionHandler {
 
-    hasDrawnRecordingNames: boolean = false;
     recordings: Recording[] = [];
-    userPositionRecording: Recording[] = [];
+    private hasDrawnRecordingNames: boolean = false;
+    private userPositionRecording: Recording[] = [];
 
     timer: Timer = new Timer();
 
@@ -63,10 +63,14 @@ export class PositionHandler {
         const recordings = this.userPositionRecording;
         this.cleanupPlayers();
 
-        this.userPositionRecording = [];
+        this.resetOngoingRecordings();
         this.recordings = [];
         this.players = [];
         return recordings;
+    }
+
+    resetOngoingRecordings() {
+        this.userPositionRecording = [];
     }
 
     getPlayerIngameIndex(id: string): number | undefined {
