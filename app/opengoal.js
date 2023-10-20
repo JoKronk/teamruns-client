@@ -62,13 +62,18 @@ class OpenGoal {
             if (!openGoalIsRunning)
                 this.sendClientMessage("Failed to start the client properly, please relaunch!");
         });
+
+        openGoalREPL.on('close', () => {
+            replHasStarted = false;
+            replIsRunning = false;
+        });
     }
 
 
 
     async startOG() {
         if (openGoalIsRunning) {
-            this.killOG();
+            this.killGK();
             await sleep(1500);
         }
 
