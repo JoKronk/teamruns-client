@@ -5,8 +5,8 @@ import { RunState } from './run-state';
 
 export class Timer {
 
-  time: string;
-  timeMs: string;
+  timeString: string;
+  timeStringMs: string;
   countdownSeconds: number = 15;
 
   totalMs: number = 0;
@@ -29,8 +29,8 @@ export class Timer {
   }
   
   importTimer(timer: Timer) {
-    this.time = timer.time;
-    this.timeMs = timer.timeMs;
+    this.timeString = timer.timeString;
+    this.timeStringMs = timer.timeStringMs;
     this.startDateMs = timer.startDateMs;
     this.countdownSeconds = timer.countdownSeconds;
     this.totalMs = timer.totalMs;
@@ -86,8 +86,8 @@ export class Timer {
     this.hasSpawnedPlayer = false;
     this.pauseDateMs = null;
     this.runState = RunState.Waiting;
-    this.time = "-0:00:" + ("0" + this.countdownSeconds).slice(-2);
-    this.timeMs = ".0";
+    this.timeString = "-0:00:" + ("0" + this.countdownSeconds).slice(-2);
+    this.timeStringMs = ".0";
     this.totalMs = 0;
   }
 
@@ -141,8 +141,8 @@ export class Timer {
 
     //only update text if timer has increased by .1
     if (updateText) {
-      this.time = this.runState === RunState.Started ? (Timer.msToTimeFormat(this.totalMs)) : ("-0:00:" + Timer.getSecond(this.totalMs));
-      this.timeMs = "." + this.getMs(this.totalMs);
+      this.timeString = this.runState === RunState.Started ? (Timer.msToTimeFormat(this.totalMs)) : ("-0:00:" + Timer.getSecond(this.totalMs));
+      this.timeStringMs = "." + this.getMs(this.totalMs);
     }
 
     
@@ -176,13 +176,13 @@ export class Timer {
       return ("0" + Math.abs(Math.floor((ms % (1000 * 60)) / 1000))).slice(-2);
   }
 
-  public static msToTimeFormat(ms: number, includeMs: boolean = false, shortened: boolean = false) {
-      let time = Timer.getHour(ms) + ":" + Timer.getMinutes(ms) + ":" + Timer.getSecond(ms);
+  public static msToTimeFormat(ms: number, includeMs: boolean = false, shortenedFormat: boolean = false): string {
+      let time: string = Timer.getHour(ms) + ":" + Timer.getMinutes(ms) + ":" + Timer.getSecond(ms);
       
       if (includeMs)
           time += "." + Math.trunc(Math.floor((ms % 1000)) / 100);
       
-      if (shortened) {
+      if (shortenedFormat) {
           for (let i = 0; i < 3 && (time.charAt(0) === "0" || time.charAt(0) === ":"); i++)
           time = time.substring(1);
       }

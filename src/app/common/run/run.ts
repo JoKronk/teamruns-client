@@ -159,7 +159,7 @@ export class Run {
     }
     
     getTimerShortenedFormat(): string {
-        let time = this.timer.time + this.timer.timeMs;
+        let time = this.timer.timeString + this.timer.timeStringMs;
         for (let i = 0; i < 3 && (time.charAt(0) === "0" || time.charAt(0) === ":"); i++)
             time = time.substring(1);
         return time;
