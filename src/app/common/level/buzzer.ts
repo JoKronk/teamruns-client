@@ -20,9 +20,9 @@ export class Buzzer extends BuzzerBase {
 
     public static fromPositionData(positionData: PositionDataTimestamp): Buzzer {
         return {
-            id: positionData.pickupAmount,
-            parentEname: positionData.pickupParent,
-            level: positionData.pickupLevel
+            id: positionData.interAmount,
+            parentEname: positionData.interParent,
+            level: positionData.interLevel
         }
     }
 }

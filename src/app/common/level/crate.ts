@@ -23,10 +23,10 @@ export class Crate extends CrateBase {
 
     public static fromPositionData(positionData: PositionDataTimestamp): Crate {
         return {
-            ename: positionData.pickupEname,
-            type: positionData.pickupType,
-            pickupAmount: positionData.pickupAmount,
-            level: positionData.pickupLevel
+            ename: positionData.interName,
+            type: positionData.interType,
+            pickupAmount: positionData.interAmount,
+            level: positionData.interLevel
         }
     }
 

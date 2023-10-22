@@ -20,9 +20,9 @@ export class Orb extends OrbBase {
 
     public static fromPositionData(positionData: UserPositionDataTimestamp): Orb {
         return {
-            ename: positionData.pickupEname,
-            parentEname: positionData.pickupParent,
-            level: positionData.pickupLevel
+            ename: positionData.interName,
+            parentEname: positionData.interParent,
+            level: positionData.interLevel
         }
     }
 }

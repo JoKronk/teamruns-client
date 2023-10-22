@@ -20,9 +20,9 @@ export class Eco extends EcoBase {
 
     public static fromPositionData(positionData: UserPositionDataTimestamp): Eco {
         return {
-            ename: positionData.pickupEname,
-            parentEname: positionData.pickupParent,
-            level: positionData.pickupLevel
+            ename: positionData.interName,
+            parentEname: positionData.interParent,
+            level: positionData.interLevel
         }
     }
 }

@@ -181,7 +181,7 @@ export class PositionHandler {
     }
 
     private checkSendRecordingPickup(currentPlayer: CurrentPositionData, positionData: PositionDataTimestamp) {
-        if (currentPlayer.mpState === MultiplayerState.interactive && positionData.pickupType !== InteractionType.none) {
+        if (currentPlayer.mpState === MultiplayerState.interactive && positionData.interType !== InteractionType.none) {
             this.interactiveRecordingPickups.next(new UserPositionDataTimestamp(positionData, positionData.time, new UserBase(currentPlayer.userId, currentPlayer.username)));
         }
     }

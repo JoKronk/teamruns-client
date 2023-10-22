@@ -344,10 +344,10 @@ export class RunHandler {
     }
 
     handlePlayerInteractions(positionData: UserPositionDataTimestamp) {
-        if (positionData.pickupType === InteractionType.none || !this.run) return;
+        if (positionData.interType === InteractionType.none || !this.run) return;
         const userId = this.userService.getId();
 
-        switch (positionData.pickupType) {
+        switch (positionData.interType) {
 
             case InteractionType.gameTask:
                 if (!this.localPlayer.team || this.userIsNull()) break;
@@ -423,7 +423,7 @@ export class RunHandler {
             case InteractionType.money:
                 if (!this.localPlayer.team) break;
                 
-                let teamOrbLevelState = this.localPlayer.team.runState.getCreateLevel(positionData.pickupLevel);
+                let teamOrbLevelState = this.localPlayer.team.runState.getCreateLevel(positionData.interLevel);
                 const orb = Orb.fromPositionData(positionData);
                 if (this.localPlayer.team.runState.isOrbDupe(orb, teamOrbLevelState)) {
                     if (positionData.userId === userId)
@@ -444,7 +444,7 @@ export class RunHandler {
                 if (!this.localPlayer.team) break;
                 if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id)) {
                     const index = this.positionHandler.getPlayerIngameIndex(positionData.userId);
-                    if (index !== undefined) OG.runCommand("(safe-give-eco-by-target-idx " + index + " " + positionData.pickupType + " " + positionData.pickupAmount + ".0)");
+                    if (index !== undefined) OG.runCommand("(safe-give-eco-by-target-idx " + index + " " + positionData.interType + " " + positionData.interAmount + ".0)");
                     this.levelHandler.onEcoPickup(Eco.fromPositionData(positionData));
                 }
                 break;

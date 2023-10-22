@@ -20,8 +20,8 @@ export class GameTask {
 
     public static fromPositionData(positionData: UserPositionDataTimestamp): GameTask {
         return {
-            name: positionData.pickupEname,
-            status: TaskStatus.nameFromEnum(positionData.pickupAmount),
+            name: positionData.interName,
+            status: TaskStatus.nameFromEnum(positionData.interAmount),
             user: new UserBase(positionData.userId, positionData.username),
             timerTime: Timer.msToTimeFormat(positionData.time, true, true)
         }

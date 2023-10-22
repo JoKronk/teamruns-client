@@ -11,11 +11,11 @@ export class PositionData {
     quatZ: number;
     quatW: number;
     rotY: number;
-    pickupType: number;
-    pickupAmount: number;
-    pickupEname: string;
-    pickupParent: string;
-    pickupLevel: string;
+    interType: number;
+    interAmount: number;
+    interName: string;
+    interParent: string;
+    interLevel: string;
     tgtState: any;
 
     constructor() {
@@ -33,11 +33,11 @@ export class PositionDataTimestamp extends PositionData {
         this.quatY = positionData.quatY;
         this.quatZ = positionData.quatZ;
         this.rotY = positionData.rotY;
-        this.pickupType = positionData.pickupType;
-        this.pickupAmount = positionData.pickupAmount;
-        this.pickupEname = positionData.pickupEname;
-        this.pickupParent = positionData.pickupParent;
-        this.pickupLevel = positionData.pickupLevel;
+        this.interType = positionData.interType;
+        this.interAmount = positionData.interAmount;
+        this.interName = positionData.interName;
+        this.interParent = positionData.interParent;
+        this.interLevel = positionData.interLevel;
         this.tgtState = positionData.tgtState;
         this.transX = positionData.transX;
         this.transY = positionData.transY;
@@ -90,11 +90,11 @@ export class CurrentPositionData extends PositionData {
         this.quatY = positionData.quatY;
         this.quatZ = positionData.quatZ;
         this.rotY = positionData.rotY;
-        this.pickupType = positionData.pickupType;
-        this.pickupAmount = positionData.pickupAmount;
-        this.pickupEname = positionData.pickupEname;
-        this.pickupParent = positionData.pickupParent;
-        this.pickupLevel = positionData.pickupLevel;
+        this.interType = positionData.interType;
+        this.interAmount = positionData.interAmount;
+        this.interName = positionData.interName;
+        this.interParent = positionData.interParent;
+        this.interLevel = positionData.interLevel;
         this.tgtState = positionData.tgtState;
         this.transX = positionData.transX;
         this.transY = positionData.transY;
