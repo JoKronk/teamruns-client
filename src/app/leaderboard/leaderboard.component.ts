@@ -13,6 +13,7 @@ Chart.register(zoomPlugin);
 import 'chartjs-adapter-date-fns';
 import { Timer } from '../common/run/timer';
 import { Team } from '../common/run/team';
+import { Task } from '../common/opengoal/task';
 
 @Component({
   selector: 'app-leaderboard',
@@ -204,9 +205,11 @@ export class LeaderboardComponent {
     else {
       this.selectedRun = run;
       let team = new Team(0, "");
-      team.splits = this.selectedRun.tasks;
-      team.splits.forEach((task, index) => {
-        team.splits[index].obtainedByName = this.usersCollection?.users.find(x => x.id === task.obtainedById)?.name ?? "Unknown";
+      
+      this.selectedRun.tasks.forEach(dbTask => {
+        let task = Task.fromDbTask(dbTask);
+        task.obtainedByName = this.usersCollection?.users.find(x => x.id === task.obtainedById)?.name ?? "Unknown";
+        team.splits.push(task);
       });
       team.runState.cellCount = this.selectedRun.tasks.filter(x => x.isCell).length;
       this.selectedTeam = team;

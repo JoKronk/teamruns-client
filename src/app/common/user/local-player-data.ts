@@ -79,13 +79,13 @@ export class LocalPlayerData {
       this.isSyncing = true;
       setTimeout(() => {  //give the player some time to spawn in
         if (!run.isMode(RunMode.Lockout)) {
-          this.team!.splits.filter(x => x.isCell).forEach(cell => {
+          this.team!.splits.filter(x => x.isCollectedCell).forEach(cell => {
             OG.updateTask(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName), cell.obtainedAt));
           });
         }
         else {
           run.teams.forEach(runTeam => {
-            runTeam.splits.filter(x => x.isCell).forEach(cell => {
+            runTeam.splits.filter(x => x.isCollectedCell).forEach(cell => {
               OG.updateTask(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName), cell.obtainedAt));
             });
           });

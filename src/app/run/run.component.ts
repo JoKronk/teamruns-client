@@ -54,7 +54,6 @@ export class RunComponent implements OnDestroy {
       if (confirmed) {
         this.localPlayer.state = PlayerState.Forfeit;
         let task = new GameTask(Task.forfeit, this.localPlayer.user, this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
-        this.runHandler.sendEvent(EventType.NewTaskUpdate, task);
         this.runHandler.sendEvent(EventType.EndPlayerRun, task);
       }
     });

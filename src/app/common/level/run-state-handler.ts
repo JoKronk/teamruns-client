@@ -33,7 +33,7 @@ export class RunStateHandler {
 
         if (Task.isCellCollect(task)) {
             this.addCell(task.name, levelName);
-            this.orbCount -= Task.cellCost(task.name);
+            this.orbCount -= Task.cellCost(task);
         }
     }
 

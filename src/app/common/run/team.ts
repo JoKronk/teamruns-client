@@ -8,7 +8,7 @@ export class Team {
     id: number;
     name: string;
     players: Player[] = [];
-    splits: Task[];
+    splits: Task[] = [];
     endTimeMs: number = 0;
     
     runState: RunStateHandler;
@@ -33,7 +33,7 @@ export class Team {
     }
     
     addSplit(split: Task) {
-        if (split.isCell) {
+        if (split.isCollectedCell) {
             const player = this.players.find(x => x.user.id === split.obtainedById);
             if (player) player.cellsCollected++;
         }

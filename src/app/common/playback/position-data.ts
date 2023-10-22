@@ -52,6 +52,7 @@ export class UserPositionDataTimestamp extends PositionDataTimestamp {
 
     constructor(positionData: PositionData, time: number, user: UserBase) {
         super(positionData, time);
+        this.time = time;
         this.userId = user.id;
         this.username = user.name;
     }

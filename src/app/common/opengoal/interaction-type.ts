@@ -5,7 +5,7 @@ export enum InteractionType {
   ecoBlue,
   ecoGreen,
   money,
-  fuelCell,
+  gameTask,
   enemyKill,
   buzzer,
   crateNormal,

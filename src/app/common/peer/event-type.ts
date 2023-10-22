@@ -12,7 +12,6 @@ export enum EventType {
     PositionChannelClosed,
     Ready,
     StartRun,
-    NewTaskUpdate,
     NewPlayerState,
     ChangeTeam,
     ChangeTeamName,

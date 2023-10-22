@@ -34,6 +34,11 @@ export class TaskStatus {
             this.needResolution
         ];
     }
+
+    public static nameFromEnum(status: number): string {
+        if (status > 7) return this.invalid;
+        return(this.getTaskNames()[status]);
+    }
     
     public static getEnumValue(status: string): number {
         return this.getEnumValues().get(status) ?? 1;

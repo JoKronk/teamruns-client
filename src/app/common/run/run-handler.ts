@@ -121,10 +121,6 @@ export class RunHandler {
                     this.handlePlayerInteractions(positionData);
             }
 
-            //task updates
-            if (target.task)
-                this.handleTaskUpdate(target.task);
-
             //handle game state changes for current player
             if (target.state)
                 this.handleStateChange(target.state);
@@ -207,8 +203,12 @@ export class RunHandler {
         return this.run?.getPlayer(userId);
     }
 
+    userIsNull() {
+        return !this.localPlayer.user.id || this.localPlayer.user.id === "";
+    }
+
     isSpectatorOrNull() {
-        return !this.localPlayer.user.id || this.localPlayer.user.id === "" || this.lobby?.hasSpectator(this.localPlayer.user.id);
+        return this.userIsNull() || this.lobby?.hasSpectator(this.localPlayer.user.id);
     }
 
     getNewBackupHost() {
@@ -318,25 +318,28 @@ export class RunHandler {
     }
 
 
-    sendPosition(target: UserPositionDataTimestamp) {
+    sendPosition(positionData: UserPositionDataTimestamp) {
         if (!this.isOnlineInstant) return;
 
         if (this.localSlave) {
-            this.localSlave.peer.sendPosition(target);
+            this.localSlave.peer.sendPosition(positionData);
         }
         else if (this.localMaster && this.lobby?.host?.id === this.localPlayer.user.id && !this.localMaster.isBeingDestroyed)
-            this.localMaster?.relayPositionToSlaves(target);
+            this.localMaster?.relayPositionToSlaves(positionData);
     }
 
-    onPostionChannelUpdate(target: UserPositionDataTimestamp, isMaster: boolean) {
+    onPostionChannelUpdate(positionData: UserPositionDataTimestamp, isMaster: boolean) {
+        if (!this.run) return;
         //send updates from master to all slaves
         if (isMaster && this.isOnlineInstant)
-            this.localMaster?.relayPositionToSlaves(target);
+            this.localMaster?.relayPositionToSlaves(positionData);
 
-        if (target.userId !== this.userService.getId()) {
-            this.positionHandler.updatePlayerPosition(target);
-        if (this.run?.timer.runState === RunState.Started)
-            this.handlePlayerInteractions(target);
+        if (positionData.userId !== this.userService.getId()) {
+            this.positionHandler.updatePlayerPosition(positionData);
+
+        const player = this.run.getPlayer(positionData.userId);
+        if (this.run?.timer.runState === RunState.Started && player && player.state !== PlayerState.Finished && player.state !== PlayerState.Forfeit)
+            this.handlePlayerInteractions(positionData);
         }
     }
 
@@ -345,9 +348,69 @@ export class RunHandler {
         const userId = this.userService.getId();
 
         switch (positionData.pickupType) {
+
+            case InteractionType.gameTask:
+                if (!this.localPlayer.team || this.userIsNull()) break;
+                
+                const task = GameTask.fromPositionData(positionData);
+                const isNewTask: boolean = this.localPlayer.team.runState.isNewTaskStatus(task);
+                if (positionData.userId === userId)
+                {
+                    //check duped cell buy
+                    if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.tasksStatuses.has(task.name) && this.localPlayer.team.runState.tasksStatuses.get(task.name)! === TaskStatus.getEnumValue(TaskStatus.needResolution))
+                        OG.runCommand("(send-event *target* 'get-pickup 5 " + Task.cellCost(task) + ".0)");
+
+                    if (task.name === "citadel-sage-green")
+                        this.localPlayer.hasCitadelSkipAccess = false;
+
+                    if (isNewTask && Task.isRunEnd(task)) {
+                        this.zone.run(() => {
+                            this.localPlayer.state = PlayerState.Finished;
+                            this.sendEvent(EventType.EndPlayerRun, task);
+                        });
+                    }
+                }
+
+                if (!isNewTask) break;
+                
+                const isCell: boolean = Task.isCellCollect(task);
+                if (isCell || Task.isRunEnd(task)) {
+                    this.zone.run(() => {
+                        this.run!.addSplit(new Task(task));
+                    });
+                }
+
+                const playerTeam = this.run.getPlayerTeam(positionData.userId);
+                if (!playerTeam) break;
+                const isLocalPlayerTeam = playerTeam.id === this.localPlayer.team.id;
+                
+
+                //handle none current user things
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || isLocalPlayerTeam)) {
+
+                    //task updates
+                    this.levelHandler.onNewTask(task, isCell);
+
+                    //cell cost check
+                    if (isCell && isLocalPlayerTeam && !this.run.isMode(RunMode.Lockout)) {
+                        const cost = Task.cellCost(task);
+                        if (cost !== 0)
+                            OG.runCommand("(send-event *target* 'get-pickup 5 -" + cost + ".0)");
+                    }
+
+                    this.localPlayer.checkTaskUpdateSpecialCases(task, this.run, (this.run.data.sharedWarpGatesBetweenTeams || isLocalPlayerTeam));
+                }
+                
+                //add to team run state
+                playerTeam.runState.addTask(task, this.localPlayer.gameState.currentLevel);
+
+                //handle Lockout
+                if (this.run.isMode(RunMode.Lockout))
+                    this.localPlayer.checkLockoutRestrictions(this.run);
+                break;
         
             case InteractionType.buzzer:
-                if (!this.localPlayer.team) return;
+                if (!this.localPlayer.team) break;
 
                 const buzzer = Buzzer.fromPositionData(positionData);
                 if (positionData.userId !== userId && this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id)
@@ -358,13 +421,13 @@ export class RunHandler {
             
 
             case InteractionType.money:
-                if (!this.localPlayer.team) return;
+                if (!this.localPlayer.team) break;
                 
-                const teamOrbLevelState = this.localPlayer.team.runState.getCreateLevel(positionData.pickupLevel);
+                let teamOrbLevelState = this.localPlayer.team.runState.getCreateLevel(positionData.pickupLevel);
                 const orb = Orb.fromPositionData(positionData);
                 if (this.localPlayer.team.runState.isOrbDupe(orb, teamOrbLevelState)) {
                     if (positionData.userId === userId)
-                        OG.runCommand("(send-event *target* 'get-pickup 5 -1.0)");
+                        OG.runCommand('(remove-money-dupe-from-level "' + orb.level + '")');
                     break;
                 }
                 if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
@@ -378,7 +441,7 @@ export class RunHandler {
             case InteractionType.ecoYellow:
             case InteractionType.ecoGreen:
             case InteractionType.ecoRed:
-                if (!this.localPlayer.team) return;
+                if (!this.localPlayer.team) break;
                 if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id)) {
                     const index = this.positionHandler.getPlayerIngameIndex(positionData.userId);
                     if (index !== undefined) OG.runCommand("(safe-give-eco-by-target-idx " + index + " " + positionData.pickupType + " " + positionData.pickupAmount + ".0)");
@@ -391,7 +454,7 @@ export class RunHandler {
             case InteractionType.crateIron:
             case InteractionType.crateSteel:
             case InteractionType.crateDarkeco:
-                if (!this.localPlayer.team) return;
+                if (!this.localPlayer.team) break;
                 const crate = Crate.fromPositionData(positionData);
                 if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !Crate.isBuzzerType(crate.type)) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
                     this.levelHandler.onCrateDestroy(crate);
@@ -564,6 +627,9 @@ export class RunHandler {
 
             case EventType.EndPlayerRun:
                 this.zone.run(() => {
+                    if (Task.isRunEnd(event.value))
+                        this.run!.addSplit(new Task(event.value));
+
                     this.run?.endPlayerRun(event.userId, event.value.name === Task.forfeit);
                     this.run?.isMode(RunMode.Lockout) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
 
@@ -574,52 +640,6 @@ export class RunHandler {
                     }
                 });
                 break;
-
-
-            case EventType.NewTaskUpdate:
-                if (!this.localPlayer.team) return;
-                const task: GameTask = event.value;
-                const isCell: boolean = Task.isCellCollect(task);
-
-                if (isCell || Task.isRunEnd(task)) {
-                    this.zone.run(() => {
-                        this.run!.addSplit(new Task(task));
-                    });
-                }
-
-                const playerTeam = this.run.getPlayerTeam(event.userId);
-                if (!playerTeam) return;
-                const isLocalPlayerTeam = playerTeam.id === this.localPlayer.team.id;
-                
-
-                //handle none current user things
-                if (event.userId !== userId && this.run.isMode(RunMode.Lockout) || isLocalPlayerTeam) {
-
-                    //task updates
-                    OG.updateTask(task, isCell);
-
-                    //cell updates
-                    if (isCell) {
-                        this.levelHandler.onNewCell(task);
-                        if (isLocalPlayerTeam && !this.run.isMode(RunMode.Lockout)) { //need lockout check for free for all scenarios
-                            const cost = Task.cellCost(task.name);
-                            if (cost !== 0)
-                                OG.runCommand("(send-event *target* 'get-pickup 5 -" + cost + ".0)");
-                        }
-                    }
-
-                    this.localPlayer.checkTaskUpdateSpecialCases(task, this.run, (this.run.data.sharedWarpGatesBetweenTeams || isLocalPlayerTeam));
-                }
-                
-                //add to team run state
-                playerTeam.runState.addTask(task, this.localPlayer.gameState.currentLevel);
-
-                //handle Lockout
-                if (this.run.isMode(RunMode.Lockout))
-                    this.localPlayer.checkLockoutRestrictions(this.run);
-
-                break;
-
 
             case EventType.NewPlayerState:
                 this.zone.run(() => {
@@ -720,38 +740,6 @@ export class RunHandler {
         await this.firestoreService.updateLobby(this.lobby);
     }
 
-
-    handleTaskUpdate(task: GameTask) {
-        this.zone.run(() => {
-            if (!this.run || this.isSpectatorOrNull()) return;
-
-            //check duped cell buy
-            if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.tasksStatuses.has(task.name) && this.localPlayer.team.runState.tasksStatuses.get(task.name)! === TaskStatus.getEnumValue(TaskStatus.needResolution))
-                OG.runCommand("(send-event *target* 'get-pickup 5 " + Task.cellCost(task.name) + ".0)");
-
-            if (!this.localPlayer.team || !this.localPlayer.team.runState.isNewTaskStatus(task)) return;
-
-            if (this.shouldSendTaskUpdate() || task.name === Task.lastboss) {
-                task.timerTime = this.run.getTimerShortenedFormat();
-                task.user = this.localPlayer.user;
-
-                if (task.name === "citadel-sage-green")
-                    this.localPlayer.hasCitadelSkipAccess = false;
-
-                this.sendEvent(EventType.NewTaskUpdate, task);
-
-                //run end
-                if (task.name === Task.lastboss) {
-                    this.localPlayer.state = PlayerState.Finished;
-                    this.sendEvent(EventType.EndPlayerRun, task);
-                }
-            }
-        });
-    }
-
-    private shouldSendTaskUpdate(): boolean {
-        return this.run!.timer.runState === RunState.Started && this.localPlayer.state !== PlayerState.Finished && this.localPlayer.state !== PlayerState.Forfeit;
-    }
 
     handleStateChange(state: GameState) {
         this.zone.run(() => {

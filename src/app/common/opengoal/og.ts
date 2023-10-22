@@ -15,8 +15,13 @@ export class OG {
   }
 
   static updateTask(task: GameTask, isCell: boolean | undefined = undefined) {
-    if (isCell !== undefined ? isCell : Task.isCellCollect(task))
-      this.runCommand("(dm-give-cell (game-task " + task.name + "))");
+    if (isCell ?? Task.isCellCollect(task)) {
+      const cellEname: string | undefined = Task.getCellEname(task.name);
+      if (cellEname)
+        this.runCommand('(give-fuel-cell "' + cellEname + '" (game-task ' + task.name + '))');
+      else
+        this.runCommand("(dm-give-cell (game-task " + task.name + "))");
+    }
     else
       this.runCommand("(close-specific-task! (game-task " + task.name + ") (task-status " + task.status + "))");
   }

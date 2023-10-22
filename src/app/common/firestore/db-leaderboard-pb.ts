@@ -1,13 +1,13 @@
-import { Task } from "../opengoal/task";
 import { Timer } from "../run/timer";
 import { DbPb } from "./db-pb";
+import { DbTask } from "./db-task";
 import { DbUsersCollection } from "./db-users-collection";
 
 export class DbLeaderboardPb {
     version: string;
     date: number;
     userIds: string[];
-    tasks: Task[];
+    tasks: DbTask[];
     endTimeMs: number;
     playbackAvailable: boolean;
 

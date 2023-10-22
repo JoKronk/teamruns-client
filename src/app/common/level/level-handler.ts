@@ -28,8 +28,15 @@ export class LevelHandler {
         const taskStatuses = TaskStatus.getTaskNames();
         for (const [name, status] of Object.entries(runStateHandler.tasksStatuses)) {
             const task: GameTask = new GameTask(name, localPlayer.user, "0.0", taskStatuses[status]);
-            if (!Task.isCellCollect(task))
-                OG.updateTask(task, false);
+            const isCell = Task.isCellCollect(task);
+
+            this.onNewTask(task, isCell);
+
+            if (isCell) {
+                const cost = Task.cellCost(task);
+                if (cost !== 0)
+                    OG.runCommand("(send-event *target* 'get-pickup 5 -" + cost + ".0)");
+            }
           }
           
         OG.runCommand("(reset-actors 'life)");
@@ -37,12 +44,6 @@ export class LevelHandler {
 
         //update collectables
         runStateHandler.levels.forEach(level => {
-        level.cellUpdates.forEach(taskName => {
-            this.onNewCell(new GameTask(taskName, localPlayer.user, "0.0"));
-            const cost = Task.cellCost(taskName)
-            if (cost !== 0)
-                OG.runCommand("(send-event *target* 'get-pickup 5 -" + cost + ".0)");
-        });
 
         level.buzzerUpdates.forEach(buzzerBase => {
             this.onBuzzerCollect(new Buzzer(buzzerBase, level.levelName));
@@ -74,22 +75,22 @@ export class LevelHandler {
 
 
 
-    onNewCell(cell: GameTask) {
-        OG.updateTask(cell, true);
+    onNewTask(task: GameTask, isCell: boolean) {
+        OG.updateTask(task, isCell);
 
-        const ename = Task.getCellEname(cell.name);
+        const ename = Task.getCellEname(task.name);
         if (!ename) return;
         const levelName = Task.getCellLevelByEname(ename);
         if (!levelName) return;
 
         if (this.levelIsActive(levelName))
-            this.killCell(ename, true);
+            this.killCell(ename);
         else
-            this.uncollectedLevelItems.addCell(cell.name, levelName);
+            this.uncollectedLevelItems.addCell(task.name, levelName);
     }
 
     onBuzzerCollect(buzzer: Buzzer) {
-        OG.runCommand('(pickup-collectable! (-> *target* fact-info-target) (pickup-type buzzer) ' + buzzer.id + '.0 (process->handle (-> (-> *target* fact-info-target) process)))');
+        OG.runCommand('(give-buzzer-from-level ' + buzzer.id + '.0 "' + buzzer.level + '")');
 
         if (this.levelIsActive(buzzer.level))
             this.killBuzzer(buzzer);
@@ -98,7 +99,7 @@ export class LevelHandler {
     }
 
     onOrbCollect(orb: Orb) {
-        OG.runCommand('(safe-give-money-from-level "' + orb.level + '")');
+        OG.runCommand('(give-money-from-level "' + orb.level + '")');
         
         if (this.levelIsActive(orb.level))
             this.killOrb(orb);
@@ -145,7 +146,7 @@ export class LevelHandler {
             level.cellUpdates.forEach(taskName => {
                 const ename = Task.getCellEname(taskName);
                 if (ename) {
-                    this.killCell(ename, false);
+                    this.killCell(ename);
                     this.uncollectedLevelItems.cellCount -= 1;
                 }
             });
@@ -170,10 +171,8 @@ export class LevelHandler {
 
     // ----- collection logic ----- | these are stored here instead of being methods of their own type so we don't have to Object.assign() every collectable
     
-    private killCell(ename: string, kill: boolean) {
-        OG.runCommand('(process-entity-status! (the-as fuel-cell (process-by-ename "' + ename + '")) (entity-perm-status dead) #t)');
-        if (kill)
-            OG.runCommand('(kill-by-name "' + ename + '" *active-pool*)');
+    private killCell(ename: string) {
+        OG.runCommand('(safe-kill-fuel-cell "' + ename + '")');
     }
     
     private killBuzzer(buzzer: BuzzerBase) {
