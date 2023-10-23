@@ -24,7 +24,7 @@ export class PositionHandler {
 
     ogSocket: WebSocketSubject<any> = webSocket('ws://localhost:8111');
     private launchListener: any;
-    interactiveRecordingPickups: Subject<UserPositionDataTimestamp> = new Subject();
+    recordingPickups: Subject<UserPositionDataTimestamp> = new Subject();
 
 
     constructor(public userService: UserService) {
@@ -38,6 +38,11 @@ export class PositionHandler {
         this.launchListener = (window as any).electron.receive("og-launched", (launched: boolean) => {
             if (launched)
                 this.connectToOpengoal();
+            else {
+                this.ogSocket.complete();
+                this.ogSocket = webSocket('ws://localhost:8111');
+            }
+
         });
     }
 
@@ -182,7 +187,7 @@ export class PositionHandler {
 
     private checkSendRecordingPickup(currentPlayer: CurrentPositionData, positionData: PositionDataTimestamp) {
         if (currentPlayer.mpState === MultiplayerState.interactive && positionData.interType !== InteractionType.none) {
-            this.interactiveRecordingPickups.next(new UserPositionDataTimestamp(positionData, positionData.time, new UserBase(currentPlayer.userId, currentPlayer.username)));
+            this.recordingPickups.next(new UserPositionDataTimestamp(positionData, positionData.time, new UserBase(currentPlayer.userId, currentPlayer.username)));
         }
     }
 

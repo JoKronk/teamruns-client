@@ -106,7 +106,8 @@ export class RunHandler {
         if (this.userService.gameLaunched)
             this.setupSocketListener();
         this.launchListener = (window as any).electron.receive("og-launched", (launched: boolean) => {
-            if (launched) this.setupSocketListener();
+            if (launched) 
+                this.setupSocketListener();
         });
     }
 
@@ -129,9 +130,11 @@ export class RunHandler {
                 this.levelHandler.onLevelsUpdate(target.levels);
         });
 
-        this.recordingsSubscription = this.positionHandler.interactiveRecordingPickups.subscribe(positionData => {
-            this.handlePlayerInteractions(positionData);
-        });
+        if (!this.recordingsSubscription) {
+            this.recordingsSubscription = this.positionHandler.recordingPickups.subscribe(positionData => {
+                this.handlePlayerInteractions(positionData);
+            });
+        }
     }
 
 
