@@ -22,6 +22,7 @@ import { Category } from "./category";
 import { DbRun } from "../firestore/db-run";
 import { UserPositionDataTimestamp } from "../playback/position-data";
 import { GameState } from "../opengoal/game-state";
+import { GameTaskLevelTime } from "../opengoal/game-task";
 import { Team } from "./team";
 import { TaskStatus } from "../opengoal/task-status";
 import { LevelHandler } from "../level/level-handler";
@@ -33,7 +34,7 @@ import { Eco } from "../level/eco";
 import pkg from 'app/package.json';
 import { PositionHandler } from "../playback/position-handler";
 import { RunStateHandler } from "../level/run-state-handler";
-import { GameTaskLevelTime } from "../opengoal/game-task";
+import { Level } from "../opengoal/levels";
 
 export class RunHandler {
 
@@ -464,6 +465,14 @@ export class RunHandler {
 
                 if (Crate.isBuzzerType(crate.type) || Crate.isOrbsType(crate.type))
                     this.run.getPlayerTeam(positionData.userId)?.runState.addCrate(crate);
+                break;
+
+
+            case InteractionType.fishCaught:
+            case InteractionType.fishMissed:
+                if (!this.localPlayer.team) break;
+                if (positionData.userId !== userId && this.levelHandler.levelIsActive(Level.jungle) && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    OG.runCommand("(set-fish-stats " + positionData.interAmount + " " + positionData.interType + ")");
                 break;
 
         }

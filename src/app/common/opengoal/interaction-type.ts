@@ -11,5 +11,7 @@ export enum InteractionType {
   crateNormal,
   crateIron,
   crateSteel,
-  crateDarkeco
+  crateDarkeco,
+  fishCaught,
+  fishMissed
 }

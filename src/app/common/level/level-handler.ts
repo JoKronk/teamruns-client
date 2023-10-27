@@ -123,7 +123,7 @@ export class LevelHandler {
 
     // ----- internal methods -----
 
-    private levelIsActive(levelName: string): boolean {
+    public levelIsActive(levelName: string): boolean {
         let level = this.levels.find(x => x.name === levelName);
         if (!level)
             return false;
