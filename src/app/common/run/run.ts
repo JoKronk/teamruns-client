@@ -3,7 +3,7 @@ import { Player } from "../player/player";
 import { RunMode } from "./run-mode";
 import { RunData } from "./run-data";
 import { GameState } from "../opengoal/game-state";
-import { GameTask } from "../opengoal/game-task";
+import { GameTaskTime } from "../opengoal/game-task";
 import { Task } from "../opengoal/task";
 import { Team } from "./team";
 import { Timer } from "./timer";
@@ -86,14 +86,14 @@ export class Run {
         return this.teams.every(x => x.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit));
     }
 
-    endTeamRun(task: GameTask): void {
+    endTeamRun(task: GameTaskTime): void {
         let team = this.getPlayerTeam(task.user.id);
         if (!team) return;
         if (team.players.every(y => y.state === PlayerState.Finished))
             team.endTimeMs = Timer.timeToMs(task.timerTime);
     }
 
-    endAllTeamsRun(task: GameTask): void {
+    endAllTeamsRun(task: GameTaskTime): void {
         this.teams.forEach((team, index) => {
             this.teams[index].endTimeMs = Timer.timeToMs(task.timerTime);
         });

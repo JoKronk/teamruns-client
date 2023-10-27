@@ -1,4 +1,4 @@
-import { GameTask } from "../opengoal/game-task";
+import { GameTask, GameTaskLevelTime } from "../opengoal/game-task";
 import { Task } from "../opengoal/task";
 import { TaskStatus } from "../opengoal/task-status";
 import { Buzzer, BuzzerBase } from "./buzzer";
@@ -10,29 +10,37 @@ export class RunStateHandler {
     levels: LevelCollectables[] = [];
 
     ////unused in LevelHandler
-    tasksStatuses: Map<string, number>;
+    tasksStatuses: GameTaskLevelTime[];
     cellCount: number;
     buzzerCount: number;
     orbCount: number;
 
     constructor() {
         this.levels = [];
-        this.tasksStatuses = new Map();
+        this.tasksStatuses = [];
         this.cellCount = 0;
         this.buzzerCount = 0;
         this.orbCount = 0;
     }
 
-    isNewTaskStatus(task: GameTask) {
+    isNewTaskStatus(task: GameTask): boolean {
         const statusValue: number = TaskStatus.getEnumValue(task.status);
-        return !this.tasksStatuses.has(task.name) || this.tasksStatuses.get(task.name)! < statusValue;
+        return !this.tasksStatuses.some(x => x.name === task.name) || TaskStatus.getEnumValue(this.tasksStatuses.find(x => x.name === task.name)!.status) < statusValue;
     }
 
-    addTask(task: GameTask, levelName: string) {
-        this.tasksStatuses.set(task.name, TaskStatus.getEnumValue(task.status));
+    hasAtleastTaskStatus(task: GameTask, status: string): boolean {
+        return this.tasksStatuses.some(x => x.name === task.name) && TaskStatus.getEnumValue(this.tasksStatuses.find(x => x.name === task.name)!.status) >= TaskStatus.getEnumValue(status)
+    }
+
+    addTask(task: GameTaskLevelTime) {
+        let oldTaskStatus = this.tasksStatuses.find(x => x.name === task.name);
+        if (oldTaskStatus)
+            this.tasksStatuses[this.tasksStatuses.indexOf(oldTaskStatus)] = task;
+        else
+            this.tasksStatuses.push(task);
 
         if (Task.isCellCollect(task)) {
-            this.addCell(task.name, levelName);
+            this.addCell(task.name, task.level);
             this.orbCount -= Task.cellCost(task);
         }
     }

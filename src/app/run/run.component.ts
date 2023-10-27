@@ -13,7 +13,7 @@ import { EventType } from '../common/peer/event-type';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
 import { UserBase } from '../common/user/user';
-import { GameTask } from '../common/opengoal/game-task';
+import { GameTaskTime } from '../common/opengoal/game-task';
 import { TaskStatus } from '../common/opengoal/task-status';
 
 @Component({
@@ -53,7 +53,7 @@ export class RunComponent implements OnDestroy {
       dialogSubscription.unsubscribe();
       if (confirmed) {
         this.localPlayer.state = PlayerState.Forfeit;
-        let task = new GameTask(Task.forfeit, this.localPlayer.user, this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
+        let task = new GameTaskTime(Task.forfeit, this.localPlayer.user, this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
         this.runHandler.sendEvent(EventType.EndPlayerRun, task);
       }
     });

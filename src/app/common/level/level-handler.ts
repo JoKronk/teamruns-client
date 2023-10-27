@@ -1,5 +1,5 @@
 import { Buzzer, BuzzerBase } from "./buzzer";
-import { GameTask } from "../opengoal/game-task";
+import { GameTaskLevelTime } from "../opengoal/game-task";
 import { OG } from "../opengoal/og";
 import { Orb, OrbBase } from "./orb";
 import { Task } from "../opengoal/task";
@@ -25,9 +25,7 @@ export class LevelHandler {
         OG.runCommand("(initialize! *game-info* 'game (the-as game-save #f) (the-as string #f))");
 
         //import task statuses to game
-        const taskStatuses = TaskStatus.getTaskNames();
-        for (const [name, status] of Object.entries(runStateHandler.tasksStatuses)) {
-            const task: GameTask = new GameTask(name, localPlayer.user, "0.0", taskStatuses[status]);
+        runStateHandler.tasksStatuses.forEach(task => {
             const isCell = Task.isCellCollect(task);
 
             this.onNewTask(task, isCell);
@@ -37,7 +35,7 @@ export class LevelHandler {
                 if (cost !== 0)
                     OG.runCommand("(send-event *target* 'get-pickup 5 -" + cost + ".0)");
             }
-          }
+        });
           
         OG.runCommand("(reset-actors 'life)");
 
@@ -75,25 +73,23 @@ export class LevelHandler {
 
 
 
-    onNewTask(task: GameTask, isCell: boolean) {
+    onNewTask(task: GameTaskLevelTime, isCell: boolean) {
         OG.updateTask(task, isCell);
 
         const ename = Task.getCellEname(task.name);
         if (!ename) return;
-        const levelName = Task.getCellLevelByEname(ename);
-        if (!levelName) return;
 
-        if (this.levelIsActive(levelName))
+        if (this.levelIsActive(task.level))
             this.killCell(ename);
         else
-            this.uncollectedLevelItems.addCell(task.name, levelName);
+            this.uncollectedLevelItems.addCell(task.name, task.level);
     }
 
     onBuzzerCollect(buzzer: Buzzer) {
         OG.runCommand('(give-buzzer-from-level ' + buzzer.id + '.0 "' + buzzer.level + '")');
 
         if (this.levelIsActive(buzzer.level))
-            this.killBuzzer(buzzer);
+            this.killBuzzer(buzzer, true, false);
         else
             this.uncollectedLevelItems.addBuzzer(buzzer);
     }
@@ -143,6 +139,12 @@ export class LevelHandler {
             level.crateUpdates.forEach(crate => {
                 this.destroyCrate(crate);
             });
+            
+            level.buzzerUpdates.forEach((buzzer, index) => {
+                this.killBuzzer(buzzer, index + 1 === level!.buzzerUpdates.length, true); //spawn cell only at last if complete
+                this.uncollectedLevelItems.buzzerCount -= 1;
+            });
+
             level.cellUpdates.forEach(taskName => {
                 const ename = Task.getCellEname(taskName);
                 if (ename) {
@@ -150,10 +152,7 @@ export class LevelHandler {
                     this.uncollectedLevelItems.cellCount -= 1;
                 }
             });
-            level.buzzerUpdates.forEach(buzzer => {
-                this.killBuzzer(buzzer);
-                this.uncollectedLevelItems.buzzerCount -= 1;
-            });
+
             level.orbUpdates.forEach(orb => {
                 this.killOrb(orb);
                 this.uncollectedLevelItems.orbCount -= 1;
@@ -175,9 +174,9 @@ export class LevelHandler {
         OG.runCommand('(safe-kill-fuel-cell "' + ename + '")');
     }
     
-    private killBuzzer(buzzer: BuzzerBase) {
+    private killBuzzer(buzzer: BuzzerBase, runPickup: boolean, killIfNotBuzzer: boolean) {
         if (buzzer.parentEname.startsWith("crate-"))
-            OG.runCommand('(safe-kill-crate-buzzer "' + buzzer.parentEname + '")');
+            OG.runCommand('(safe-kill-crate-buzzer "' + buzzer.parentEname + '" ' + (runPickup ? "#t" : "#f") + ' ' + (killIfNotBuzzer ? "#t" : "#f") + ')');
     }
 
     private killOrb(orb: OrbBase) {

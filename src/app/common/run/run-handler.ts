@@ -22,7 +22,6 @@ import { Category } from "./category";
 import { DbRun } from "../firestore/db-run";
 import { UserPositionDataTimestamp } from "../playback/position-data";
 import { GameState } from "../opengoal/game-state";
-import { GameTask } from "../opengoal/game-task";
 import { Team } from "./team";
 import { TaskStatus } from "../opengoal/task-status";
 import { LevelHandler } from "../level/level-handler";
@@ -34,6 +33,7 @@ import { Eco } from "../level/eco";
 import pkg from 'app/package.json';
 import { PositionHandler } from "../playback/position-handler";
 import { RunStateHandler } from "../level/run-state-handler";
+import { GameTaskLevelTime } from "../opengoal/game-task";
 
 export class RunHandler {
 
@@ -355,12 +355,12 @@ export class RunHandler {
             case InteractionType.gameTask:
                 if (!this.localPlayer.team || this.userIsNull()) break;
                 
-                const task = GameTask.fromPositionData(positionData);
+                const task: GameTaskLevelTime = GameTaskLevelTime.fromPositionData(positionData);
                 const isNewTask: boolean = this.localPlayer.team.runState.isNewTaskStatus(task);
                 if (positionData.userId === userId)
                 {
                     //check duped cell buy
-                    if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.tasksStatuses.has(task.name) && this.localPlayer.team.runState.tasksStatuses.get(task.name)! === TaskStatus.getEnumValue(TaskStatus.needResolution))
+                    if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.hasAtleastTaskStatus(task, TaskStatus.needResolution))
                         OG.runCommand("(send-event *target* 'get-pickup 5 " + Task.cellCost(task) + ".0)");
 
                     if (task.name === "citadel-sage-green")
@@ -405,7 +405,7 @@ export class RunHandler {
                 }
                 
                 //add to team run state
-                playerTeam.runState.addTask(task, this.localPlayer.gameState.currentLevel);
+                playerTeam.runState.addTask(task);
 
                 //handle Lockout
                 if (this.run.isMode(RunMode.Lockout))
