@@ -1,4 +1,5 @@
 import { GameTask, GameTaskLevelTime } from "../opengoal/game-task";
+import { Level } from "../opengoal/levels";
 import { Task } from "../opengoal/task";
 import { TaskStatus } from "../opengoal/task-status";
 import { Buzzer, BuzzerBase } from "./buzzer";
@@ -68,6 +69,11 @@ export class RunStateHandler {
     addCrate(crate: Crate) {
         const level = this.getCreateLevel(crate.level);
         level.crateUpdates.push(new CrateBase(crate.ename, crate.type, crate.pickupAmount));
+    }
+
+    addPeriscope(periscope: string) {
+        const level = this.getCreateLevel(Level.jungle);
+        level.periscopeUpdates.push(periscope);
     }
 
 

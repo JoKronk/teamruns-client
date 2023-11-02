@@ -6,12 +6,13 @@ export enum InteractionType {
   ecoGreen,
   money,
   gameTask,
-  enemyKill,
+  enemyDeath,
   buzzer,
   crateNormal,
   crateIron,
   crateSteel,
   crateDarkeco,
   fishCaught,
-  fishMissed
+  fishMissed,
+  periscope
 }

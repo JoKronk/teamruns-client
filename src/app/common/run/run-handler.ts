@@ -475,6 +475,15 @@ export class RunHandler {
                     OG.runCommand("(set-fish-stats " + positionData.interAmount + " " + positionData.interType + ")");
                 break;
 
+
+            case InteractionType.periscope:
+                if (!this.localPlayer.team) break;
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    this.levelHandler.onPeriscopeActivated(positionData.interName);
+
+                this.run.getPlayerTeam(positionData.userId)?.runState.addPeriscope(positionData.interName);
+                break;
+
         }
     }
 

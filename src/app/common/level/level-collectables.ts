@@ -9,6 +9,7 @@ export class LevelCollectables {
     buzzerUpdates: BuzzerBase[] = [];
     orbUpdates: OrbBase[] = [];
     crateUpdates: CrateBase[] = [];
+    periscopeUpdates: string[] = [];
 
     constructor(levelName: string) {
         this.levelName = levelName;

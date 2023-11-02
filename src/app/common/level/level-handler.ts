@@ -7,8 +7,8 @@ import { LevelStatus } from "./level-status";
 import { Crate, CrateBase } from "./crate";
 import { Eco } from "./eco";
 import { RunStateHandler } from "./run-state-handler";
-import { TaskStatus } from "../opengoal/task-status";
 import { LocalPlayerData } from "../user/local-player-data";
+import { Level } from "../opengoal/levels";
 
 export class LevelHandler {
 
@@ -43,17 +43,23 @@ export class LevelHandler {
         //update collectables
         runStateHandler.levels.forEach(level => {
 
-        level.buzzerUpdates.forEach(buzzerBase => {
-            this.onBuzzerCollect(new Buzzer(buzzerBase, level.levelName));
-        });
+            level.buzzerUpdates.forEach(buzzerBase => {
+                this.onBuzzerCollect(new Buzzer(buzzerBase, level.levelName));
+            });
 
-        level.orbUpdates.forEach(orbBase => {
-            this.onOrbCollect(new Orb(orbBase, level.levelName));
-        });
+            level.orbUpdates.forEach(orbBase => {
+                this.onOrbCollect(new Orb(orbBase, level.levelName));
+            });
 
-        level.crateUpdates.forEach(crateBase => {
-            this.onCrateDestroy(new Crate(crateBase, level.levelName));
-        });
+            level.crateUpdates.forEach(crateBase => {
+                this.onCrateDestroy(new Crate(crateBase, level.levelName));
+            });
+
+            level.periscopeUpdates.forEach(scope => {
+                this.activatePeriscope(scope);
+            });
+
+
         });
 
         //tp to first team player checkpoint
@@ -110,6 +116,13 @@ export class LevelHandler {
             this.uncollectedLevelItems.addCrate(crate);
     }
 
+    onPeriscopeActivated(periscope: string) {
+        if (this.levelIsActive(Level.jungle))
+            this.activatePeriscope(periscope);
+        else
+            this.uncollectedLevelItems.addPeriscope(periscope);
+    }
+
     onEcoPickup(eco: Eco) {
         if (!this.levelIsActive(eco.level)) return;
 
@@ -157,6 +170,10 @@ export class LevelHandler {
                 this.killOrb(orb);
                 this.uncollectedLevelItems.orbCount -= 1;
             });
+
+            level.periscopeUpdates.forEach(scope => {
+                this.activatePeriscope(scope);
+            });
     
             level.cellUpdates = [];
             level.buzzerUpdates = [];
@@ -190,5 +207,9 @@ export class LevelHandler {
 
     private destroyCrate(crate: CrateBase) {
         OG.runCommand('(safe-break-crate "' + crate.ename + '")');
+    }
+
+    private activatePeriscope(periscope: string) {
+        OG.runCommand('(periscope-activate-by-name "' + periscope + '")');
     }
 }
