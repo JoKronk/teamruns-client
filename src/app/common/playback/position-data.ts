@@ -66,6 +66,7 @@ export class CurrentPositionData extends PositionData {
     color: Color;
     mpState: MultiplayerState;
 
+    hasBeenUpdatedDuringFrame: boolean;
     recordingDataIndex: number | undefined; // only used by recordings
 
     constructor(user: UserBase, state: MultiplayerState) {
@@ -74,6 +75,7 @@ export class CurrentPositionData extends PositionData {
         this.userId = user.id;
         this.mpState = state;
         this.color = Color.normal;
+        this.hasBeenUpdatedDuringFrame = false;
     }
 
     // returns if has updated
@@ -99,6 +101,8 @@ export class CurrentPositionData extends PositionData {
         this.transX = positionData.transX;
         this.transY = positionData.transY;
         this.transZ = positionData.transZ;
+
+        this.hasBeenUpdatedDuringFrame = true;
 
         return true;
     }

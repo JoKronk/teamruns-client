@@ -179,6 +179,14 @@ export class PositionHandler {
             }
         }
 
+        //ensure interaction don't run twice
+        this.players.forEach(player => {
+            if (!player.hasBeenUpdatedDuringFrame)
+                player.interType = InteractionType.none;
+
+           player.hasBeenUpdatedDuringFrame = false; 
+        });
+
         this.updatePlayersInOpengoal();
         await new Promise(r => setTimeout(r, this.positionUpdateRateMs));
 
