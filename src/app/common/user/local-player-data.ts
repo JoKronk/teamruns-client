@@ -20,7 +20,6 @@ export class LocalPlayerData {
 
   restrictedZoomerLevels: string[];
 
-  killKlawwOnSpot: boolean;
   hasCitadelSkipAccess: boolean;
   isSyncing: boolean = false;
 
@@ -31,7 +30,6 @@ export class LocalPlayerData {
 
   resetRunDependentProperties() {
     this.restrictedZoomerLevels = [Level.fireCanyon, Level.mountainPass, Level.lavaTube];
-    this.killKlawwOnSpot = false;
     this.hasCitadelSkipAccess = true;
   }
 
@@ -54,18 +52,6 @@ export class LocalPlayerData {
                 OG.giveFinalBossAccess(this.gameState.currentLevel);
         }
     }
-  }
-
-
-  checkKillKlaww() {
-    if (!this.killKlawwOnSpot || this.gameState.currentLevel !== "ogre" || this.gameState.onZoomer)
-      return;
-
-    OG.runCommand('(process-entity-status! (process-by-ename "ogre-bridge-1") (entity-perm-status complete) #t)');
-    OG.runCommand('(process-entity-status! (process-by-ename "ogreboss-1") (entity-perm-status complete) #t)');
-    OG.runCommand("(reset-actors 'life)");
-    OG.runCommand("(safe-release-from-grab)");
-    this.killKlawwOnSpot = false;
   }
 
 
@@ -114,13 +100,6 @@ export class LocalPlayerData {
   checkTaskUpdateSpecialCases(task: GameTask, run: Run) {
 
     switch (task.name) {
-      //handle klaww kill
-      case "ogre-boss":
-        if (task.status === TaskStatus.needReminder) {
-          this.killKlawwOnSpot = true;
-          this.checkKillKlaww();
-      }
-        break;
       //handle citadel elevator cell cases
       case "citadel-sage-green": 
       if (task.status === TaskStatus.needResolution) {

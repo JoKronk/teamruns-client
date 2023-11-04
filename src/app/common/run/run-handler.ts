@@ -790,9 +790,6 @@ export class RunHandler {
             if (this.localPlayer.gameState.justSpawned)
                 this.localPlayer.checkCitadelElevator();
 
-            //handle klaww kill
-            this.localPlayer.checkKillKlaww();
-
             //handle no LTS
             if (this.run.data.noLTS)
                 this.localPlayer.checkNoLTS();
