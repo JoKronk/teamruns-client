@@ -1,5 +1,3 @@
-import { WebSocketSubject } from "rxjs/webSocket";
-import { CurrentPositionData } from "../playback/position-data";
 import { GameTask } from "./game-task";
 import { Task } from "./task";
 
@@ -20,10 +18,10 @@ export class OG {
       if (cellEname)
         this.runCommand('(give-fuel-cell "' + cellEname + '" (game-task ' + task.name + '))');
       else
-        this.runCommand("(dm-give-cell (game-task " + task.name + "))");
+        this.runCommand("(dm-give-cell-from-remote (game-task " + task.name + "))");
     }
     else
-      this.runCommand("(close-specific-task! (game-task " + task.name + ") (task-status " + task.status + "))");
+      this.runCommand("(close-specific-task-from-remote! (game-task " + task.name + ") (task-status " + task.status + "))");
   }
 
   static giveFinalBossAccess(currentLevel: string) {

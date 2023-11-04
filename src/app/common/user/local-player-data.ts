@@ -104,9 +104,9 @@ export class LocalPlayerData {
 
   checkForZoomerTalkSkip(playerGameState: GameState) {
     if (playerGameState.currentLevel === Level.fireCanyon && playerGameState.onZoomer && this.restrictedZoomerLevels.includes(Level.fireCanyon))
-      OG.runCommand("(close-specific-task! (game-task firecanyon-assistant) (task-status need-reward-speech))");
+      OG.runCommand("(close-specific-task-from-remote! (game-task firecanyon-assistant) (task-status need-reward-speech))");
     if (playerGameState.currentLevel === Level.lavaTube && playerGameState.onZoomer && this.restrictedZoomerLevels.includes(Level.lavaTube))
-      OG.runCommand("(close-specific-task! (game-task lavatube-start) (task-status need-reward-speech))");
+      OG.runCommand("(close-specific-task-from-remote! (game-task lavatube-start) (task-status need-reward-speech))");
   }
 
 
@@ -132,7 +132,7 @@ export class LocalPlayerData {
       case "plunger-lurker-hit":
         //!TODO: softlocks sometimes
         /*
-        OG.runCommand("(close-specific-task! (game-task plunger-lurker-hit) (task-status need-hint))");
+        OG.runCommand("(close-specific-task-from-remote! (game-task plunger-lurker-hit) (task-status need-hint))");
         OG.runCommand('(process-entity-status! (process-by-ename "plunger-lurker-3")(entity-perm-status complete) #t)');
         OG.runCommand('(cleanup-for-death (the-as (process-by-ename "plunger-lurker-3")))');
         OG.runCommand('(deactivate (process-by-ename "plunger-lurker-3"))');
