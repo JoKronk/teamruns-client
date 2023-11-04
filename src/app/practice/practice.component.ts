@@ -87,12 +87,12 @@ export class PracticeComponent implements OnDestroy {
 
     //timer end listener
     this.timerEndSubscription = this.runHandler.positionHandler.timer.timerEndSubject.subscribe(ended => {
-      this.checkStop();
+      this.stopPlaybackIfIsRunning();
     });
   }
 
   startRecording() {
-    this.checkStop();
+    this.stopPlaybackIfIsRunning();
     this.currentRecording = this.usePlayback === "true" ? "all" : "none";
 
     this.usePlayback === "true" ? this.playAllRecordings(false) : this.replayId = crypto.randomUUID();
@@ -113,7 +113,7 @@ export class PracticeComponent implements OnDestroy {
   stopRecording() {
     const saveRecording = this.runHandler.positionHandler.timer.totalMs > 0;
 
-    this.checkStop();
+    this.stopPlaybackIfIsRunning();
     this.runHandler.positionHandler.resetGetRecordings().forEach(recording => {
       if (saveRecording) {
         recording.fillFrontendValues("Rec-" + this.nextRecordingId);
@@ -206,12 +206,12 @@ export class PracticeComponent implements OnDestroy {
     const rec = this.recordings.find(x => x.id === id);
     if (!rec) return;
 
-    this.checkStop();
+    this.stopPlaybackIfIsRunning();
     this.startPlayback([rec], true);
   }
 
   playAllRecordings(selfStop: boolean = true) {
-    if (this.checkStop()) return;
+    if (this.stopPlaybackIfIsRunning()) return;
     this.startPlayback(this.recordings, selfStop);
   }
 
@@ -236,7 +236,7 @@ export class PracticeComponent implements OnDestroy {
     this.runHandler.positionHandler.startDrawPlayers();
   }
 
-  checkStop(): boolean {
+  stopPlaybackIfIsRunning(): boolean {
     if (this.runHandler.positionHandler.timer.runState !== RunState.Waiting) {
       this.runHandler.positionHandler.timer.reset();
 
