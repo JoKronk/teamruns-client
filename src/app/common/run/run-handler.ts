@@ -757,6 +757,7 @@ export class RunHandler {
         this.run?.teams.forEach(team => {
             team.runState = new RunStateHandler();
         });
+        this.localPlayer.team = this.run?.getPlayerTeam(this.userService.getId());
 
         //!TODO: could be done in some more elegant way
         setTimeout(() => {
