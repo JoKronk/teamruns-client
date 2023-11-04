@@ -468,6 +468,15 @@ export class RunHandler {
                 break;
 
 
+            case InteractionType.enemyDeath:
+                if (!this.localPlayer.team) break;
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    this.levelHandler.onEnemyDeath(positionData.interName, positionData.interLevel);
+
+                this.run.getPlayerTeam(positionData.userId)?.runState.addEnemy(positionData.interName, positionData.interLevel);
+                break;
+
+
             case InteractionType.fishCaught:
             case InteractionType.fishMissed:
                 if (!this.localPlayer.team) break;

@@ -71,6 +71,11 @@ export class RunStateHandler {
         level.crateUpdates.push(new CrateBase(crate.ename, crate.type, crate.pickupAmount));
     }
 
+    addEnemy(enemyName: string, levelName: string) {
+        const level = this.getCreateLevel(levelName);
+        level.enemyUpdates.push(enemyName);
+    }
+
     addPeriscope(periscope: string) {
         const level = this.getCreateLevel(Level.jungle);
         level.periscopeUpdates.push(periscope);

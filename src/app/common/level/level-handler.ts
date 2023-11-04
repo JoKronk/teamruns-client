@@ -55,6 +55,10 @@ export class LevelHandler {
                 this.onCrateDestroy(new Crate(crateBase, level.levelName));
             });
 
+            level.enemyUpdates.forEach(enemy => {
+                this.onEnemyDeath(enemy, level.levelName);
+            });
+
             level.periscopeUpdates.forEach(scope => {
                 this.activatePeriscope(scope);
             });
@@ -116,6 +120,13 @@ export class LevelHandler {
             this.uncollectedLevelItems.addCrate(crate);
     }
 
+    onEnemyDeath(enemyName: string, levelName: string) {
+        if (this.levelIsActive(levelName))
+            this.killEnemy(enemyName);
+        else
+            this.uncollectedLevelItems.addEnemy(enemyName, levelName);
+    }
+
     onPeriscopeActivated(periscope: string) {
         if (this.levelIsActive(Level.jungle))
             this.activatePeriscope(periscope);
@@ -151,6 +162,10 @@ export class LevelHandler {
 
             level.crateUpdates.forEach(crate => {
                 this.destroyCrate(crate);
+            });
+
+            level.enemyUpdates.forEach(enemy => {
+                this.killEnemy(enemy);
             });
             
             level.buzzerUpdates.forEach((buzzer, index) => {
@@ -207,6 +222,10 @@ export class LevelHandler {
 
     private destroyCrate(crate: CrateBase) {
         OG.runCommand('(safe-break-crate "' + crate.ename + '")');
+    }
+
+    private killEnemy(ename: string) {
+        OG.runCommand('(safe-kill-enemy "' + ename + '")');
     }
 
     private activatePeriscope(periscope: string) {
