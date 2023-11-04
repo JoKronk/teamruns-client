@@ -128,17 +128,6 @@ export class LocalPlayerData {
         this.checkCitadelElevator();
     }
         break;
-        
-      case "plunger-lurker-hit":
-        //!TODO: softlocks sometimes
-        /*
-        OG.runCommand("(close-specific-task-from-remote! (game-task plunger-lurker-hit) (task-status need-hint))");
-        OG.runCommand('(process-entity-status! (process-by-ename "plunger-lurker-3")(entity-perm-status complete) #t)');
-        OG.runCommand('(cleanup-for-death (the-as (process-by-ename "plunger-lurker-3")))');
-        OG.runCommand('(deactivate (process-by-ename "plunger-lurker-3"))');
-        */
-        break;
-      
       //handle hub warp gates
       case "village2-levitator":
         if (checkWarpgates && (task.status !== TaskStatus.needReminderA || this.gameState.currentLevel !== "village1")) break;
