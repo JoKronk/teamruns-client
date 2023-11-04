@@ -111,7 +111,7 @@ export class LocalPlayerData {
 
 
 
-  checkTaskUpdateSpecialCases(task: GameTask, run: Run, checkWarpgates: boolean) {
+  checkTaskUpdateSpecialCases(task: GameTask, run: Run) {
 
     switch (task.name) {
       //handle klaww kill
@@ -127,22 +127,6 @@ export class LocalPlayerData {
         this.checkCitadelSkip(run);
         this.checkCitadelElevator();
     }
-        break;
-      //handle hub warp gates
-      case "village2-levitator":
-        if (checkWarpgates && (task.status !== TaskStatus.needReminderA || this.gameState.currentLevel !== "village1")) break;
-        OG.runCommand("(reset-actors 'life)");
-        OG.runCommand("(safe-release-from-grab)");
-        break;
-      case "village3-button":
-        if (checkWarpgates && (task.status !== TaskStatus.needIntroduction || (this.gameState.currentLevel !== "village1" && this.gameState.currentLevel !== "village2"))) break;
-        OG.runCommand("(reset-actors 'life)");
-        OG.runCommand("(safe-release-from-grab)");
-        break;
-      case "village4-button":
-        if (checkWarpgates && (task.status !== TaskStatus.needRewardSpeech || (this.gameState.currentLevel !== "village1" && this.gameState.currentLevel !== "village2" && this.gameState.currentLevel !== "village3"))) break;
-        OG.runCommand("(reset-actors 'life)");
-        OG.runCommand("(safe-release-from-grab)");
         break;
       default:
         break;

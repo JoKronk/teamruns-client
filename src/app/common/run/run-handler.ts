@@ -402,7 +402,7 @@ export class RunHandler {
                             OG.runCommand("(send-event *target* 'get-pickup 5 -" + cost + ".0)");
                     }
 
-                    this.localPlayer.checkTaskUpdateSpecialCases(task, this.run, (this.run.data.sharedWarpGatesBetweenTeams || isLocalPlayerTeam));
+                    this.localPlayer.checkTaskUpdateSpecialCases(task, this.run);
                 }
                 
                 //add to team run state
