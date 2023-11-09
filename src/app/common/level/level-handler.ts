@@ -175,7 +175,19 @@ export class LevelHandler {
     private onLevelActive(levelName: string) {
         setTimeout(() => {
             let level = this.uncollectedLevelItems.levels.find(x => x.levelName === levelName);
-            if (!level || (level.orbUpdates.length === 0 && level.buzzerUpdates.length === 0 && level.taskUpdates.length === 0)) return;
+            if (!level || (
+                level.taskUpdates.length === 0 &&
+                level.orbUpdates.length === 0 && 
+                level.buzzerUpdates.length === 0 && 
+                level.crateUpdates.length === 0 &&
+                level.enemyUpdates.length === 0 &&
+                level.periscopeUpdates.length === 0 &&
+                level.snowBumberUpdates.length === 0 &&
+                level.darkCrystalUpdates.length === 0
+                )) return;
+
+
+
             console.log("killing from level", level)
 
             level.crateUpdates.forEach(crate => {
