@@ -27,6 +27,7 @@ class OpenGoal {
     async preStartREPL() {
 
         let ogPath = await getOpenGoalPath();
+        if (!ogPath) return;
 
         if (openGoalREPL) {
             openGoalREPL.end();
