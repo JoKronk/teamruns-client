@@ -449,7 +449,7 @@ export class RunHandler {
                 if (!this.localPlayer.team) break;
                 if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id)) {
                     const index = this.positionHandler.getPlayerIngameIndex(positionData.userId);
-                    if (index !== undefined) OG.runCommand("(safe-give-eco-by-target-idx " + index + " " + positionData.interType + " " + positionData.interAmount + ".0)");
+                    if (index !== undefined) OG.runCommand("(safe-give-eco-by-target-idx " + index + " " + positionData.interType + " " + (positionData.interType === 4 && positionData.interAmount === 1 && positionData.interName.startsWith("ecovent-") ? 5 : positionData.interAmount) + ".0)");
                     this.levelHandler.onEcoPickup(Eco.fromPositionData(positionData));
                 }
                 break;
