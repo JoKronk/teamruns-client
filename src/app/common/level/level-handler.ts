@@ -9,6 +9,7 @@ import { Eco } from "./eco";
 import { RunStateHandler } from "./run-state-handler";
 import { LocalPlayerData } from "../user/local-player-data";
 import { Level } from "../opengoal/levels";
+import { DarkCrystal } from "./dark-crystal";
 
 export class LevelHandler {
 
@@ -65,6 +66,10 @@ export class LevelHandler {
 
             level.snowBumberUpdates.forEach(bumper => {
                 this.deactivateSnowBumper(bumper);
+            });
+
+            level.darkCrystalUpdates.forEach(bumper => {
+                this.explodeDarkCrystal(bumper);
             });
 
 
@@ -145,6 +150,13 @@ export class LevelHandler {
             this.uncollectedLevelItems.addSnowBumper(snowBumper);
     }
 
+    onDarkCrystalExplode(crystal: DarkCrystal) {
+        if (this.levelIsActive(crystal.level))
+            this.explodeDarkCrystal(crystal.ename);
+        else
+            this.uncollectedLevelItems.addDarkCrystal(crystal);
+    }
+
     onEcoPickup(eco: Eco) {
         if (!this.levelIsActive(eco.level)) return;
 
@@ -204,13 +216,18 @@ export class LevelHandler {
             level.snowBumberUpdates.forEach(bumper => {
                 this.deactivateSnowBumper(bumper);
             });
-    
+
+            level.darkCrystalUpdates.forEach(crystal => {
+                this.explodeDarkCrystal(crystal);
+            });
+            
             level.buzzerUpdates = [];
             level.orbUpdates = [];
             level.crateUpdates = [];
             level.enemyUpdates = [];
             level.periscopeUpdates = [];
             level.snowBumberUpdates = [];
+            level.darkCrystalUpdates = [];
         }, 1500);
     }
 
@@ -251,5 +268,9 @@ export class LevelHandler {
 
     private deactivateSnowBumper(bumper: string) {
         OG.runCommand('(safe-deactivate-snow-bumper "' + bumper + '")');
+    }
+
+    private explodeDarkCrystal(crystal: string) {
+        OG.runCommand('(safe-explode-dark-crystal "' + crystal + '")');
     }
 }

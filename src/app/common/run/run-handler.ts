@@ -35,6 +35,7 @@ import pkg from 'app/package.json';
 import { PositionHandler } from "../playback/position-handler";
 import { RunStateHandler } from "../level/run-state-handler";
 import { Level } from "../opengoal/levels";
+import { DarkCrystal } from "../level/dark-crystal";
 
 export class RunHandler {
 
@@ -501,6 +502,17 @@ export class RunHandler {
 
                 this.run.getPlayerTeam(positionData.userId)?.runState.addSnowBumper(positionData.interName);
                 break;
+
+
+            case InteractionType.darkCrystal:
+                if (!this.localPlayer.team) break;
+                const darkCrystal: DarkCrystal = DarkCrystal.fromPositionData(positionData);
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    this.levelHandler.onDarkCrystalExplode(darkCrystal);
+
+                this.run.getPlayerTeam(positionData.userId)?.runState.addDarkCrystal(darkCrystal);
+                break;
+
         }
     }
 

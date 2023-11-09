@@ -4,6 +4,7 @@ import { Task } from "../opengoal/task";
 import { TaskStatus } from "../opengoal/task-status";
 import { Buzzer, BuzzerBase } from "./buzzer";
 import { Crate, CrateBase } from "./crate";
+import { DarkCrystal } from "./dark-crystal";
 import { LevelCollectables } from "./level-collectables";
 import { Orb, OrbBase } from "./orb";
 
@@ -84,6 +85,11 @@ export class RunStateHandler {
     addSnowBumper(bumper: string) {
         const level = this.getCreateLevel(Level.snowy);
         level.snowBumberUpdates.push(bumper);
+    }
+
+    addDarkCrystal(crystal: DarkCrystal) {
+        const level = this.getCreateLevel(crystal.level);
+        level.darkCrystalUpdates.push(crystal.ename);
     }
 
 
