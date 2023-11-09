@@ -1,5 +1,5 @@
 import { Buzzer, BuzzerBase } from "./buzzer";
-import { GameTaskLevelTime } from "../opengoal/game-task";
+import { GameTask, GameTaskLevelTime } from "../opengoal/game-task";
 import { OG } from "../opengoal/og";
 import { Orb, OrbBase } from "./orb";
 import { Task } from "../opengoal/task";
@@ -95,13 +95,8 @@ export class LevelHandler {
     onNewTask(task: GameTaskLevelTime, isCell: boolean) {
         OG.updateTask(task, isCell);
 
-        const ename = Task.getCellEname(task.name);
-        if (!ename) return;
-
-        if (this.levelIsActive(task.level))
-            this.killCell(ename);
-        else
-            this.uncollectedLevelItems.addCell(task.name, task.level);
+        if (!this.levelIsActive(task.level))
+            this.uncollectedLevelItems.addTask(task);
     }
 
     onBuzzerCollect(buzzer: Buzzer) {
@@ -180,7 +175,7 @@ export class LevelHandler {
     private onLevelActive(levelName: string) {
         setTimeout(() => {
             let level = this.uncollectedLevelItems.levels.find(x => x.levelName === levelName);
-            if (!level || (level.orbUpdates.length === 0 && level.buzzerUpdates.length === 0 && level.cellUpdates.length === 0)) return;
+            if (!level || (level.orbUpdates.length === 0 && level.buzzerUpdates.length === 0 && level.taskUpdates.length === 0)) return;
             console.log("killing from level", level)
 
             level.crateUpdates.forEach(crate => {
@@ -194,14 +189,6 @@ export class LevelHandler {
             level.buzzerUpdates.forEach((buzzer, index) => {
                 this.killBuzzer(buzzer, index + 1 === level!.buzzerUpdates.length, true); //spawn cell only at last if complete
                 this.uncollectedLevelItems.buzzerCount -= 1;
-            });
-
-            level.cellUpdates.forEach(taskName => {
-                const ename = Task.getCellEname(taskName);
-                if (ename) {
-                    this.killCell(ename);
-                    this.uncollectedLevelItems.cellCount -= 1;
-                }
             });
 
             level.orbUpdates.forEach(orb => {
@@ -220,7 +207,14 @@ export class LevelHandler {
             level.darkCrystalUpdates.forEach(crystal => {
                 this.explodeDarkCrystal(crystal);
             });
-            
+
+            level.taskUpdates.forEach(task => {
+                this.runRemoteTaskUpdate(task);
+                if (Task.isCellCollect(task))
+                    this.uncollectedLevelItems.cellCount -= 1; 
+            });
+    
+            level.taskUpdates = [];
             level.buzzerUpdates = [];
             level.orbUpdates = [];
             level.crateUpdates = [];
@@ -236,8 +230,8 @@ export class LevelHandler {
 
     // ----- collection logic ----- | these are stored here instead of being methods of their own type so we don't have to Object.assign() every collectable
     
-    private killCell(ename: string) {
-        OG.runCommand('(safe-kill-fuel-cell "' + ename + '")');
+    private runRemoteTaskUpdate(task: GameTask) {
+        OG.runCommand('(handle-remote-task-update (game-task ' + task.name + ') (task-status ' + task.status + '))');
     }
     
     private killBuzzer(buzzer: BuzzerBase, runPickup: boolean, killIfNotBuzzer: boolean) {

@@ -35,22 +35,22 @@ export class RunStateHandler {
     }
 
     addTask(task: GameTaskLevelTime) {
+        //update general task status
         let oldTaskStatus = this.tasksStatuses.find(x => x.name === task.name);
         if (oldTaskStatus)
             this.tasksStatuses[this.tasksStatuses.indexOf(oldTaskStatus)] = task;
         else
             this.tasksStatuses.push(task);
 
+        //add task status for level
+        const level = this.getCreateLevel(task.level);
+        level.taskUpdates.push(task);
+
+        //update counts
         if (Task.isCellCollect(task)) {
-            this.addCell(task.name, task.level);
+            this.cellCount += 1;
             this.orbCount -= Task.cellCost(task);
         }
-    }
-
-    addCell(taskName: string, levelName: string) {
-        const level = this.getCreateLevel(levelName);
-        level.cellUpdates.push(taskName);
-        this.cellCount += 1;
     }
 
     addBuzzer(buzzer: Buzzer) {

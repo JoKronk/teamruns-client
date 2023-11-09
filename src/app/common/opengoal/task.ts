@@ -31,68 +31,6 @@ export class Task {
     public static lastboss = "finalboss-movies";
     public static forfeit = "finalboss-forfeit";
 
-    public static getCellEname(task: string): string | undefined {
-        return new Map([
-            ["training-gimmie", "fuel-cell-55"],
-            ["training-door", "fuel-cell-53"],
-            ["training-climb", "fuel-cell-54"],
-            ["beach-gimmie", "fuel-cell-40"],
-            ["beach-sentinel", "fuel-cell-42"],
-            ["jungle-canyon-end", "fuel-cell-46"],
-            ["jungle-temple-door", "fuel-cell-49"],
-            ["jungle-tower", "fuel-cell-1"],
-            ["misty-warehouse", "fuel-cell-11"],
-            ["misty-boat", "fuel-cell-12"],
-            ["misty-bike-jump", "fuel-cell-51"],
-            ["misty-eco-challenge", "fuel-cell-50"],
-            ["rolling-lake", "fuel-cell-45"],
-            ["sunken-platforms", "fuel-cell-24"],
-            ["sunken-sharks", "fuel-cell-26"],
-            ["sunken-top-of-helix", "fuel-cell-25"],
-            ["sunken-spinning-room", "fuel-cell-52"],
-            ["swamp-flutflut", "fuel-cell-15"],
-            ["ogre-secret", "fuel-cell-62"],
-            ["snow-fort", "fuel-cell-30"],
-            ["snow-bunnies", "fuel-cell-28"],
-            ["cave-platforms", "fuel-cell-60"],
-            ["cave-dark-climb", "fuel-cell-59"],
-            ["cave-spider-tunnel", "fuel-cell-58"],
-            ["cave-robot-climb", "fuel-cell-57"],
-            ["cave-swing-poles", "fuel-cell-56"],
-        ]).get(task);
-    }
-
-    public static getCellLevelByEname(ename: string): string | undefined {
-        return new Map([
-            ["fuel-cell-55", Level.geyser],
-            ["fuel-cell-53", Level.geyser],
-            ["fuel-cell-54", Level.geyser],
-            ["fuel-cell-40", Level.beach],
-            ["fuel-cell-42", Level.beach],
-            ["fuel-cell-46", Level.jungle],
-            ["fuel-cell-49", Level.jungle],
-            ["fuel-cell-1", Level.jungle],
-            ["fuel-cell-11", Level.misty],
-            ["fuel-cell-12", Level.misty],
-            ["fuel-cell-51", Level.misty],
-            ["fuel-cell-50", Level.misty],
-            ["fuel-cell-45", Level.basin],
-            ["fuel-cell-24", Level.lpcTopPart],
-            ["fuel-cell-26", Level.lpcTopPart],
-            ["fuel-cell-25", Level.lpcTopPart],
-            ["fuel-cell-52", Level.lpcTopPart],
-            ["fuel-cell-15", Level.boggy],
-            ["fuel-cell-62", Level.mountainPass],
-            ["fuel-cell-30", Level.snowy],
-            ["fuel-cell-28", Level.snowy],
-            ["fuel-cell-60", Level.spiderCave,],
-            ["fuel-cell-59", Level.darkCave],
-            ["fuel-cell-58", Level.spiderRobotCave],
-            ["fuel-cell-57", Level.spiderRobotCave],
-            ["fuel-cell-56", Level.spiderRobotCave]
-        ]).get(ename);
-    }
-
     public static isRunEnd(task: GameTask) {
         return task.status === TaskStatus.unknown && (task.name === Task.lastboss || task.name === Task.forfeit);
     }
