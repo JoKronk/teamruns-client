@@ -81,6 +81,11 @@ export class RunStateHandler {
         level.periscopeUpdates.push(periscope);
     }
 
+    addSnowBumper(bumper: string) {
+        const level = this.getCreateLevel(Level.snowy);
+        level.snowBumberUpdates.push(bumper);
+    }
+
 
     getCreateLevel(levelName: string): LevelCollectables {
         let level = this.levels.find(x => x.levelName === levelName);

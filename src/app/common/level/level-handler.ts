@@ -63,6 +63,10 @@ export class LevelHandler {
                 this.activatePeriscope(scope);
             });
 
+            level.snowBumberUpdates.forEach(bumper => {
+                this.deactivateSnowBumper(bumper);
+            });
+
 
         });
 
@@ -134,6 +138,13 @@ export class LevelHandler {
             this.uncollectedLevelItems.addPeriscope(periscope);
     }
 
+    onSnowBumperDeactivate(snowBumper: string) {
+        if (this.levelIsActive(Level.snowy))
+            this.deactivateSnowBumper(snowBumper);
+        else
+            this.uncollectedLevelItems.addSnowBumper(snowBumper);
+    }
+
     onEcoPickup(eco: Eco) {
         if (!this.levelIsActive(eco.level)) return;
 
@@ -189,12 +200,18 @@ export class LevelHandler {
             level.periscopeUpdates.forEach(scope => {
                 this.activatePeriscope(scope);
             });
+
+            level.snowBumberUpdates.forEach(bumper => {
+                this.deactivateSnowBumper(bumper);
+            });
     
-            level.cellUpdates = [];
             level.buzzerUpdates = [];
             level.orbUpdates = [];
             level.crateUpdates = [];
-        }, 500);
+            level.enemyUpdates = [];
+            level.periscopeUpdates = [];
+            level.snowBumberUpdates = [];
+        }, 1500);
     }
 
 
@@ -230,5 +247,9 @@ export class LevelHandler {
 
     private activatePeriscope(periscope: string) {
         OG.runCommand('(periscope-activate-by-name "' + periscope + '")');
+    }
+
+    private deactivateSnowBumper(bumper: string) {
+        OG.runCommand('(safe-deactivate-snow-bumper "' + bumper + '")');
     }
 }

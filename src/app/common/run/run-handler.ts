@@ -493,6 +493,14 @@ export class RunHandler {
                 this.run.getPlayerTeam(positionData.userId)?.runState.addPeriscope(positionData.interName);
                 break;
 
+
+            case InteractionType.snowBumper:
+                if (!this.localPlayer.team) break;
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    this.levelHandler.onSnowBumperDeactivate(positionData.interName);
+
+                this.run.getPlayerTeam(positionData.userId)?.runState.addSnowBumper(positionData.interName);
+                break;
         }
     }
 

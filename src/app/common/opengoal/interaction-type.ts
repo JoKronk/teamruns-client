@@ -14,5 +14,6 @@ export enum InteractionType {
   crateDarkeco,
   fishCaught,
   fishMissed,
-  periscope
+  periscope,
+  snowBumper
 }
