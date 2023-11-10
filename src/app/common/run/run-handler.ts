@@ -36,6 +36,7 @@ import { PositionHandler } from "../playback/position-handler";
 import { RunStateHandler } from "../level/run-state-handler";
 import { Level } from "../opengoal/levels";
 import { DarkCrystal } from "../level/dark-crystal";
+import { EnemyBase } from "../level/enemy";
 
 export class RunHandler {
 
@@ -471,10 +472,11 @@ export class RunHandler {
 
             case InteractionType.enemyDeath:
                 if (!this.localPlayer.team) break;
+                const enemy = new EnemyBase(positionData.interName, positionData.interAmount);
                 if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
-                    this.levelHandler.onEnemyDeath(positionData.interName, positionData.interLevel);
+                    this.levelHandler.onEnemyDeath(enemy, positionData.interLevel);
 
-                this.run.getPlayerTeam(positionData.userId)?.runState.addEnemy(positionData.interName, positionData.interLevel);
+                this.run.getPlayerTeam(positionData.userId)?.runState.addEnemy(enemy, positionData.interLevel);
                 break;
 
 

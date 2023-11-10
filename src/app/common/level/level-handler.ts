@@ -10,6 +10,7 @@ import { RunStateHandler } from "./run-state-handler";
 import { LocalPlayerData } from "../user/local-player-data";
 import { Level } from "../opengoal/levels";
 import { DarkCrystal } from "./dark-crystal";
+import { EnemyBase } from "./enemy";
 
 export class LevelHandler {
 
@@ -124,11 +125,11 @@ export class LevelHandler {
             this.uncollectedLevelItems.addCrate(crate);
     }
 
-    onEnemyDeath(enemyName: string, levelName: string) {
+    onEnemyDeath(enemy: EnemyBase, levelName: string) {
         if (this.levelIsActive(levelName))
-            this.killEnemy(enemyName);
+            this.killEnemy(enemy.ename);
         else
-            this.uncollectedLevelItems.addEnemy(enemyName, levelName);
+            this.uncollectedLevelItems.addEnemy(enemy, levelName);
     }
 
     onPeriscopeActivated(periscope: string) {
@@ -195,7 +196,7 @@ export class LevelHandler {
             });
 
             level.enemyUpdates.forEach(enemy => {
-                this.killEnemy(enemy);
+                this.killEnemy(enemy.ename);
             });
             
             level.buzzerUpdates.forEach((buzzer, index) => {
@@ -256,6 +257,10 @@ export class LevelHandler {
             OG.runCommand('(safe-kill-cache-orb "' + orb.parentEname + '")');
         else if (orb.parentEname.startsWith("crate-"))
             OG.runCommand('(safe-kill-crate-orb "' + orb.parentEname + '")');
+        else if (orb.parentEname.startsWith("gnawer-"))
+            OG.runCommand('(safe-kill-gnawer-orb "' + orb.parentEname + '")');
+        else if (orb.parentEname.startsWith("plant-boss-"))
+            OG.runCommand('(safe-kill-plant-boss-orb "' + orb.parentEname + '")');
         else
             OG.runCommand('(safe-kill-orb "' + orb.ename + '")');
     }

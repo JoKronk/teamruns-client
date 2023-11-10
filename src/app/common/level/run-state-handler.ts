@@ -5,6 +5,7 @@ import { TaskStatus } from "../opengoal/task-status";
 import { Buzzer, BuzzerBase } from "./buzzer";
 import { Crate, CrateBase } from "./crate";
 import { DarkCrystal } from "./dark-crystal";
+import { EnemyBase } from "./enemy";
 import { LevelCollectables } from "./level-collectables";
 import { Orb, OrbBase } from "./orb";
 
@@ -72,9 +73,9 @@ export class RunStateHandler {
         level.crateUpdates.push(new CrateBase(crate.ename, crate.type, crate.pickupAmount));
     }
 
-    addEnemy(enemyName: string, levelName: string) {
+    addEnemy(enemy: EnemyBase, levelName: string) {
         const level = this.getCreateLevel(levelName);
-        level.enemyUpdates.push(enemyName);
+        level.enemyUpdates.push(enemy);
     }
 
     addPeriscope(periscope: string) {
@@ -114,6 +115,15 @@ export class RunStateHandler {
             if (parentCrate) 
                 return parentCrate.pickupAmount < (level.orbUpdates.filter(x => x.parentEname === orb.parentEname).length + 1);
             return false;
+        }
+        else if (orb.parentEname.startsWith("gnawer-")) {
+            let parentGnawer = level.enemyUpdates.find(x => x.ename === orb.parentEname);
+            if (parentGnawer) 
+                return parentGnawer.pickupAmount < (level.orbUpdates.filter(x => x.parentEname === orb.parentEname).length + 1);
+            return false;
+        }
+        else if (orb.parentEname.startsWith("plant-boss-")) {
+            return 5 < (level.orbUpdates.filter(x => x.parentEname === orb.parentEname).length + 1);
         }
         else {
             return level.orbUpdates.find(x => x.ename === orb.ename) !== undefined; 
