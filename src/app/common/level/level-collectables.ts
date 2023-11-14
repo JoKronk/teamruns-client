@@ -15,6 +15,7 @@ export class LevelCollectables {
     periscopeUpdates: string[] = [];
     snowBumberUpdates: string[] = [];
     darkCrystalUpdates: string[] = [];
+    lpcChamberPosition: number = 0;
 
     constructor(levelName: string) {
         this.levelName = levelName;

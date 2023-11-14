@@ -93,6 +93,13 @@ export class RunStateHandler {
         level.darkCrystalUpdates.push(crystal.ename);
     }
 
+    setLpcChamber(chamberLevel: number) {
+        const hub2 = this.getCreateLevel(Level.hub2);
+        hub2.lpcChamberPosition = chamberLevel;
+        const lpc = this.getCreateLevel(Level.lpcBottomPart);
+        lpc.lpcChamberPosition = chamberLevel;
+    }
+
 
     getCreateLevel(levelName: string): LevelCollectables {
         let level = this.levels.find(x => x.levelName === levelName);

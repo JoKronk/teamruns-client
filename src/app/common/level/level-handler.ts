@@ -72,6 +72,10 @@ export class LevelHandler {
             level.darkCrystalUpdates.forEach(bumper => {
                 this.explodeDarkCrystal(bumper);
             });
+               
+            if (level.lpcChamberPosition)
+                this.moveLpcChamber(level.lpcChamberPosition)
+
 
 
         });
@@ -153,6 +157,13 @@ export class LevelHandler {
             this.uncollectedLevelItems.addDarkCrystal(crystal);
     }
 
+    onLpcChamberStop(chamberLevel: number) {
+        if (this.levelIsActive(Level.hub2) || this.levelIsActive(Level.lpcBottomPart))
+            this.moveLpcChamber(chamberLevel);
+        else
+            this.uncollectedLevelItems.setLpcChamber(chamberLevel);
+    }
+
     onEcoPickup(eco: Eco) {
         if (!this.levelIsActive(eco.level)) return;
 
@@ -220,6 +231,9 @@ export class LevelHandler {
             level.darkCrystalUpdates.forEach(crystal => {
                 this.explodeDarkCrystal(crystal);
             });
+            
+            if (level.lpcChamberPosition != 0)
+                this.moveLpcChamber(level.lpcChamberPosition)
 
             level.taskUpdates.forEach(task => {
                 this.runRemoteTaskUpdate(task);
@@ -235,6 +249,7 @@ export class LevelHandler {
             level.periscopeUpdates = [];
             level.snowBumberUpdates = [];
             level.darkCrystalUpdates = [];
+            level.lpcChamberPosition = 0;
         }, 1500);
     }
 
@@ -283,5 +298,9 @@ export class LevelHandler {
 
     private explodeDarkCrystal(crystal: string) {
         OG.runCommand('(safe-explode-dark-crystal "' + crystal + '")');
+    }
+
+    private moveLpcChamber(chamberLevel: number) {
+        OG.runCommand('(safe-move-lpc-chamber ' + chamberLevel + ')');
     }
 }

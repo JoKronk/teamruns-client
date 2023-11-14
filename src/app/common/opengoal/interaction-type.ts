@@ -16,5 +16,6 @@ export enum InteractionType {
   fishMissed,
   periscope,
   snowBumper,
-  darkCrystal
+  darkCrystal,
+  lpcChamber
 }

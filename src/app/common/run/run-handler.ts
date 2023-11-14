@@ -515,6 +515,16 @@ export class RunHandler {
                 this.run.getPlayerTeam(positionData.userId)?.runState.addDarkCrystal(darkCrystal);
                 break;
 
+
+            case InteractionType.lpcChamber:
+                if (!this.localPlayer.team) break;
+                const chamberPosition: number = positionData.interLevel === Level.hub2 ? 2 : 1;
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    this.levelHandler.onLpcChamberStop(chamberPosition);
+
+                this.run.getPlayerTeam(positionData.userId)?.runState.setLpcChamber(chamberPosition);
+                break;
+
         }
     }
 
