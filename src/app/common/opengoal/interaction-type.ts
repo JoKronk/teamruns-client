@@ -17,5 +17,6 @@ export enum InteractionType {
   periscope,
   snowBumper,
   darkCrystal,
-  lpcChamber
+  lpcChamber,
+  swingpole
 }
