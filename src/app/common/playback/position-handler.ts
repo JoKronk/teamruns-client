@@ -2,7 +2,7 @@
 import { WebSocketSubject, webSocket } from "rxjs/webSocket";
 import { Subject } from 'rxjs';
 import { Recording } from "./recording";
-import { CurrentPositionData, PositionDataTimestamp, UserPositionDataTimestamp } from "./position-data";
+import { CurrentPositionData, InteractionData, PositionDataTimestamp, UserPositionDataTimestamp } from "./position-data";
 import { UserService } from "src/app/services/user.service";
 import { UserBase } from "../user/user";
 import { MultiplayerState } from "../opengoal/multiplayer-state";
@@ -53,6 +53,15 @@ export class PositionHandler {
 
             if (target.state && target.state.justSpawned)
                 this.timer.onPlayerLoad();
+
+            /*
+            if (target.state) {
+              console.log(target.state)
+            }
+      
+            if (target.levels) {
+              console.log(target.levels)
+            }*/
 
             if (target.connected) {
                 this.userService.replConnected = true;
@@ -150,14 +159,15 @@ export class PositionHandler {
                 if (positionData) {
                     const currentPlayer = this.players.find(x => x.userId === recording.userId);
                     if (currentPlayer) {
-                        const previousRecordingDataIndex = currentPlayer.recordingDataIndex;
-                        const newRecordingDataIndex = recording.playback.indexOf(positionData);
-                        if (currentPlayer.updateCurrentPosition(positionData, newRecordingDataIndex)) {
+                        const previousRecordingdataIndex = currentPlayer.recordingDataIndex;
+                        const newRecordingdataIndex = recording.playback.indexOf(positionData);
+                        if (currentPlayer.updateCurrentPosition(positionData, newRecordingdataIndex)) {
 
                             //handle missed pickups
-                            if (previousRecordingDataIndex && (previousRecordingDataIndex - 1) > newRecordingDataIndex) {
-                                console.log("skipped frames", previousRecordingDataIndex - newRecordingDataIndex - 1);
-                                for (let i = previousRecordingDataIndex - 1; i > newRecordingDataIndex; i--) {
+                            if (previousRecordingdataIndex && (previousRecordingdataIndex - 1) > newRecordingdataIndex) {
+                                console.log("skipped frames", previousRecordingdataIndex - newRecordingdataIndex - 1);
+                                for (let i = previousRecordingdataIndex - 1; i > newRecordingdataIndex; i--) {
+                                    this.addInteractionToBuffer(currentPlayer, recording.playback[i]);
                                     this.checkSendRecordingPickup(currentPlayer, recording.playback[i]);
                                 }
                             }
@@ -179,12 +189,15 @@ export class PositionHandler {
             }
         }
 
-        //ensure interaction don't run twice
         this.players.forEach(player => {
-            if (!player.hasBeenUpdatedDuringFrame)
-                player.interType = InteractionType.none;
+            //ensure interaction don't run twice
+            if (!player.hasFrameUpdate)
+                player.resetCurrentInteraction();
 
-           player.hasBeenUpdatedDuringFrame = false; 
+            player.hasFrameUpdate = false; 
+
+            //fill interaction from buffer if possible
+            player.checkUpdateInteractionFromBuffer();
         });
 
         this.updatePlayersInOpengoal();
@@ -193,10 +206,14 @@ export class PositionHandler {
         this.drawPlayers();
     }
 
+    private addInteractionToBuffer(currentPlayer: CurrentPositionData, positionData: PositionDataTimestamp) {
+        if (currentPlayer.mpState === MultiplayerState.interactive && positionData.interType !== InteractionType.none)
+            currentPlayer.interactionBuffer.push(InteractionData.fromPositionData(positionData));
+    }
+
     private checkSendRecordingPickup(currentPlayer: CurrentPositionData, positionData: PositionDataTimestamp) {
-        if (currentPlayer.mpState === MultiplayerState.interactive && positionData.interType !== InteractionType.none) {
+        if (currentPlayer.mpState === MultiplayerState.interactive && positionData.interType !== InteractionType.none)
             this.recordingPickups.next(new UserPositionDataTimestamp(positionData, positionData.time, new UserBase(currentPlayer.userId, currentPlayer.username)));
-        }
     }
 
     private updatePlayersInOpengoal() {
