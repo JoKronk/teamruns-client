@@ -525,6 +525,13 @@ export class RunHandler {
                 this.run.getPlayerTeam(positionData.userId)?.runState.setLpcChamber(chamberPosition);
                 break;
 
+
+            case InteractionType.bossPhase:
+                if (!this.localPlayer.team) break;
+                if (positionData.userId !== userId && this.levelHandler.levelIsActive(positionData.interLevel) && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    OG.runCommand('(safe-boss-up-to-phase "' + positionData.interName + '" ' + positionData.interAmount + ')');
+                break;
+
         }
     }
 

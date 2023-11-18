@@ -18,5 +18,6 @@ export enum InteractionType {
   snowBumper,
   darkCrystal,
   lpcChamber,
-  swingpole
+  swingpole,
+  bossPhase
 }
