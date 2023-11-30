@@ -1,4 +1,6 @@
-import { UserPositionDataTimestamp } from "../playback/position-data";
+import { CurrentPositionData } from "../playback/current-position-data";
+import { InteractionData } from "../playback/interaction-data";
+import { UserPositionData } from "../playback/position-data";
 import { Timer } from "../run/timer";
 import { UserBase } from "../user/user";
 import { TaskStatus } from "./task-status";
@@ -16,7 +18,7 @@ export class GameTask {
         this.status = status;
     }
 
-    public static fromPositionData(positionData: UserPositionDataTimestamp): GameTask {
+    public static fromPositionData(positionData: UserPositionData): GameTask {
         return {
             name: positionData.interName,
             status: TaskStatus.nameFromEnum(positionData.interAmount),
@@ -34,7 +36,7 @@ export class GameTaskTime extends GameTask {
     }
 
 
-    public static override fromPositionData(positionData: UserPositionDataTimestamp): GameTaskTime {
+    public static override fromPositionData(positionData: UserPositionData): GameTaskTime {
         return {
             name: positionData.interName,
             status: TaskStatus.nameFromEnum(positionData.interAmount),
@@ -53,13 +55,14 @@ export class GameTaskLevelTime extends GameTaskTime {
     }
 
 
-    public static override fromPositionData(positionData: UserPositionDataTimestamp): GameTaskLevelTime {
+    //interaction sent seperately just to ensure it's not null
+    public static fromCurrentPositionData(positionData: CurrentPositionData, interaction: InteractionData): GameTaskLevelTime {
         return {
-            name: positionData.interName,
-            status: TaskStatus.nameFromEnum(positionData.interAmount),
+            name: interaction.interName,
+            status: TaskStatus.nameFromEnum(interaction.interAmount),
             user: new UserBase(positionData.userId, positionData.username),
-            timerTime: Timer.msToTimeFormat(positionData.time, true, true),
-            level: positionData.interLevel
+            timerTime: Timer.msToTimeFormat(interaction.time, true, true),
+            level: interaction.interLevel
         }
     }
 }

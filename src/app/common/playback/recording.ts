@@ -1,10 +1,10 @@
 import { Timer } from "../run/timer";
-import { PositionDataTimestamp } from "./position-data";
+import { PositionData } from "./position-data";
 
 export class Recording {
     id: string = crypto.randomUUID();
     userId: string;
-    playback: PositionDataTimestamp[] = [];
+    playback: PositionData[] = [];
 
     timeFrontend?: string;
     nameFrontend?: string;

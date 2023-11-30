@@ -2,15 +2,24 @@
 import { WebSocketSubject, webSocket } from "rxjs/webSocket";
 import { Subject } from 'rxjs';
 import { Recording } from "./recording";
-import { PositionDataTimestamp, UserPositionDataTimestamp } from "./position-data";
+import { PositionData, UserPositionData } from "./position-data";
 import { UserService } from "src/app/services/user.service";
 import { UserBase } from "../user/user";
 import { MultiplayerState } from "../opengoal/multiplayer-state";
 import { InteractionType } from "../opengoal/interaction-type";
 import { Timer } from "../run/timer";
 import { InteractionData, UserInteractionData } from "./interaction-data";
-import { CurrentPlayerData } from "./current-position-data";
+import { CurrentPlayerData, CurrentPositionData } from "./current-position-data";
 import { LocalPlayerData } from "../user/local-player-data";
+import { GameTaskLevelTime } from "../opengoal/game-task";
+import { Task } from "../opengoal/task";
+import { PlayerState } from "../player/player-state";
+import { TaskStatus } from "../opengoal/task-status";
+import { RunMode } from "../run/run-mode";
+import { Run } from "../run/run";
+import { LevelHandler } from "../level/level-handler";
+import { RunState } from "../run/run-state";
+import { NgZone } from "@angular/core";
 
 export class PositionHandler {
 
@@ -19,6 +28,7 @@ export class PositionHandler {
     private userPositionRecording: Recording[] = [];
 
     timer: Timer = new Timer();
+    run: Run | undefined;
 
     private self: CurrentPlayerData;
     private players: CurrentPlayerData[] = [];
@@ -27,10 +37,9 @@ export class PositionHandler {
 
     ogSocket: WebSocketSubject<any> = webSocket('ws://localhost:8111');
     private launchListener: any;
-    recordingPickups: Subject<UserPositionDataTimestamp> = new Subject();
 
 
-    constructor(public userService: UserService) {
+    constructor(public userService: UserService, public levelHandler: LevelHandler, public localPlayer: LocalPlayerData, public zone: NgZone) {
 
         if (this.userService.user.name) //if client is fully reloaded in a place where position service is started at same time as use we pick up user on movement instead
             this.checkRegisterPlayer(this.userService.user, MultiplayerState.interactive);
@@ -52,7 +61,7 @@ export class PositionHandler {
     private connectToOpengoal() {
         this.ogSocket.subscribe(target => {
             if (target.position)
-                this.updatePlayerPosition(new UserPositionDataTimestamp(target.position, this.timer.totalMs, this.userService.user));
+                this.updatePlayerPosition(new UserPositionData(target.position, this.timer.totalMs, this.userService.user));
 
             if (target.state && target.state.justSpawned)
                 this.timer.onPlayerLoad();
@@ -103,7 +112,6 @@ export class PositionHandler {
         const player = this.players.find(x => x.positionData.userId == interaction.userId);
         if (!player) return;
         player.interactionBuffer.push(InteractionData.getInteractionValues(interaction));
-        console.log("adding to buffer 3", interaction)
     }
 
     addOrbReductionToCurrentPlayer(reductionAmount: number, level: string) {
@@ -115,9 +123,9 @@ export class PositionHandler {
             interParent: "entity-pool",
             interLevel: level,
             interCleanup: false,
+            time: 0,
             userId: this.userService.getId()
         };
-        console.log("adding orb reduction!", orbReductionInteraction)
         this.addPlayerInteraction(orbReductionInteraction);
     }
 
@@ -144,10 +152,18 @@ export class PositionHandler {
     }
 
 
-    updatePlayerPosition(positionData: UserPositionDataTimestamp) {
-        let player = positionData.userId !== this.userService.user.id ? this.players.find(x => x.positionData.userId === positionData.userId) : this.self;
+    updatePlayerPosition(positionData: UserPositionData) {
+        const isLocalUser = positionData.userId === this.userService.user.id;
+        let player = !isLocalUser ? this.players.find(x => x.positionData.userId === positionData.userId) : this.self;
 
-        if (player) player.updateCurrentPosition(positionData);
+        if (player) {
+            player.updateCurrentPosition(positionData, isLocalUser);
+            if (isLocalUser) {
+                const runPlayer = this.run?.getPlayer(player.positionData.userId);
+                if (this.run?.timer.runState === RunState.Started && runPlayer && runPlayer.state !== PlayerState.Finished && runPlayer.state !== PlayerState.Forfeit)
+                    this.handlePlayerInteractions(player.positionData);
+            }
+        }
         else
             this.checkRegisterPlayer(new UserBase(positionData.userId, positionData.username), MultiplayerState.interactive);
 
@@ -161,7 +177,7 @@ export class PositionHandler {
             this.userPositionRecording.push(userRecording);
         }
 
-        userRecording.playback.unshift(new PositionDataTimestamp(positionData, positionData.time));
+        userRecording.playback.unshift(positionData);
     }
 
     startDrawPlayers() {
@@ -190,19 +206,14 @@ export class PositionHandler {
                     if (currentPlayer) {
                         const previousRecordingdataIndex = currentPlayer.recordingDataIndex;
                         const newRecordingdataIndex = recording.playback.indexOf(positionData);
-                        if (currentPlayer.updateCurrentPosition(positionData, newRecordingdataIndex)) {
+                        if (currentPlayer.updateCurrentPosition(positionData, false, newRecordingdataIndex)) {
 
                             //handle missed pickups
                             if (previousRecordingdataIndex && (previousRecordingdataIndex - 1) > newRecordingdataIndex) {
                                 console.log("skipped frames", previousRecordingdataIndex - newRecordingdataIndex - 1);
-                                for (let i = previousRecordingdataIndex - 1; i > newRecordingdataIndex; i--) {
+                                for (let i = previousRecordingdataIndex - 1; i > newRecordingdataIndex; i--)
                                     this.addInteractionToBuffer(currentPlayer, recording.playback[i]);
-                                    this.checkSendRecordingPickup(currentPlayer, recording.playback[i]);
-                                }
                             }
-
-                            //handle recording pickups
-                            this.checkSendRecordingPickup(currentPlayer, positionData);
                         }
                     }
                 }
@@ -227,6 +238,11 @@ export class PositionHandler {
 
             //fill interaction from buffer if possible
             player.checkUpdateInteractionFromBuffer();
+    
+            //handle interaction data for run and player
+            const runPlayer = this.run?.getPlayer(player.positionData.userId);
+            if (this.run?.timer.runState === RunState.Started && runPlayer && runPlayer.state !== PlayerState.Finished && runPlayer.state !== PlayerState.Forfeit)
+                this.handlePlayerInteractions(player.positionData);
         });
 
         this.updatePlayersInOpengoal();
@@ -235,14 +251,9 @@ export class PositionHandler {
         this.drawPlayers();
     }
 
-    private addInteractionToBuffer(currentPlayer: CurrentPlayerData, positionData: PositionDataTimestamp) {
+    private addInteractionToBuffer(currentPlayer: CurrentPlayerData, positionData: PositionData) {
         if (currentPlayer.positionData.mpState === MultiplayerState.interactive && positionData.interType && positionData.interType !== InteractionType.none)
             currentPlayer.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
-    }
-
-    private checkSendRecordingPickup(currentPlayer: CurrentPlayerData, positionData: PositionDataTimestamp) {
-        if (currentPlayer.positionData.mpState === MultiplayerState.interactive && positionData.interType && positionData.interType !== InteractionType.none)
-            this.recordingPickups.next(new UserPositionDataTimestamp(positionData, positionData.time, new UserBase(currentPlayer.positionData.userId, currentPlayer.positionData.username)));
     }
 
     private updatePlayersInOpengoal() {
@@ -258,6 +269,156 @@ export class PositionHandler {
         });
 
         this.updatePlayersInOpengoal();
+    }
+
+    userIsNull() {
+        return !this.localPlayer.user.id || this.localPlayer.user.id === "";
+    }
+    
+
+    handlePlayerInteractions(positionData: CurrentPositionData) {
+        if (!positionData.interaction || positionData.interaction.interType === InteractionType.none || !this.run) return;
+        const userId = this.userService.getId();
+        const interaction = UserInteractionData.fromInteractionData(positionData.interaction, positionData.userId);
+
+        switch (positionData.interaction.interType) {
+
+            case InteractionType.gameTask:
+                if (!this.localPlayer.team || this.userIsNull()) break;
+                
+                const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, positionData.interaction);
+                const isNewTask: boolean = this.localPlayer.team.runState.isNewTaskStatus(interaction);
+                if (positionData.userId === userId)
+                {
+                    //check duped cell buy
+                    if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution))
+                        this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
+
+                    if (task.name === "citadel-sage-green")
+                        this.localPlayer.hasCitadelSkipAccess = false;
+
+                    if (isNewTask && Task.isRunEnd(task)) {
+                        this.zone.run(() => {
+                            this.localPlayer.state = PlayerState.Finished;
+                            //this.sendEvent(EventType.EndPlayerRun, task);
+                        });
+                    }
+                }
+
+                if (!isNewTask) break;
+                
+                const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interAmount));
+                if (isCell || Task.isRunEnd(task)) {
+                    this.zone.run(() => {
+                        this.run!.addSplit(new Task(task));
+                    });
+                }
+
+                const playerTeam = this.run.getPlayerTeam(positionData.userId);
+                if (!playerTeam) break;
+                const isLocalPlayerTeam = playerTeam.id === this.localPlayer.team.id;
+                
+
+                //handle none current user things
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || isLocalPlayerTeam)) {
+
+                    //task updates
+                    this.levelHandler.onInteraction(interaction);
+
+                    //cell cost check
+                    if (isCell && isLocalPlayerTeam && !this.run.isMode(RunMode.Lockout)) {
+                        const cost = Task.cellCost(interaction);
+                        if (cost !== 0)
+                            this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
+                    }
+
+                    this.localPlayer.checkTaskUpdateSpecialCases(task, this.run);
+                }
+                
+                //add to team run state
+                playerTeam.runState.addTaskInteraction(interaction);
+
+                //handle Lockout
+                if (this.run.isMode(RunMode.Lockout))
+                    this.localPlayer.checkLockoutRestrictions(this.run);
+                break;
+        
+            case InteractionType.buzzer:
+                if (!this.localPlayer.team) break;
+                
+                if (positionData.userId !== userId && this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id)
+                    this.levelHandler.onInteraction(interaction);
+
+                this.run.getPlayerTeam(positionData.userId)?.runState.addBuzzerInteraction(interaction);
+                break;
+            
+
+            case InteractionType.money:
+                if (!this.localPlayer.team) break;
+                
+                let teamOrbLevelState = this.localPlayer.team.runState.getCreateLevel(interaction.interLevel);
+                if (this.localPlayer.team.runState.isOrbDupe(interaction, teamOrbLevelState)) {
+                    if (positionData.userId === userId)
+                        this.addOrbReductionToCurrentPlayer(-1, interaction.interLevel);
+                    else
+                        positionData.resetCurrentInteraction();
+                    break;
+                }
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    this.levelHandler.onInteraction(interaction);
+                
+                this.run.getPlayerTeam(positionData.userId)?.runState.addOrbInteraction(interaction, teamOrbLevelState);
+                break;
+        
+
+            case InteractionType.ecoBlue:
+            case InteractionType.ecoYellow:
+            case InteractionType.ecoGreen:
+            case InteractionType.ecoRed:
+                break;
+
+            case InteractionType.fishCaught:
+            case InteractionType.fishMissed:
+                break;
+
+            case InteractionType.bossPhase:
+                break;
+
+
+            case InteractionType.crateNormal:
+            case InteractionType.crateIron:
+            case InteractionType.crateSteel:
+            case InteractionType.crateDarkeco:
+                if (!this.localPlayer.team) break;
+                if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !InteractionData.isBuzzerCrate(interaction.interType)) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    this.levelHandler.onInteraction(interaction);
+
+                if (InteractionData.isBuzzerCrate(interaction.interType) || InteractionData.isOrbsCrate(interaction.interType))
+                    this.run.getPlayerTeam(positionData.userId)?.runState.addInteraction(interaction);
+                break;
+
+
+            case InteractionType.enemyDeath:
+            case InteractionType.periscope:
+            case InteractionType.snowBumper:
+            case InteractionType.darkCrystal:
+                if (!this.localPlayer.team) break;
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    this.levelHandler.onInteraction(interaction);
+
+                this.run.getPlayerTeam(positionData.userId)?.runState.addInteraction(interaction);
+                break;
+
+
+            case InteractionType.lpcChamber:
+                if (!this.localPlayer.team) break;
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    this.levelHandler.onLpcChamberStop(interaction);
+
+                this.run.getPlayerTeam(positionData.userId)?.runState.addLpcInteraction(interaction);
+                break;
+
+        }
     }
 
     onDestroy(): void {

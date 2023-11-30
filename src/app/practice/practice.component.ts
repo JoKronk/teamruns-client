@@ -1,7 +1,6 @@
 import { AfterViewInit, Component, NgZone, OnDestroy } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { UserService } from '../services/user.service';
-import {  PositionDataTimestamp, UserPositionDataTimestamp } from '../common/playback/position-data';
 import { Recording } from '../common/playback/recording';
 import { UserBase } from '../common/user/user';
 import { RunState } from '../common/run/run-state';

@@ -4,7 +4,7 @@ import { CollectionName } from "../firestore/collection-name";
 import { Lobby } from "../firestore/lobby";
 import { UserBase } from "../user/user";
 import { DataChannelEvent } from "./data-channel-event";
-import { UserPositionDataTimestamp } from "../playback/position-data";
+import { UserPositionData } from "../playback/position-data";
 import { RTCPeer, RTCPeerSlaveConnection } from "./rtc-peer";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
 
@@ -14,7 +14,7 @@ export class RTCPeerMaster {
 
     lobbyDoc: AngularFirestoreDocument<Lobby>;
     eventChannel: Subject<DataChannelEvent> = new Subject();
-    positionChannel: Subject<UserPositionDataTimestamp> | null = null;
+    positionChannel: Subject<UserPositionData> | null = null;
 
     peersSubscriptions: Subscription;
     peers: RTCPeerSlaveConnection[] = [];
@@ -109,7 +109,7 @@ export class RTCPeerMaster {
         });
     }
 
-    relayPositionToSlaves(target: UserPositionDataTimestamp) {
+    relayPositionToSlaves(target: UserPositionData) {
         this.peers.forEach(slave => {
             if (slave.user.id !== target.userId)
                 slave.peer.sendPosition(target);

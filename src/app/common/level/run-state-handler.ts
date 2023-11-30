@@ -2,7 +2,6 @@ import { InteractionType } from "../opengoal/interaction-type";
 import { Task } from "../opengoal/task";
 import { TaskStatus } from "../opengoal/task-status";
 import { InteractionData, UserInteractionData } from "../playback/interaction-data";
-import { Crate } from "./crate";
 import { LevelInteractions } from "./level-interactions";
 
 export class RunStateHandler {
@@ -100,7 +99,7 @@ export class RunStateHandler {
         if (interaction.interParent.startsWith("orb-cache-top-"))
             return 15 < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length + 1);
         else if (interaction.interParent.startsWith("crate-")) {
-            let parentCrate = level.interactions.find(x => Crate.isOrbsType(x.interType) && x.interName === interaction.interParent);
+            let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x.interType) && x.interName === interaction.interParent);
             if (parentCrate) 
                 return parentCrate.interAmount < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length + 1);
             return false;

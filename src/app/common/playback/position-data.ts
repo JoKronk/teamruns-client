@@ -17,10 +17,11 @@ export class PositionData extends InteractionData {
     }
 }
 
-export class PositionDataTimestamp extends PositionData {
-    time: number;
+export class UserPositionData extends PositionData {
+    userId: string;
+    username: string;
 
-    constructor(positionData: PositionData, time: number) {
+    constructor(positionData: PositionData, time: number, user: UserBase) {
         super();
         this.quatW = positionData.quatW;
         this.quatX = positionData.quatX;
@@ -29,23 +30,15 @@ export class PositionDataTimestamp extends PositionData {
         this.rotY = positionData.rotY;
         this.interType = positionData.interType;
         this.interAmount = positionData.interAmount;
+        this.interStatus = positionData.interStatus;
         this.interName = positionData.interName;
         this.interParent = positionData.interParent;
         this.interLevel = positionData.interLevel;
+        this.interCleanup = positionData.interCleanup;
         this.tgtState = positionData.tgtState;
         this.transX = positionData.transX;
         this.transY = positionData.transY;
         this.transZ = positionData.transZ;
-        this.time = time;
-    }
-}
-
-export class UserPositionDataTimestamp extends PositionDataTimestamp {
-    userId: string;
-    username: string;
-
-    constructor(positionData: PositionData, time: number, user: UserBase) {
-        super(positionData, time);
         this.time = time;
         this.userId = user.id;
         this.username = user.name;

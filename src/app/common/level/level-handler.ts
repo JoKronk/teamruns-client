@@ -1,11 +1,10 @@
 import { OG } from "../opengoal/og";
 import { Task } from "../opengoal/task";
 import { LevelStatus } from "./level-status";
-import { Crate } from "./crate";
 import { RunStateHandler } from "./run-state-handler";
 import { Level } from "../opengoal/levels";
 import { PositionHandler } from "../playback/position-handler";
-import { UserInteractionData } from "../playback/interaction-data";
+import { InteractionData, UserInteractionData } from "../playback/interaction-data";
 import { InteractionType } from "../opengoal/interaction-type";
 import { TaskStatus } from "../opengoal/task-status";
 
@@ -101,7 +100,7 @@ export class LevelHandler {
                 case InteractionType.crateIron:
                 case InteractionType.crateSteel:
                 case InteractionType.crateDarkeco:
-                    if ((Crate.isBuzzerType(interaction.interType) || Crate.isOrbsType(interaction.interType)))
+                    if ((InteractionData.isBuzzerCrate(interaction.interType) || InteractionData.isOrbsCrate(interaction.interType)))
                         this.uncollectedLevelItems.addInteraction(interaction);
                     break;
                 default:

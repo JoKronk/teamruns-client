@@ -54,7 +54,7 @@ export class CurrentPlayerData {
     }
 
     // returns if has updated
-    updateCurrentPosition(positionData: PositionData, recordingDataIndex: number | undefined = undefined) : boolean {
+    updateCurrentPosition(positionData: PositionData, isLocalUser: boolean, recordingDataIndex: number | undefined = undefined) : boolean {
         if (recordingDataIndex) {
             if (recordingDataIndex === this.recordingDataIndex)
                 return false;
@@ -64,11 +64,8 @@ export class CurrentPlayerData {
         
         //check if overwriting unsent position update with interaction
         const bufferInteraction = this.hasFrameUpdate && positionData.interType && positionData.interType !== InteractionType.none;
-        if (bufferInteraction)
-        {
-            console.log("adding to buffer 1", positionData)
+        if (!isLocalUser && bufferInteraction)
             this.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
-        }
 
 
         this.positionData.quatW = positionData.quatW;
@@ -80,7 +77,7 @@ export class CurrentPlayerData {
         this.positionData.transX = positionData.transX;
         this.positionData.transY = positionData.transY;
         this.positionData.transZ = positionData.transZ;
-        if (!bufferInteraction) 
+        if (isLocalUser || !bufferInteraction) 
         {
             if (positionData.interType !== InteractionType.none)
                 this.positionData.updateCurrentInteraction(positionData);

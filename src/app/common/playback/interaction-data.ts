@@ -1,4 +1,6 @@
-import { UserPositionDataTimestamp } from "./position-data";
+import { InteractionType } from "../opengoal/interaction-type";
+import { CurrentPositionData } from "./current-position-data";
+import { UserPositionData } from "./position-data";
 
 export class InteractionData {
     interType: number;
@@ -8,6 +10,7 @@ export class InteractionData {
     interParent: string;
     interLevel: string;
     interCleanup: boolean = false;
+    time: number;
 
     constructor() {
         
@@ -21,8 +24,17 @@ export class InteractionData {
             interName: interactionData.interName,
             interParent: interactionData.interParent,
             interLevel: interactionData.interLevel,
-            interCleanup: interactionData.interCleanup
+            interCleanup: interactionData.interCleanup,
+            time: interactionData.time
         }
+    }
+
+    public static isBuzzerCrate(type: InteractionType) {
+        return type === InteractionType.crateIron;
+    }
+
+    public static isOrbsCrate(type: InteractionType) {
+        return type === InteractionType.crateSteel;
     }
 }
 
@@ -32,15 +44,17 @@ export class UserInteractionData extends InteractionData {
     constructor(positionData: InteractionData, userId: string) {
         super();
 
-        this.interType = positionData.interType,
-        this.interAmount = positionData.interAmount,
-        this.interName = positionData.interName,
-        this.interParent = positionData.interParent,
-        this.interLevel = positionData.interLevel,
+        this.interType = positionData.interType;
+        this.interAmount = positionData.interAmount;
+        this.interStatus = positionData.interStatus;
+        this.interName = positionData.interName;
+        this.interParent = positionData.interParent;
+        this.interLevel = positionData.interLevel;
+        this.interCleanup = positionData.interCleanup;
         this.userId = userId;
     }
 
-    static fromUserPositionData(positionData: UserPositionDataTimestamp) : UserInteractionData {
+    static fromUserPositionData(positionData: UserPositionData) : UserInteractionData {
         return {
             interType: positionData.interType,
             interAmount: positionData.interAmount,
@@ -49,7 +63,22 @@ export class UserInteractionData extends InteractionData {
             interParent: positionData.interParent,
             interLevel: positionData.interLevel,
             interCleanup: positionData.interCleanup,
+            time: positionData.time,
             userId: positionData.userId
+        }
+    }
+
+    static fromInteractionData(interaction: InteractionData, userId: string) : UserInteractionData {
+        return {
+            interType: interaction.interType,
+            interAmount: interaction.interAmount,
+            interStatus: interaction.interStatus,
+            interName: interaction.interName,
+            interParent: interaction.interParent,
+            interLevel: interaction.interLevel,
+            interCleanup: interaction.interCleanup,
+            time: interaction.time,
+            userId: userId
         }
     }
 }
