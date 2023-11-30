@@ -1,5 +1,7 @@
 import { DbTask } from "../firestore/db-task";
+import { InteractionData } from "../playback/interaction-data";
 import { GameTask, GameTaskTime } from "./game-task";
+import { InteractionType } from "./interaction-type";
 import { Level } from "./levels";
 import { TaskStatus } from "./task-status";
 
@@ -12,7 +14,7 @@ export class Task {
 
     constructor(task: GameTaskTime) {
         this.gameTask = task.name;
-        this.isCollectedCell = Task.isCellCollect(task);
+        this.isCollectedCell = Task.isCellCollect(task.name, task.status);
         this.obtainedById = task.user.id;
         this.obtainedByName = task.user.name;
         this.obtainedAt = task.timerTime;
@@ -35,8 +37,8 @@ export class Task {
         return task.status === TaskStatus.unknown && (task.name === Task.lastboss || task.name === Task.forfeit);
     }
 
-    public static isCellCollect(task: GameTask) {
-        return this.resultsInCell(task.name) && task.status === TaskStatus.needResolution;
+    public static isCellCollect(name: string, status: string) {
+        return this.resultsInCell(name) && status === TaskStatus.needResolution;
     }
 
     public static resultsInCell(gameTask: string) {
@@ -167,12 +169,12 @@ export class Task {
     }
 
 
-    public static cellCost(task: GameTask) {
-        if (task.status !== TaskStatus.needResolution) return 0;
+    public static cellCost(interaction: InteractionData) {
+        if (interaction.interType !== InteractionType.gameTask || TaskStatus.nameFromEnum(interaction.interAmount) !== TaskStatus.needResolution) return 0;
 
-        if (task.name.includes("-oracle-money"))
+        if (interaction.interName.includes("-oracle-money"))
             return 120;
-        else if (task.name.includes("-money"))
+        else if (interaction.interName.includes("-money"))
             return 90;
         else
             return 0;

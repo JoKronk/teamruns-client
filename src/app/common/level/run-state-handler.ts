@@ -1,19 +1,15 @@
-import { GameTask, GameTaskLevelTime } from "../opengoal/game-task";
-import { Level } from "../opengoal/levels";
+import { InteractionType } from "../opengoal/interaction-type";
 import { Task } from "../opengoal/task";
 import { TaskStatus } from "../opengoal/task-status";
-import { Buzzer, BuzzerBase } from "./buzzer";
-import { Crate, CrateBase } from "./crate";
-import { DarkCrystal } from "./dark-crystal";
-import { EnemyBase } from "./enemy";
-import { LevelCollectables } from "./level-collectables";
-import { Orb, OrbBase } from "./orb";
+import { InteractionData, UserInteractionData } from "../playback/interaction-data";
+import { Crate } from "./crate";
+import { LevelInteractions } from "./level-interactions";
 
 export class RunStateHandler {
-    levels: LevelCollectables[] = [];
+    levels: LevelInteractions[] = [];
 
     ////unused in LevelHandler
-    tasksStatuses: GameTaskLevelTime[];
+    tasksStatuses: UserInteractionData[];
     cellCount: number;
     buzzerCount: number;
     orbCount: number;
@@ -26,114 +22,99 @@ export class RunStateHandler {
         this.orbCount = 0;
     }
 
-    isNewTaskStatus(task: GameTask): boolean {
-        const statusValue: number = TaskStatus.getEnumValue(task.status);
-        return !this.tasksStatuses.some(x => x.name === task.name) || TaskStatus.getEnumValue(this.tasksStatuses.find(x => x.name === task.name)!.status) < statusValue;
+    isNewTaskStatus(interaction: InteractionData): boolean {
+        if (interaction.interType !== InteractionType.gameTask) return false;
+
+        return !this.tasksStatuses.some(x => x.interName === interaction.interName) || this.tasksStatuses.find(x => x.interName === interaction.interName)!.interAmount < interaction.interAmount;
     }
 
-    hasAtleastTaskStatus(task: GameTask, status: string): boolean {
-        return this.tasksStatuses.some(x => x.name === task.name) && TaskStatus.getEnumValue(this.tasksStatuses.find(x => x.name === task.name)!.status) >= TaskStatus.getEnumValue(status)
+    hasAtleastTaskStatus(taskName: string, status: string): boolean {
+        return this.tasksStatuses.some(x => x.interName === taskName) && this.tasksStatuses.find(x => x.interName === taskName)!.interAmount >= TaskStatus.getEnumValue(status);
     }
 
-    addTask(task: GameTaskLevelTime) {
+    private pushLevelCleanupInteraction(level: LevelInteractions, interaction: UserInteractionData) {
+        const storedInteraction = new UserInteractionData(interaction, interaction.userId);
+        storedInteraction.interCleanup = true;
+        level.interactions.push(storedInteraction);
+    }
+
+    addTaskInteraction(interaction: UserInteractionData) {
         //update general task status
-        let oldTaskStatus = this.tasksStatuses.find(x => x.name === task.name);
+        let oldTaskStatus = this.tasksStatuses.find(x => x.interName === interaction.interName);
         if (oldTaskStatus)
-            this.tasksStatuses[this.tasksStatuses.indexOf(oldTaskStatus)] = task;
+            this.tasksStatuses[this.tasksStatuses.indexOf(oldTaskStatus)] = interaction;
         else
-            this.tasksStatuses.push(task);
+            this.tasksStatuses.push(interaction);
 
         //add task status for level
-        const level = this.getCreateLevel(task.level);
-        level.taskUpdates.push(task);
+        const level = this.getCreateLevel(interaction.interLevel);
+        this.pushLevelCleanupInteraction(level, interaction);
 
         //update counts
-        if (Task.isCellCollect(task)) {
+        const status: string = TaskStatus.nameFromEnum(interaction.interAmount);
+        if (Task.isCellCollect(interaction.interName, status)) {
             this.cellCount += 1;
-            this.orbCount -= Task.cellCost(task);
+            this.orbCount -= Task.cellCost(interaction);
         }
     }
 
-    addBuzzer(buzzer: Buzzer) {
-        const level = this.getCreateLevel(buzzer.level);
-        level.buzzerUpdates.push(new BuzzerBase(buzzer.id, buzzer.parentEname));
+    addInteraction(interaction: UserInteractionData) {
+        const level = this.getCreateLevel(interaction.interLevel);
+        this.pushLevelCleanupInteraction(level, interaction);
+    }
+
+    addLpcInteraction(interaction: UserInteractionData) {
+        const level = this.getCreateLevel(interaction.interLevel);
+        level.interactions = level.interactions.filter(x => x.interType !== InteractionType.lpcChamber);
+        this.pushLevelCleanupInteraction(level, interaction);
+    }
+
+    addBuzzerInteraction(interaction: UserInteractionData) {
+        const level = this.getCreateLevel(interaction.interLevel);
+        this.pushLevelCleanupInteraction(level, interaction);
         this.buzzerCount += 1;
     }
 
-    addOrb(orb: Orb, level: LevelCollectables | undefined = undefined) {
+    addOrbInteraction(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined) {
         if (!level)
-            level = this.getCreateLevel(orb.level);
+            level = this.getCreateLevel(interaction.interLevel);
     
-        level.orbUpdates.push(new OrbBase(orb.ename, orb.parentEname));
+        this.pushLevelCleanupInteraction(level, interaction);
         this.orbCount += 1;
     }
 
-    addCrate(crate: Crate) {
-        const level = this.getCreateLevel(crate.level);
-        level.crateUpdates.push(new CrateBase(crate.ename, crate.type, crate.pickupAmount));
-    }
 
-    addEnemy(enemy: EnemyBase, levelName: string) {
-        const level = this.getCreateLevel(levelName);
-        level.enemyUpdates.push(enemy);
-    }
-
-    addPeriscope(periscope: string) {
-        const level = this.getCreateLevel(Level.jungle);
-        level.periscopeUpdates.push(periscope);
-    }
-
-    addSnowBumper(bumper: string) {
-        const level = this.getCreateLevel(Level.snowy);
-        level.snowBumberUpdates.push(bumper);
-    }
-
-    addDarkCrystal(crystal: DarkCrystal) {
-        const level = this.getCreateLevel(crystal.level);
-        level.darkCrystalUpdates.push(crystal.ename);
-    }
-
-    setLpcChamber(chamberLevel: number) {
-        const hub2 = this.getCreateLevel(Level.hub2);
-        hub2.lpcChamberPosition = chamberLevel;
-        const lpc = this.getCreateLevel(Level.lpcBottomPart);
-        lpc.lpcChamberPosition = chamberLevel;
-    }
-
-
-    getCreateLevel(levelName: string): LevelCollectables {
+    getCreateLevel(levelName: string): LevelInteractions {
         let level = this.levels.find(x => x.levelName === levelName);
         if (!level) {
-            level = new LevelCollectables(levelName);
+            level = new LevelInteractions(levelName);
             this.levels.push(level);
         }
         return level;
     }
 
 
-    isOrbDupe(orb: Orb, level: LevelCollectables | undefined = undefined): boolean {
+    isOrbDupe(interaction: InteractionData, level: LevelInteractions | undefined = undefined): boolean {
         if (!level)
-            level = this.getCreateLevel(orb.level);
-
-        if (orb.parentEname.startsWith("orb-cache-top-"))
-            return 15 < (level.orbUpdates.filter(x => x.parentEname === orb.parentEname).length + 1);
-        else if (orb.parentEname.startsWith("crate-")) {
-            let parentCrate = level.crateUpdates.find(x => x.ename === orb.parentEname);
+            level = this.getCreateLevel(interaction.interLevel);
+        if (interaction.interParent.startsWith("orb-cache-top-"))
+            return 15 < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length + 1);
+        else if (interaction.interParent.startsWith("crate-")) {
+            let parentCrate = level.interactions.find(x => Crate.isOrbsType(x.interType) && x.interName === interaction.interParent);
             if (parentCrate) 
-                return parentCrate.pickupAmount < (level.orbUpdates.filter(x => x.parentEname === orb.parentEname).length + 1);
+                return parentCrate.interAmount < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length + 1);
             return false;
         }
-        else if (orb.parentEname.startsWith("gnawer-")) {
-            let parentGnawer = level.enemyUpdates.find(x => x.ename === orb.parentEname);
+        else if (interaction.interParent.startsWith("gnawer-")) {
+            let parentGnawer = level.interactions.find(x => x.interType === InteractionType.enemyDeath && x.interName === interaction.interParent);
             if (parentGnawer) 
-                return parentGnawer.pickupAmount < (level.orbUpdates.filter(x => x.parentEname === orb.parentEname).length + 1);
+                return parentGnawer.interAmount < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length + 1);
             return false;
         }
-        else if (orb.parentEname.startsWith("plant-boss-")) {
-            return 5 < (level.orbUpdates.filter(x => x.parentEname === orb.parentEname).length + 1);
-        }
+        else if (interaction.interParent.startsWith("plant-boss-"))
+            return 5 < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length + 1);
         else {
-            return level.orbUpdates.find(x => x.ename === orb.ename) !== undefined; 
+            return level.interactions.find(x => x.interType === InteractionType.money && x.interName === interaction.interName) !== undefined; 
         }
     }
 }

@@ -28,15 +28,10 @@ import { TaskStatus } from "../opengoal/task-status";
 import { LevelHandler } from "../level/level-handler";
 import { Crate } from "../level/crate";
 import { InteractionType } from "../opengoal/interaction-type";
-import { Orb } from "../level/orb";
-import { Buzzer } from "../level/buzzer";
-import { Eco } from "../level/eco";
 import pkg from 'app/package.json';
 import { PositionHandler } from "../playback/position-handler";
 import { RunStateHandler } from "../level/run-state-handler";
-import { Level } from "../opengoal/levels";
-import { DarkCrystal } from "../level/dark-crystal";
-import { EnemyBase } from "../level/enemy";
+import { UserInteractionData } from "../playback/interaction-data";
 
 export class RunHandler {
 
@@ -130,7 +125,7 @@ export class RunHandler {
                 this.handleStateChange(target.state);
 
             if (target.levels)
-                this.levelHandler.onLevelsUpdate(target.levels);
+                this.levelHandler.onLevelsUpdate(target.levels, this.positionHandler);
         });
 
         if (!this.recordingsSubscription) {
@@ -342,16 +337,17 @@ export class RunHandler {
 
         if (positionData.userId !== this.userService.getId()) {
             this.positionHandler.updatePlayerPosition(positionData);
+        }
 
         const player = this.run.getPlayer(positionData.userId);
         if (this.run?.timer.runState === RunState.Started && player && player.state !== PlayerState.Finished && player.state !== PlayerState.Forfeit)
             this.handlePlayerInteractions(positionData);
-        }
     }
 
     handlePlayerInteractions(positionData: UserPositionDataTimestamp) {
         if (positionData.interType === InteractionType.none || !this.run) return;
         const userId = this.userService.getId();
+        const interaction = UserInteractionData.fromUserPositionData(positionData);
 
         switch (positionData.interType) {
 
@@ -359,12 +355,12 @@ export class RunHandler {
                 if (!this.localPlayer.team || this.userIsNull()) break;
                 
                 const task: GameTaskLevelTime = GameTaskLevelTime.fromPositionData(positionData);
-                const isNewTask: boolean = this.localPlayer.team.runState.isNewTaskStatus(task);
+                const isNewTask: boolean = this.localPlayer.team.runState.isNewTaskStatus(interaction);
                 if (positionData.userId === userId)
                 {
                     //check duped cell buy
-                    if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.hasAtleastTaskStatus(task, TaskStatus.needResolution))
-                        OG.runCommand("(send-event *target* 'get-pickup 5 " + Task.cellCost(task) + ".0)");
+                    if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution))
+                        this.positionHandler.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), positionData.interLevel);
 
                     if (task.name === "citadel-sage-green")
                         this.localPlayer.hasCitadelSkipAccess = false;
@@ -379,7 +375,7 @@ export class RunHandler {
 
                 if (!isNewTask) break;
                 
-                const isCell: boolean = Task.isCellCollect(task);
+                const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interAmount));
                 if (isCell || Task.isRunEnd(task)) {
                     this.zone.run(() => {
                         this.run!.addSplit(new Task(task));
@@ -395,20 +391,20 @@ export class RunHandler {
                 if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || isLocalPlayerTeam)) {
 
                     //task updates
-                    this.levelHandler.onNewTask(task, isCell);
+                    this.levelHandler.onInteraction(interaction);
 
                     //cell cost check
                     if (isCell && isLocalPlayerTeam && !this.run.isMode(RunMode.Lockout)) {
-                        const cost = Task.cellCost(task);
+                        const cost = Task.cellCost(interaction);
                         if (cost !== 0)
-                            OG.runCommand("(send-event *target* 'get-pickup 5 -" + cost + ".0)");
+                            this.positionHandler.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), positionData.interLevel);
                     }
 
                     this.localPlayer.checkTaskUpdateSpecialCases(task, this.run);
                 }
                 
                 //add to team run state
-                playerTeam.runState.addTask(task);
+                playerTeam.runState.addTaskInteraction(interaction);
 
                 //handle Lockout
                 if (this.run.isMode(RunMode.Lockout))
@@ -417,12 +413,11 @@ export class RunHandler {
         
             case InteractionType.buzzer:
                 if (!this.localPlayer.team) break;
-
-                const buzzer = Buzzer.fromPositionData(positionData);
+                
                 if (positionData.userId !== userId && this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id)
-                    this.levelHandler.onBuzzerCollect(buzzer);
+                    this.levelHandler.onInteraction(interaction);
 
-                this.run.getPlayerTeam(positionData.userId)?.runState.addBuzzer(buzzer);
+                this.run.getPlayerTeam(positionData.userId)?.runState.addBuzzerInteraction(interaction);
                 break;
             
 
@@ -430,16 +425,15 @@ export class RunHandler {
                 if (!this.localPlayer.team) break;
                 
                 let teamOrbLevelState = this.localPlayer.team.runState.getCreateLevel(positionData.interLevel);
-                const orb = Orb.fromPositionData(positionData);
-                if (this.localPlayer.team.runState.isOrbDupe(orb, teamOrbLevelState)) {
+                if (this.localPlayer.team.runState.isOrbDupe(interaction, teamOrbLevelState)) {
                     if (positionData.userId === userId)
-                        OG.runCommand('(remove-money-dupe-from-level "' + orb.level + '")');
+                        this.positionHandler.addOrbReductionToCurrentPlayer(-1, positionData.interLevel);
                     break;
                 }
                 if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
-                    this.levelHandler.onOrbCollect(orb);
+                    this.levelHandler.onInteraction(interaction);
                 
-                this.run.getPlayerTeam(positionData.userId)?.runState.addOrb(orb, teamOrbLevelState);
+                this.run.getPlayerTeam(positionData.userId)?.runState.addOrbInteraction(interaction, teamOrbLevelState);
                 break;
         
 
@@ -447,12 +441,13 @@ export class RunHandler {
             case InteractionType.ecoYellow:
             case InteractionType.ecoGreen:
             case InteractionType.ecoRed:
-                if (!this.localPlayer.team) break;
-                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) ||  this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id)) {
-                    const index = this.positionHandler.getPlayerIngameIndex(positionData.userId);
-                    if (index !== undefined) OG.runCommand("(safe-give-eco-by-target-idx " + index + " " + positionData.interType + " " + (positionData.interType === 4 && positionData.interAmount === 1 && positionData.interName.startsWith("ecovent-") ? 5 : positionData.interAmount) + ".0)");
-                    this.levelHandler.onEcoPickup(Eco.fromPositionData(positionData));
-                }
+                break;
+
+            case InteractionType.fishCaught:
+            case InteractionType.fishMissed:
+                break;
+
+            case InteractionType.bossPhase:
                 break;
 
 
@@ -461,75 +456,32 @@ export class RunHandler {
             case InteractionType.crateSteel:
             case InteractionType.crateDarkeco:
                 if (!this.localPlayer.team) break;
-                const crate = Crate.fromPositionData(positionData);
-                if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !Crate.isBuzzerType(crate.type)) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
-                    this.levelHandler.onCrateDestroy(crate);
+                if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !Crate.isBuzzerType(interaction.interType)) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                    this.levelHandler.onInteraction(interaction);
 
-                if (Crate.isBuzzerType(crate.type) || Crate.isOrbsType(crate.type))
-                    this.run.getPlayerTeam(positionData.userId)?.runState.addCrate(crate);
+                if (Crate.isBuzzerType(interaction.interType) || Crate.isOrbsType(interaction.interType))
+                    this.run.getPlayerTeam(positionData.userId)?.runState.addInteraction(interaction);
                 break;
 
 
             case InteractionType.enemyDeath:
-                if (!this.localPlayer.team) break;
-                const enemy = new EnemyBase(positionData.interName, positionData.interAmount);
-                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
-                    this.levelHandler.onEnemyDeath(enemy, positionData.interLevel);
-
-                this.run.getPlayerTeam(positionData.userId)?.runState.addEnemy(enemy, positionData.interLevel);
-                break;
-
-
-            case InteractionType.fishCaught:
-            case InteractionType.fishMissed:
-                if (!this.localPlayer.team) break;
-                if (positionData.userId !== userId && this.levelHandler.levelIsActive(Level.jungle) && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
-                    OG.runCommand("(set-fish-stats " + positionData.interAmount + " " + positionData.interType + ")");
-                break;
-
-
             case InteractionType.periscope:
-                if (!this.localPlayer.team) break;
-                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
-                    this.levelHandler.onPeriscopeActivated(positionData.interName);
-
-                this.run.getPlayerTeam(positionData.userId)?.runState.addPeriscope(positionData.interName);
-                break;
-
-
             case InteractionType.snowBumper:
-                if (!this.localPlayer.team) break;
-                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
-                    this.levelHandler.onSnowBumperDeactivate(positionData.interName);
-
-                this.run.getPlayerTeam(positionData.userId)?.runState.addSnowBumper(positionData.interName);
-                break;
-
-
             case InteractionType.darkCrystal:
                 if (!this.localPlayer.team) break;
-                const darkCrystal: DarkCrystal = DarkCrystal.fromPositionData(positionData);
                 if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
-                    this.levelHandler.onDarkCrystalExplode(darkCrystal);
+                    this.levelHandler.onInteraction(interaction);
 
-                this.run.getPlayerTeam(positionData.userId)?.runState.addDarkCrystal(darkCrystal);
+                this.run.getPlayerTeam(positionData.userId)?.runState.addInteraction(interaction);
                 break;
 
 
             case InteractionType.lpcChamber:
                 if (!this.localPlayer.team) break;
-                const chamberPosition: number = positionData.interLevel === Level.hub2 ? 2 : 1;
                 if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
-                    this.levelHandler.onLpcChamberStop(chamberPosition);
+                    this.levelHandler.onLpcChamberStop(interaction);
 
-                this.run.getPlayerTeam(positionData.userId)?.runState.setLpcChamber(chamberPosition);
-                break;
-
-
-            case InteractionType.bossPhase:
-                if (!this.localPlayer.team) break;
-                if (positionData.userId !== userId && this.levelHandler.levelIsActive(positionData.interLevel) && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
-                    OG.runCommand('(safe-boss-up-to-phase "' + positionData.interName + '" ' + positionData.interAmount + ')');
+                this.run.getPlayerTeam(positionData.userId)?.runState.addLpcInteraction(interaction);
                 break;
 
         }
@@ -684,7 +636,7 @@ export class RunHandler {
                     this.levelHandler.uncollectedLevelItems = new RunStateHandler();
                     if (this.run.teams.length !== 0) {
                         const importTeam: Team = playerTeam?.runState ? playerTeam : this.run.teams[0];
-                        this.levelHandler.importRunStateHandler(importTeam.runState, this.localPlayer, importTeam.players.length !== 0 ? importTeam.players[0].gameState.currentCheckpoint : "game-start");
+                        this.levelHandler.importRunStateHandler(importTeam.runState, this.positionHandler, importTeam.players.length !== 0 ? importTeam.players[0].gameState.currentCheckpoint : "game-start");
                     }
                     this.run.updateSelfRestrictions(this.localPlayer);
 
@@ -816,7 +768,7 @@ export class RunHandler {
             if (!this.run || this.isSpectatorOrNull() || this.localPlayer.state === PlayerState.Finished) return;
 
             if (this.localPlayer.gameState.cellCount !== state.cellCount)
-                this.localPlayer.checkDesync(this.run);
+                this.localPlayer.checkDesync(this.run, this.levelHandler, this.positionHandler);
 
             //this check is purely to save unnecessary writes to db if user is on client-server communication
             if (this.shouldSendStateUpdate(state))

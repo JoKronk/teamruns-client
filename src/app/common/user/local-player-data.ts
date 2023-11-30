@@ -10,6 +10,8 @@ import { UserBase } from "./user";
 import { CitadelOption } from "../run/run-data";
 import { GameTask } from "../opengoal/game-task";
 import { TaskStatus } from "../opengoal/task-status";
+import { PositionHandler } from "../playback/position-handler";
+import { LevelHandler } from "../level/level-handler";
 
 export class LocalPlayerData {
   user: UserBase;
@@ -55,7 +57,7 @@ export class LocalPlayerData {
   }
 
 
-  checkDesync(run: Run) {
+  checkDesync(run: Run, levelHandler: LevelHandler, positionHandler: PositionHandler) {
     if (this.isSyncing) return;
     if (!this.team) this.team = run.getPlayerTeam(this.user.id);
     if (!this.team) return;
@@ -65,15 +67,11 @@ export class LocalPlayerData {
       this.isSyncing = true;
       setTimeout(() => {  //give the player some time to spawn in
         if (!run.isMode(RunMode.Lockout)) {
-          this.team!.splits.filter(x => x.isCollectedCell).forEach(cell => {
-            OG.updateTask(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName)));
-          });
+          levelHandler.importRunStateHandler(this.team!.runState, positionHandler);
         }
         else {
           run.teams.forEach(runTeam => {
-            runTeam.splits.filter(x => x.isCollectedCell).forEach(cell => {
-              OG.updateTask(new GameTask(cell.gameTask, new UserBase(cell.obtainedById, cell.obtainedByName)));
-            });
+            levelHandler.importRunStateHandler(runTeam.runState, positionHandler);
           });
         }
 

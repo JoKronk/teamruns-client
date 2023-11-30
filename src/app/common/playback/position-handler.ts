@@ -2,12 +2,15 @@
 import { WebSocketSubject, webSocket } from "rxjs/webSocket";
 import { Subject } from 'rxjs';
 import { Recording } from "./recording";
-import { CurrentPositionData, InteractionData, PositionDataTimestamp, UserPositionDataTimestamp } from "./position-data";
+import { PositionDataTimestamp, UserPositionDataTimestamp } from "./position-data";
 import { UserService } from "src/app/services/user.service";
 import { UserBase } from "../user/user";
 import { MultiplayerState } from "../opengoal/multiplayer-state";
 import { InteractionType } from "../opengoal/interaction-type";
 import { Timer } from "../run/timer";
+import { InteractionData, UserInteractionData } from "./interaction-data";
+import { CurrentPlayerData } from "./current-position-data";
+import { LocalPlayerData } from "../user/local-player-data";
 
 export class PositionHandler {
 
@@ -17,8 +20,8 @@ export class PositionHandler {
 
     timer: Timer = new Timer();
 
-    private self: CurrentPositionData;
-    private players: CurrentPositionData[] = [];
+    private self: CurrentPlayerData;
+    private players: CurrentPlayerData[] = [];
     private drawPositions: boolean = false;
     private positionUpdateRateMs: number = 16;
 
@@ -88,23 +91,49 @@ export class PositionHandler {
     }
 
     getPlayerIngameIndex(id: string): number | undefined {
-        const player = this.players.find(x => x.userId === id);
+        const player = this.players.find(x => x.positionData.userId === id);
         return player ? (this.players.indexOf(player) + 1) : undefined; //current is always 0 inside opengoal so + 1 for remote id
+    }
+
+    getCurrentPlayer(): CurrentPlayerData | undefined {
+        return this.players.find(x => x.positionData.userId === this.userService.getId());
+    }
+
+    addPlayerInteraction(interaction: UserInteractionData) {
+        const player = this.players.find(x => x.positionData.userId == interaction.userId);
+        if (!player) return;
+        player.interactionBuffer.push(InteractionData.getInteractionValues(interaction));
+        console.log("adding to buffer 3", interaction)
+    }
+
+    addOrbReductionToCurrentPlayer(reductionAmount: number, level: string) {
+        const orbReductionInteraction: UserInteractionData = {
+            interType: InteractionType.money,
+            interAmount: reductionAmount < 0 ? reductionAmount : -reductionAmount,
+            interStatus: 0,
+            interName: "money",
+            interParent: "entity-pool",
+            interLevel: level,
+            interCleanup: false,
+            userId: this.userService.getId()
+        };
+        console.log("adding orb reduction!", orbReductionInteraction)
+        this.addPlayerInteraction(orbReductionInteraction);
     }
 
     removePlayer(userId: string) {
         this.recordings = this.recordings.filter(x => x.userId !== userId);
         this.userPositionRecording = this.userPositionRecording.filter(x => x.userId !== userId);
-        this.players = this.players.filter(x => x.userId !== userId);
+        this.players = this.players.filter(x => x.positionData.userId !== userId);
     }
 
     checkRegisterPlayer(user: UserBase | undefined, state: MultiplayerState) {
-        if (!user || this.players.find(x => x.userId === user.id)) return;
+        if (!user || this.players.find(x => x.positionData.userId === user.id)) return;
 
         if (user.id !== this.userService.getId())
-            this.players.push(new CurrentPositionData(user, state));
+            this.players.push(new CurrentPlayerData(user, state));
         else
-            this.self = new CurrentPositionData(user, MultiplayerState.interactive);
+            this.self = new CurrentPlayerData(user, MultiplayerState.interactive);
     }
 
     addRecording(recording: Recording, user: UserBase, state: MultiplayerState = MultiplayerState.active) {
@@ -116,7 +145,7 @@ export class PositionHandler {
 
 
     updatePlayerPosition(positionData: UserPositionDataTimestamp) {
-        let player = positionData.userId !== this.userService.user.id ? this.players.find(x => x.userId === positionData.userId) : this.self;
+        let player = positionData.userId !== this.userService.user.id ? this.players.find(x => x.positionData.userId === positionData.userId) : this.self;
 
         if (player) player.updateCurrentPosition(positionData);
         else
@@ -140,8 +169,8 @@ export class PositionHandler {
         this.drawPositions = true;
         this.drawPlayers();
         this.players.forEach(player => {
-            if (player.mpState === MultiplayerState.disconnected)
-                player.mpState = MultiplayerState.interactive;
+            if (player.positionData.mpState === MultiplayerState.disconnected)
+                player.positionData.mpState = MultiplayerState.interactive;
         });
     }
 
@@ -157,7 +186,7 @@ export class PositionHandler {
             this.recordings.forEach(recording => {
                 const positionData = recording.playback.find(x => x.time < this.timer.totalMs);
                 if (positionData) {
-                    const currentPlayer = this.players.find(x => x.userId === recording.userId);
+                    const currentPlayer = this.players.find(x => x.positionData.userId === recording.userId);
                     if (currentPlayer) {
                         const previousRecordingdataIndex = currentPlayer.recordingDataIndex;
                         const newRecordingdataIndex = recording.playback.indexOf(positionData);
@@ -183,8 +212,8 @@ export class PositionHandler {
         if (this.timer.totalMs > 200) {
             if (!this.hasDrawnRecordingNames) {
                 this.recordings.forEach(recording => {
-                    const currentPlayer = this.players.find(x => x.userId === recording.userId);
-                    if (currentPlayer) currentPlayer.username = recording.nameFrontend ?? "BLANK";
+                    const currentPlayer = this.players.find(x => x.positionData.userId === recording.userId);
+                    if (currentPlayer) currentPlayer.positionData.username = recording.nameFrontend ?? "BLANK";
                 });
             }
         }
@@ -192,7 +221,7 @@ export class PositionHandler {
         this.players.forEach(player => {
             //ensure interaction don't run twice
             if (!player.hasFrameUpdate)
-                player.resetCurrentInteraction();
+                player.positionData.resetCurrentInteraction();
 
             player.hasFrameUpdate = false; 
 
@@ -206,26 +235,26 @@ export class PositionHandler {
         this.drawPlayers();
     }
 
-    private addInteractionToBuffer(currentPlayer: CurrentPositionData, positionData: PositionDataTimestamp) {
-        if (currentPlayer.mpState === MultiplayerState.interactive && positionData.interType !== InteractionType.none)
-            currentPlayer.interactionBuffer.push(InteractionData.fromPositionData(positionData));
+    private addInteractionToBuffer(currentPlayer: CurrentPlayerData, positionData: PositionDataTimestamp) {
+        if (currentPlayer.positionData.mpState === MultiplayerState.interactive && positionData.interType && positionData.interType !== InteractionType.none)
+            currentPlayer.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
     }
 
-    private checkSendRecordingPickup(currentPlayer: CurrentPositionData, positionData: PositionDataTimestamp) {
-        if (currentPlayer.mpState === MultiplayerState.interactive && positionData.interType !== InteractionType.none)
-            this.recordingPickups.next(new UserPositionDataTimestamp(positionData, positionData.time, new UserBase(currentPlayer.userId, currentPlayer.username)));
+    private checkSendRecordingPickup(currentPlayer: CurrentPlayerData, positionData: PositionDataTimestamp) {
+        if (currentPlayer.positionData.mpState === MultiplayerState.interactive && positionData.interType && positionData.interType !== InteractionType.none)
+            this.recordingPickups.next(new UserPositionDataTimestamp(positionData, positionData.time, new UserBase(currentPlayer.positionData.userId, currentPlayer.positionData.username)));
     }
 
     private updatePlayersInOpengoal() {
-        this.ogSocket.next(this.players);
+        this.ogSocket.next(this.players.flatMap(x => x.positionData));
     }
 
     private cleanupPlayers() {
-        if (!this.players.some(x => x.mpState !== MultiplayerState.disconnected)) return;
+        if (!this.players.some(x => x.positionData.mpState !== MultiplayerState.disconnected)) return;
 
         this.players.forEach(player => {
-            player.username = "";
-            player.mpState = MultiplayerState.disconnected;
+            player.positionData.username = "";
+            player.positionData.mpState = MultiplayerState.disconnected;
         });
 
         this.updatePlayersInOpengoal();

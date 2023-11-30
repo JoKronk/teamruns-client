@@ -12,13 +12,6 @@ export class OG {
     (window as any).electron.send('og-start-run');
   }
 
-  static updateTask(task: GameTask, isCell: boolean | undefined = undefined) {
-    if (isCell ?? Task.isCellCollect(task))
-      this.runCommand("(dm-give-cell-from-remote (game-task " + task.name + "))");
-    else
-      this.runCommand("(close-specific-task-from-remote! (game-task " + task.name + ") (task-status " + task.status + "))");
-  }
-
   static giveFinalBossAccess(currentLevel: string) {
     this.runCommand('(set! *allow-final-boss?* #t)');
     if (currentLevel === "finalboss")
