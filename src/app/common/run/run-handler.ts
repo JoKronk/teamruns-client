@@ -25,7 +25,7 @@ import { GameState } from "../opengoal/game-state";
 import { Team } from "./team";
 import { LevelHandler } from "../level/level-handler";
 import pkg from 'app/package.json';
-import { PositionHandler } from "../playback/position-handler";
+import { PlayerHandler } from "../playback/player-handler";
 import { RunStateHandler } from "../level/run-state-handler";
 
 export class RunHandler {
@@ -45,7 +45,7 @@ export class RunHandler {
 
     private obsUserId: string | null;
     
-    positionHandler: PositionHandler;
+    positionHandler: PlayerHandler;
 
     dataSubscription: Subscription;
     positionSubscription: Subscription;
@@ -60,7 +60,7 @@ export class RunHandler {
         obsUserId: string | null = null) {
         
         this.isOnlineInstant = lobbyId !== undefined;
-        this.positionHandler = new PositionHandler(userService, this.levelHandler, localPlayer, zone);
+        this.positionHandler = new PlayerHandler(userService, this.levelHandler, localPlayer, zone);
         this.zone = zone;
         this.obsUserId = obsUserId;
 

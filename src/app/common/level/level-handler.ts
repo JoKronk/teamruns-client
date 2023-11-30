@@ -3,7 +3,7 @@ import { Task } from "../opengoal/task";
 import { LevelStatus } from "./level-status";
 import { RunStateHandler } from "./run-state-handler";
 import { Level } from "../opengoal/levels";
-import { PositionHandler } from "../playback/position-handler";
+import { PlayerHandler } from "../playback/player-handler";
 import { InteractionData, UserInteractionData } from "../playback/interaction-data";
 import { InteractionType } from "../opengoal/interaction-type";
 import { TaskStatus } from "../opengoal/task-status";
@@ -17,7 +17,7 @@ export class LevelHandler {
 
     }
 
-    importRunStateHandler(runStateHandler: RunStateHandler, positionHandler: PositionHandler, teamPlayerCheckpoint: string | null = null) {
+    importRunStateHandler(runStateHandler: RunStateHandler, positionHandler: PlayerHandler, teamPlayerCheckpoint: string | null = null) {
 
         //reset game
         OG.runCommand("(initialize! *game-info* 'game (the-as game-save #f) (the-as string #f))");
@@ -79,7 +79,7 @@ export class LevelHandler {
 
     // ----- update handlers -----
 
-    onLevelsUpdate(levels: LevelStatus[], positionHandler: PositionHandler) {
+    onLevelsUpdate(levels: LevelStatus[], positionHandler: PlayerHandler) {
         this.levels = levels;
         this.levels.forEach(level => {
             if (level.status === LevelStatus.Active || level.status === LevelStatus.Alive)
@@ -127,7 +127,7 @@ export class LevelHandler {
         return level.status === LevelStatus.Active || level.status === LevelStatus.Alive;
     }
 
-    private onLevelActive(levelName: string, positionHandler: PositionHandler) {
+    private onLevelActive(levelName: string, positionHandler: PlayerHandler) {
 
         setTimeout(() => {
             let level = this.uncollectedLevelItems.levels.find(x => x.levelName === levelName);

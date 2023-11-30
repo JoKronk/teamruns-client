@@ -10,7 +10,7 @@ import { UserBase } from "./user";
 import { CitadelOption } from "../run/run-data";
 import { GameTask } from "../opengoal/game-task";
 import { TaskStatus } from "../opengoal/task-status";
-import { PositionHandler } from "../playback/position-handler";
+import { PlayerHandler } from "../playback/player-handler";
 import { LevelHandler } from "../level/level-handler";
 
 export class LocalPlayerData {
@@ -57,7 +57,7 @@ export class LocalPlayerData {
   }
 
 
-  checkDesync(run: Run, levelHandler: LevelHandler, positionHandler: PositionHandler) {
+  checkDesync(run: Run, levelHandler: LevelHandler, positionHandler: PlayerHandler) {
     if (this.isSyncing) return;
     if (!this.team) this.team = run.getPlayerTeam(this.user.id);
     if (!this.team) return;

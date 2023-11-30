@@ -21,7 +21,7 @@ import { LevelHandler } from "../level/level-handler";
 import { RunState } from "../run/run-state";
 import { NgZone } from "@angular/core";
 
-export class PositionHandler {
+export class PlayerHandler {
 
     recordings: Recording[] = [];
     private hasDrawnRecordingNames: boolean = false;
