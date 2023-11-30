@@ -146,6 +146,8 @@ export class Run {
         if (!newTeam) return;
     
         let oldTeam = this.getPlayerTeam(user.id);
+        if (newTeam === oldTeam) return;
+        
         let player = oldTeam ? oldTeam.players.find(x => x.user.id === user.id) : new Player(user);
         newTeam.players.push(player!);
         this.spectators = this.spectators.filter(x => x.user.id !== user.id);
