@@ -6,19 +6,19 @@ export class RunData {
     //metadata
     name: string = "";
     teams: number = 1;
-    category: CategoryOption = CategoryOption.NoLts;
     buildVersion: string;
 
     //run settings
+    category: CategoryOption = CategoryOption.NoLts;
     countdownSeconds: number = 10;
     mode: RunMode = RunMode.Speedrun;
-    hideOtherPlayers: boolean = false;
-    requireSameLevel: boolean = false;
 
     //category settings
+    requireSameLevel: boolean = false;
     allowSoloHubZoomers: boolean = false;
     noLTS: boolean = true;
     citadelSkip: CitadelOption = CitadelOption.Shared;
+    enablePvp: boolean = false;
 
     constructor(version: string) {
         this.buildVersion = version;

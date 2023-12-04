@@ -16,10 +16,13 @@ var openGoalGk = null;
 
 var firstStart = true;
 
+var runRepl = false;
+
 class OpenGoal {
 
-    constructor(window) {
+    constructor(window, runDebugger) {
         win = window;
+        runRepl = runDebugger;
      }
      
 
@@ -45,7 +48,7 @@ class OpenGoal {
         try {
             var shell = new winax.Object('Shell.Application');
             //shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 0);
-            shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open", 0);
+            shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open");
             replHasStarted = true;
         }
         catch (e) { this.sendClientMessage(e); }
@@ -81,36 +84,45 @@ class OpenGoal {
         this.sendClientMessage("Starting OpenGOAL!");
         this.startGK(await getOpenGoalPath());
 
-        if (!replIsRunning)
-            await this.preStartREPL();
-        
-
-        if (!replHasStarted)
-            this.sendClientMessage("Startup failed, REPL never launched");
-        
-        
-
-        if (replHasStarted && !replIsRunning) {
-            console.log("Starting pre REPL (lt) connection sleep 1")
-            await sleep(1500);
+        if (runRepl) {
+            if (!replIsRunning)
+                await this.preStartREPL();
+            
+    
+            if (!replHasStarted)
+                this.sendClientMessage("Startup failed, REPL never launched");
+            
+            
+    
+            if (replHasStarted && !replIsRunning) {
+                console.log("Starting pre REPL (lt) connection sleep 1")
+                await sleep(1500);
+            }
+    
+            if (replHasStarted && !replIsRunning) {
+                console.log("Starting pre REPL (lt) connection sleep 2")
+                await sleep(3500);
+            }
+            
+            console.log("Connecting to OG and writing setup commands!")
+            this.writeGoalCommand("(lt)");
+            this.writeGoalCommand("(mark-repl-connected)");
         }
 
-        if (replHasStarted && !replIsRunning) {
-            console.log("Starting pre REPL (lt) connection sleep 2")
-            await sleep(3500);
-        }
-        
-        console.log("Connecting to OG and writing setup commands!")
-        this.writeGoalCommand("(lt)");
-        //this.writeGoalCommand("(set! *debug-segment* #f)");
-        this.writeGoalCommand("(set! *cheat-mode* #f)");
-        this.writeGoalCommand("(set! (-> *pc-settings* speedrunner-mode?) #t)");
-        //!TODO: Swap this one out as soon as possible
-        //this.writeGoalCommand("(set! *pc-settings-built-sha* \"rev. 20f132 \\nTeamRun Version " + app.getVersion() + "\")");
-        this.writeGoalCommand("(mark-repl-connected)");
+        if (!openGoalIsRunning)
+            await this.stallSecondsForGkLaunch(5);
 
         console.log(".done");
-        win.webContents.send("og-launched", true);
+        win.webContents.send("og-launched", openGoalIsRunning);
+    }
+
+    async stallSecondsForGkLaunch(seconds) {
+        for (let i = 0; i < seconds; i++) {
+            await sleep(1000);
+            if (openGoalIsRunning) {
+                return;
+            }
+        }
     }
 
     startGK(ogPath) {
@@ -129,7 +141,11 @@ class OpenGoal {
             win.webContents.send("og-launched", false);
             this.sendClientMessage("OG Disconneted!");
         });
-        openGoalIsRunning = true;
+
+        //On Full Start
+        openGoalGk.on('spawn', () => {
+            openGoalIsRunning = true;
+        });
     }
 
 

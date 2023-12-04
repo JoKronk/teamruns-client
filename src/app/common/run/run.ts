@@ -9,11 +9,10 @@ import { Team } from "./team";
 import { Timer } from "./timer";
 import { PlayerState } from "../player/player-state";
 import { RunState } from "./run-state";
-import { MultiLevel } from "../opengoal/levels";
-import { OG } from "../opengoal/og";
 import { UserBase } from "../user/user";
 import { UserService } from "src/app/services/user.service";
 import { RunStateHandler } from "../level/run-state-handler";
+import { RemotePlayerInfo } from "../playback/remote-player-info";
 
 export class Run {
     data: RunData;
@@ -62,10 +61,12 @@ export class Run {
         return false;
     }
 
-    checkForRunReset(): boolean {
-        let players = this.teams.flatMap(x => x.players);
-        if (players.filter(x => x.state === PlayerState.WantsToReset).length / players.length <= 0.65)
-            return false;
+    checkForRunReset(forceReset: boolean = false): boolean {
+        if (!forceReset) {
+            let players = this.teams.flatMap(x => x.players);
+            if (players.filter(x => x.state === PlayerState.WantsToReset).length / players.length <= 0.65)
+                return false;
+        }
         
         this.timer.reset();
         this.teams.forEach(team => {
@@ -137,7 +138,6 @@ export class Run {
     start(startDate: Date) {
         startDate.setSeconds(startDate.getSeconds() + this.timer.countdownSeconds - 1);
         this.timer.startTimer(startDate.getTime());
-        OG.runCommand("(start 'play (get-continue-by-name *game-info* \"village1-hut\"))");
     }
 
     changeTeam(user: UserBase | undefined, teamId: number) {
@@ -208,46 +208,25 @@ export class Run {
         return this.data.mode === mode;
     }
 
+    getRemotePlayerInfo(userId: string): RemotePlayerInfo | undefined {
+        let playerIndex = 0;
+        let playerInfo: RemotePlayerInfo | undefined = undefined;
+        this.teams.forEach(team => {
+            team.players.forEach(player => {
+                if (player.user.id === userId) {
+                    playerInfo = new RemotePlayerInfo(team.id, playerIndex, player.cellsCollected);
+                    return;
+                }
+                playerIndex += 1;
+            });
+            if (playerInfo)
+                return;
+        });
+        return playerInfo;
+    }
+
 
     // --- RUN METHODS INVOLVING OPENGOAL ---
-    updateSelfRestrictions(localPlayer: LocalPlayerData, player: Player | undefined = undefined) {
-        if (!player)
-            player = this.getPlayer(localPlayer.user.id);
-        if (!player) return;
-        const team = this.getPlayerTeam(player.user.id);
-        if (!team) return;
-
-        let levelToCheck = player.gameState.currentLevel;
-
-        //if all on same level hub zoomer
-        if (!localPlayer.restrictedZoomerLevels.includes(player.gameState.currentLevel) || team.players.every(x => x.gameState.onZoomer && x.gameState.currentLevel === levelToCheck) || this.isMode(RunMode.Lockout) && this.teams.length === 1) {
-            OG.runCommand("(set-zoomer-full-mode)");
-            localPlayer.restrictedZoomerLevels = localPlayer.restrictedZoomerLevels.filter(x => x !== player!.gameState.currentLevel);
-        }
-        else if (!this.data.allowSoloHubZoomers)
-            OG.runCommand("(set-zoomer-wait-mode)");
-
-        if (this.data.requireSameLevel) {
-            if (team.players.every(x => this.isSameLevel(x.gameState.currentLevel, levelToCheck)))
-                OG.runCommand("(set! *allow-cell-pickup?* #t)");
-            else 
-                OG.runCommand("(set! *allow-cell-pickup?* #f)");
-        }
-    }
-
-    private isSameLevel(currentLevel: string, checkAgainst: string) {
-        if (MultiLevel.spiderCave().includes(currentLevel) && MultiLevel.spiderCave().includes(checkAgainst))
-            return true;
-        if (MultiLevel.jungle().includes(currentLevel) && MultiLevel.jungle().includes(checkAgainst))
-            return true;
-        if (MultiLevel.lpc().includes(currentLevel) && MultiLevel.lpc().includes(checkAgainst))
-            return true;
-        if (currentLevel === checkAgainst)
-            return true;
-
-        return false;
-    }
-
     reconstructRun() {
         //update run
         let teams: Team[] = [];

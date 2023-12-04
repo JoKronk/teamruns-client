@@ -19,12 +19,12 @@ export class Category {
                 key: CategoryOption.AllCells
             },
             {
-                displayName: "Orbless",
-                key: CategoryOption.Orbless
+                displayName: "100%",
+                key: CategoryOption.Hundo
             },
             {
-                displayName: "No Major Skips",
-                key: CategoryOption.NMS
+                displayName: "Orbless",
+                key: CategoryOption.Orbless
             },
             {
                 displayName: "All Flies",
@@ -42,8 +42,8 @@ export enum CategoryOption {
     Custom,
     NoLts,
     AllCells,
+    Hundo,
     Orbless,
-    NMS,
     AllFlies,
     AllOrbs
 }

@@ -1,4 +1,3 @@
-import { OG } from "../opengoal/og";
 import { Task } from "../opengoal/task";
 import { LevelStatus } from "./level-status";
 import { RunStateHandler } from "./run-state-handler";
@@ -7,6 +6,7 @@ import { PlayerHandler } from "../playback/player-handler";
 import { InteractionData, UserInteractionData } from "../playback/interaction-data";
 import { InteractionType } from "../opengoal/interaction-type";
 import { TaskStatus } from "../opengoal/task-status";
+import { OgCommand } from "../playback/og-command";
 
 export class LevelHandler {
 
@@ -17,22 +17,22 @@ export class LevelHandler {
 
     }
 
-    importRunStateHandler(runStateHandler: RunStateHandler, positionHandler: PlayerHandler, teamPlayerCheckpoint: string | null = null) {
+    importRunStateHandler(runStateHandler: RunStateHandler, positionHandler: PlayerHandler) {
 
         //reset game
-        OG.runCommand("(initialize! *game-info* 'game (the-as game-save #f) (the-as string #f))");
+        positionHandler.addCommand(OgCommand.ResetGame);
 
         //import task statuses to game
         runStateHandler.tasksStatuses.forEach(interaction => {
             this.onInteraction(interaction);
-            if (Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interAmount))) {
+            if (Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus))) {
                 const cost = Task.cellCost(interaction);
                 if (cost !== 0)
                     positionHandler.addOrbReductionToCurrentPlayer(cost, interaction.interLevel);
             }
         });
           
-        OG.runCommand("(reset-actors 'life)");
+        positionHandler.addCommand(OgCommand.ResetActors);
 
 
         //update collectables
@@ -71,9 +71,6 @@ export class LevelHandler {
             });
 
         });
-        //tp to first team player checkpoint
-        if (teamPlayerCheckpoint)
-            OG.runCommand("(start 'play (get-continue-by-name *game-info* " + teamPlayerCheckpoint + "))");
     }
     
 
@@ -179,7 +176,7 @@ export class LevelHandler {
 
             level.interactions.filter(x => x.interType == InteractionType.gameTask).forEach(interaction => {
                 positionHandler.addPlayerInteraction(interaction);
-                if (Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interAmount)))
+                if (Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus)))
                     this.uncollectedLevelItems.cellCount -= 1; 
             });
     

@@ -1,6 +1,5 @@
 
 import { WebSocketSubject, webSocket } from "rxjs/webSocket";
-import { Subject } from 'rxjs';
 import { Recording } from "./recording";
 import { PositionData, UserPositionData } from "./position-data";
 import { UserService } from "src/app/services/user.service";
@@ -20,6 +19,10 @@ import { Run } from "../run/run";
 import { LevelHandler } from "../level/level-handler";
 import { RunState } from "../run/run-state";
 import { NgZone } from "@angular/core";
+import { RemotePlayerInfo } from "./remote-player-info";
+import { SocketPackage } from "./socket-package";
+import { OgCommand } from "./og-command";
+import { GameSettings } from "./game-settings";
 
 export class PlayerHandler {
 
@@ -35,12 +38,16 @@ export class PlayerHandler {
     private drawPositions: boolean = false;
     private positionUpdateRateMs: number = 16;
 
+    private socketCommandBuffer: OgCommand[] = []; 
+    private socketPackage: SocketPackage = new SocketPackage();
     ogSocket: WebSocketSubject<any> = webSocket('ws://localhost:8111');
     private launchListener: any;
+    private connectionAttempts: number;
 
 
     constructor(public userService: UserService, public levelHandler: LevelHandler, public localPlayer: LocalPlayerData, public zone: NgZone) {
 
+        this.timer.linkSocketCommands(this.socketCommandBuffer);
         if (this.userService.user.name) //if client is fully reloaded in a place where position service is started at same time as use we pick up user on movement instead
             this.checkRegisterPlayer(this.userService.user, MultiplayerState.interactive);
 
@@ -48,8 +55,10 @@ export class PlayerHandler {
             this.connectToOpengoal();
 
         this.launchListener = (window as any).electron.receive("og-launched", (launched: boolean) => {
-            if (launched)
+            if (launched) {
+                this.connectionAttempts = 0;
                 this.connectToOpengoal();
+            }
             else {
                 this.ogSocket.complete();
                 this.ogSocket = webSocket('ws://localhost:8111');
@@ -76,13 +85,23 @@ export class PlayerHandler {
             }*/
 
             if (target.connected) {
-                this.userService.replConnected = true;
-                console.log("REPL Connected!");
+                this.userService.socketConnected = true;
+                this.socketPackage.username = this.userService.user.displayName;
+                console.log("Socket Connected!");
+                this.addCommand(OgCommand.None); //send empty message to update username
             }
         },
-            error => {
+        error => {
+            if (this.connectionAttempts < 4) {
+                this.connectionAttempts += 1;
+                setTimeout(() => {
+                    if (this.connectionAttempts != 0)
+                        this.connectToOpengoal();
+                }, 3000);
+            }
+            else
                 console.log("Opengoal socket error, did the game shut down?");
-            });
+        });
     }
 
     resetGetRecordings(): Recording[] {
@@ -99,19 +118,49 @@ export class PlayerHandler {
         this.userPositionRecording = [];
     }
 
-    getPlayerIngameIndex(id: string): number | undefined {
-        const player = this.players.find(x => x.positionData.userId === id);
-        return player ? (this.players.indexOf(player) + 1) : undefined; //current is always 0 inside opengoal so + 1 for remote id
-    }
-
     getCurrentPlayer(): CurrentPlayerData | undefined {
         return this.players.find(x => x.positionData.userId === this.userService.getId());
     }
 
+    addCommand(command: OgCommand) {
+        this.socketCommandBuffer.push(command);
+        if (!this.drawPositions && this.userService.socketConnected)
+            this.sendSocketPackageToOpengoal(false);
+    }
+
+    private addInteractionToBuffer(currentPlayer: CurrentPlayerData, positionData: PositionData) {
+        if (currentPlayer.positionData.mpState === MultiplayerState.interactive && positionData.interType && positionData.interType !== InteractionType.none)
+            currentPlayer.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
+    }
+
     addPlayerInteraction(interaction: UserInteractionData) {
         const player = this.players.find(x => x.positionData.userId == interaction.userId);
-        if (!player) return;
+        if (!player || interaction.interType === InteractionType.none) return;
         player.interactionBuffer.push(InteractionData.getInteractionValues(interaction));
+    }
+
+    updatePlayerInfo(userId: string, playerInfo: RemotePlayerInfo | undefined) {
+        if (!playerInfo) return;
+
+        if (!this.self)
+            this.checkRegisterPlayer(this.userService.user.getUserBase(), MultiplayerState.interactive);
+
+        if (this.self.positionData.userId === userId)
+            this.socketPackage.selfInfo = playerInfo;
+        else {
+            const player = this.players.find(x => x.positionData && x.positionData.userId == userId);
+            if (!player) return;
+            player.positionData.playerInfo = playerInfo;
+            player.hasInfoUpdate = true;
+        }
+        if (!this.drawPositions)
+            this.addCommand(OgCommand.None);
+    }
+
+    updateGameSettings(settings: GameSettings) {
+        this.socketPackage.gameSettings = settings;
+        if (!this.drawPositions)
+            this.addCommand(OgCommand.None);
     }
 
     addOrbReductionToCurrentPlayer(reductionAmount: number, level: string) {
@@ -155,10 +204,18 @@ export class PlayerHandler {
     updatePlayerPosition(positionData: UserPositionData) {
         const isLocalUser = positionData.userId === this.userService.user.id;
         let player = !isLocalUser ? this.players.find(x => x.positionData.userId === positionData.userId) : this.self;
-
+        
         if (player) {
+            if (player.positionData.currentLevel !== positionData.currentLevel) {
+                this.addCommand(OgCommand.OnRemoteLevelUpdate);
+                const runPlayer = this.run?.getPlayer(player.positionData.userId);
+                if (runPlayer) runPlayer.currentLevel = positionData.currentLevel;
+            }
+            
             player.updateCurrentPosition(positionData, isLocalUser);
-            if (isLocalUser) {
+
+
+            if (isLocalUser) { //handled in draw update cycle for remote players
                 const runPlayer = this.run?.getPlayer(player.positionData.userId);
                 if (this.run?.timer.runState === RunState.Started && runPlayer && runPlayer.state !== PlayerState.Finished && runPlayer.state !== PlayerState.Forfeit)
                     this.handlePlayerInteractions(player.positionData);
@@ -204,6 +261,10 @@ export class PlayerHandler {
                 if (positionData) {
                     const currentPlayer = this.players.find(x => x.positionData.userId === recording.userId);
                     if (currentPlayer) {
+
+                        if (currentPlayer.positionData.currentLevel !== positionData.currentLevel)
+                            this.addCommand(OgCommand.OnRemoteLevelUpdate);
+
                         const previousRecordingdataIndex = currentPlayer.recordingDataIndex;
                         const newRecordingdataIndex = recording.playback.indexOf(positionData);
                         if (currentPlayer.updateCurrentPosition(positionData, false, newRecordingdataIndex)) {
@@ -229,35 +290,41 @@ export class PlayerHandler {
             }
         }
 
-        this.players.forEach(player => {
-            //ensure interaction don't run twice
-            if (!player.hasFrameUpdate)
-                player.positionData.resetCurrentInteraction();
-
-            player.hasFrameUpdate = false; 
-
-            //fill interaction from buffer if possible
-            player.checkUpdateInteractionFromBuffer();
-    
-            //handle interaction data for run and player
+        //handle interaction data for run and player (handled in position update for local player)
+        //needs to be done before sending data over socket for orb dupe removals
+        this.players.filter(x=> x.positionData.interaction && x.positionData.interaction.interType !== InteractionType.none).forEach(player => {
             const runPlayer = this.run?.getPlayer(player.positionData.userId);
             if (this.run?.timer.runState === RunState.Started && runPlayer && runPlayer.state !== PlayerState.Finished && runPlayer.state !== PlayerState.Forfeit)
                 this.handlePlayerInteractions(player.positionData);
         });
 
-        this.updatePlayersInOpengoal();
-        await new Promise(r => setTimeout(r, this.positionUpdateRateMs));
+        //send data
+        this.sendSocketPackageToOpengoal();
 
+        //post cleanup and buffer check
+        this.players.forEach(player => {
+            if (player.hasInteractionUpdate) player.positionData.resetCurrentInteraction();
+            if (player.hasInfoUpdate) player.positionData.resetCurrentInfo();
+
+            player.hasInteractionUpdate = false;
+
+            //fill interaction from buffer if possible
+            player.checkUpdateInteractionFromBuffer();
+        });
+
+        await new Promise(r => setTimeout(r, this.positionUpdateRateMs));
         this.drawPlayers();
     }
 
-    private addInteractionToBuffer(currentPlayer: CurrentPlayerData, positionData: PositionData) {
-        if (currentPlayer.positionData.mpState === MultiplayerState.interactive && positionData.interType && positionData.interType !== InteractionType.none)
-            currentPlayer.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
-    }
+    private sendSocketPackageToOpengoal(sendPlayers: boolean = true) {
+        if (this.socketCommandBuffer.length !== 0)
+            this.socketPackage.command = this.socketCommandBuffer.shift();
+        this.socketPackage.players = sendPlayers ? this.players.flatMap(x => x.positionData) : undefined;
+        this.ogSocket.next(this.socketPackage);
 
-    private updatePlayersInOpengoal() {
-        this.ogSocket.next(this.players.flatMap(x => x.positionData));
+        this.socketPackage.command = undefined;
+        this.socketPackage.selfInfo = undefined;
+        this.socketPackage.gameSettings = undefined;
     }
 
     private cleanupPlayers() {
@@ -268,7 +335,7 @@ export class PlayerHandler {
             player.positionData.mpState = MultiplayerState.disconnected;
         });
 
-        this.updatePlayersInOpengoal();
+        this.sendSocketPackageToOpengoal();
     }
 
     userIsNull() {
@@ -287,7 +354,7 @@ export class PlayerHandler {
                 if (!this.localPlayer.team || this.userIsNull()) break;
                 
                 const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, positionData.interaction);
-                const isNewTask: boolean = this.localPlayer.team.runState.isNewTaskStatus(interaction);
+                const isNewTaskStatus: boolean = this.localPlayer.team.runState.isNewTaskStatus(interaction);
                 if (positionData.userId === userId)
                 {
                     //check duped cell buy
@@ -297,7 +364,7 @@ export class PlayerHandler {
                     if (task.name === "citadel-sage-green")
                         this.localPlayer.hasCitadelSkipAccess = false;
 
-                    if (isNewTask && Task.isRunEnd(task)) {
+                    if (isNewTaskStatus && Task.isRunEnd(task)) {
                         this.zone.run(() => {
                             this.localPlayer.state = PlayerState.Finished;
                             //this.sendEvent(EventType.EndPlayerRun, task);
@@ -305,13 +372,13 @@ export class PlayerHandler {
                     }
                 }
 
-                if (!isNewTask) break;
-                
-                const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interAmount));
+                if (!isNewTaskStatus) break;
+                const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus));
                 if (isCell || Task.isRunEnd(task)) {
                     this.zone.run(() => {
                         this.run!.addSplit(new Task(task));
                     });
+                this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
                 }
 
                 const playerTeam = this.run.getPlayerTeam(positionData.userId);
@@ -331,16 +398,11 @@ export class PlayerHandler {
                         if (cost !== 0)
                             this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
                     }
-
-                    this.localPlayer.checkTaskUpdateSpecialCases(task, this.run);
                 }
                 
                 //add to team run state
                 playerTeam.runState.addTaskInteraction(interaction);
-
-                //handle Lockout
-                if (this.run.isMode(RunMode.Lockout))
-                    this.localPlayer.checkLockoutRestrictions(this.run);
+                
                 break;
         
             case InteractionType.buzzer:
@@ -360,7 +422,7 @@ export class PlayerHandler {
                 if (this.localPlayer.team.runState.isOrbDupe(interaction, teamOrbLevelState)) {
                     if (positionData.userId === userId)
                         this.addOrbReductionToCurrentPlayer(-1, interaction.interLevel);
-                    else
+                    else if (!interaction.interCleanup)
                         positionData.resetCurrentInteraction();
                     break;
                 }
@@ -422,6 +484,7 @@ export class PlayerHandler {
     }
 
     onDestroy(): void {
+        this.updateGameSettings(new GameSettings(undefined));
         this.timer.reset();
         this.stopDrawPlayers();
         this.timer.onDestroy();

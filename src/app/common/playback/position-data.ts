@@ -11,6 +11,7 @@ export class PositionData extends InteractionData {
     quatW: number;
     rotY: number;
     tgtState: any;
+    currentLevel: string;
 
     constructor() {
         super();
@@ -36,6 +37,7 @@ export class UserPositionData extends PositionData {
         this.interLevel = positionData.interLevel;
         this.interCleanup = positionData.interCleanup;
         this.tgtState = positionData.tgtState;
+        this.currentLevel = positionData.currentLevel;
         this.transX = positionData.transX;
         this.transY = positionData.transY;
         this.transZ = positionData.transZ;

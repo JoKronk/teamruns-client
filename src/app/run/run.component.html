@@ -29,9 +29,8 @@
               <div class="team-players">
                 <div *ngFor="let player of team.players">
                   <p [class.team-player-disconnected]="player.state === playerState.Disconnected" [class.team-player-ready]="player.state === playerState.Ready && (runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">
-                    <img *ngIf="player.user.id === localPlayer.user.id && !_user.replConnected" class="run-info-teams-disconnected" src="./assets/other/disconnected.png">
-                    <img *ngIf="player.gameState?.onZoomer" class="run-info-teams-zoomer" src="./assets/other/zoomer.png">
-                    <img *ngIf="player.gameState?.currentLevel" class="run-info-teams-level" [src]="'./assets/levels/' + player.gameState.currentLevel + '.png'">
+                    <img *ngIf="player.user.id === localPlayer.user.id && !_user.socketConnected" class="run-info-teams-disconnected" src="./assets/other/disconnected.png">
+                    <img *ngIf="player.currentLevel" class="run-info-teams-level" [src]="'./assets/levels/' + player.currentLevel + '.png'">
                     <span>{{ player.user.name }}</span>
                     <span class="run-info-teams-cells-cont"><img class="run-info-teams-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>
                     <span *ngIf="runHandler.lobby?.host?.id === localPlayer.user.id && player.user.id !== localPlayer.user.id && runHandler.run.timer.runState === runState.Waiting" class="run-info-teams-kick" (click)="kickPlayer(player.user)">X</span>
@@ -43,7 +42,7 @@
         <!-- READY -->
         <div class="run-info-details">
           <button [class.run-info-details-ready]="localPlayer.state == playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
-            [disabled]="runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Ended || localPlayer.state === playerState.Forfeit || localPlayer.state === playerState.WantsToReset || !_user.replConnected || !localPlayer.team"
+            [disabled]="runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Ended || localPlayer.state === playerState.Forfeit || localPlayer.state === playerState.WantsToReset || !_user.socketConnected || !localPlayer.team"
             (click)="runHandler.run.timer.runState === runState.Started ? forfeit() : toggleReady()">{{ runHandler.run.timer.runState === runState.Started ? "Forfeit" : "Ready" }}</button>
 
             <button class="run-info-details-reset" 

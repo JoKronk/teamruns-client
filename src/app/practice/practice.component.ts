@@ -4,7 +4,6 @@ import { UserService } from '../services/user.service';
 import { Recording } from '../common/playback/recording';
 import { UserBase } from '../common/user/user';
 import { RunState } from '../common/run/run-state';
-import { OG } from '../common/opengoal/og';
 import { RecordingImport } from '../common/playback/recording-import';
 import { Subscription } from 'rxjs';
 import { MultiplayerState } from '../common/opengoal/multiplayer-state';
@@ -12,6 +11,7 @@ import { RunHandler } from '../common/run/run-handler';
 import { FireStoreService } from '../services/fire-store.service';
 import { LocalPlayerData } from '../common/user/local-player-data';
 import { EventType } from '../common/peer/event-type';
+import { OgCommand } from '../common/playback/og-command';
 
 @Component({
   selector: 'app-practice',
@@ -124,12 +124,12 @@ export class PracticeComponent implements OnDestroy {
   }
 
   storeCheckpoint() {
-    OG.runCommand("(store-temp-checkpoint)");
+    this.runHandler.positionHandler.addCommand(OgCommand.TempCheckpointStore);
     this.hasStoredCheckpoint = true;
   }
 
   loadCheckpoint() {
-    OG.runCommand("(spawn-temp-checkpoint)");
+    this.runHandler.positionHandler.addCommand(OgCommand.TempCheckpointLoad);
   }
 
   toggleFreecam() {
@@ -137,13 +137,11 @@ export class PracticeComponent implements OnDestroy {
       if (!this.hasStoredCheckpoint)
         this.storeCheckpoint();
 
-      OG.runCommand("(send-event *camera* 'change-state cam-free-floating 0)");
-      OG.runCommand("(process-grab? *target*)");
+      this.runHandler.positionHandler.addCommand(OgCommand.FreeCamEnter);
     }
     else {
       this.loadCheckpoint();
-      OG.runCommand("(send-event *camera* 'change-state cam-string 0)");
-      OG.runCommand("(safe-release-from-grab)");
+      this.runHandler.positionHandler.addCommand(OgCommand.FreeCamExit);
     }
     this.inFreecam = !this.inFreecam;
   }
@@ -218,6 +216,7 @@ export class PracticeComponent implements OnDestroy {
     this.replay = true;
     this.replayId = crypto.randomUUID();
 
+    this.runHandler.run?.checkForRunReset(true);
     this.runHandler.positionHandler.resetGetRecordings();
     this.currentRecording = giveRecordings.length === 1 ? giveRecordings[0].id : "all";
 

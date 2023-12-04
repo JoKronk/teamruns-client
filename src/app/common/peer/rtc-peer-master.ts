@@ -19,12 +19,11 @@ export class RTCPeerMaster {
     peersSubscriptions: Subscription;
     peers: RTCPeerSlaveConnection[] = [];
 
-    constructor(user: UserBase, createPositionChannel: boolean, doc: AngularFirestoreDocument<Lobby>) {
+    constructor(user: UserBase, doc: AngularFirestoreDocument<Lobby>) {
         this.user = user;
         this.lobbyDoc = doc;
 
-        if (createPositionChannel)
-            this.positionChannel = new Subject();
+        this.positionChannel = new Subject();
 
         //setup user handling
         this.peersSubscriptions = this.lobbyDoc.collection<RTCPeer>(CollectionName.peerConnections).valueChanges().subscribe(peers => {

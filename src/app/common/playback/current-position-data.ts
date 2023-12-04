@@ -4,6 +4,7 @@ import { MultiplayerState } from "../opengoal/multiplayer-state";
 import { UserBase } from "../user/user";
 import { InteractionData } from "./interaction-data";
 import { PositionData } from "./position-data";
+import { RemotePlayerInfo } from "./remote-player-info";
 
 export class CurrentPositionData {
     transX: number;
@@ -15,8 +16,10 @@ export class CurrentPositionData {
     quatW: number;
     rotY: number;
     tgtState: any;
+    currentLevel: string;
     
     interaction: InteractionData | undefined;
+    playerInfo: RemotePlayerInfo | undefined;
 
     userId: string;
     username: string;
@@ -37,6 +40,10 @@ export class CurrentPositionData {
     resetCurrentInteraction() {
         this.interaction = undefined;
     }
+
+    resetCurrentInfo() {
+        this.playerInfo = undefined;
+    }
 }
 
 
@@ -44,12 +51,13 @@ export class CurrentPlayerData {
     positionData: CurrentPositionData;
 
     interactionBuffer: InteractionData[] = []; // updates gets pushed from top of list first
-    hasFrameUpdate: boolean;
+    hasInteractionUpdate: boolean;
+    hasInfoUpdate: boolean;
     recordingDataIndex: number | undefined; // only used by recordings
 
     constructor(user: UserBase, state: MultiplayerState) {
         this.positionData = new CurrentPositionData(user, state);
-        this.hasFrameUpdate = false;
+        this.hasInteractionUpdate = false;
         this.interactionBuffer = [];
     }
 
@@ -61,9 +69,13 @@ export class CurrentPlayerData {
             else
                 this.recordingDataIndex = recordingDataIndex;
         }
+
+        //remove/clean up old player info
+        if (!this.hasInfoUpdate && this.positionData.playerInfo)
+            this.positionData.playerInfo = undefined;
         
         //check if overwriting unsent position update with interaction
-        const bufferInteraction = this.hasFrameUpdate && positionData.interType && positionData.interType !== InteractionType.none;
+        const bufferInteraction = this.hasInteractionUpdate && positionData.interType && positionData.interType !== InteractionType.none;
         if (!isLocalUser && bufferInteraction)
             this.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
 
@@ -74,30 +86,33 @@ export class CurrentPlayerData {
         this.positionData.quatZ = positionData.quatZ;
         this.positionData.rotY = positionData.rotY;
         this.positionData.tgtState = positionData.tgtState;
+        this.positionData.currentLevel = positionData.currentLevel;
         this.positionData.transX = positionData.transX;
         this.positionData.transY = positionData.transY;
         this.positionData.transZ = positionData.transZ;
         if (isLocalUser || !bufferInteraction) 
         {
-            if (positionData.interType !== InteractionType.none)
-                this.positionData.updateCurrentInteraction(positionData);
-            else
-                this.positionData.resetCurrentInteraction();
+            if (positionData.interType !== InteractionType.none) {
+                if (!this.positionData.interaction || this.positionData.interaction.interType !== InteractionType.none) {
+                    this.positionData.updateCurrentInteraction(positionData);
+                    this.hasInteractionUpdate = true;
+                }
+                else
+                    this.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
+            }
         }
-
-        this.hasFrameUpdate = true;
 
         return true;
     }
 
     checkUpdateInteractionFromBuffer() {
-        if (this.interactionBuffer.length == 0 || (this.positionData.interaction?.interType && this.positionData.interaction?.interType !== InteractionType.none))
+        if (this.hasInteractionUpdate || this.interactionBuffer.length == 0 || (this.positionData.interaction?.interType && this.positionData.interaction?.interType !== InteractionType.none))
             return;
 
         const interactionData: InteractionData | undefined = this.interactionBuffer.shift();
         if (interactionData) {
             this.positionData.updateCurrentInteraction(interactionData);
-            this.hasFrameUpdate = true;
+            this.hasInteractionUpdate = true;
         }
     }
 }

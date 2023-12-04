@@ -1,6 +1,6 @@
 
 import { Subject } from 'rxjs';
-import { OG } from '../opengoal/og';
+import { OgCommand } from '../playback/og-command';
 import { RunState } from './run-state';
 
 export class Timer {
@@ -18,6 +18,7 @@ export class Timer {
 
   hasSpawnedPlayer: boolean = false;
   timerEndSubject: Subject<boolean> = new Subject();
+  private socketCommandBuffer: OgCommand[];
 
   freezePlayerInCountdown: boolean = true;
   runState: RunState;
@@ -26,6 +27,10 @@ export class Timer {
 
   constructor() {
     this.resetTimer();
+  }
+
+  linkSocketCommands(socketCommandBuffer: OgCommand[]) {
+    this.socketCommandBuffer = socketCommandBuffer;
   }
   
   importTimer(timer: Timer) {
@@ -65,7 +70,7 @@ export class Timer {
 
   onPlayerLoad() {
     if (this.runState === RunState.Countdown && this.freezePlayerInCountdown)
-      OG.runCommand("(process-grab? *target*)");
+      this.socketCommandBuffer.push(OgCommand.TargetGrab);
   }
 
   isPaused() {
@@ -121,12 +126,11 @@ export class Timer {
     //start run check
     if (this.runState === RunState.Countdown) {
       if (!this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
-        OG.runCommand("(safe-release-from-grab)");
-        OG.startRun();
+        this.socketCommandBuffer.push(OgCommand.StartRun);
         this.hasSpawnedPlayer = true;
       }
       else if (this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 10)
-        OG.runCommand("(safe-release-from-grab)");
+        this.socketCommandBuffer.push(OgCommand.TargetRelease);
       
       if (this.startDateMs! <= currentTimeMs)
         this.runState = RunState.Started;

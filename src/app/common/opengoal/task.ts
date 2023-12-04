@@ -170,7 +170,7 @@ export class Task {
 
 
     public static cellCost(interaction: InteractionData) {
-        if (interaction.interType !== InteractionType.gameTask || TaskStatus.nameFromEnum(interaction.interAmount) !== TaskStatus.needResolution) return 0;
+        if (interaction.interType !== InteractionType.gameTask || TaskStatus.nameFromEnum(interaction.interStatus) !== TaskStatus.needResolution) return 0;
 
         if (interaction.interName.includes("-oracle-money"))
             return 120;

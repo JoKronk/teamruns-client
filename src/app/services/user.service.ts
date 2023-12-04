@@ -14,7 +14,7 @@ export class UserService implements OnDestroy {
   
   viewSettings: boolean = false;
   gameLaunched: boolean = false;
-  replConnected: boolean = false;
+  socketConnected: boolean = false;
 
   isBrowser: boolean;
 
@@ -82,7 +82,8 @@ export class UserService implements OnDestroy {
     //game launch & kill
     this.launchListener = (window as any).electron.receive("og-launched", (launched: boolean) => {
       this.gameLaunched = launched;
-      this.replConnected = false;
+      if (!launched)
+        this.socketConnected = false;
     });
     
     //settings get

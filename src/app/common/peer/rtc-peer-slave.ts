@@ -22,13 +22,12 @@ export class RTCPeerSlave {
     eventChannel: Subject<DataChannelEvent> = new Subject();
     positionChannel: Subject<UserPositionData> | null = null;
 
-    constructor(user: UserBase, createPositionChannel: boolean, doc: AngularFirestoreDocument<Lobby>, host: UserBase) {
+    constructor(user: UserBase, doc: AngularFirestoreDocument<Lobby>, host: UserBase) {
         this.peerDoc = doc.collection<RTCPeer>(CollectionName.peerConnections).doc(user.id);
         this.peerData = new RTCPeer(user);
         this.hostId = host.id;
 
-        if (createPositionChannel)
-            this.positionChannel = new Subject();
+        this.positionChannel = new Subject();
 
         this.preCreationCleanup(user, doc, host);
     }

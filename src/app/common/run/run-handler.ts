@@ -12,7 +12,6 @@ import { PlayerState } from "../player/player-state";
 import { RunState } from "./run-state";
 import { NgZone } from "@angular/core";
 import { Task } from "../opengoal/task";
-import { OG } from "../opengoal/og";
 import { LobbyUser } from "../firestore/lobby-user";
 import { User, UserBase } from "../user/user";
 import { FireStoreService } from "src/app/services/fire-store.service";
@@ -27,6 +26,8 @@ import { LevelHandler } from "../level/level-handler";
 import pkg from 'app/package.json';
 import { PlayerHandler } from "../playback/player-handler";
 import { RunStateHandler } from "../level/run-state-handler";
+import { OgCommand } from "../playback/og-command";
+import { GameSettings } from "../playback/game-settings";
 
 export class RunHandler {
 
@@ -256,7 +257,7 @@ export class RunHandler {
 
     setupMaster() {
         console.log("Setting up master!");
-        this.localMaster = new RTCPeerMaster(this.userService.user.createUserBaseFromDisplayName(), !this.run!.data.hideOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id));
+        this.localMaster = new RTCPeerMaster(this.userService.user.createUserBaseFromDisplayName(), this.firestoreService.getLobbyDoc(this.lobby!.id));
         this.dataSubscription = this.localMaster.eventChannel.subscribe(event => {
             if (!this.localMaster?.isBeingDestroyed)
                 this.onDataChannelEvent(event, true);
@@ -271,7 +272,7 @@ export class RunHandler {
 
     setupSlave() {
         console.log("Setting up slave!");
-        this.localSlave = new RTCPeerSlave(this.userService.user.createUserBaseFromDisplayName(), !this.run!.data.hideOtherPlayers, this.firestoreService.getLobbyDoc(this.lobby!.id), this.lobby!.host!);
+        this.localSlave = new RTCPeerSlave(this.userService.user.createUserBaseFromDisplayName(), this.firestoreService.getLobbyDoc(this.lobby!.id), this.lobby!.host!);
         this.dataSubscription = this.localSlave.eventChannel.subscribe(event => {
             if (!this.localSlave?.isBeingDestroyed)
                 this.onDataChannelEvent(event, false);
@@ -377,6 +378,7 @@ export class RunHandler {
                 this.zone.run(() => {
                     this.run?.removePlayer(disconnectedUser.id);
                 });
+                this.updateAllPlayerInfo();
 
                 //host logic
                 if (isMaster) {
@@ -477,9 +479,8 @@ export class RunHandler {
                     this.levelHandler.uncollectedLevelItems = new RunStateHandler();
                     if (this.run.teams.length !== 0) {
                         const importTeam: Team = playerTeam?.runState ? playerTeam : this.run.teams[0];
-                        this.levelHandler.importRunStateHandler(importTeam.runState, this.positionHandler, importTeam.players.length !== 0 ? importTeam.players[0].gameState.currentCheckpoint : "game-start");
+                        this.levelHandler.importRunStateHandler(importTeam.runState, this.positionHandler);
                     }
-                    this.run.updateSelfRestrictions(this.localPlayer);
 
                     this.connected = true;
                 });
@@ -507,10 +508,6 @@ export class RunHandler {
                 this.zone.run(() => {
                     this.run!.updateState(event.userId, event.value, this.userService);
                 });
-
-                this.run.updateSelfRestrictions(this.localPlayer);
-                if (event.userId !== userId)
-                    this.localPlayer.checkForZoomerTalkSkip(event.value);
                 break;
 
             case EventType.ChangeTeam:
@@ -522,6 +519,7 @@ export class RunHandler {
                         this.localPlayer.team = this.run?.getPlayerTeam(this.obsUserId);
                     }
                 });
+                this.updateAllPlayerInfo();
 
                 if (!isMaster) break;
                 const user: LobbyUser | undefined = this.lobby?.getUser(event.userId);
@@ -561,6 +559,7 @@ export class RunHandler {
             case EventType.StartRun:
                 this.zone.run(() => {
                     this.run!.start(new Date());
+                    this.positionHandler.addCommand(OgCommand.SetupRun);
                 });
                 this.setupRunStart();
                 break;
@@ -569,7 +568,8 @@ export class RunHandler {
             case EventType.ToggleReset:
                 this.zone.run(() => {
                     if (this.run!.toggleVoteReset(event.userId, event.value)) {
-                        OG.runCommand("(send-event *target* 'loading)");
+                        this.positionHandler.addCommand(OgCommand.Trip);
+                        this.positionHandler.updateGameSettings(new GameSettings(undefined));
                         this.localPlayer.state = PlayerState.Neutral;
                     }
                 });
@@ -581,10 +581,19 @@ export class RunHandler {
         }
     }
 
+    updateAllPlayerInfo() {
+        if (!this.run) return;
+        this.run.getAllPlayers().forEach(player => {
+            this.positionHandler.updatePlayerInfo(player.user.id, this.run!.getRemotePlayerInfo(player.user.id));
+        });
+    }
+
     //used by both run component and practice/recording tool
     setupRunStart() {
         this.positionHandler.resetOngoingRecordings();
         this.levelHandler.uncollectedLevelItems = new RunStateHandler();
+        this.updateAllPlayerInfo();
+        this.positionHandler.updateGameSettings(new GameSettings(this.run?.data));
 
         this.run?.teams.forEach(team => {
             team.runState = new RunStateHandler();
@@ -607,9 +616,10 @@ export class RunHandler {
     handleStateChange(state: GameState) {
         this.zone.run(() => {
             if (!this.run || this.isSpectatorOrNull() || this.localPlayer.state === PlayerState.Finished) return;
-
-            if (this.localPlayer.gameState.cellCount !== state.cellCount)
-                this.localPlayer.checkDesync(this.run, this.levelHandler, this.positionHandler);
+            
+            //!TODO: Fix desync check, currently broken
+            //if (this.localPlayer.gameState.cellCount !== state.cellCount)
+                //this.localPlayer.checkDesync(this.run, this.levelHandler, this.positionHandler);
 
             //this check is purely to save unnecessary writes to db if user is on client-server communication
             if (this.shouldSendStateUpdate(state))
@@ -618,21 +628,10 @@ export class RunHandler {
 
             this.localPlayer.gameState = state;
 
-            //handle citadel elevator
-            if (this.localPlayer.gameState.justSpawned)
-                this.localPlayer.checkCitadelElevator();
-
-            //handle no LTS
-            if (this.run.data.noLTS)
-                this.localPlayer.checkNoLTS();
-
-            //handle Citadel Skip
-            this.localPlayer.checkCitadelSkip(this.run);
-
             //check adjust player spawn point on countdown
             if (state.justSpawned && this.positionHandler.timer.runState === RunState.Countdown) {
                 let playerId: number = this.run.teams.flatMap(team => team.players.flatMap(x => x.user.id)).indexOf(this.localPlayer.user.id);
-                OG.runCommand("(+! (-> *target* root trans x) (meters " + playerId * 3 + ".0))");
+                //OG.runCommand("(+! (-> *target* root trans x) (meters " + playerId * 3 + ".0))");
                 this.positionHandler.timer.onPlayerLoad();
             }
         })

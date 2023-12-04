@@ -24,11 +24,11 @@ export class RunStateHandler {
     isNewTaskStatus(interaction: InteractionData): boolean {
         if (interaction.interType !== InteractionType.gameTask) return false;
 
-        return !this.tasksStatuses.some(x => x.interName === interaction.interName) || this.tasksStatuses.find(x => x.interName === interaction.interName)!.interAmount < interaction.interAmount;
+        return !this.tasksStatuses.some(x => x.interName === interaction.interName) || this.tasksStatuses.find(x => x.interName === interaction.interName)!.interStatus < interaction.interStatus;
     }
 
     hasAtleastTaskStatus(taskName: string, status: string): boolean {
-        return this.tasksStatuses.some(x => x.interName === taskName) && this.tasksStatuses.find(x => x.interName === taskName)!.interAmount >= TaskStatus.getEnumValue(status);
+        return this.tasksStatuses.some(x => x.interName === taskName) && this.tasksStatuses.find(x => x.interName === taskName)!.interStatus >= TaskStatus.getEnumValue(status);
     }
 
     private pushLevelCleanupInteraction(level: LevelInteractions, interaction: UserInteractionData) {
@@ -50,7 +50,7 @@ export class RunStateHandler {
         this.pushLevelCleanupInteraction(level, interaction);
 
         //update counts
-        const status: string = TaskStatus.nameFromEnum(interaction.interAmount);
+        const status: string = TaskStatus.nameFromEnum(interaction.interStatus);
         if (Task.isCellCollect(interaction.interName, status)) {
             this.cellCount += 1;
             this.orbCount -= Task.cellCost(interaction);

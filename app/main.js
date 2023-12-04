@@ -6,6 +6,7 @@ const fs = require('fs');
 const { OpenGoal } = require('./opengoal');
 	
 let win = null;
+const runRepl = false;
 const devServe = (process.argv.at(-1) === '--serve');
 var openGoal;
 var userSettings = { window: { x: 10, y: 10, width: 1000, height: 800 } };
@@ -62,7 +63,7 @@ function createWindow() {
     return { action: 'deny' };
   });
 
-  openGoal = new OpenGoal(win);
+  openGoal = new OpenGoal(win, runRepl);
 
   win.on('resized', () => {
     const size = win.getSize();
@@ -85,13 +86,6 @@ function createWindow() {
 
   ipcMain.on('og-start-game', () => {
     openGoal.startOG();
-  });
-
-  ipcMain.on('og-start-run', () => {
-    openGoal.writeGoalCommand("(progress-fast-save-and-start-speedrun (speedrun-category full-game))");
-    openGoal.writeGoalCommand("(set! (-> *pc-settings* ps2-actor-vis?) #f)");
-    openGoal.writeGoalCommand("(set! *allow-cell-pickup?* #t)");
-    openGoal.writeGoalCommand("(set! *allow-final-boss?* #t)");
   });
 
   ipcMain.on('og-command', (event, command) => {

@@ -21,7 +21,7 @@ export class GameTask {
     public static fromPositionData(positionData: UserPositionData): GameTask {
         return {
             name: positionData.interName,
-            status: TaskStatus.nameFromEnum(positionData.interAmount),
+            status: TaskStatus.nameFromEnum(positionData.interStatus),
             user: new UserBase(positionData.userId, positionData.username)
         }
     }
@@ -39,7 +39,7 @@ export class GameTaskTime extends GameTask {
     public static override fromPositionData(positionData: UserPositionData): GameTaskTime {
         return {
             name: positionData.interName,
-            status: TaskStatus.nameFromEnum(positionData.interAmount),
+            status: TaskStatus.nameFromEnum(positionData.interStatus),
             user: new UserBase(positionData.userId, positionData.username),
             timerTime: Timer.msToTimeFormat(positionData.time, true, true)
         }
@@ -59,7 +59,7 @@ export class GameTaskLevelTime extends GameTaskTime {
     public static fromCurrentPositionData(positionData: CurrentPositionData, interaction: InteractionData): GameTaskLevelTime {
         return {
             name: interaction.interName,
-            status: TaskStatus.nameFromEnum(interaction.interAmount),
+            status: TaskStatus.nameFromEnum(interaction.interStatus),
             user: new UserBase(positionData.userId, positionData.username),
             timerTime: Timer.msToTimeFormat(interaction.time, true, true),
             level: interaction.interLevel

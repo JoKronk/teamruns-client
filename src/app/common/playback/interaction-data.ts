@@ -1,5 +1,4 @@
 import { InteractionType } from "../opengoal/interaction-type";
-import { CurrentPositionData } from "./current-position-data";
 import { UserPositionData } from "./position-data";
 
 export class InteractionData {
