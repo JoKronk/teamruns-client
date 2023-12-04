@@ -7,7 +7,6 @@ import { NewUpdateComponent } from '../dialogs/new-update/new-update.component';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { FireStoreService } from '../services/fire-store.service';
 import { UserService } from '../services/user.service';
-import { DbUsersCollection } from '../common/firestore/db-users-collection';
 import { DbUser } from '../common/firestore/db-user';
 import { InputDialogComponent } from '../dialogs/input-dialog/input-dialog.component';
 
@@ -29,9 +28,7 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     "Thanks SixRock",
     "Thanks Stellar",
     "Thanks Tombo",
-    "LowResKui",
-    "speed run",
-    "OpenGOAL",
+    "Thanks Zed",
     "goonin3"
   ];
   infoText: string = this.infoTexts[Math.floor(Math.random() * this.infoTexts.length)];
