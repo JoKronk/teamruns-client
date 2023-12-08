@@ -3,11 +3,7 @@
         <div class="section">
             <p class="section-title">Connect / Launching OpenGOAL</p>
             <p>
-                Launch OpenGOAL from the client to properly connect them together, this process can take a while (~1 min on older PCs) and is automatically done in the following steps:<br />
-                <span>(1/2) Starting OpenGOAL:</span> A notification will be given in the client once completed.<br />
-                <span>(2/2) Connecting Teamrun to OpenGoal:</span>  Notification + Jak's color in game will go from red to normal.<br /><br />
-                If the client hasn't connected fully yet a <img src="./assets/other/disconnected.png"> will be displayed (for you only) next to your name in run lobbies.<br /><br />
-                OpenGOAL can be relauched at any point from the menu opened by the menu icon: 
+                Launch OpenGOAL from Teamruns to properly connect them together, the game can be launched by clicking the the menu icon: 
                 <svg class="menu-icon" version="1.0" viewBox="0 0 119.000000 99.000000" preserveAspectRatio="xMidYMid meet">
                     <g transform="translate(0.000000,99.000000) scale(0.100000,-0.100000)" stroke="none">
                       <path d="M90 905 l0 -85 445 0 445 0 0 85 0 85 -445 0 -445 0 0 -85z"/>
@@ -15,7 +11,7 @@
                       <path d="M90 105 l0 -85 395 0 395 0 0 85 0 85 -395 0 -395 0 0 -85z"/>
                     </g>
                   </svg> 
-                  in the top left of the client, a relaunch can sometimes help if the connection process seems to have failed, you can also update the OpenGOAL folder path from the menu.<br />
+                  in the top left of the client and selecting "Launch OpenGOAL".<br />
             </p>
         </div><br />
 
@@ -23,9 +19,17 @@
             <p class="section-title">Modes</p>
             <p>
                 <span>Speedrun</span>
-                Normal team based speed run, see "Shared Items and Tasks" section for things shared between teammates.<br />
+                Normal team based speedrun.<br />
                 <span>Lockout</span>
                 Cells are shared with opposing teams including any unlocks that comes with them, but the cells collected by your team only count toward your own teams cell score, final boss unlocks after 73 total cells, the team with highest cell score at any point after that will have access to final boss.
+            </p>
+        </div><br />
+
+        <div class="section">
+            <p class="section-title">Default Modifications</p>
+            <p>
+                Modifications applied by default, they can be changed if desired by creating a run in the custom game mode.<br />
+                <span>Zoomer sections between hubs</span> Requires every runner in the team to be on their zoomer before full speed for it is activated, this only needs to be done once.<br />
             </p>
         </div>
     </div>
@@ -34,33 +38,23 @@
 
     <div class="tab">
         <div class="section">
-            <p class="section-title">Default Modifications</p>
+            <p class="section-title">Missing Features</p>
             <p>
-                These are modifications applied to runs by default, they can be toggled off if desired when creating a run.<br />
-                <span>Zoomer sections between hubs</span> requires every runner in the team to be on their zoomer before full speed for it is activated, this only needs to be done once.<br />
-            </p>
-        </div><br />
-
-        <div class="section">
-            <p class="section-title">Shared Items and Tasks</p>
-            <p>
-                Power Cells<br />
-                Warp Gates<br />
-                Catching Muse<br />
-                Retrieving Yakow Cell from Farmer<br />
-                Retrieving Mirrors Cell from Mayor<br />
-                Retrieving Moles Cell from Geologist<br />
-                Defeating Klaww<br />
-                Destroying Lava Tube Oranges<br />
+                <span>Enemy Positions</span>
+                Regular enemy positions are not yet shared between players.<br />
+                <span>Projectiles</span>
+                Projectiles shots are not yet shared between players, yellow eco shots spawn in but their path is handled locally by each player and can thus still differ for everyone.
             </p>
         </div><br />
 
         <div class="section">
             <p class="section-title section-title-red">BEWARE / KNOWN ISSUES!</p>
             <p>
-                See "Zoomer sections between hubs" if Mountain Pass is unclear.<br />
-                <span>Mountain Pass</span>
-                As the zoomer moves slow while waiting for others it might be a good idea to pause while waiting for them due to the lurker race.<br />
+                <span>Connection Issue</span>
+                If Jak remains red for a longer period of time after launching the game the connection between Teamruns and OpenGOAL failed, a relaunch usually fixes this.<br />
+                
+                <span>PVP</span>
+                Only works in a free for all format at the moment, zoomers and yellow eco shots does not damange other players.<br />
             </p>
         </div>
     </div>
