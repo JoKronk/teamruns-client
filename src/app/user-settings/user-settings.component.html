@@ -1,0 +1,47 @@
+
+<div class="page-container">
+    <div class="page-header">
+      <app-header  title="User Settings"></app-header>
+
+      <div class="content-container">
+        <div class="content-side">
+            <h1 class="backtext text-in-background" title="Settings">Settings</h1>
+        </div>
+        <div class="content">
+            <p class="content-subtitle">Config OpenGOAL Path (gk.exe)</p>
+            <div class="content-option">
+                <button id="select" (click)="selectPath()">Select file</button>
+                <button (click)="setPath()" [disabled]="!path">Save</button>
+                <p>Selected Path: {{ path }}</p>
+                <div>
+                </div>
+            </div>
+            
+            <div *ngIf="_user.user.hasSignedIn">
+                <hr />
+                <p class="content-subtitle">Change Username / Leaderboard name</p>
+                <div class="content-option">
+                    <p>New Userame</p>
+                    <input [(ngModel)]="newUsername" (keyup.enter)="updateUsername()" maxlength="20">
+                    <div>
+                        <button (click)="updateUsername()">Update</button>
+                    </div>
+                </div>
+                
+                <hr />
+                <p class="content-subtitle">Update password</p>
+                <div class="content-option">
+                    <p>New Password</p>
+                    <input [(ngModel)]="newPw" type="password" (keyup.enter)="updatePassword()" maxlength="32">
+                    <div>
+                        <button (click)="updatePassword()">Update</button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+      </div>
+    </div>
+
+    <p id="name" class="text-in-background" [title]="_user.user.name">{{ _user.user.name }}</p>
+  </div>

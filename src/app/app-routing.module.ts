@@ -7,6 +7,7 @@ import { StartScreenComponent } from './start-screen/start-screen.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { RunHistoryComponent } from './run-history/run-history.component';
 import { PracticeComponent } from './practice/practice.component';
+import { UserSettingsComponent } from './user-settings/user-settings.component';
 
 const routes: Routes = [
   { path: 'lobby', component: LobbyComponent },
@@ -14,6 +15,7 @@ const routes: Routes = [
   { path: 'leaderboard', component: LeaderboardComponent },
   { path: 'history', component: RunHistoryComponent },
   { path: 'practice', component: PracticeComponent },
+  { path: 'settings', component: UserSettingsComponent },
   { path: 'close', component: CloseScreenComponent },
   { path: '', component: StartScreenComponent, pathMatch: 'full' }
 ];

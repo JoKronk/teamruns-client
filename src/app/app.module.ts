@@ -41,6 +41,8 @@ import { HeaderComponent } from './header/header.component';
 import { RunHistoryComponent } from './run-history/run-history.component';
 import { PracticeComponent } from './practice/practice.component';
 import { DragDropDirective } from './common/directives/drag-drop.directive';
+import { AccountDialogComponent } from './dialogs/account-dialog/account-dialog.component';
+import { UserSettingsComponent } from './user-settings/user-settings.component';
 
 @NgModule({
   declarations: [
@@ -65,7 +67,9 @@ import { DragDropDirective } from './common/directives/drag-drop.directive';
     HeaderComponent,
     RunHistoryComponent,
     PracticeComponent,
-    DragDropDirective
+    DragDropDirective,
+    AccountDialogComponent,
+    UserSettingsComponent
   ],
   imports: [
     BrowserModule,

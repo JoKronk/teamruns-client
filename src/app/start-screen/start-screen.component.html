@@ -7,16 +7,21 @@
 <div class="login-options">
     <div class="login-container">
         <div class="input-container">
-            <p>Display Name</p>
-            <input [(ngModel)]="_user.user.displayName" (keyup.enter)="sendToLobby()" maxlength="20">
-        </div>
-        <div class="input-container">
-            <p>Username</p>
-            <input [(ngModel)]="_user.user.name" (keyup.enter)="sendToLobby()" maxlength="20">
+            <p class="login-highlighted">Display Name</p>
+            <input [(ngModel)]="_user.user.displayName" maxlength="20" autofocus>
         </div>
         <div class="input-container-buttons">
-            <button (click)="openUserImport()">Import User</button>
-            <button (click)="sendToLobby()">Login</button>
+            <button *ngIf="!_user.user.hasSignedIn" (click)="sendToLobby(true)">Play as Guest</button>
+            <button (click)="login(true)">{{_user.user.hasSignedIn ? "Play" : "Login" }}</button>
+            <button *ngIf="_user.user.hasSignedIn" (click)="login(false)">Change User</button>
+        </div>
+        <div class="input-container">
+            <span class="login-text-option" matTooltip="A user is only needed for leaderboard speedruns." matTooltipPosition="after">Do I need a user?</span><br />
+            <span class="login-text-option" matTooltip="For now please contact Dexz on discord or ask in the Teamruns channel." matTooltipPosition="after">Forgot Password</span>
+        </div>
+        <div class="input-container">
+            <span *ngIf="_user.user.hasSignedIn" class="login-text-option" (click)="logout()">Sign Out</span><br />
+            <span class="login-text-option" (click)="register()">Create User</span>
         </div>
     </div>
 </div>

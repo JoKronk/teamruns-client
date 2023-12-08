@@ -498,8 +498,17 @@ export class RunHandler {
 
                     if (isMaster && this.isOnlineInstant && this.run?.timer.runState === RunState.Ended && !this.run.teams.every(x => x.hasUsedDebugMode) && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit)) {
                         let run: DbRun = DbRun.convertToFromRun(this.run);
-                        this.firestoreService.addRun(run); //history
-                        run.checkUploadPbs(this.firestoreService); //pb & leadeboard
+
+                        this.firestoreService.getUsers().then(collection => {
+                            const players = this.run?.getAllPlayers();
+                            if (!collection || !players) return;
+                            // add run to history if any player is signed in
+                            if (players.some(player => collection.users.find(user => user.id === player.user.id)))
+                                this.firestoreService.addRun(run); 
+                            // add pb & leadeboard data if all players are signed in
+                            if (players.every(player => collection.users.find(user => user.id === player.user.id)))
+                                run.checkUploadPbs(this.firestoreService);
+                        });
                     }
                 });
                 break;

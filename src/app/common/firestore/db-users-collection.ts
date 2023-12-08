@@ -1,7 +1,7 @@
-import { DbUser } from "./db-user";
+import { DbUserProfile } from "./db-user-profile";
 
 export class DbUsersCollection {
-    users: DbUser[] = [];
+    users: DbUserProfile[] = [];
 
     constructor() {
     }

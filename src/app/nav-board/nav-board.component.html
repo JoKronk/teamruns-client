@@ -1,5 +1,5 @@
 <div class="container">
-    <p id="title">Config</p>
+    <p id="title">Menu</p>
 
     <div class="list-container">
         <div class="list-item" (click)="startGame()">
@@ -7,7 +7,10 @@
         </div>
 
         <h4>Navigation</h4>
-        <div class="list-item" (click)="navigate('/history')">
+        <div class="list-item" (click)="navigate('/lobby')">
+            <p>Lobbies</p>
+        </div>
+        <div *ngIf="_user.user.hasSignedIn" class="list-item" (click)="navigate('/history')">
             <p>Runs History</p>
         </div>
         <div class="list-item" (click)="navigate('/leaderboard')">
@@ -19,22 +22,19 @@
         <div class="list-item" (click)="openInfo()">
             <p>Help / Info</p>
         </div>
+        <div class="list-item" (click)="navigate('/settings')">
+            <p>User Settings</p>
+        </div>
 
         <h4>Options</h4>
-        <div class="list-item" (click)="getUserKey()">
-            <p>Copy User Key</p>
-        </div>
         <div class="list-item" (click)="getObsLink()">
             <p>Copy Obs Link</p>
-        </div>
-        <div class="list-item" (click)="openPathConfig()">
-            <p>Config Folder Path</p>
         </div>
         <div class="list-item" (click)="resetWindowSize()">
             <p>Reset Window Size</p>
         </div>
     </div>
 
-    <h1 class="backtext text-in-background" title="Settings">Settings</h1>
+    <h1 class="backtext text-in-background" title="Sitenav">Sitenav</h1>
     <p id="name" class="text-in-background" [title]="_user.user.name">{{ _user.user.name }}</p>
 </div>

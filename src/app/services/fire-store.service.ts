@@ -8,11 +8,12 @@ import { Lobby } from '../common/firestore/lobby';
 import { Preset } from '../common/firestore/preset';
 import { DataChannelEvent } from '../common/peer/data-channel-event';
 import { RTCPeer } from '../common/peer/rtc-peer';
-import { Run } from '../common/run/run';
 import { DbUsersCollection } from '../common/firestore/db-users-collection';
 import { CategoryOption } from '../common/run/category';
 import { DbLeaderboard } from '../common/firestore/db-leaderboard';
 import { DbPb } from '../common/firestore/db-pb';
+import { DbUserProfile } from '../common/firestore/db-user-profile';
+import { AccountReply } from '../dialogs/account-dialog/account-dialog.component';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +25,9 @@ export class FireStoreService {
   private runs: AngularFirestoreCollection<DbRun>;
   private globalData: AngularFirestoreCollection<DbUsersCollection>;
   private lobbies: AngularFirestoreCollection<Lobby>;
+
   private isAuthenticated: boolean = false;
+  private currentUser: firebase.default.User | null = null;
 
   constructor(public firestore: AngularFirestore, public auth: AngularFireAuth) {
 
@@ -35,9 +38,43 @@ export class FireStoreService {
     this.lobbies = firestore.collection<Lobby>(CollectionName.lobbies);
   }
 
-  private checkAuthenticated() {
+  async deleteCurrentUser(): Promise<boolean> {
+    if (this.currentUser) {
+      await this.currentUser.delete();
+      this.isAuthenticated = false;
+      await this.checkAuthenticated();
+      return true;
+    }
+    return false;
+  }
+
+  createUser(username: string, pw: string, setAsCurrent: boolean = true): Promise<AccountReply> { //firebase forces it to be an email to doesn't require it to exist..
+    this.checkAuthenticated();
+    return this.auth.createUserWithEmailAndPassword(username + "@teamrun.web.app", pw).then((userCredential) => {
+      this.isAuthenticated = true;
+
+      if (setAsCurrent)
+        this.currentUser = userCredential.user;
+
+      return new AccountReply(true);
+    }).catch((error: firebase.default.FirebaseError) => {
+      return new AccountReply(false, error.message);
+    });
+  }
+
+  authenticateUsernamePw(user: DbUserProfile, pw: string) {
+    return this.auth.signInWithEmailAndPassword(user.name + "@teamrun.web.app", pw).then((userCredential) => {
+      this.isAuthenticated = true;
+      this.currentUser = userCredential.user;
+      return true;
+    }).catch(error => {
+      return false;
+    });
+  }
+
+  private async checkAuthenticated() { // !TODO: this currently has some problems in some case as not all firestore functions created here are async atm, but the user is usually already signed in in all use cases where it's not async..
     if (this.isAuthenticated) return;
-    this.auth.signInWithEmailAndPassword(environment.firestoreUsername, environment.firestorePassword).then(() => {
+    return await this.auth.signInWithEmailAndPassword(environment.firestoreUsername, environment.firestorePassword).then(() => {
       this.isAuthenticated = true;
       return;
     });
@@ -59,13 +96,13 @@ export class FireStoreService {
     return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('runners', 'array-contains', userId)).valueChanges();
   }
 
-  async getUsers() {
-    this.checkAuthenticated();
+  async getUsers() { // NOTE: why only all? All users are stored in one array currently to reduce read cost when getting users for leaderboards and such, TLDR: Cost savings (but a bit scuffed)
+    await this.checkAuthenticated();
     return (await this.globalData.doc("users").ref.get()).data();
   }
 
   async getRun(id: string) {
-    this.checkAuthenticated();
+    await this.checkAuthenticated();
     return (await this.runs.doc(id).ref.get()).data();
   }
 
@@ -95,24 +132,24 @@ export class FireStoreService {
   }
 
   async getPreset(id: string) {
-    this.checkAuthenticated();
+    await this.checkAuthenticated();
     return (await this.firestore.collection<Preset>(CollectionName.presets).doc<Preset>(id).ref.get()).data();
   }
 
   // ----- POST/PUT -----
 
   async addLobby(lobby: Lobby) {
-    this.checkAuthenticated();
+    await this.checkAuthenticated();
     await this.lobbies.doc<Lobby>(lobby.id).set(JSON.parse(JSON.stringify(lobby)));
   }
 
   async updateLobby(lobby: Lobby) {
-    this.checkAuthenticated();
+    await this.checkAuthenticated();
     await this.addLobby(lobby); //they happen to be the same command, just trying to avoid confusion when looking for an update method
   }
 
   async addRun(run: DbRun) {
-    this.checkAuthenticated();
+    await this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
     if (run.userIds instanceof Map)
       run.userIds = Object.fromEntries(run.userIds);
@@ -126,7 +163,7 @@ export class FireStoreService {
   }
 
   async addPb(run: DbPb) {
-    this.checkAuthenticated();
+    await this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
     if (run.userIds instanceof Map)
       run.userIds = Object.fromEntries(run.userIds);
@@ -140,7 +177,7 @@ export class FireStoreService {
   }
   
   async putLeaderboard(leaderboard: DbLeaderboard) {
-    this.checkAuthenticated();
+    await this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
     const id = leaderboard.id;
     leaderboard.id = undefined;
@@ -152,14 +189,14 @@ export class FireStoreService {
   }
 
   async updateUsers(userCollection: DbUsersCollection) {
-    this.checkAuthenticated();
+    await this.checkAuthenticated();
     await this.globalData.doc<DbUsersCollection>("users").set(JSON.parse(JSON.stringify(userCollection)));
   }
 
   // ----- DELETE -----
 
   async deleteOldLobbies() {
-    this.checkAuthenticated();
+    await this.checkAuthenticated();
     const expireDate = new Date();
     expireDate.setHours(expireDate.getHours() - 4);
 
@@ -172,13 +209,13 @@ export class FireStoreService {
   }
 
   async deleteLobby(id: string) {
-    this.checkAuthenticated();
+    await this.checkAuthenticated();
     await this.deleteLobbySubCollections(id);
     await this.lobbies.doc<Lobby>(id).delete();
   }
 
   async deleteLobbySubCollections(id: string) {
-    this.checkAuthenticated();
+    await this.checkAuthenticated();
     let lobbyConnections = this.lobbies.doc<Lobby>(id).collection(CollectionName.peerConnections);
     (await lobbyConnections.ref.get()).forEach(conSnapshot => {
       lobbyConnections.doc<RTCPeer>(conSnapshot.id).delete();
@@ -194,7 +231,7 @@ export class FireStoreService {
   }
 
   async deleteRun(id: string) {
-    this.checkAuthenticated();
+    await this.checkAuthenticated();
     await this.runs.doc<DbRun>(id).delete();
   }
 }

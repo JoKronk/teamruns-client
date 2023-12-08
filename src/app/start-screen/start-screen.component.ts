@@ -2,13 +2,14 @@ import { Component, ViewChild, ElementRef, OnDestroy, AfterViewInit } from '@ang
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { OG } from '../common/opengoal/og';
-import { User } from '../common/user/user';
+import { User, UserBase } from '../common/user/user';
 import { NewUpdateComponent } from '../dialogs/new-update/new-update.component';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { FireStoreService } from '../services/fire-store.service';
 import { UserService } from '../services/user.service';
-import { DbUser } from '../common/firestore/db-user';
-import { InputDialogComponent } from '../dialogs/input-dialog/input-dialog.component';
+import { DbUserProfile } from '../common/firestore/db-user-profile';
+import { AccountDialogComponent, AccountReply } from '../dialogs/account-dialog/account-dialog.component';
+import { DbUsersCollection } from '../common/firestore/db-users-collection';
 
 @Component({
   selector: 'app-start-screen',
@@ -33,14 +34,17 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
   ];
   infoText: string = this.infoTexts[Math.floor(Math.random() * this.infoTexts.length)];
 
-  initUserData: User;
-
+  private settingsListener: any;
   private updateListener: any;
+
+  userCollection: DbUsersCollection | undefined = undefined;
+  settingsFetched: boolean = false;
 
   constructor(public _user: UserService, private router: Router, private dialog: MatDialog, private _firestore: FireStoreService) {
     this.checkVideoLoad();
 
     this.setupUpdateListener();
+    this.setupSettingsListener();
 
     if (new Date().getHours() % 4 === 0) //saving some reads on the free plan db
       this._firestore.deleteOldLobbies();
@@ -50,14 +54,11 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     this._user.checkForUpdate();
   }
 
-  sendToLobby() {
-    this._user.user.name = this._user.user.name.trim();
-    if (!this._user.user.name || this._user.user.name.length === 0) {
-      this._user.sendNotification("Please enter a username!");
-      return;
-    }
-    if (!this._user.user.displayName || this._user.user.displayName.length === 0)
+  sendToLobby(asGuest: boolean) {
+    if (!asGuest && (!this._user.user.displayName || this._user.user.displayName.length === 0))
       this._user.user.displayName = this._user.user.name;
+
+    this._user.user.hasSignedIn = !asGuest;
     
     if (this._user.userHasChanged()) {
       this._user.writeUserDataChangeToLocal();
@@ -67,9 +68,9 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
 
         let user = collection.users.find(user => user.id === this._user.user.id);
         if (user)
-          user = new DbUser(this._user.user);
+          user = new DbUserProfile(this._user.user);
         else
-          collection.users.push(new DbUser(this._user.user));
+          collection.users.push(new DbUserProfile(this._user.user));
 
         this._firestore.updateUsers(collection);
       });
@@ -81,25 +82,40 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     }, 300);
   }
 
-  openUserImport() {
-    const dialogRef = this.dialog.open(InputDialogComponent, { data: { passwordCheck: false, precursorTitle: "Key", title: "User Key:", confirmText: "Import" } });
-    const dialogSubscription = dialogRef.afterClosed().subscribe((userId: string | null) => {
+  logout() {
+    this._user.user.importDbUser(new DbUserProfile(new UserBase(crypto.randomUUID(), "")), this._user.user.displayName);
+    this._user.user.hasSignedIn = false;
+    
+    if (this._user.userHasChanged())
+      this._user.writeUserDataChangeToLocal();
+  }
+
+  login(checkAlreadyLoggedIn: boolean) {
+    if (checkAlreadyLoggedIn && this._user.user.hasSignedIn) {
+      this.sendToLobby(false);
+      return;
+    }
+
+    const dialogRef = this.dialog.open(AccountDialogComponent, { data: { isLogin: true } });
+    const dialogSubscription = dialogRef.afterClosed().subscribe((response: AccountReply | undefined) => {
       dialogSubscription.unsubscribe();
-      if (!userId || userId.length === 0) return;
+      if (!response) return;
 
-      this._firestore.getUsers().then(collection => {
-        if (!collection) return;
+      if (response.message)
+        this._user.sendNotification(response.message);
 
-        let user = collection.users.find(user => user.id === userId);
-        if (user) {
-          this._user.user.importUser(user);
-          this._user.sendNotification("User successfully imported.");
-        }
-        else
-          this._user.sendNotification("User not found.");
+      this._user.user.hasSignedIn = response.success;
+    });
+  }
 
-        this._firestore.updateUsers(collection);
-      });
+  register() {
+    const dialogRef = this.dialog.open(AccountDialogComponent, { data: { isLogin: false } });
+    const dialogSubscription = dialogRef.afterClosed().subscribe((response: AccountReply | undefined) => {
+      dialogSubscription.unsubscribe();
+      if (!response) return;
+
+      if (response.message)
+        this._user.sendNotification(response.message);
     });
   }
 
@@ -131,7 +147,36 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     });
   }
 
+  setupSettingsListener() {
+    if (this._user.user.hasSignedIn) return;
+    
+    this.settingsListener = (window as any).electron.receive("settings-get", (localUser: User) => {
+      this._user.user.importUserCopy(localUser);
+      this.settingsFetched = true;
+
+      if (this._user.user.hasSignedIn) return;
+      
+      this._firestore.getUsers().then(collection => {
+        if (!collection) return;
+        this.userCollection = collection;
+          this.checkCollectionForUser();
+      });
+    });
+  }
+
+  checkCollectionForUser() {
+    if (!this.userCollection) return;
+
+    const user = this.userCollection.users.find(user => user.id === this._user.getId());
+    if (user) {
+      this._user.user.importDbUser(user, this._user.user.displayName);
+      this._user.user.hasSignedIn = true;
+    }
+
+  }
+
   ngOnDestroy(): void {
-    this.updateListener();
+    if (this.settingsListener) this.settingsListener();
+    if (this.updateListener) this.updateListener();
   }
 }

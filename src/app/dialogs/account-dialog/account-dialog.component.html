@@ -1,0 +1,18 @@
+<div class="container">
+    <p id="title">{{dialogData.isLogin ? "Login" : "Create User"}}</p>
+    
+    <div class="option">
+        <p>Username</p>
+        <input [(ngModel)]="username" (keyup.enter)="confirm()" maxlength="20">
+    </div>
+    
+    <div class="option">
+        <p>Password</p>
+        <input [(ngModel)]="pw" type="password" (keyup.enter)="confirm()" maxlength="32">
+    </div>
+    
+    <div class="buttons">
+        <button class="cancel" (click)="close()">Cancel</button>
+        <button (click)="confirm()">{{dialogData.isLogin ? "Sign In" : "Create" }}</button>
+    </div>
+</div>
