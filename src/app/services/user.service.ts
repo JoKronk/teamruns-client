@@ -88,7 +88,7 @@ export class UserService implements OnDestroy {
     
     //settings get
     this.settingsListener = (window as any).electron.receive("settings-get", (data: User) => {
-      this.user = Object.assign(new User(), data);
+      this.user.importUserCopy(data);
       this.UserCopy = data;
     });
     
