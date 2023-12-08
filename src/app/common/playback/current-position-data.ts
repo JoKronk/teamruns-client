@@ -51,14 +51,19 @@ export class CurrentPlayerData {
     positionData: CurrentPositionData;
 
     interactionBuffer: InteractionData[] = []; // updates gets pushed from top of list first
-    hasInteractionUpdate: boolean;
-    hasInfoUpdate: boolean;
     recordingDataIndex: number | undefined; // only used by recordings
 
     constructor(user: UserBase, state: MultiplayerState) {
         this.positionData = new CurrentPositionData(user, state);
-        this.hasInteractionUpdate = false;
         this.interactionBuffer = [];
+    }
+
+    hasInteractionUpdate(): boolean {
+        return this.positionData.interaction !== undefined && this.positionData.interaction.interType !== InteractionType.none;
+    }
+
+    hasInfoUpdate(): boolean {
+        return this.positionData.playerInfo != undefined;
     }
 
     // returns if has updated
@@ -70,15 +75,13 @@ export class CurrentPlayerData {
                 this.recordingDataIndex = recordingDataIndex;
         }
 
-        //remove/clean up old player info
-        if (!this.hasInfoUpdate && this.positionData.playerInfo)
-            this.positionData.playerInfo = undefined;
-        
-        //check if overwriting unsent position update with interaction
-        const bufferInteraction = this.hasInteractionUpdate && positionData.interType && positionData.interType !== InteractionType.none;
-        if (!isLocalUser && bufferInteraction)
-            this.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
-
+        //handle interaction data
+        if (positionData.interType !== InteractionType.none) {
+            if (this.hasInteractionUpdate() && !isLocalUser)
+                this.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
+            else
+                this.positionData.updateCurrentInteraction(positionData);
+        }
 
         this.positionData.quatW = positionData.quatW;
         this.positionData.quatX = positionData.quatX;
@@ -90,29 +93,16 @@ export class CurrentPlayerData {
         this.positionData.transX = positionData.transX;
         this.positionData.transY = positionData.transY;
         this.positionData.transZ = positionData.transZ;
-        if (isLocalUser || !bufferInteraction) 
-        {
-            if (positionData.interType !== InteractionType.none) {
-                if (!this.positionData.interaction || this.positionData.interaction.interType !== InteractionType.none) {
-                    this.positionData.updateCurrentInteraction(positionData);
-                    this.hasInteractionUpdate = true;
-                }
-                else
-                    this.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
-            }
-        }
 
         return true;
     }
 
     checkUpdateInteractionFromBuffer() {
-        if (this.hasInteractionUpdate || this.interactionBuffer.length == 0 || (this.positionData.interaction?.interType && this.positionData.interaction?.interType !== InteractionType.none))
+        if (this.hasInteractionUpdate() || this.interactionBuffer.length == 0)
             return;
 
         const interactionData: InteractionData | undefined = this.interactionBuffer.shift();
-        if (interactionData) {
+        if (interactionData)
             this.positionData.updateCurrentInteraction(interactionData);
-            this.hasInteractionUpdate = true;
-        }
     }
 }

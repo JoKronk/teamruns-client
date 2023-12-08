@@ -151,7 +151,6 @@ export class PlayerHandler {
             const player = this.players.find(x => x.positionData && x.positionData.userId == userId);
             if (!player) return;
             player.positionData.playerInfo = playerInfo;
-            player.hasInfoUpdate = true;
         }
         if (!this.drawPositions)
             this.addCommand(OgCommand.None);
@@ -303,10 +302,8 @@ export class PlayerHandler {
 
         //post cleanup and buffer check
         this.players.forEach(player => {
-            if (player.hasInteractionUpdate) player.positionData.resetCurrentInteraction();
-            if (player.hasInfoUpdate) player.positionData.resetCurrentInfo();
-
-            player.hasInteractionUpdate = false;
+            if (player.hasInteractionUpdate()) player.positionData.resetCurrentInteraction();
+            if (player.hasInfoUpdate()) player.positionData.resetCurrentInfo();
 
             //fill interaction from buffer if possible
             player.checkUpdateInteractionFromBuffer();
