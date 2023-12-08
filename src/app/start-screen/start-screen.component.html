@@ -8,7 +8,7 @@
     <div class="login-container">
         <div class="input-container">
             <p class="login-highlighted">Display Name</p>
-            <input [(ngModel)]="_user.user.displayName" maxlength="20" autofocus>
+            <input [(ngModel)]="_user.user.displayName" (keyup.enter)="sendToLobby(!_user.user.hasSignedIn)" maxlength="20" autofocus>
         </div>
         <div class="input-container-buttons">
             <button *ngIf="!_user.user.hasSignedIn" (click)="sendToLobby(true)">Play as Guest</button>

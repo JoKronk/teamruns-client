@@ -43,6 +43,7 @@ import { PracticeComponent } from './practice/practice.component';
 import { DragDropDirective } from './common/directives/drag-drop.directive';
 import { AccountDialogComponent } from './dialogs/account-dialog/account-dialog.component';
 import { UserSettingsComponent } from './user-settings/user-settings.component';
+import { AutoFocusDirective } from './common/directives/auto-focus.directive';
 
 @NgModule({
   declarations: [
@@ -69,7 +70,8 @@ import { UserSettingsComponent } from './user-settings/user-settings.component';
     PracticeComponent,
     DragDropDirective,
     AccountDialogComponent,
-    UserSettingsComponent
+    UserSettingsComponent,
+    AutoFocusDirective
   ],
   imports: [
     BrowserModule,
