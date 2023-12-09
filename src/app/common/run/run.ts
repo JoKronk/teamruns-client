@@ -12,7 +12,7 @@ import { RunState } from "./run-state";
 import { UserBase } from "../user/user";
 import { UserService } from "src/app/services/user.service";
 import { RunStateHandler } from "../level/run-state-handler";
-import { RemotePlayerInfo } from "../playback/remote-player-info";
+import { RemotePlayerInfo } from "../socket/remote-player-info";
 
 export class Run {
     data: RunData;

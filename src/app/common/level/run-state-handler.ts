@@ -1,7 +1,7 @@
 import { InteractionType } from "../opengoal/interaction-type";
 import { Task } from "../opengoal/task";
 import { TaskStatus } from "../opengoal/task-status";
-import { InteractionData, UserInteractionData } from "../playback/interaction-data";
+import { InteractionData, UserInteractionData } from "../socket/interaction-data";
 import { LevelInteractions } from "./level-interactions";
 
 export class RunStateHandler {

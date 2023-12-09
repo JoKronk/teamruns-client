@@ -1,6 +1,6 @@
 
 import { Subject } from 'rxjs';
-import { OgCommand } from '../playback/og-command';
+import { OgCommand } from '../socket/og-command';
 import { RunState } from './run-state';
 
 export class Timer {

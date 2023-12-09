@@ -19,15 +19,15 @@ import { CitadelOption, RunData } from "./run-data";
 import { Player } from "../player/player";
 import { Category } from "./category";
 import { DbRun } from "../firestore/db-run";
-import { UserPositionData } from "../playback/position-data";
+import { UserPositionData } from "../socket/position-data";
 import { GameState } from "../opengoal/game-state";
 import { Team } from "./team";
 import { LevelHandler } from "../level/level-handler";
 import pkg from 'app/package.json';
-import { PlayerHandler } from "../playback/player-handler";
+import { SocketHandler } from "../socket/socket-handler";
 import { RunStateHandler } from "../level/run-state-handler";
-import { OgCommand } from "../playback/og-command";
-import { GameSettings } from "../playback/game-settings";
+import { OgCommand } from "../socket/og-command";
+import { GameSettings } from "../socket/game-settings";
 
 export class RunHandler {
 
@@ -46,7 +46,7 @@ export class RunHandler {
 
     private obsUserId: string | null;
     
-    positionHandler: PlayerHandler;
+    socketHandler: SocketHandler;
 
     dataSubscription: Subscription;
     positionSubscription: Subscription;
@@ -61,7 +61,7 @@ export class RunHandler {
         obsUserId: string | null = null) {
         
         this.isOnlineInstant = lobbyId !== undefined;
-        this.positionHandler = new PlayerHandler(userService, this.levelHandler, localPlayer, zone);
+        this.socketHandler = new SocketHandler(userService, this.levelHandler, localPlayer, zone);
         this.zone = zone;
         this.obsUserId = obsUserId;
 
@@ -77,7 +77,7 @@ export class RunHandler {
                 //create run if it doesn't exist
                 if (!this.run) {
                     this.setupRun();
-                    this.positionHandler.startDrawPlayers();
+                    this.socketHandler.startDrawPlayers();
                 }
     
                 this.onLobbyChange();
@@ -105,7 +105,7 @@ export class RunHandler {
     }
 
     private setupSocketListener() {
-        this.positionHandler.ogSocket.subscribe(target => {
+        this.socketHandler.ogSocket.subscribe(target => {
 
             //handle position
             if (this.localPlayer.team !== undefined) {
@@ -118,7 +118,7 @@ export class RunHandler {
                 this.handleStateChange(target.state);
 
             if (target.levels)
-                this.levelHandler.onLevelsUpdate(target.levels, this.positionHandler);
+                this.levelHandler.onLevelsUpdate(target.levels, this.socketHandler);
         });
     }
 
@@ -228,8 +228,8 @@ export class RunHandler {
         if (!this.lobby) return;
 
         console.log("Creating Run!");
-        this.run = new Run(this.lobby.runData, this.positionHandler.timer);
-        this.positionHandler.run = this.run;
+        this.run = new Run(this.lobby.runData, this.socketHandler.timer);
+        this.socketHandler.run = this.run;
 
         //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
         if (this.isOnlineInstant) {
@@ -324,7 +324,7 @@ export class RunHandler {
             this.localMaster?.relayPositionToSlaves(positionData);
 
         if (positionData.userId !== this.userService.getId()) {
-            this.positionHandler.updatePlayerPosition(positionData);
+            this.socketHandler.updatePlayerPosition(positionData);
         }
     }
 
@@ -460,10 +460,10 @@ export class RunHandler {
 
                     //update run
                     let run: Run = JSON.parse(JSON.stringify(event.value)); //to not cause referece so that import can run properly on the run after
-                    this.run = Object.assign(new Run(run.data, this.positionHandler.timer), run).reconstructRun();
-                    this.positionHandler.timer.importTimer(run.timer);
-                    this.run.reconstructTimer(this.positionHandler.timer);
-                    this.positionHandler.run = this.run;
+                    this.run = Object.assign(new Run(run.data, this.socketHandler.timer), run).reconstructRun();
+                    this.socketHandler.timer.importTimer(run.timer);
+                    this.run.reconstructTimer(this.socketHandler.timer);
+                    this.socketHandler.run = this.run;
 
                     //update player and team
                     this.localPlayer.mode = this.run.data.mode;
@@ -479,7 +479,7 @@ export class RunHandler {
                     this.levelHandler.uncollectedLevelItems = new RunStateHandler();
                     if (this.run.teams.length !== 0) {
                         const importTeam: Team = playerTeam?.runState ? playerTeam : this.run.teams[0];
-                        this.levelHandler.importRunStateHandler(importTeam.runState, this.positionHandler);
+                        this.levelHandler.importRunStateHandler(importTeam.runState, this.socketHandler);
                     }
 
                     this.connected = true;
@@ -568,7 +568,7 @@ export class RunHandler {
             case EventType.StartRun:
                 this.zone.run(() => {
                     this.run!.start(new Date());
-                    this.positionHandler.addCommand(OgCommand.SetupRun);
+                    this.socketHandler.addCommand(OgCommand.SetupRun);
                 });
                 this.setupRunStart();
                 break;
@@ -577,8 +577,8 @@ export class RunHandler {
             case EventType.ToggleReset:
                 this.zone.run(() => {
                     if (this.run!.toggleVoteReset(event.userId, event.value)) {
-                        this.positionHandler.addCommand(OgCommand.Trip);
-                        this.positionHandler.updateGameSettings(new GameSettings(undefined));
+                        this.socketHandler.addCommand(OgCommand.Trip);
+                        this.socketHandler.updateGameSettings(new GameSettings(undefined));
                         this.localPlayer.state = PlayerState.Neutral;
                     }
                 });
@@ -593,16 +593,16 @@ export class RunHandler {
     updateAllPlayerInfo() {
         if (!this.run) return;
         this.run.getAllPlayers().forEach(player => {
-            this.positionHandler.updatePlayerInfo(player.user.id, this.run!.getRemotePlayerInfo(player.user.id));
+            this.socketHandler.updatePlayerInfo(player.user.id, this.run!.getRemotePlayerInfo(player.user.id));
         });
     }
 
     //used by both run component and practice/recording tool
     setupRunStart() {
-        this.positionHandler.resetOngoingRecordings();
+        this.socketHandler.resetOngoingRecordings();
         this.levelHandler.uncollectedLevelItems = new RunStateHandler();
         this.updateAllPlayerInfo();
-        this.positionHandler.updateGameSettings(new GameSettings(this.run?.data));
+        this.socketHandler.updateGameSettings(new GameSettings(this.run?.data));
 
         this.run?.teams.forEach(team => {
             team.runState = new RunStateHandler();
@@ -628,7 +628,7 @@ export class RunHandler {
             
             //!TODO: Fix desync check, currently broken
             //if (this.localPlayer.gameState.cellCount !== state.cellCount)
-                //this.localPlayer.checkDesync(this.run, this.levelHandler, this.positionHandler);
+                //this.localPlayer.checkDesync(this.run, this.levelHandler, this.socketHandler);
 
             //this check is purely to save unnecessary writes to db if user is on client-server communication
             if (this.shouldSendStateUpdate(state))
@@ -638,10 +638,10 @@ export class RunHandler {
             this.localPlayer.gameState = state;
 
             //check adjust player spawn point on countdown
-            if (state.justSpawned && this.positionHandler.timer.runState === RunState.Countdown) {
+            if (state.justSpawned && this.socketHandler.timer.runState === RunState.Countdown) {
                 let playerId: number = this.run.teams.flatMap(team => team.players.flatMap(x => x.user.id)).indexOf(this.localPlayer.user.id);
                 //OG.runCommand("(+! (-> *target* root trans x) (meters " + playerId * 3 + ".0))");
-                this.positionHandler.timer.onPlayerLoad();
+                this.socketHandler.timer.onPlayerLoad();
             }
         })
     }
@@ -657,7 +657,7 @@ export class RunHandler {
 
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
-        this.positionHandler.onDestroy();
+        this.socketHandler.onDestroy();
         this.launchListener();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself

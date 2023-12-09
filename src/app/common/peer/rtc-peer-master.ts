@@ -4,7 +4,7 @@ import { CollectionName } from "../firestore/collection-name";
 import { Lobby } from "../firestore/lobby";
 import { UserBase } from "../user/user";
 import { DataChannelEvent } from "./data-channel-event";
-import { UserPositionData } from "../playback/position-data";
+import { UserPositionData } from "../socket/position-data";
 import { RTCPeer, RTCPeerSlaveConnection } from "./rtc-peer";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
 

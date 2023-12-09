@@ -6,7 +6,7 @@ import { UserBase } from "../user/user";
 import { DataChannelEvent } from "./data-channel-event";
 import { RTCPeer } from "./rtc-peer";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
-import { UserPositionData } from "../playback/position-data";
+import { UserPositionData } from "../socket/position-data";
 
 export class RTCPeerSlave {
     private currentMasterSdp: string | undefined;

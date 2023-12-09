@@ -2,11 +2,11 @@ import { Task } from "../opengoal/task";
 import { LevelStatus } from "./level-status";
 import { RunStateHandler } from "./run-state-handler";
 import { Level } from "../opengoal/levels";
-import { PlayerHandler } from "../playback/player-handler";
-import { InteractionData, UserInteractionData } from "../playback/interaction-data";
+import { SocketHandler } from "../socket/socket-handler";
+import { InteractionData, UserInteractionData } from "../socket/interaction-data";
 import { InteractionType } from "../opengoal/interaction-type";
 import { TaskStatus } from "../opengoal/task-status";
-import { OgCommand } from "../playback/og-command";
+import { OgCommand } from "../socket/og-command";
 
 export class LevelHandler {
 
@@ -17,10 +17,10 @@ export class LevelHandler {
 
     }
 
-    importRunStateHandler(runStateHandler: RunStateHandler, positionHandler: PlayerHandler) {
+    importRunStateHandler(runStateHandler: RunStateHandler, socketHandler: SocketHandler) {
 
         //reset game
-        positionHandler.addCommand(OgCommand.ResetGame);
+        socketHandler.addCommand(OgCommand.ResetGame);
 
         //import task statuses to game
         runStateHandler.tasksStatuses.forEach(interaction => {
@@ -28,11 +28,11 @@ export class LevelHandler {
             if (Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus))) {
                 const cost = Task.cellCost(interaction);
                 if (cost !== 0)
-                    positionHandler.addOrbReductionToCurrentPlayer(cost, interaction.interLevel);
+                    socketHandler.addOrbReductionToCurrentPlayer(cost, interaction.interLevel);
             }
         });
           
-        positionHandler.addCommand(OgCommand.ResetActors);
+        socketHandler.addCommand(OgCommand.ResetActors);
 
 
         //update collectables
@@ -76,11 +76,11 @@ export class LevelHandler {
 
     // ----- update handlers -----
 
-    onLevelsUpdate(levels: LevelStatus[], positionHandler: PlayerHandler) {
+    onLevelsUpdate(levels: LevelStatus[], socketHandler: SocketHandler) {
         this.levels = levels;
         this.levels.forEach(level => {
             if (level.status === LevelStatus.Active || level.status === LevelStatus.Alive)
-                this.onLevelActive(level.name, positionHandler);
+                this.onLevelActive(level.name, socketHandler);
         });
     }
 
@@ -124,7 +124,7 @@ export class LevelHandler {
         return level.status === LevelStatus.Active || level.status === LevelStatus.Alive;
     }
 
-    private onLevelActive(levelName: string, positionHandler: PlayerHandler) {
+    private onLevelActive(levelName: string, socketHandler: SocketHandler) {
 
         setTimeout(() => {
             let level = this.uncollectedLevelItems.levels.find(x => x.levelName === levelName);
@@ -136,11 +136,11 @@ export class LevelHandler {
             console.log("killing from level", level)
 
             level.interactions.filter(x => x.interType == InteractionType.crateNormal || x.interType == InteractionType.crateIron || x.interType == InteractionType.crateSteel || x.interType == InteractionType.crateDarkeco).forEach(interaction => {
-                positionHandler.addPlayerInteraction(interaction);
+                socketHandler.addPlayerInteraction(interaction);
             });
 
             level.interactions.filter(x => x.interType == InteractionType.enemyDeath).forEach(interaction => {
-                positionHandler.addPlayerInteraction(interaction);
+                socketHandler.addPlayerInteraction(interaction);
             });
 
             const buzzerUpdates = level.interactions.filter(x => x.interType == InteractionType.buzzer);
@@ -149,33 +149,33 @@ export class LevelHandler {
                 if (index + 1 === buzzerUpdates.length && interaction.interName == "buzzer") 
                     interaction.interName = "buzzer-last"; //!TODO: does produce a cell spawn bug on enter if the last fly is a lpc minigame one
                     
-                positionHandler.addPlayerInteraction(interaction);
+                socketHandler.addPlayerInteraction(interaction);
                 this.uncollectedLevelItems.buzzerCount -= 1;
             });
 
             level.interactions.filter(x => x.interType == InteractionType.money).forEach(interaction => {
-                positionHandler.addPlayerInteraction(interaction);
+                socketHandler.addPlayerInteraction(interaction);
                 this.uncollectedLevelItems.orbCount -= 1;
             });
 
             level.interactions.filter(x => x.interType == InteractionType.periscope).forEach(interaction => {
-                positionHandler.addPlayerInteraction(interaction);
+                socketHandler.addPlayerInteraction(interaction);
             });
 
             level.interactions.filter(x => x.interType == InteractionType.snowBumper).forEach(interaction => {
-                positionHandler.addPlayerInteraction(interaction);
+                socketHandler.addPlayerInteraction(interaction);
             });
 
             level.interactions.filter(x => x.interType == InteractionType.darkCrystal).forEach(interaction => {
-                positionHandler.addPlayerInteraction(interaction);
+                socketHandler.addPlayerInteraction(interaction);
             });
             
             level.interactions.filter(x => x.interType == InteractionType.lpcChamber).forEach(interaction => {
-                positionHandler.addPlayerInteraction(interaction);
+                socketHandler.addPlayerInteraction(interaction);
             });
 
             level.interactions.filter(x => x.interType == InteractionType.gameTask).forEach(interaction => {
-                positionHandler.addPlayerInteraction(interaction);
+                socketHandler.addPlayerInteraction(interaction);
                 if (Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus)))
                     this.uncollectedLevelItems.cellCount -= 1; 
             });

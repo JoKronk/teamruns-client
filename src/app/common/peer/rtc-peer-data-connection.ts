@@ -7,7 +7,7 @@ import { EventType } from "./event-type";
 import { RTCPeer } from "./rtc-peer";
 import { UserBase } from "../user/user";
 import { OG } from "../opengoal/og";
-import { UserPositionData } from "../playback/position-data";
+import { UserPositionData } from "../socket/position-data";
 
 export class RTCPeerDataConnection {
 

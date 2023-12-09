@@ -24,7 +24,7 @@ import { SocketPackage } from "./socket-package";
 import { OgCommand } from "./og-command";
 import { GameSettings } from "./game-settings";
 
-export class PlayerHandler {
+export class SocketHandler {
 
     recordings: Recording[] = [];
     private hasDrawnRecordingNames: boolean = false;

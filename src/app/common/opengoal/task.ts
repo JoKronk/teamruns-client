@@ -1,5 +1,5 @@
 import { DbTask } from "../firestore/db-task";
-import { InteractionData } from "../playback/interaction-data";
+import { InteractionData } from "../socket/interaction-data";
 import { GameTask, GameTaskTime } from "./game-task";
 import { InteractionType } from "./interaction-type";
 import { Level } from "./levels";

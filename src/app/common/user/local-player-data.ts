@@ -1,16 +1,10 @@
-import { OG } from "../opengoal/og";
 import { GameState } from "../opengoal/game-state";
 import { PlayerState } from "../player/player-state";
 import { RunMode } from "../run/run-mode";
-import { Task } from "../opengoal/task";
 import { Run } from "../run/run";
 import { Team } from "../run/team";
-import { Level } from "../opengoal/levels";
 import { UserBase } from "./user";
-import { CitadelOption } from "../run/run-data";
-import { GameTask } from "../opengoal/game-task";
-import { TaskStatus } from "../opengoal/task-status";
-import { PlayerHandler } from "../playback/player-handler";
+import { SocketHandler } from "../socket/socket-handler";
 import { LevelHandler } from "../level/level-handler";
 
 export class LocalPlayerData {
@@ -33,7 +27,7 @@ export class LocalPlayerData {
   }
 
 
-  checkDesync(run: Run, levelHandler: LevelHandler, positionHandler: PlayerHandler) {
+  checkDesync(run: Run, levelHandler: LevelHandler, socketHandler: SocketHandler) {
     if (this.isSyncing) return;
     if (!this.team) this.team = run.getPlayerTeam(this.user.id);
     if (!this.team) return;
@@ -43,11 +37,11 @@ export class LocalPlayerData {
       this.isSyncing = true;
       setTimeout(() => {  //give the player some time to spawn in
         if (!run.isMode(RunMode.Lockout)) {
-          levelHandler.importRunStateHandler(this.team!.runState, positionHandler);
+          levelHandler.importRunStateHandler(this.team!.runState, socketHandler);
         }
         else {
           run.teams.forEach(runTeam => {
-            levelHandler.importRunStateHandler(runTeam.runState, positionHandler);
+            levelHandler.importRunStateHandler(runTeam.runState, socketHandler);
           });
         }
 

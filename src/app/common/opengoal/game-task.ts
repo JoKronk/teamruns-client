@@ -1,6 +1,6 @@
-import { CurrentPositionData } from "../playback/current-position-data";
-import { InteractionData } from "../playback/interaction-data";
-import { UserPositionData } from "../playback/position-data";
+import { CurrentPositionData } from "../socket/current-position-data";
+import { InteractionData } from "../socket/interaction-data";
+import { UserPositionData } from "../socket/position-data";
 import { Timer } from "../run/timer";
 import { UserBase } from "../user/user";
 import { TaskStatus } from "./task-status";
