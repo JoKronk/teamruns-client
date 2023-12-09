@@ -358,9 +358,6 @@ export class SocketHandler {
                     if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution))
                         this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
 
-                    if (task.name === "citadel-sage-green")
-                        this.localPlayer.hasCitadelSkipAccess = false;
-
                     if (isNewTaskStatus && Task.isRunEnd(task)) {
                         this.zone.run(() => {
                             this.localPlayer.state = PlayerState.Finished;

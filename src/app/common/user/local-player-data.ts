@@ -14,16 +14,10 @@ export class LocalPlayerData {
   gameState: GameState = new GameState();
   state: PlayerState = PlayerState.Neutral;
 
-  hasCitadelSkipAccess: boolean;
   isSyncing: boolean = false;
 
   constructor(user: UserBase) {
     this.user = user;
-    this.resetRunDependentProperties();
-  }
-
-  resetRunDependentProperties() {
-    this.hasCitadelSkipAccess = true;
   }
 
 

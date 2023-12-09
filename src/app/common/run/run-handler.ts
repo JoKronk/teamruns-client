@@ -109,7 +109,7 @@ export class RunHandler {
 
             //handle position
             if (this.localPlayer.team !== undefined) {
-                const positionData = new UserPositionData(target.position, this.run?.timer.totalMs ?? 0, this.localPlayer.user);
+                const positionData = new UserPositionData(target.position, this.socketHandler.timer.totalMs ?? 0, this.localPlayer.user);
                 this.sendPosition(positionData);
             }
 
@@ -608,11 +608,6 @@ export class RunHandler {
             team.runState = new RunStateHandler();
         });
         this.localPlayer.team = this.run?.getPlayerTeam(this.userService.getId());
-
-        //!TODO: could be done in some more elegant way
-        setTimeout(() => {
-            this.localPlayer.resetRunDependentProperties();
-        }, this.run!.timer.countdownSeconds * 1000);
     }
 
     async updateFirestoreLobby() {
