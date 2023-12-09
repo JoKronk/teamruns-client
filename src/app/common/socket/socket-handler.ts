@@ -36,7 +36,7 @@ export class SocketHandler {
     private self: CurrentPlayerData;
     private players: CurrentPlayerData[] = [];
     private drawPositions: boolean = false;
-    private positionUpdateRateMs: number = 16;
+    private positionUpdateRateMs: number = 8;
 
     private socketCommandBuffer: OgCommand[] = []; 
     private socketPackage: SocketPackage = new SocketPackage();
