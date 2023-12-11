@@ -199,6 +199,13 @@ export class SocketHandler {
         this.recordings.push(recording);
     }
 
+    setAllRealPlayersToInteractive() {
+        this.players.forEach(player => {
+            if (!this.recordings.some(x => x.id === player.positionData.userId))
+                player.positionData.mpState = MultiplayerState.interactive;
+        });
+    }
+
 
     updatePlayerPosition(positionData: UserPositionData) {
         const isLocalUser = positionData.userId === this.userService.user.id;
@@ -356,6 +363,12 @@ export class SocketHandler {
                 //check duped cell buy
                 if (positionData.userId === userId && Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution))
                     this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
+
+                //set players to act as ghosts on run end
+                if (isNewTaskStatus && Task.isRunEnd(interaction)) {
+                    const player = this.players.find(x => x.positionData.userId === positionData.userId);
+                    if (player) player.positionData.mpState = MultiplayerState.active;
+                }
 
                 if (!isNewTaskStatus) break;
 
