@@ -9,11 +9,4 @@ export class GameState {
     constructor() {
         
     }
-
-    
-    //!NOTE: None static functions shouldn't be created as new updates replaces state without using Object.assign() making them uncallable
-
-    public static hasSignificantPlayerStateChange(oldState: GameState, newState: GameState): boolean {
-        return oldState.debugModeActive != newState.debugModeActive;
-    }
 }

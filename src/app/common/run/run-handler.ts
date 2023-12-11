@@ -387,8 +387,6 @@ export class RunHandler {
                         if (peer) {
                             console.log("Destorying disconnected peer");
                             peer.peer.destroy();
-                            if (peer.peer.usesServerCommunication && this.isOnlineInstant)
-                                this.firestoreService.deleteLobbyServerCommunication(this.lobby.id, disconnectedUser.id);
                             this.localMaster!.peers = this.localMaster!.peers.filter(x => x.user.id !== disconnectedUser.id);
                         }
                     }
@@ -437,20 +435,7 @@ export class RunHandler {
             case EventType.RequestRunSync:
                 if (isMaster) {
                     this.localMaster?.respondToSlave(new DataChannelEvent(userId, EventType.RunSync, this.run), event.userId);
-                    console.log("Got run request, responding!");
-
-                    //check for self kick if suspected of being tied to client to server communication as host
-                    if (this.localMaster && this.localMaster.peers.length > 1 && this.localMaster.peers.every(x => x.peer.usesServerCommunication)) {
-                        this.userService.sendNotification("Unfit as host, please rejoin.");
-                        if (this.lobby?.backupHost === null) {
-                            this.getNewBackupHost();
-                            this.updateFirestoreLobby().then(() => {
-                                this.userService.routeTo('/lobby');
-                            });
-                        }
-                        else
-                            this.userService.routeTo('/lobby');
-                    }
+                    console.log("Got run sync request, responding!");
                 }
                 break;
 
@@ -626,7 +611,7 @@ export class RunHandler {
                 //this.localPlayer.checkDesync(this.run, this.levelHandler, this.socketHandler);
 
             //this check is purely to save unnecessary writes to db if user is on client-server communication
-            if (this.shouldSendStateUpdate(state))
+            if (this.isOnlineInstant)
                 this.sendEvent(EventType.NewPlayerState, state);
 
 
@@ -639,10 +624,6 @@ export class RunHandler {
                 this.socketHandler.timer.onPlayerLoad();
             }
         })
-    }
-
-    private shouldSendStateUpdate(newState: GameState) {
-        return !((this.localSlave?.peer.usesServerCommunication || !this.isOnlineInstant || this.localMaster?.peers.every(x => x.peer.usesServerCommunication)) ?? false) || GameState.hasSignificantPlayerStateChange(this.localPlayer.gameState, newState);
     }
 
 

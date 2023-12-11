@@ -96,15 +96,9 @@ export class RTCPeerMaster {
     }
 
     relayToSlaves(event: DataChannelEvent) {
-        let hasRelayedToServer: boolean = false;
         this.peers.forEach(slave => {
-            if (slave.user.id !== event.userId) {
-                if (!slave.peer.usesServerCommunication || !hasRelayedToServer)
-                    slave.peer.sendEvent(event);
-
-                if (slave.peer.usesServerCommunication && !hasRelayedToServer)
-                    hasRelayedToServer = true;
-            }
+            if (slave.user.id !== event.userId)
+                slave.peer.sendEvent(event);
         });
     }
 

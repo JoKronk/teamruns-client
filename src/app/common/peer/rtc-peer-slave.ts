@@ -33,13 +33,7 @@ export class RTCPeerSlave {
     }
 
     private async preCreationCleanup(user: UserBase, lobbyDoc: AngularFirestoreDocument<Lobby>, host: UserBase) {
-        //delete old server communication if exists
-        if ((await lobbyDoc.collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(user.id).ref.get()).exists) {
-            this.connectionLogs.push("Detected previous server communication, deleting!");
-            console.log("slave: Server communication exists from before, deleting!");
-            await lobbyDoc.collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(user.id).delete();
-        }
-
+        
         //delete old peer connection if exists
         let peer = await this.peerDoc.ref.get();
         if (peer.exists) {

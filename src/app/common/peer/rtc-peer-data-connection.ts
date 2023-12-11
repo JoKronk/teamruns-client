@@ -6,7 +6,6 @@ import { DataChannelEvent } from "./data-channel-event";
 import { EventType } from "./event-type";
 import { RTCPeer } from "./rtc-peer";
 import { UserBase } from "../user/user";
-import { OG } from "../opengoal/og";
 import { UserPositionData } from "../socket/position-data";
 
 export class RTCPeerDataConnection {
@@ -19,9 +18,7 @@ export class RTCPeerDataConnection {
     self: UserBase;
     isMaster: boolean;
     isBeingDestroyed: boolean = false;
-    usesServerCommunication: boolean = false;
     private lobbyDoc: AngularFirestoreDocument<Lobby>;
-    private serverComSubscriptions: Subscription;
 
 
     constructor(eventChannel: Subject<DataChannelEvent>, positionChannel: Subject<UserPositionData> | null, self: UserBase, peer: UserBase, lobbyDoc: AngularFirestoreDocument<Lobby>, creatorIsMaster: boolean, connectionLog: string[] | null = null) {
@@ -118,77 +115,20 @@ export class RTCPeerDataConnection {
                 }
             }, 8000);
         }
-
-        //suggest client server communcation if no peer to peer was established
-        setTimeout(() => {
-            if (this.isBeingDestroyed) return;
-            if (!this.hasConnected && !this.serverComSubscriptions) {
-                if (connectionLog) {
-                    connectionLog.push("Unable to establish connection...");
-                    connectionLog.push("Creating client to server fall back offer");
-                }
-                console.log("%cCreating client server communication channel", "color: #FFAC1C");
-                if (this.isMaster)
-                    this.setupServerCommunicationEventSubscription(peer, eventChannel);
-                else
-                    this.setupServerCommunicationEventSubscription(new UserBase("host", peer.name), eventChannel);
-                if (connectionLog)
-                    connectionLog.push("Waiting for response from host...");
-            }
-            
-        }, 5000);
-    }
-
-    setupServerCommunicationEventSubscription(target: UserBase, eventChannel: Subject<DataChannelEvent>) {
-        console.log("listening on server event at: ", target.id);
-        if (this.serverComSubscriptions) this.serverComSubscriptions.unsubscribe();
-        this.serverComSubscriptions = this.lobbyDoc.collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(target.id).valueChanges().subscribe(event => {
-            
-            //assume reconnect where peer to peer might work due to new host
-            if (event === undefined && this.isMaster) {
-                eventChannel.next(new DataChannelEvent(target.id, EventType.Disconnect, target)); //fake user disconnect
-            }
-
-            if (!this.hasConnected && event?.type === EventType.Connect)
-                this.onServerCommunicationEstablished(target);
-
-            if (!this.hasConnected || (event?.userId === this.self.id && (event.type !== EventType.Connect && event.type !== EventType.Disconnect)))
-                return;
-
-            if (event && event.userId) 
-                eventChannel.next(event);
-        });
-        console.log("event: writing to doc " + this.isMaster ? "host" : this.self.id + " event: ", new DataChannelEvent(this.self.id, EventType.Connect, this.self))
-        this.lobbyDoc.collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(this.isMaster ? "host" : this.self.id).set(JSON.parse(JSON.stringify(new DataChannelEvent(this.self.id, EventType.Connect, this.self))));
-    }
-
-    onServerCommunicationEstablished(target: UserBase) {
-        this.hasConnected = true;
-        this.usesServerCommunication = true;
-        if (this.isMaster)
-            this.lobbyDoc.collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>("host").set(JSON.parse(JSON.stringify(new DataChannelEvent(target.id, EventType.Connect, target))));
     }
 
     sendEvent(event: DataChannelEvent) {
-        if (this.dataChannelToPeer?.readyState !== "open" && !this.usesServerCommunication) return;
-        if (!this.usesServerCommunication)
+        if (this.dataChannelToPeer?.readyState !== "open") return;
             this.dataChannelToPeer.send(JSON.stringify(event));
-        else {
-            this.lobbyDoc.collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(this.isMaster ? "host" : event.userId).set(JSON.parse(JSON.stringify(event)));
-        }
     }
 
     sendPosition(target: UserPositionData) {
-        if (this.positionChannelToPeer?.readyState === "open" && !this.usesServerCommunication)
+        if (this.positionChannelToPeer?.readyState === "open")
             this.positionChannelToPeer.send(JSON.stringify(target));
     }
 
     destroy() {
         this.isBeingDestroyed = true;
-        if (this.serverComSubscriptions) {
-            this.lobbyDoc.collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(this.isMaster ? "host" : this.self.id).set(JSON.parse(JSON.stringify(new DataChannelEvent(this.self.id, EventType.Disconnect, this.self))));
-            this.serverComSubscriptions.unsubscribe();
-        }
         if (this.dataChannelToPeer) this.dataChannelToPeer.close();
         if (this.positionChannelToPeer) {
             this.positionChannelToPeer.close();

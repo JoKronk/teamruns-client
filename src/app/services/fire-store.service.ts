@@ -220,14 +220,6 @@ export class FireStoreService {
     (await lobbyConnections.ref.get()).forEach(conSnapshot => {
       lobbyConnections.doc<RTCPeer>(conSnapshot.id).delete();
     });
-    let lobbyCommunicationConnections = this.lobbies.doc<Lobby>(id).collection(CollectionName.serverEventCommuncation);
-    (await lobbyCommunicationConnections.ref.get()).forEach(conSnapshot => {
-      lobbyCommunicationConnections.doc<DataChannelEvent>(conSnapshot.id).delete();
-    });
-  }
-
-  async deleteLobbyServerCommunication(lobbyId: string, id: string) {
-    await this.lobbies.doc<Lobby>(lobbyId).collection(CollectionName.serverEventCommuncation).doc<DataChannelEvent>(id).delete();
   }
 
   async deleteRun(id: string) {
