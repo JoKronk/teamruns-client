@@ -33,8 +33,8 @@ export class Task {
     public static lastboss = "finalboss-movies";
     public static forfeit = "finalboss-forfeit";
 
-    public static isRunEnd(task: GameTask) {
-        return task.status === TaskStatus.unknown && (task.name === Task.lastboss || task.name === Task.forfeit);
+    public static isRunEnd(interaction: InteractionData) {
+        return interaction.interType === InteractionType.gameTask && (interaction.interName === Task.lastboss || interaction.interName === Task.forfeit) && TaskStatus.nameFromEnum(interaction.interStatus) === TaskStatus.unknown;
     }
 
     public static isCellCollect(name: string, status: string) {

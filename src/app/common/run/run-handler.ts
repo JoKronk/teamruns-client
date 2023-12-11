@@ -106,12 +106,11 @@ export class RunHandler {
 
     private setupSocketListener() {
         this.socketHandler.ogSocket.subscribe(target => {
+            const positionData = new UserPositionData(target.position, this.socketHandler.timer.totalMs ?? 0, this.localPlayer.user);
 
             //handle position
-            if (this.localPlayer.team !== undefined) {
-                const positionData = new UserPositionData(target.position, this.socketHandler.timer.totalMs ?? 0, this.localPlayer.user);
+            if (this.localPlayer.team !== undefined)
                 this.sendPosition(positionData);
-            }
 
             //handle game state changes for current player
             if (target.state)
@@ -119,6 +118,14 @@ export class RunHandler {
 
             if (target.levels)
                 this.levelHandler.onLevelsUpdate(target.levels, this.socketHandler);
+            
+            // check for run end
+            if (Task.isRunEnd(positionData)) {
+                this.zone.run(() => {
+                    this.localPlayer.state = PlayerState.Finished;
+                    this.sendEvent(EventType.EndPlayerRun, positionData);
+                });
+            }
         });
     }
 
@@ -323,9 +330,8 @@ export class RunHandler {
         if (isMaster && this.isOnlineInstant)
             this.localMaster?.relayPositionToSlaves(positionData);
 
-        if (positionData.userId !== this.userService.getId()) {
+        if (positionData.userId !== this.userService.getId())
             this.socketHandler.updatePlayerPosition(positionData);
-        }
     }
 
     onDataChannelEvent(event: DataChannelEvent, isMaster: boolean) {

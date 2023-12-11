@@ -352,27 +352,19 @@ export class SocketHandler {
                 
                 const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, positionData.interaction);
                 const isNewTaskStatus: boolean = this.localPlayer.team.runState.isNewTaskStatus(interaction);
-                if (positionData.userId === userId)
-                {
-                    //check duped cell buy
-                    if (Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution))
-                        this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
-
-                    if (isNewTaskStatus && Task.isRunEnd(task)) {
-                        this.zone.run(() => {
-                            this.localPlayer.state = PlayerState.Finished;
-                            //this.sendEvent(EventType.EndPlayerRun, task);
-                        });
-                    }
-                }
+                
+                //check duped cell buy
+                if (positionData.userId === userId && Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution))
+                    this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
 
                 if (!isNewTaskStatus) break;
+
                 const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus));
-                if (isCell || Task.isRunEnd(task)) {
+                if (isCell) { // end run split added in EndPlayerRun event
                     this.zone.run(() => {
                         this.run!.addSplit(new Task(task));
                     });
-                this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
+                    this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
                 }
 
                 const playerTeam = this.run.getPlayerTeam(positionData.userId);
@@ -387,11 +379,8 @@ export class SocketHandler {
                     this.levelHandler.onInteraction(interaction);
 
                     //cell cost check
-                    if (isCell && isLocalPlayerTeam && !this.run.isMode(RunMode.Lockout)) {
-                        const cost = Task.cellCost(interaction);
-                        if (cost !== 0)
-                            this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
-                    }
+                    if (isCell && isLocalPlayerTeam && (!this.run.isMode(RunMode.Lockout) || this.run.teams.length !== 1) && Task.cellCost(interaction) !== 0)
+                        this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
                 }
                 
                 //add to team run state
