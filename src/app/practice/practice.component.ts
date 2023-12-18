@@ -12,6 +12,8 @@ import { FireStoreService } from '../services/fire-store.service';
 import { LocalPlayerData } from '../common/user/local-player-data';
 import { EventType } from '../common/peer/event-type';
 import { OgCommand } from '../common/socket/og-command';
+import pkg from 'app/package.json';
+import { PositionData } from '../common/socket/position-data';
 
 @Component({
   selector: 'app-practice',
@@ -63,16 +65,19 @@ export class PracticeComponent implements OnDestroy {
 
     //recording import listener
     this.fileListener = (window as any).electron.receive("file-get", (data: any) => {
-      if (!Array.isArray(data) || data.length === 0 || !(data[0].transX !== undefined && data[0].quatW !== undefined && data[0].tgtState !== undefined)) {
-        this._user.sendNotification("File was not recognized as a recording.");
+
+      if (data.length === 0 || !data.version || !data.playback || !Array.isArray(data.playback)) {
+        if (!this.checkTransformOldRecording(data))
+          this._user.sendNotification("File was not recognized as a recording.");
+        
         this.imports.shift();
         this.checkAddImport();
         return;
       }
-        
+
       const recording: Recording = new Recording(crypto.randomUUID());
       recording.userId = recording.id;
-      recording.playback = data;
+      recording.playback = data.playback;
       recording.fillFrontendValues(this.imports[0].name);
       this.nextRecordingId += 1;
       this.recordings.push(recording);
@@ -88,6 +93,18 @@ export class PracticeComponent implements OnDestroy {
     this.timerEndSubscription = this.runHandler.socketHandler.timer.timerEndSubject.subscribe(ended => {
       this.stopPlaybackIfIsRunning();
     });
+  }
+
+  //!TODO: This should be deleted after current recordings have been migrated
+  checkTransformOldRecording(data: any): boolean {
+    if (Array.isArray(data) && data.length !== 0 && (data[0].transX !== undefined && data[0].quatW !== undefined && data[0].tgtState !== undefined)) {
+      let rec: Recording = new Recording(crypto.randomUUID());
+      for (let i = data.length - 1; i >= 0; i--)
+        rec.addPositionData(data[i]);
+      this.exportRecording(rec);
+      return true;
+    }
+    return false;
   }
 
   startRecording() {
@@ -146,24 +163,8 @@ export class PracticeComponent implements OnDestroy {
     this.inFreecam = !this.inFreecam;
   }
 
-  importRecordings(event: any) {
-    this.onFilesDrop(event.target.files);
-  }
-
   exportRecording(recording: Recording) {
-    recording.playback.forEach(position => {
-      position.transX = Math.round((position.transX + Number.EPSILON) * 100) / 100;
-      position.transY = Math.round((position.transY + Number.EPSILON) * 100) / 100;
-      position.transZ = Math.round((position.transZ + Number.EPSILON) * 100) / 100;
-
-      position.quatW = Math.round((position.quatW + Number.EPSILON) * 1000) / 1000;
-      position.quatX = Math.round((position.quatX + Number.EPSILON) * 1000) / 1000;
-      position.quatY = Math.round((position.quatY + Number.EPSILON) * 1000) / 1000;
-      position.quatZ = Math.round((position.quatZ + Number.EPSILON) * 1000) / 1000;
-    })
-    const fileData = JSON.stringify(recording.playback);
-    const blob = new Blob([fileData], {type: "text/plain"});
-    const url = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(recording.exportRecordingToBlob(pkg.version));
     const link = document.createElement('a');
     link.download = recording.nameFrontend + '.json';
     link.href = url;
@@ -253,11 +254,11 @@ export class PracticeComponent implements OnDestroy {
   getLongestRecordingTimeMs(recordings: Recording[]): number {
     if (recordings.length === 0) return 0;
 
-    let longest: number = recordings[0].playback[0].time;
+    let longest: number = recordings[0].playback[0].t;
 
     for (var i = 0; i < recordings.length; i++) {
-      if (recordings[i].playback[0].time > longest) {
-        longest = recordings[i].playback[0].time;
+      if (recordings[i].playback[0].t > longest) {
+        longest = recordings[i].playback[0].t;
       }
     }
 
@@ -273,8 +274,8 @@ export class PracticeComponent implements OnDestroy {
     this.checkAddImport();
   }
 
-  handleImport(event: any) {
-    this.onFilesDrop(event.target.files)
+  importRecordings(event: any) {
+    this.onFilesDrop(event.target.files);
   }
 
   checkAddImport() {

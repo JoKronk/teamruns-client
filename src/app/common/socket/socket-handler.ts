@@ -1,7 +1,7 @@
 
 import { WebSocketSubject, webSocket } from "rxjs/webSocket";
 import { Recording } from "./recording";
-import { PositionData, UserPositionData } from "./position-data";
+import { RecordingPositionData, UserPositionData } from "./position-data";
 import { UserService } from "src/app/services/user.service";
 import { UserBase } from "../user/user";
 import { MultiplayerState } from "../opengoal/multiplayer-state";
@@ -28,7 +28,7 @@ export class SocketHandler {
 
     recordings: Recording[] = [];
     private hasDrawnRecordingNames: boolean = false;
-    private userPositionRecording: Recording[] = [];
+    private userPositionRecordings: Recording[] = [];
 
     timer: Timer = new Timer();
     run: Run | undefined;
@@ -105,7 +105,7 @@ export class SocketHandler {
     }
 
     resetGetRecordings(): Recording[] {
-        const recordings = this.userPositionRecording;
+        const recordings = this.userPositionRecordings;
         this.cleanupPlayers();
 
         this.resetOngoingRecordings();
@@ -115,7 +115,7 @@ export class SocketHandler {
     }
 
     resetOngoingRecordings() {
-        this.userPositionRecording = [];
+        this.userPositionRecordings = [];
     }
 
     getCurrentPlayer(): CurrentPlayerData | undefined {
@@ -128,9 +128,9 @@ export class SocketHandler {
             this.sendSocketPackageToOpengoal(false);
     }
 
-    private addInteractionToBuffer(currentPlayer: CurrentPlayerData, positionData: PositionData) {
-        if (currentPlayer.positionData.mpState === MultiplayerState.interactive && positionData.interType && positionData.interType !== InteractionType.none)
-            currentPlayer.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
+    private addRecordingInteractionToBuffer(currentPlayer: CurrentPlayerData, positionData: RecordingPositionData) {
+        if (currentPlayer.positionData.mpState === MultiplayerState.interactive && positionData.iT && positionData.iT !== InteractionType.none)
+            currentPlayer.interactionBuffer.push(InteractionData.getRecordingInteractionValues(positionData));
     }
 
     addPlayerInteraction(interaction: UserInteractionData) {
@@ -179,7 +179,7 @@ export class SocketHandler {
 
     removePlayer(userId: string) {
         this.recordings = this.recordings.filter(x => x.userId !== userId);
-        this.userPositionRecording = this.userPositionRecording.filter(x => x.userId !== userId);
+        this.userPositionRecordings = this.userPositionRecordings.filter(x => x.userId !== userId);
         this.players = this.players.filter(x => x.positionData.userId !== userId);
     }
 
@@ -232,15 +232,15 @@ export class SocketHandler {
 
         if (this.timer.totalMs === 0) return;
         //handle user position recording
-        let userRecording = this.userPositionRecording.find(x => x.userId === positionData.userId);
+        let userRecording = this.userPositionRecordings.find(x => x.userId === positionData.userId);
 
         //registner new if missing
         if (!userRecording) {
             userRecording = new Recording(positionData.userId);
-            this.userPositionRecording.push(userRecording);
+            this.userPositionRecordings.push(userRecording);
         }
 
-        userRecording.playback.unshift(positionData);
+        userRecording.addPositionData(positionData);
     }
 
     startDrawPlayers() {
@@ -263,7 +263,7 @@ export class SocketHandler {
 
         if (this.timer.totalMs > 0) {
             this.recordings.forEach(recording => {
-                const positionData = recording.playback.find(x => x.time < this.timer.totalMs);
+                const positionData = recording.getNextPositionData(this.timer.totalMs);
                 if (positionData) {
                     const currentPlayer = this.players.find(x => x.positionData.userId === recording.userId);
                     if (currentPlayer) {
@@ -272,14 +272,14 @@ export class SocketHandler {
                             this.addCommand(OgCommand.OnRemoteLevelUpdate);
 
                         const previousRecordingdataIndex = currentPlayer.recordingDataIndex;
-                        const newRecordingdataIndex = recording.playback.indexOf(positionData);
+                        const newRecordingdataIndex = recording.currentRecordingDataIndex;
                         if (currentPlayer.updateCurrentPosition(positionData, false, newRecordingdataIndex)) {
 
                             //handle missed pickups
                             if (previousRecordingdataIndex && (previousRecordingdataIndex - 1) > newRecordingdataIndex) {
                                 console.log("skipped frames", previousRecordingdataIndex - newRecordingdataIndex - 1);
-                                for (let i = previousRecordingdataIndex - 1; i > newRecordingdataIndex; i--)
-                                    this.addInteractionToBuffer(currentPlayer, recording.playback[i]);
+                                for (let i = previousRecordingdataIndex - 1; i >= newRecordingdataIndex; i--)
+                                    this.addRecordingInteractionToBuffer(currentPlayer, recording.playback[i]);
                             }
                         }
                     }

@@ -1,10 +1,10 @@
 import { InteractionType } from "../opengoal/interaction-type";
-import { UserPositionData } from "./position-data";
+import { RecordingPositionData, UserPositionData } from "./position-data";
 
 export class InteractionData {
     interType: number;
     interAmount: number;
-    interStatus: number = 0;
+    interStatus: number;
     interName: string;
     interParent: string;
     interLevel: string;
@@ -25,6 +25,19 @@ export class InteractionData {
             interLevel: interactionData.interLevel,
             interCleanup: interactionData.interCleanup,
             time: interactionData.time
+        }
+    }
+
+    static getRecordingInteractionValues(recData: RecordingPositionData) : InteractionData {
+        return {
+            interType: recData.iT ?? InteractionType.none,
+            interAmount: recData.iA ?? 0,
+            interStatus: recData.iS ?? 0,
+            interName: recData.iN ?? "",
+            interParent: recData.iP ?? "",
+            interLevel: recData.iL ?? "",
+            interCleanup: recData.iC ?? false,
+            time: recData.t
         }
     }
 
