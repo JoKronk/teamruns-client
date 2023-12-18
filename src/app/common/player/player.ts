@@ -1,6 +1,7 @@
 import { GameState } from "../opengoal/game-state";
 import { PlayerState } from "./player-state";
 import { UserBase } from "../user/user";
+import { DbPlayer } from "../firestore/db-player";
 
 export class Player {
     user: UserBase;
@@ -11,6 +12,12 @@ export class Player {
 
     constructor(user: UserBase) {
         this.user = user;
+    }
+
+    static fromDbPlayer(dbPlayer: DbPlayer): Player {
+        let player: Player = new Player(dbPlayer.user);
+        player.cellsCollected = dbPlayer.cellsCollected;
+        return player;
     }
 
 

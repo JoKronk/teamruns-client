@@ -2,6 +2,7 @@ import { Player } from "../player/player";
 import { Task } from "../opengoal/task";
 import { PlayerState } from "../player/player-state";
 import { RunStateHandler } from "../level/run-state-handler";
+import { DbTeam } from "../firestore/db-team";
 
 
 export class Team {
@@ -19,6 +20,20 @@ export class Team {
         this.id = id;
         this.name = name;
         this.resetForRun();
+    }
+
+    static fromDbTeam(dbTeam: DbTeam): Team {
+        let team: Team = new Team(dbTeam.id, dbTeam.name);
+        dbTeam.players.forEach(player => {
+            team.players.push(Player.fromDbPlayer(player));
+        });
+        dbTeam.tasks.forEach(task => {
+            team.splits.push(Task.fromDbTask(task));
+        });
+        team.endTimeMs = dbTeam.endTimeMs;
+        team.hasUsedDebugMode = dbTeam.hasUsedDebugMode;
+        team.runState.cellCount = dbTeam.cellCount;
+        return team;
     }
 
     resetForRun() {
