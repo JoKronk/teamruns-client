@@ -29,6 +29,7 @@ export class PracticeComponent implements OnDestroy {
   recordingsState: MultiplayerState = MultiplayerState.active;
   loadOnRecord: string = "true";
   usePlayback: string = "true";
+  resetWorld: string = "true";
   inFreecam: boolean = false;
   hasStoredCheckpoint: boolean = false;
 
@@ -113,6 +114,10 @@ export class PracticeComponent implements OnDestroy {
 
     this.usePlayback === "true" ? this.playAllRecordings(false) : this.replayId = crypto.randomUUID();
     this.replay = false;
+
+    if (this.resetWorld === "true")
+      this.runHandler.socketHandler.addCommand(OgCommand.ResetGame);
+      
 
     if (this.inFreecam && this.loadOnRecord !== "true")
       this.toggleFreecam();

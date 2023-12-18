@@ -29,8 +29,6 @@
         <hr />
 
         <div class="category-container">
-          <div class="category">
-          </div>
           <div class="category category-select">
             <span>Countdown:</span>
             <input [disabled]="runHandler.socketHandler.timer.runState !== runState.Waiting" type="number" min="0" [(ngModel)]="runHandler.socketHandler.timer.countdownSeconds" (change)="runHandler.socketHandler.timer.reset()">
@@ -38,6 +36,13 @@
           <div class="category category-select">
             <span>Load on Record:</span>
             <mat-button-toggle-group [(ngModel)]="loadOnRecord" appearance="legacy">
+              <mat-button-toggle value="true">On</mat-button-toggle>
+              <mat-button-toggle value="false">Off</mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+          <div class="category category-select">
+            <span>Reset World:</span>
+            <mat-button-toggle-group [(ngModel)]="resetWorld" appearance="legacy">
               <mat-button-toggle value="true">On</mat-button-toggle>
               <mat-button-toggle value="false">Off</mat-button-toggle>
             </mat-button-toggle-group>
