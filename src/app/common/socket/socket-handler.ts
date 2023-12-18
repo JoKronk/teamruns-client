@@ -199,10 +199,10 @@ export class SocketHandler {
         this.recordings.push(recording);
     }
 
-    setAllRealPlayersToInteractive() {
+    setAllRealPlayersMultiplayerState() {
         this.players.forEach(player => {
             if (!this.recordings.some(x => x.id === player.positionData.userId))
-                player.positionData.mpState = MultiplayerState.interactive;
+                player.positionData.mpState = this.localPlayer.team?.players.some(x => x.user.id === player.positionData.userId) ? MultiplayerState.interactive : MultiplayerState.active;
         });
     }
 

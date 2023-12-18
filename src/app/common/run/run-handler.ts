@@ -594,7 +594,7 @@ export class RunHandler {
         this.levelHandler.uncollectedLevelItems = new RunStateHandler();
         this.updateAllPlayerInfo();
         this.socketHandler.updateGameSettings(new GameSettings(this.run?.data));
-        this.socketHandler.setAllRealPlayersToInteractive();
+        this.socketHandler.setAllRealPlayersMultiplayerState();
 
         this.run?.teams.forEach(team => {
             team.runState = new RunStateHandler();
