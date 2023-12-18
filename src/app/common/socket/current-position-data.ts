@@ -50,6 +50,7 @@ export class CurrentPositionData {
 export class CurrentPlayerData {
     positionData: CurrentPositionData;
 
+    interactionBufferRateLimit: boolean = false;
     interactionBuffer: InteractionData[] = []; // updates gets pushed from top of list first
     recordingDataIndex: number | undefined; // only used by recordings
 
@@ -100,6 +101,12 @@ export class CurrentPlayerData {
     checkUpdateInteractionFromBuffer() {
         if (this.hasInteractionUpdate() || this.interactionBuffer.length == 0)
             return;
+
+        if (this.interactionBuffer.length >= 3) {
+            this.interactionBufferRateLimit = !this.interactionBufferRateLimit;
+            if (this.interactionBufferRateLimit)
+                return;
+        }
 
         const interactionData: InteractionData | undefined = this.interactionBuffer.shift();
         if (interactionData)
