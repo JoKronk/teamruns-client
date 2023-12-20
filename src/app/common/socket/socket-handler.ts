@@ -124,7 +124,7 @@ export class SocketHandler {
 
     addCommand(command: OgCommand) {
         this.socketCommandBuffer.push(command);
-        if (!this.drawPositions && this.userService.socketConnected)
+        while (this.socketCommandBuffer.length != 0 && !this.drawPositions && this.userService.socketConnected)
             this.sendSocketPackageToOpengoal(false);
     }
 
