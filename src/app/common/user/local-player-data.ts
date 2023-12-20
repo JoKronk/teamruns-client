@@ -31,11 +31,11 @@ export class LocalPlayerData {
       this.isSyncing = true;
       setTimeout(() => {  //give the player some time to spawn in
         if (!run.isMode(RunMode.Lockout)) {
-          levelHandler.importRunStateHandler(this.team!.runState, socketHandler);
+          levelHandler.importRunStateHandler(this.team!.runState, socketHandler, this.gameState.orbCount);
         }
         else {
           run.teams.forEach(runTeam => {
-            levelHandler.importRunStateHandler(runTeam.runState, socketHandler);
+            levelHandler.importRunStateHandler(runTeam.runState, socketHandler, this.gameState.orbCount);
           });
         }
 

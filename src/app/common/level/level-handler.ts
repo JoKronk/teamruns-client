@@ -17,7 +17,7 @@ export class LevelHandler {
 
     }
 
-    importRunStateHandler(runStateHandler: RunStateHandler, socketHandler: SocketHandler) {
+    importRunStateHandler(runStateHandler: RunStateHandler, socketHandler: SocketHandler, orbCount: number) {
 
         //reset game
         socketHandler.addCommand(OgCommand.ResetGame);
@@ -25,11 +25,6 @@ export class LevelHandler {
         //import task statuses to game
         runStateHandler.tasksStatuses.forEach(interaction => {
             this.onInteraction(interaction);
-            if (Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus))) {
-                const cost = Task.cellCost(interaction);
-                if (cost !== 0)
-                    socketHandler.addOrbReductionToCurrentPlayer(cost, interaction.interLevel);
-            }
         });
           
         socketHandler.addCommand(OgCommand.ResetActors);
@@ -69,6 +64,9 @@ export class LevelHandler {
             level.interactions.filter(x => x.interType == InteractionType.lpcChamber).forEach(interaction => {
                 this.onLpcChamberStop(interaction);
             });
+        
+            const orbAdjustCount = runStateHandler.orbCount - orbCount;
+
 
         });
     }

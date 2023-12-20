@@ -470,7 +470,7 @@ export class RunHandler {
                     this.levelHandler.uncollectedLevelItems = new RunStateHandler();
                     if (this.run.teams.length !== 0) {
                         const importTeam: Team = playerTeam?.runState ? playerTeam : this.run.teams[0];
-                        this.levelHandler.importRunStateHandler(importTeam.runState, this.socketHandler);
+                        this.levelHandler.importRunStateHandler(importTeam.runState, this.socketHandler, this.localPlayer.gameState.orbCount);
                     }
 
                     this.connected = true;
@@ -630,6 +630,10 @@ export class RunHandler {
                 //OG.runCommand("(+! (-> *target* root trans x) (meters " + playerId * 3 + ".0))");
                 this.socketHandler.timer.onPlayerLoad();
             }
+
+            //handle save & load
+            if (state.justLoaded && this.localPlayer.team)
+                this.levelHandler.importRunStateHandler(this.localPlayer.team.runState, this.socketHandler, this.localPlayer.gameState.orbCount);
         })
     }
 

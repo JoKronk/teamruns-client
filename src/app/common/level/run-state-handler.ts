@@ -51,7 +51,7 @@ export class RunStateHandler {
 
         //update counts
         const status: string = TaskStatus.nameFromEnum(interaction.interStatus);
-        if (Task.isCellCollect(interaction.interName, status)) {
+        if (Task.isCellCollect(interaction.interName, status) && !interaction.interCleanup) {
             this.cellCount += 1;
             this.orbCount -= Task.cellCost(interaction);
         }
@@ -71,7 +71,8 @@ export class RunStateHandler {
     addBuzzerInteraction(interaction: UserInteractionData) {
         const level = this.getCreateLevel(interaction.interLevel);
         this.pushLevelCleanupInteraction(level, interaction);
-        this.buzzerCount += 1;
+        if (!interaction.interCleanup)
+            this.buzzerCount += 1;
     }
 
     addOrbInteraction(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined) {
@@ -79,7 +80,8 @@ export class RunStateHandler {
             level = this.getCreateLevel(interaction.interLevel);
     
         this.pushLevelCleanupInteraction(level, interaction);
-        this.orbCount += 1;
+        if (!interaction.interCleanup)
+            this.orbCount += 1;
     }
 
 
