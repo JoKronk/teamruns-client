@@ -423,7 +423,8 @@ export class SocketHandler {
                 if (!isSelfInteraction && this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id)
                     this.levelHandler.onInteraction(interaction);
 
-                this.run.getPlayerTeam(positionData.userId)?.runState.addBuzzerInteraction(interaction);
+                if (isSelfInteraction)
+                    this.run.getPlayerTeam(positionData.userId)?.runState.addBuzzerInteraction(interaction);
                 break;
             
 
@@ -441,7 +442,8 @@ export class SocketHandler {
                 if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
                     this.levelHandler.onInteraction(interaction);
                 
-                this.run.getPlayerTeam(positionData.userId)?.runState.addOrbInteraction(interaction, teamOrbLevelState);
+                if (isSelfInteraction)
+                    this.run.getPlayerTeam(positionData.userId)?.runState.addOrbInteraction(interaction, teamOrbLevelState);
                 break;
         
 
@@ -467,7 +469,7 @@ export class SocketHandler {
                 if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !InteractionData.isBuzzerCrate(interaction.interType)) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
                     this.levelHandler.onInteraction(interaction);
 
-                if (InteractionData.isBuzzerCrate(interaction.interType) || InteractionData.isOrbsCrate(interaction.interType))
+                if (isSelfInteraction && InteractionData.isBuzzerCrate(interaction.interType) || InteractionData.isOrbsCrate(interaction.interType))
                     this.run.getPlayerTeam(positionData.userId)?.runState.addInteraction(interaction);
                 break;
 
@@ -480,7 +482,8 @@ export class SocketHandler {
                 if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
                     this.levelHandler.onInteraction(interaction);
 
-                this.run.getPlayerTeam(positionData.userId)?.runState.addInteraction(interaction);
+                if (isSelfInteraction)
+                    this.run.getPlayerTeam(positionData.userId)?.runState.addInteraction(interaction);
                 break;
 
 
@@ -489,7 +492,8 @@ export class SocketHandler {
                 if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
                     this.levelHandler.onLpcChamberStop(interaction);
 
-                this.run.getPlayerTeam(positionData.userId)?.runState.addLpcInteraction(interaction);
+                if (isSelfInteraction)
+                    this.run.getPlayerTeam(positionData.userId)?.runState.addLpcInteraction(interaction);
                 break;
 
         }
