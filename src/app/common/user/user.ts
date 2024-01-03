@@ -20,6 +20,7 @@ export class User extends UserBase {
     darkMode: boolean = true;
     displayName: string;
     hasSignedIn: boolean = false;
+    gameLaunched: boolean = false;
 
     constructor() {
         super(crypto.randomUUID(), "");

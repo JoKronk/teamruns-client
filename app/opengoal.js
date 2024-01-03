@@ -11,8 +11,9 @@ var openGoalREPL = null;
 var replHasStarted = false;
 var replIsRunning = false;
 
-var openGoalIsRunning = false;
-var openGoalGk = null;
+var mainOpenGoalIsRunning = false;
+var openGoalInstances = [];
+var openGoalMainPort = 8111;
 
 var firstStart = true;
 
@@ -63,7 +64,7 @@ class OpenGoal {
         });
 
         openGoalREPL.on('error', (ex) => {
-            if (!openGoalIsRunning)
+            if (!mainOpenGoalIsRunning)
                 this.sendClientMessage("Failed to start the client properly, please relaunch!");
         });
 
@@ -75,14 +76,14 @@ class OpenGoal {
 
 
 
-    async startOG() {
-        if (openGoalIsRunning) {
+    async startOG(port) {
+        if (mainOpenGoalIsRunning && port === openGoalMainPort && openGoalInstances.length <= 1) {
             this.killGK();
             await sleep(1500);
         }
 
         this.sendClientMessage("Starting OpenGOAL!");
-        this.startGK(await getOpenGoalPath());
+        this.startGK(await getOpenGoalPath(), port);
 
         if (runRepl) {
             if (!replIsRunning)
@@ -109,26 +110,28 @@ class OpenGoal {
             this.writeGoalCommand("(mark-repl-connected)");
         }
 
-        if (!openGoalIsRunning)
+        if (!mainOpenGoalIsRunning)
             await this.stallSecondsForGkLaunch(5);
 
         console.log(".done");
-        win.webContents.send("og-launched", openGoalIsRunning);
+        win.webContents.send("og-launched", port);
     }
 
     async stallSecondsForGkLaunch(seconds) {
         for (let i = 0; i < seconds; i++) {
             await sleep(1000);
-            if (openGoalIsRunning) {
+            if (mainOpenGoalIsRunning) {
                 return;
             }
         }
     }
 
-    startGK(ogPath) {
-        openGoalGk = spawn(ogPath + "\\gk.exe", ["--game", "jak1", "--", "-boot", "-fakeiso", "-debug"]);
+    startGK(ogPath, port) {
+        let openGoalClient = spawn(ogPath + "\\gk.exe", ["--socketport", port, "--game", "jak1", "--", "-boot", "-fakeiso", "-debug"], {detached: true, shell: true});
+        openGoalInstances.push(openGoalClient);
+
         //On error
-        openGoalGk.stderr.on('data', (data) => {
+        openGoalClient.stderr.on('data', (data) => {
             const msg = data.toString();
             if (!msg.startsWith("[DECI2] Got message:")) {
                 console.log("OG Error!: " + data.toString());
@@ -137,14 +140,16 @@ class OpenGoal {
         });
 
         //On kill
-        openGoalGk.stdout.on('end', () => {
-            win.webContents.send("og-launched", false);
+        openGoalClient.stdout.on('end', () => {
+            win.webContents.send("og-closed", port);
+            openGoalInstances.splice(openGoalInstances.indexOf(openGoalClient), 1);
             this.sendClientMessage("OG Disconneted!");
         });
 
         //On Full Start
-        openGoalGk.on('spawn', () => {
-            openGoalIsRunning = true;
+        openGoalClient.on('spawn', () => {
+            if (port === openGoalMainPort)
+                mainOpenGoalIsRunning = true;
         });
     }
 
@@ -167,12 +172,12 @@ class OpenGoal {
     }
 
     killGK() {
-        if (!openGoalIsRunning && !firstStart) return;
+        if (!mainOpenGoalIsRunning && !firstStart) return;
         try {
             var shell = new winax.Object('WScript.Shell');
             shell.Exec("taskkill /F /IM gk.exe");
 
-            openGoalIsRunning = false;
+            mainOpenGoalIsRunning = false;
         }
         catch (e) { this.sendClientMessage(e); }
     }

@@ -3,6 +3,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { SnackbarComponent } from '../snackbar/snackbar.component';
 import { User } from '../common/user/user';
 import { Router } from '@angular/router';
+import { OG } from '../common/opengoal/og';
 
 @Injectable({
   providedIn: 'root'
@@ -13,12 +14,14 @@ export class UserService implements OnDestroy {
   private UserCopy: User = new User();
   
   viewSettings: boolean = false;
-  gameLaunched: boolean = false;
-  socketConnected: boolean = false;
+
+  private mainPort: number = 8111;
+  private secondaryPortsInUse: number[] = [];
 
   isBrowser: boolean;
 
   private launchListener: any;
+  private shutdownListener: any;
   private trackerListener: any;
   private settingsListener: any;
   private messageListener: any;
@@ -30,8 +33,22 @@ export class UserService implements OnDestroy {
     this.readSettings();
   }
 
+  public getMainPort() {
+    return this.mainPort;
+  }
+
   public getId() {
     return this.user.id;
+  }
+
+  public launchNewLocalPlayer(): number {
+    let port = (this.secondaryPortsInUse.length === 0 ? this.mainPort : this.secondaryPortsInUse[this.secondaryPortsInUse.length - 1]) - 1;
+    OG.startGame(port);
+    return port;
+  }
+
+  public getLastNewLocalPlayerDefaultController(): number {
+    return this.secondaryPortsInUse.length + 1;
   }
 
   public routeTo(link: string) {
@@ -79,11 +96,24 @@ export class UserService implements OnDestroy {
   private setupReceiver(): void {
     if (this.isBrowser) return;
 
-    //game launch & kill
-    this.launchListener = (window as any).electron.receive("og-launched", (launched: boolean) => {
-      this.gameLaunched = launched;
-      if (!launched)
-        this.socketConnected = false;
+    //game launch
+    this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
+      let isMainPort: boolean = port === this.mainPort;
+
+      if (isMainPort)
+        this.user.gameLaunched = true;
+      else
+        this.secondaryPortsInUse.push(port);
+    });
+
+    //game kill
+    this.shutdownListener = (window as any).electron.receive("og-closed", (port: number) => {
+      let isMainPort: boolean = port === this.mainPort;
+
+      if (isMainPort)
+        this.user.gameLaunched = false;
+      else
+        this.secondaryPortsInUse = this.secondaryPortsInUse.filter(x => x !== port);
     });
     
     //settings get
@@ -131,6 +161,7 @@ export class UserService implements OnDestroy {
 
   ngOnDestroy(): void {
     this.launchListener();
+    this.shutdownListener();
     this.trackerListener();
     this.settingsListener();
     this.messageListener();

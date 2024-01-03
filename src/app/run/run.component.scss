@@ -157,6 +157,14 @@
             cursor: pointer;
         }
     }
+    &-add-local {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        & button {
+            position: relative;
+        }
+    }
     &-players {
         flex-shrink: 1;
         min-height: 0;

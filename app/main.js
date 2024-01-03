@@ -84,8 +84,8 @@ function createWindow() {
     openGoal.preStartREPL();
   });
 
-  ipcMain.on('og-start-game', () => {
-    openGoal.startOG();
+  ipcMain.on('og-start-game', (event, port) => {
+    openGoal.startOG(port);
   });
 
   ipcMain.on('og-command', (event, command) => {

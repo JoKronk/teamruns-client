@@ -18,7 +18,7 @@ export class Timer {
 
   hasSpawnedPlayer: boolean = false;
   timerEndSubject: Subject<boolean> = new Subject();
-  private socketCommandBuffer: OgCommand[];
+  private socketCommandBuffers: OgCommand[][] = []; //one command array for each local player
 
   freezePlayerInCountdown: boolean = true;
   runState: RunState;
@@ -30,7 +30,7 @@ export class Timer {
   }
 
   linkSocketCommands(socketCommandBuffer: OgCommand[]) {
-    this.socketCommandBuffer = socketCommandBuffer;
+    this.socketCommandBuffers.push(socketCommandBuffer);
   }
   
   importTimer(timer: Timer) {
@@ -69,8 +69,11 @@ export class Timer {
   }
 
   onPlayerLoad() {
-    if (this.runState === RunState.Countdown && this.freezePlayerInCountdown)
-      this.socketCommandBuffer.push(OgCommand.TargetGrab);
+    if (this.runState === RunState.Countdown && this.freezePlayerInCountdown) {
+      this.socketCommandBuffers.forEach(buffer => {
+        buffer.push(OgCommand.TargetGrab);
+      });
+    }
   }
 
   isPaused() {
@@ -126,11 +129,16 @@ export class Timer {
     //start run check
     if (this.runState === RunState.Countdown) {
       if (!this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
-        this.socketCommandBuffer.push(OgCommand.StartRun);
+        this.socketCommandBuffers.forEach(buffer => {
+          buffer.push(OgCommand.StartRun);
+        });
         this.hasSpawnedPlayer = true;
       }
-      else if (this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 10)
-        this.socketCommandBuffer.push(OgCommand.TargetRelease);
+      else if (this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 10) {
+        this.socketCommandBuffers.forEach(buffer => {
+          buffer.push(OgCommand.TargetRelease);
+        });
+      }
       
       if (this.startDateMs! <= currentTimeMs)
         this.runState = RunState.Started;

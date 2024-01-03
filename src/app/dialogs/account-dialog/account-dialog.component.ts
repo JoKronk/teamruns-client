@@ -28,7 +28,7 @@ export class AccountDialogComponent {
   async confirm() {
     this.username = this.username.trim();
     if (!this.username || this.username.length === 0) {
-      this._user.sendNotification("Please enter a username!");
+      this._user.sendNotification("Please enter a valid username!");
       return;
     }
 

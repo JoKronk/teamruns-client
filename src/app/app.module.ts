@@ -44,6 +44,7 @@ import { DragDropDirective } from './common/directives/drag-drop.directive';
 import { AccountDialogComponent } from './dialogs/account-dialog/account-dialog.component';
 import { UserSettingsComponent } from './user-settings/user-settings.component';
 import { AutoFocusDirective } from './common/directives/auto-focus.directive';
+import { AddPlayerComponent } from './dialogs/add-player/add-player.component';
 
 @NgModule({
   declarations: [
@@ -71,7 +72,8 @@ import { AutoFocusDirective } from './common/directives/auto-focus.directive';
     DragDropDirective,
     AccountDialogComponent,
     UserSettingsComponent,
-    AutoFocusDirective
+    AutoFocusDirective,
+    AddPlayerComponent
   ],
   imports: [
     BrowserModule,

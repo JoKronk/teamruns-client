@@ -1,0 +1,51 @@
+<div class="container">
+    <p id="title">Add Player</p>
+
+    <div *ngIf="phase === 0">
+        <p>Select account type for new local player.</p>
+        <button (click)="phase = 1">Play as Guest</button>
+        <button (click)="phase = 2">Login as User</button>
+    </div>
+
+    <div *ngIf="phase === 1">
+        <div class="option">
+            <p>Username</p>
+            <input [(ngModel)]="username" (keyup.enter)="setUser()" maxlength="20">
+        </div>
+        
+        <div class="buttons">
+            <button class="cancel" (click)="close()">Cancel</button>
+            <button (click)="setUser()">Next</button>
+        </div>
+    </div>
+
+    <div *ngIf="phase === 2">
+        <div class="option">
+            <p>Username</p>
+            <input [(ngModel)]="username" (keyup.enter)="setUser()" maxlength="20">
+        </div>
+        
+        <div class="option">
+            <p>Password</p>
+            <input [(ngModel)]="pw" type="password" (keyup.enter)="setUser()" maxlength="32">
+        </div>
+        
+        <div class="buttons">
+            <button class="cancel" (click)="close()">Cancel</button>
+            <button (click)="setUser()">Sign In</button>
+        </div>
+    </div>
+    
+    <div *ngIf="phase === 3">
+        <p>Set the controller for the game, check that it works in game.</p>
+        <div class="option">
+            <p>Controller</p>
+            <input type="number" min="0" max="8" [(ngModel)]="controller" (change)="updateControllerPort()">
+        </div>
+    
+        <div class="buttons">
+            <button class="cancel" (click)="close()">Cancel</button>
+            <button (click)="confirm()">Confirm</button>
+        </div>
+    </div>
+</div>

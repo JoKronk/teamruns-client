@@ -8,6 +8,7 @@ export class SocketPackage {
     gameSettings: GameSettings | undefined;
     selfInfo: RemotePlayerInfo | undefined;
     username: string | undefined;
+    controllerPort: number | undefined;
     players: CurrentPositionData[] | undefined;
 
     constructor() {
@@ -15,6 +16,7 @@ export class SocketPackage {
         this.gameSettings = undefined;
         this.selfInfo = undefined;
         this.username = undefined;
+        this.controllerPort = undefined;
         this.players = undefined;
     }
 }

@@ -1,6 +1,6 @@
 <mat-sidenav-container fullscreen [dragdrop]="['.json']" (fileDropped)="onFilesDrop($event)">
   <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true">
-    <app-run-timer [timer]="runHandler.socketHandler.timer"></app-run-timer>
+    <app-run-timer [timer]="mainLocalPlayer.socketHandler.timer"></app-run-timer>
   </mat-sidenav>
 
   <mat-sidenav-content>
@@ -31,7 +31,7 @@
         <div class="category-container">
           <div class="category category-select">
             <span>Countdown:</span>
-            <input [disabled]="runHandler.socketHandler.timer.runState !== runState.Waiting" type="number" min="0" [(ngModel)]="runHandler.socketHandler.timer.countdownSeconds" (change)="runHandler.socketHandler.timer.reset()">
+            <input [disabled]="mainLocalPlayer.socketHandler.timer.runState !== runState.Waiting" type="number" min="0" [(ngModel)]="mainLocalPlayer.socketHandler.timer.countdownSeconds" (change)="mainLocalPlayer.socketHandler.timer.reset()">
           </div>
           <div class="category category-select">
             <span>Load on Record:</span>
@@ -76,7 +76,7 @@
                 </div>
                 <mat-slider *ngIf="recording.playback.length !== 0" disabled min="0"
                   [max]="currentRecording === 'all' || currentRecording === recording.id ? recording.playback[0].time : 0">
-                  <input matSliderThumb [(ngModel)]="runHandler.socketHandler.timer.totalMs">
+                  <input matSliderThumb [(ngModel)]="mainLocalPlayer.socketHandler.timer.totalMs">
                 </mat-slider>
               </div>
             </td>
@@ -114,14 +114,14 @@
       
       <div class="page-player">
         <div class="playback">
-          <div class="playback-button" [class.playback-button-stop]="runHandler.socketHandler.timer.runState !== runState.Waiting && replay" [class.playback-button-cancel]="runHandler.socketHandler.timer.runState !== runState.Waiting && !replay">
-            <span (click)="playAllRecordings()">{{ runHandler.socketHandler.timer.runState !== runState.Waiting ? replay ? "&#x25A0;" : "&#x2716;" : "&#x23F5;" }}</span>
+          <div class="playback-button" [class.playback-button-stop]="mainLocalPlayer.socketHandler.timer.runState !== runState.Waiting && replay" [class.playback-button-cancel]="mainLocalPlayer.socketHandler.timer.runState !== runState.Waiting && !replay">
+            <span (click)="playAllRecordings()">{{ mainLocalPlayer.socketHandler.timer.runState !== runState.Waiting ? replay ? "&#x25A0;" : "&#x2716;" : "&#x23F5;" }}</span>
           </div>
-          <div class="playback-button" [class.playback-button-record]="!replay" [class.playback-button-stop]="runHandler.socketHandler.timer.runState !== runState.Waiting && !replay">
-            <span (click)="runHandler.socketHandler.timer.runState !== runState.Waiting ? replay ? pause() : stopRecording() : startRecording()">{{ runHandler.socketHandler.timer.runState !== runState.Waiting ? replay ? recordingPaused ? "&#x23F5;" : "&#x23F8;" : "&#x25A0;" : "&#x25CF;" }}</span>
+          <div class="playback-button" [class.playback-button-record]="!replay" [class.playback-button-stop]="mainLocalPlayer.socketHandler.timer.runState !== runState.Waiting && !replay">
+            <span (click)="mainLocalPlayer.socketHandler.timer.runState !== runState.Waiting ? replay ? pause() : stopRecording() : startRecording()">{{ mainLocalPlayer.socketHandler.timer.runState !== runState.Waiting ? replay ? recordingPaused ? "&#x23F5;" : "&#x23F8;" : "&#x25A0;" : "&#x25CF;" }}</span>
           </div>
           <mat-slider min="0" [max]="recordingsEndtime">
-            <input matSliderThumb [(ngModel)]="runHandler.socketHandler.timer.totalMs" [disabled]="!replay && runHandler.socketHandler.timer.runState !== runState.Waiting" (dragStart)="shiftPlaybackStart()" (dragEnd)="shiftPlaybackEnd()">
+            <input matSliderThumb [(ngModel)]="mainLocalPlayer.socketHandler.timer.totalMs" [disabled]="!replay && mainLocalPlayer.socketHandler.timer.runState !== runState.Waiting" (dragStart)="shiftPlaybackStart()" (dragEnd)="shiftPlaybackEnd()">
           </mat-slider>
         </div>
       </div>

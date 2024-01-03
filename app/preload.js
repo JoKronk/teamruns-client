@@ -16,6 +16,7 @@ const validIpcChannelsIn = [
 ];
 const validIpcChannelsOut = [
     "og-launched",
+    "og-closed",
     "backend-message",
     "backend-error",
     "file-get",

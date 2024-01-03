@@ -129,10 +129,7 @@ export class LevelHandler {
             if (!level || level.interactions.length === 0 ) 
                 return;
 
-
-
-            console.log("killing from level", level)
-
+            console.log("killing from level", level);
             level.interactions.filter(x => x.interType == InteractionType.crateNormal || x.interType == InteractionType.crateIron || x.interType == InteractionType.crateSteel || x.interType == InteractionType.crateDarkeco).forEach(interaction => {
                 socketHandler.addPlayerInteraction(interaction);
             });

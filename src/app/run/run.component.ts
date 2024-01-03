@@ -12,9 +12,11 @@ import { RunHandler } from '../common/run/run-handler';
 import { EventType } from '../common/peer/event-type';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
-import { UserBase } from '../common/user/user';
+import { User, UserBase } from '../common/user/user';
 import { GameTaskTime } from '../common/opengoal/game-task';
 import { TaskStatus } from '../common/opengoal/task-status';
+import { AddPlayerComponent } from '../dialogs/add-player/add-player.component';
+import { Player } from '../common/player/player';
 
 @Component({
   selector: 'app-run',
@@ -29,7 +31,8 @@ export class RunComponent implements OnDestroy {
   runState = RunState;
 
   //component variables
-  localPlayer: LocalPlayerData = new LocalPlayerData(this._user.user.createUserBaseFromDisplayName());
+  mainLocalPlayer: LocalPlayerData = new LocalPlayerData(this._user.user, this._user.getMainPort(), this.zone);
+  localPlayers: LocalPlayerData[] = [ this.mainLocalPlayer ];
   runHandler: RunHandler;
 
   editingName: boolean;
@@ -41,7 +44,24 @@ export class RunComponent implements OnDestroy {
       let runId = params.get('id');
       if (!runId) return;
 
-      this.runHandler = new RunHandler(runId, firestoreService, _user, this.localPlayer, zone);
+      this.runHandler = new RunHandler(runId, firestoreService, _user, this.localPlayers, zone);
+    });
+  }
+
+  addLocalPlayer(teamId: number) {
+    const dialogRef = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run?.timer });
+    const dialogSubscription = dialogRef.afterClosed().subscribe((localPlayer: LocalPlayerData | null) => {
+      dialogSubscription.unsubscribe();
+      
+      if (localPlayer && this.runHandler.run) {
+        this.localPlayers.push(localPlayer);
+        this.runHandler.run.spectators.push(new Player(localPlayer.user));
+        this.runHandler.sendEvent(EventType.ChangeTeam, localPlayer.user.id, teamId);
+        localPlayer.socketHandler.run = this.runHandler.run;
+        localPlayer.updateTeam(this.runHandler.run.getPlayerTeam(localPlayer.user.id));
+        this.runHandler.setupSocketListener(localPlayer.socketHandler.socketPort);
+        localPlayer.socketHandler.startDrawPlayers();
+      }
     });
   }
 
@@ -52,41 +72,61 @@ export class RunComponent implements OnDestroy {
     const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
       dialogSubscription.unsubscribe();
       if (confirmed) {
-        this.localPlayer.state = PlayerState.Forfeit;
-        let task = new GameTaskTime(Task.forfeit, this.localPlayer.user, this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
-        this.runHandler.sendEvent(EventType.EndPlayerRun, task);
+        this.localPlayers.forEach(localPlayer => {
+          localPlayer.state = PlayerState.Forfeit;
+          let task = new GameTaskTime(Task.forfeit, localPlayer.user, this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
+          this.runHandler.sendEvent(EventType.EndPlayerRun, localPlayer.user.id, task);
+        });
       }
     });
   }
 
   toggleReady() {
-    this.localPlayer.state = this.localPlayer.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
-    this.runHandler.sendEvent(EventType.Ready, this.localPlayer.state);
+    this.localPlayers.forEach(localPlayer => {
+      localPlayer.state = localPlayer.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
+      this.runHandler.sendEvent(EventType.Ready, localPlayer.user.id, localPlayer.state);
+    });
   }
 
   toggleReset() {
-    this.localPlayer.state = this.localPlayer.state === PlayerState.WantsToReset ? this.localPlayer.team?.splits.some(x => x.obtainedById === this.localPlayer.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
-    this.runHandler.sendEvent(EventType.ToggleReset, this.localPlayer.state);
+    this.localPlayers.forEach(localPlayer => {
+      localPlayer.state = localPlayer.state === PlayerState.WantsToReset ? localPlayer.getTeam()?.splits.some(x => x.obtainedById === localPlayer.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
+      this.runHandler.sendEvent(EventType.ToggleReset, localPlayer.user.id, localPlayer.state);
+    });
   }
 
   switchTeam(teamId: number) {
-    if (this.runHandler.run?.timer.runState !== RunState.Waiting && this.runHandler.isSpectatorOrNull()) return;
-    this.runHandler.sendEvent(EventType.ChangeTeam, teamId);
-    this.localPlayer.team = this.runHandler.run?.getTeam(teamId) ?? undefined;
+    let userId = this.mainLocalPlayer.user.id;
+    if (this.localPlayers.length !== 1) {
+      
+    }
+
+    let localPlayer = this.localPlayers.find(x => x.user.id === userId);
+    if (!localPlayer) return;
+
+    if (this.runHandler.run?.timer.runState !== RunState.Waiting && this.runHandler.isSpectatorOrNull(userId)) return;
+    this.runHandler.sendEvent(EventType.ChangeTeam, userId, teamId);
+    localPlayer.updateTeam(this.runHandler.run?.getTeam(teamId) ?? undefined);
   }
 
   editTeamName(teamId: number) {
-    if (teamId === this.localPlayer.team?.id && this.localPlayer.state !== PlayerState.Ready && this.runHandler?.run?.timer.runState === RunState.Waiting) {
-      this.editingName = !this.editingName;
-    }
+    if (this.editingName) return;
+    this.localPlayers.forEach(localPlayer => {
+      if (teamId === localPlayer.getTeam()?.id && localPlayer.state !== PlayerState.Ready && this.runHandler?.run?.timer.runState === RunState.Waiting)
+        this.editingName = !this.editingName;
+        return;
+    });
   }
-  newTeamName() {
-    if (!this.localPlayer.team) return;
+  newTeamName(teamId: number) {
+    if (!this.runHandler.getMainLocalPlayer().getTeam()) return;
 
-    if (!this.localPlayer.team.name.replace(/\s/g, ''))
-      this.localPlayer.team.name = "Team " + (this.localPlayer.team.id + 1);
+    let team = this.runHandler.run?.getTeam(teamId);
+    if (!team) return;
 
-    this.runHandler.sendEvent(EventType.ChangeTeamName, this.localPlayer.team.name);
+    if (!team.name.replace(/\s/g, ''))
+      team.name = "Team " + (team.id + 1);
+
+    this.runHandler.sendEvent(EventType.ChangeTeamName, this.mainLocalPlayer.user.id, team);
     this.editingName = !this.editingName;
   }
 
@@ -96,11 +136,11 @@ export class RunComponent implements OnDestroy {
       const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
         dialogSubscription.unsubscribe();
         if (confirmed)
-          this.runHandler.sendEvent(EventType.Kick, user);
+          this.runHandler.sendEventAsMain(EventType.Kick, user);
       });
     }
     else
-      this.runHandler.sendEvent(EventType.Kick, user);
+      this.runHandler.sendEventAsMain(EventType.Kick, user);
   }
 
 

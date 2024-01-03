@@ -2,14 +2,12 @@
 import { WebSocketSubject, webSocket } from "rxjs/webSocket";
 import { Recording } from "./recording";
 import { RecordingPositionData, UserPositionData } from "./position-data";
-import { UserService } from "src/app/services/user.service";
-import { UserBase } from "../user/user";
+import { User, UserBase } from "../user/user";
 import { MultiplayerState } from "../opengoal/multiplayer-state";
 import { InteractionType } from "../opengoal/interaction-type";
 import { Timer } from "../run/timer";
 import { InteractionData, UserInteractionData } from "./interaction-data";
 import { CurrentPlayerData, CurrentPositionData } from "./current-position-data";
-import { LocalPlayerData } from "../user/local-player-data";
 import { GameTaskLevelTime } from "../opengoal/game-task";
 import { Task } from "../opengoal/task";
 import { PlayerState } from "../player/player-state";
@@ -23,6 +21,7 @@ import { RemotePlayerInfo } from "./remote-player-info";
 import { SocketPackage } from "./socket-package";
 import { OgCommand } from "./og-command";
 import { GameSettings } from "./game-settings";
+import { Team } from "../run/team";
 
 export class SocketHandler {
 
@@ -40,28 +39,39 @@ export class SocketHandler {
 
     private socketCommandBuffer: OgCommand[] = []; 
     private socketPackage: SocketPackage = new SocketPackage();
+    public socketConnected: boolean;
     ogSocket: WebSocketSubject<any> = webSocket('ws://localhost:8111');
     private launchListener: any;
+    private shutdownListener: any;
     private connectionAttempts: number;
 
 
-    constructor(public userService: UserService, public levelHandler: LevelHandler, public localPlayer: LocalPlayerData, public zone: NgZone) {
-
+    constructor(public socketPort: number, public user: User, public levelHandler: LevelHandler, public localTeam: Team | undefined, public zone: NgZone, private importedTimer: Timer | undefined = undefined) {
+        this.ogSocket = webSocket('ws://localhost:' + socketPort);
+        if (importedTimer)
+            this.timer = importedTimer;
         this.timer.linkSocketCommands(this.socketCommandBuffer);
-        if (this.userService.user.name) //if client is fully reloaded in a place where position service is started at same time as use we pick up user on movement instead
-            this.checkRegisterPlayer(this.userService.user, MultiplayerState.interactive);
+        if (this.user.name) //if client is fully reloaded in a place where position service is started at same time as use we pick up user on movement instead
+            this.checkRegisterPlayer(this.user, MultiplayerState.interactive);
 
-        if (this.userService.gameLaunched)
+        if (this.user.gameLaunched)
             this.connectToOpengoal();
 
-        this.launchListener = (window as any).electron.receive("og-launched", (launched: boolean) => {
-            if (launched) {
+        this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
+            if (port == this.socketPort) {
+                this.socketConnected = true;
                 this.connectionAttempts = 0;
+                this.user.gameLaunched = true;
                 this.connectToOpengoal();
             }
-            else {
+
+        });
+
+        this.shutdownListener = (window as any).electron.receive("og-closed", (port: number) => {
+            if (port == this.socketPort) {
+                this.socketConnected = false;
                 this.ogSocket.complete();
-                this.ogSocket = webSocket('ws://localhost:8111');
+                this.ogSocket = webSocket('ws://localhost:' + socketPort);
             }
 
         });
@@ -70,7 +80,7 @@ export class SocketHandler {
     private connectToOpengoal() {
         this.ogSocket.subscribe(target => {
             if (target.position)
-                this.updatePlayerPosition(new UserPositionData(target.position, this.timer.totalMs, this.userService.user));
+                this.updatePlayerPosition(new UserPositionData(target.position, this.timer.totalMs, this.user));
 
             if (target.state && target.state.justSpawned)
                 this.timer.onPlayerLoad();
@@ -85,8 +95,8 @@ export class SocketHandler {
             }*/
 
             if (target.connected) {
-                this.userService.socketConnected = true;
-                this.socketPackage.username = this.userService.user.displayName;
+                this.socketConnected = true;
+                this.socketPackage.username = this.user.displayName;
                 console.log("Socket Connected!");
                 this.addCommand(OgCommand.None); //send empty message to update username
             }
@@ -118,13 +128,19 @@ export class SocketHandler {
         this.userPositionRecordings = [];
     }
 
-    getCurrentPlayer(): CurrentPlayerData | undefined {
-        return this.players.find(x => x.positionData.userId === this.userService.getId());
+    updateLocalTeam(team: Team) {
+        this.localTeam = team;
+    }
+
+    changeController(controllerPort: number) {
+        this.socketPackage.controllerPort = controllerPort;
+        if (this.socketConnected)
+            this.sendSocketPackageToOpengoal(false);
     }
 
     addCommand(command: OgCommand) {
         this.socketCommandBuffer.push(command);
-        while (this.socketCommandBuffer.length != 0 && !this.drawPositions && this.userService.socketConnected)
+        while (this.socketCommandBuffer.length != 0 && !this.drawPositions && this.socketConnected)
             this.sendSocketPackageToOpengoal(false);
     }
 
@@ -143,7 +159,7 @@ export class SocketHandler {
         if (!playerInfo) return;
 
         if (!this.self)
-            this.checkRegisterPlayer(this.userService.user.getUserBase(), MultiplayerState.interactive);
+            this.checkRegisterPlayer(this.user.getUserBase(), MultiplayerState.interactive);
 
         if (this.self.positionData.userId === userId)
             this.socketPackage.selfInfo = playerInfo;
@@ -172,7 +188,7 @@ export class SocketHandler {
             interLevel: level,
             interCleanup: false,
             time: 0,
-            userId: this.userService.getId()
+            userId: this.user.id
         };
         this.addPlayerInteraction(orbReductionInteraction);
     }
@@ -186,7 +202,7 @@ export class SocketHandler {
     checkRegisterPlayer(user: UserBase | undefined, state: MultiplayerState) {
         if (!user || this.players.find(x => x.positionData.userId === user.id)) return;
 
-        if (user.id !== this.userService.getId())
+        if (user.id !== this.user.id)
             this.players.push(new CurrentPlayerData(user, state));
         else
             this.self = new CurrentPlayerData(user, MultiplayerState.interactive);
@@ -202,15 +218,14 @@ export class SocketHandler {
     setAllRealPlayersMultiplayerState() {
         this.players.forEach(player => {
             if (!this.recordings.some(x => x.id === player.positionData.userId))
-                player.positionData.mpState = this.localPlayer.team?.players.some(x => x.user.id === player.positionData.userId) ? MultiplayerState.interactive : MultiplayerState.active;
+                player.positionData.mpState = this.localTeam?.players.some(x => x.user.id === player.positionData.userId) ? MultiplayerState.interactive : MultiplayerState.active;
         });
     }
 
 
     updatePlayerPosition(positionData: UserPositionData) {
-        const isLocalUser = positionData.userId === this.userService.user.id;
+        const isLocalUser = positionData.userId === this.user.id;
         let player = !isLocalUser ? this.players.find(x => x.positionData.userId === positionData.userId) : this.self;
-        
         if (player) {
             if (player.positionData.currentLevel !== positionData.currentLevel) {
                 this.addCommand(OgCommand.OnRemoteLevelUpdate);
@@ -308,6 +323,10 @@ export class SocketHandler {
         this.sendSocketPackageToOpengoal();
 
         //post cleanup and buffer check
+        if (this.self) {
+            if (this.self.hasInteractionUpdate()) this.self.positionData.resetCurrentInteraction();
+            if (this.self.hasInfoUpdate()) this.self.positionData.resetCurrentInfo();
+        }
         this.players.forEach(player => {
             if (player.hasInteractionUpdate()) player.positionData.resetCurrentInteraction();
             if (player.hasInfoUpdate()) player.positionData.resetCurrentInfo();
@@ -326,6 +345,7 @@ export class SocketHandler {
         this.socketPackage.players = sendPlayers ? this.players.flatMap(x => x.positionData) : undefined;
         this.ogSocket.next(this.socketPackage);
 
+        this.socketPackage.controllerPort = undefined;
         this.socketPackage.command = undefined;
         this.socketPackage.selfInfo = undefined;
         this.socketPackage.gameSettings = undefined;
@@ -341,27 +361,24 @@ export class SocketHandler {
 
         this.sendSocketPackageToOpengoal();
     }
-
-    userIsNull() {
-        return !this.localPlayer.user.id || this.localPlayer.user.id === "";
-    }
     
 
     handlePlayerInteractions(positionData: CurrentPositionData) {
         if (!positionData.interaction || positionData.interaction.interType === InteractionType.none || !this.run) return;
-        const userId = this.userService.getId();
+        const userId = this.user.id;
         const interaction = UserInteractionData.fromInteractionData(positionData.interaction, positionData.userId);
+        const isSelfInteraction: boolean = positionData.userId === userId;
 
         switch (positionData.interaction.interType) {
 
             case InteractionType.gameTask:
-                if (!this.localPlayer.team || this.userIsNull()) break;
+                if (!this.localTeam) break;
                 
                 const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, positionData.interaction);
-                const isNewTaskStatus: boolean = this.localPlayer.team.runState.isNewTaskStatus(interaction);
+                const isNewTaskStatus: boolean = this.localTeam.runState.isNewTaskStatus(interaction);
                 
                 //check duped cell buy
-                if (positionData.userId === userId && Task.isCellWithCost(task.name) && this.localPlayer.team && this.localPlayer.team.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution))
+                if (positionData.userId === userId && Task.isCellWithCost(task.name) && this.localTeam && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution))
                     this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
 
                 //set players to act as ghosts on run end
@@ -369,24 +386,23 @@ export class SocketHandler {
                     const player = this.players.find(x => x.positionData.userId === positionData.userId);
                     if (player) player.positionData.mpState = MultiplayerState.active;
                 }
-
-                if (!isNewTaskStatus) break;
-
                 const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus));
-                if (isCell) { // end run split added in EndPlayerRun event
+                if (isCell && isNewTaskStatus) { // end run split added in EndPlayerRun event
                     this.zone.run(() => {
                         this.run!.addSplit(new Task(task));
                     });
-                    this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
                 }
+                this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
+                if (!isNewTaskStatus) break;
+
 
                 const playerTeam = this.run.getPlayerTeam(positionData.userId);
                 if (!playerTeam) break;
-                const isLocalPlayerTeam = playerTeam.id === this.localPlayer.team.id;
+                const isLocalPlayerTeam = playerTeam.id === this.localTeam.id;
                 
 
                 //handle none current user things
-                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || isLocalPlayerTeam)) {
+                if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || isLocalPlayerTeam)) {
 
                     //task updates
                     this.levelHandler.onInteraction(interaction);
@@ -402,9 +418,9 @@ export class SocketHandler {
                 break;
         
             case InteractionType.buzzer:
-                if (!this.localPlayer.team) break;
+                if (!this.localTeam) break;
                 
-                if (positionData.userId !== userId && this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id)
+                if (!isSelfInteraction && this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id)
                     this.levelHandler.onInteraction(interaction);
 
                 this.run.getPlayerTeam(positionData.userId)?.runState.addBuzzerInteraction(interaction);
@@ -412,17 +428,17 @@ export class SocketHandler {
             
 
             case InteractionType.money:
-                if (!this.localPlayer.team) break;
+                if (!this.localTeam) break;
                 
-                let teamOrbLevelState = this.localPlayer.team.runState.getCreateLevel(interaction.interLevel);
-                if (this.localPlayer.team.runState.isOrbDupe(interaction, teamOrbLevelState)) {
-                    if (positionData.userId === userId)
+                let teamOrbLevelState = this.localTeam.runState.getCreateLevel(interaction.interLevel);
+                if (this.localTeam.runState.isOrbDupe(interaction, teamOrbLevelState)) {
+                    if (isSelfInteraction)
                         this.addOrbReductionToCurrentPlayer(-1, interaction.interLevel);
                     else if (!interaction.interCleanup)
                         positionData.resetCurrentInteraction();
                     break;
                 }
-                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
                     this.levelHandler.onInteraction(interaction);
                 
                 this.run.getPlayerTeam(positionData.userId)?.runState.addOrbInteraction(interaction, teamOrbLevelState);
@@ -447,8 +463,8 @@ export class SocketHandler {
             case InteractionType.crateIron:
             case InteractionType.crateSteel:
             case InteractionType.crateDarkeco:
-                if (!this.localPlayer.team) break;
-                if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !InteractionData.isBuzzerCrate(interaction.interType)) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                if (!this.localTeam) break;
+                if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !InteractionData.isBuzzerCrate(interaction.interType)) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
                     this.levelHandler.onInteraction(interaction);
 
                 if (InteractionData.isBuzzerCrate(interaction.interType) || InteractionData.isOrbsCrate(interaction.interType))
@@ -460,8 +476,8 @@ export class SocketHandler {
             case InteractionType.periscope:
             case InteractionType.snowBumper:
             case InteractionType.darkCrystal:
-                if (!this.localPlayer.team) break;
-                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                if (!this.localTeam) break;
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
                     this.levelHandler.onInteraction(interaction);
 
                 this.run.getPlayerTeam(positionData.userId)?.runState.addInteraction(interaction);
@@ -469,8 +485,8 @@ export class SocketHandler {
 
 
             case InteractionType.lpcChamber:
-                if (!this.localPlayer.team) break;
-                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localPlayer.team.id))
+                if (!this.localTeam) break;
+                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
                     this.levelHandler.onLpcChamberStop(interaction);
 
                 this.run.getPlayerTeam(positionData.userId)?.runState.addLpcInteraction(interaction);
@@ -485,6 +501,7 @@ export class SocketHandler {
         this.stopDrawPlayers();
         this.timer.onDestroy();
         this.launchListener();
+        this.shutdownListener();
         this.ogSocket.complete();
     }
 }
