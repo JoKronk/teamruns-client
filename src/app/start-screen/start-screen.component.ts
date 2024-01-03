@@ -123,7 +123,7 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     if (!this._user.user.ogFolderpath)
       this.dialog.open(SetPathComponent);
     else
-      OG.startGame(this._user.getMainPort());
+      OG.startGame(OG.mainPort);
   }
 
   checkVideoLoad() {

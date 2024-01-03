@@ -22,6 +22,7 @@ import { SocketPackage } from "./socket-package";
 import { OgCommand } from "./og-command";
 import { GameSettings } from "./game-settings";
 import { Team } from "../run/team";
+import { OG } from "../opengoal/og";
 
 export class SocketHandler {
 
@@ -82,7 +83,7 @@ export class SocketHandler {
             if (target.position)
                 this.updatePlayerPosition(new UserPositionData(target.position, this.timer.totalMs, this.user));
 
-            if (target.state && target.state.justSpawned)
+            if (target.state && target.state.justSpawned && this.socketPort === OG.mainPort)
                 this.timer.onPlayerLoad();
 
             /*

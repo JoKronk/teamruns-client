@@ -14,8 +14,6 @@ export class UserService implements OnDestroy {
   private UserCopy: User = new User();
   
   viewSettings: boolean = false;
-
-  private mainPort: number = 8111;
   private secondaryPortsInUse: number[] = [];
 
   isBrowser: boolean;
@@ -33,16 +31,12 @@ export class UserService implements OnDestroy {
     this.readSettings();
   }
 
-  public getMainPort() {
-    return this.mainPort;
-  }
-
   public getId() {
     return this.user.id;
   }
 
   public launchNewLocalPlayer(): number {
-    let port = (this.secondaryPortsInUse.length === 0 ? this.mainPort : this.secondaryPortsInUse[this.secondaryPortsInUse.length - 1]) - 1;
+    let port = (this.secondaryPortsInUse.length === 0 ? OG.mainPort : this.secondaryPortsInUse[this.secondaryPortsInUse.length - 1]) - 1;
     OG.startGame(port);
     return port;
   }
@@ -98,7 +92,7 @@ export class UserService implements OnDestroy {
 
     //game launch
     this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
-      let isMainPort: boolean = port === this.mainPort;
+      let isMainPort: boolean = port === OG.mainPort;
 
       if (isMainPort)
         this.user.gameLaunched = true;
@@ -108,7 +102,7 @@ export class UserService implements OnDestroy {
 
     //game kill
     this.shutdownListener = (window as any).electron.receive("og-closed", (port: number) => {
-      let isMainPort: boolean = port === this.mainPort;
+      let isMainPort: boolean = port === OG.mainPort;
 
       if (isMainPort)
         this.user.gameLaunched = false;

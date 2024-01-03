@@ -21,7 +21,7 @@ export class NavBoardComponent {
     if (!this._user.user.ogFolderpath)
       this.dialog.open(SetPathComponent);
     else
-      OG.startGame(this._user.getMainPort());
+      OG.startGame(OG.mainPort);
 
     this._user.viewSettings = false;
   }

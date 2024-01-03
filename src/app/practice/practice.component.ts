@@ -14,6 +14,7 @@ import { EventType } from '../common/peer/event-type';
 import { OgCommand } from '../common/socket/og-command';
 import pkg from 'app/package.json';
 import { PositionData } from '../common/socket/position-data';
+import { OG } from '../common/opengoal/og';
 
 @Component({
   selector: 'app-practice',
@@ -63,7 +64,7 @@ export class PracticeComponent implements OnDestroy {
 
 
   constructor(public _user: UserService, firestoreSerivce: FireStoreService, private zone: NgZone) {
-    this.mainLocalPlayer = new LocalPlayerData(this._user.user, _user.getMainPort(), zone);
+    this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, zone);
     this.runHandler = new RunHandler(undefined, firestoreSerivce, _user, [this.mainLocalPlayer], zone);
     this.mainLocalPlayer.socketHandler.timer.setStartConditions(1);
 

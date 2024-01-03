@@ -28,6 +28,7 @@ import { OgCommand } from "../socket/og-command";
 import { GameSettings } from "../socket/game-settings";
 import { SyncRequest, SyncRequestReason } from "./sync-request";
 import { SyncResponse } from "./sync-response";
+import { OG } from "../opengoal/og";
 
 export class RunHandler {
 
@@ -95,7 +96,7 @@ export class RunHandler {
 
         //position listener
         if (this.userService.user.gameLaunched)
-            this.setupSocketListener(userService.getMainPort());
+            this.setupSocketListener(OG.mainPort);
         this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
             this.setupSocketListener(port);
         });
@@ -627,9 +628,9 @@ export class RunHandler {
 
     getMainLocalPlayer(): LocalPlayerData {
         if (this.localPlayers.length !== 0)
-            return this.localPlayers.find(x => x.user.id === this.userService.getId() || x.socketHandler.socketPort === this.userService.getMainPort()) ?? this.localPlayers[0];
+            return this.localPlayers.find(x => x.user.id === this.userService.getId() || x.socketHandler.socketPort === OG.mainPort) ?? this.localPlayers[0];
         else {
-            this.localPlayers.push(new LocalPlayerData(this.userService.user, this.userService.getMainPort(), this.zone));
+            this.localPlayers.push(new LocalPlayerData(this.userService.user, OG.mainPort, this.zone));
             return this.localPlayers[0];
         }
     }
@@ -710,7 +711,6 @@ export class RunHandler {
             if (state.justSpawned && localPlayer.socketHandler.timer.runState === RunState.Countdown) {
                 let playerId: number = this.run.teams.flatMap(team => team.players.flatMap(x => x.user.id)).indexOf(localPlayer.user.id);
                 //OG.runCommand("(+! (-> *target* root trans x) (meters " + playerId * 3 + ".0))");
-                localPlayer.socketHandler.timer.onPlayerLoad();
             }
 
             //handle save & load
