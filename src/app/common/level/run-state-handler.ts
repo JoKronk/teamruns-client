@@ -95,27 +95,28 @@ export class RunStateHandler {
     }
 
 
-    isOrbDupe(interaction: InteractionData, level: LevelInteractions | undefined = undefined): boolean {
+    isOrbDupe(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined): boolean {
         if (!level)
             level = this.getCreateLevel(interaction.interLevel);
+
         if (interaction.interParent.startsWith("orb-cache-top-"))
-            return 15 < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length + 1);
+            return 15 < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
         else if (interaction.interParent.startsWith("crate-")) {
             let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x.interType) && x.interName === interaction.interParent);
             if (parentCrate) 
-                return parentCrate.interAmount < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length + 1);
+                return parentCrate.interAmount < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
             return false;
         }
         else if (interaction.interParent.startsWith("gnawer-")) {
             let parentGnawer = level.interactions.find(x => x.interType === InteractionType.enemyDeath && x.interName === interaction.interParent);
             if (parentGnawer) 
-                return parentGnawer.interAmount < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length + 1);
+                return parentGnawer.interAmount < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
             return false;
         }
         else if (interaction.interParent.startsWith("plant-boss-"))
-            return 5 < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length + 1);
+            return 5 < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
         else {
-            return level.interactions.find(x => x.interType === InteractionType.money && x.interName === interaction.interName) !== undefined; 
+            return level.interactions.find(x => x.interType === InteractionType.money && x.interName === interaction.interName && x.userId !== interaction.userId) !== undefined; 
         }
     }
 }
