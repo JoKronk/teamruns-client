@@ -17,7 +17,6 @@ export class UserBase {
 
 export class User extends UserBase {
     ogFolderpath: string = "";
-    darkMode: boolean = true;
     displayName: string;
     hasSignedIn: boolean = false;
     gameLaunched: boolean = false;
@@ -34,7 +33,6 @@ export class User extends UserBase {
         return this.name === copy.name &&
             this.displayName === copy.displayName &&
             this.ogFolderpath === copy.ogFolderpath &&
-            this.darkMode === copy.darkMode &&
             this.hasSignedIn === copy.hasSignedIn;
     }
 
@@ -52,7 +50,6 @@ export class User extends UserBase {
         this.id =  user.id;
         this.name = user.name;
         this.ogFolderpath = user.ogFolderpath;
-        this.darkMode = user.darkMode;
         this.displayName = user.displayName;
         this.hasSignedIn = user.hasSignedIn;
     }
