@@ -58,6 +58,7 @@ export class RunHandler {
         public zone: NgZone,
         obsUserId: string | null = null) {
         
+        this.userService.localUsers = localPlayers;
         this.isOnlineInstant = lobbyId !== undefined;
         this.zone = zone;
         this.obsUserId = obsUserId;

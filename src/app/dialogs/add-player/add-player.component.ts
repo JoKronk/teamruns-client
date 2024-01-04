@@ -25,7 +25,7 @@ export class AddPlayerComponent {
   localPlayer: LocalPlayerData | undefined = undefined;
 
   constructor(@Inject(MAT_DIALOG_DATA) public timer: Timer, private _user: UserService, private _firestore: FireStoreService, private zone: NgZone, public dialogRef: MatDialogRef<AddPlayerComponent>) {
-    console.log("timer", timer)
+    
   }
 
   setUser() {

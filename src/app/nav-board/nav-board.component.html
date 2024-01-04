@@ -2,8 +2,13 @@
     <p id="title">Menu</p>
 
     <div class="list-container">
-        <div class="list-item" (click)="startGame()">
+        <div class="list-item" (click)="startGame(undefined)">
             <p>Launch OpenGOAL</p>
+        </div>
+        <div *ngFor="let user of _user.localUsers">
+            <div *ngIf="user.user.id !== _user.user.id" class="list-item" (click)="startGame(user.socketHandler.socketPort)">
+                <p>Launch for {{ user.user.name }}</p>
+            </div>
         </div>
 
         <h4>Navigation</h4>

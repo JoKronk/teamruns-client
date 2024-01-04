@@ -4,6 +4,7 @@ import { SnackbarComponent } from '../snackbar/snackbar.component';
 import { User } from '../common/user/user';
 import { Router } from '@angular/router';
 import { OG } from '../common/opengoal/og';
+import { LocalPlayerData } from '../common/user/local-player-data';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,7 @@ export class UserService implements OnDestroy {
 
   user: User = new User();
   private UserCopy: User = new User();
+  localUsers: LocalPlayerData[] = [];
   
   viewSettings: boolean = false;
   private secondaryPortsInUse: number[] = [];

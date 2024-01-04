@@ -122,7 +122,7 @@ function createWindow() {
   });
     
   ipcMain.on('window-close', () => {
-    openGoal.killOG();
+    openGoal.killAllOgInstances();
     win.close();
   });
     
@@ -131,7 +131,7 @@ function createWindow() {
   });
     
   ipcMain.on('update-install', () => {
-    openGoal.killOG();
+    openGoal.killAllOgInstances();
     autoUpdater.quitAndInstall();
   });
 

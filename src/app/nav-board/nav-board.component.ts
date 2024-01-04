@@ -17,17 +17,18 @@ export class NavBoardComponent {
     
   }
 
-  startGame() {
+  startGame(port: number | undefined) {
     if (!this._user.user.ogFolderpath)
       this.dialog.open(SetPathComponent);
     else
-      OG.startGame(OG.mainPort);
+      OG.startGame(port ?? OG.mainPort);
 
     this._user.viewSettings = false;
   }
 
   navigate(path: string) {
     this._user.viewSettings = !this._user.viewSettings;
+    this._user.localUsers = [];
     this.router.navigate([path]);
   }
 

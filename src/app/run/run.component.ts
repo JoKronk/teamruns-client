@@ -62,6 +62,7 @@ export class RunComponent implements OnDestroy {
         localPlayer.updateTeam(this.runHandler.run.getPlayerTeam(localPlayer.user.id));
         this.runHandler.setupSocketListener(localPlayer.socketHandler.socketPort);
         localPlayer.socketHandler.startDrawPlayers();
+        this._user.localUsers = this.localPlayers;
       }
     });
   }
