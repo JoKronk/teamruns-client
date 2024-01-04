@@ -17,6 +17,7 @@ import { GameTaskTime } from '../common/opengoal/game-task';
 import { TaskStatus } from '../common/opengoal/task-status';
 import { AddPlayerComponent } from '../dialogs/add-player/add-player.component';
 import { Player } from '../common/player/player';
+import { OG } from '../common/opengoal/og';
 
 @Component({
   selector: 'app-run',
@@ -31,7 +32,7 @@ export class RunComponent implements OnDestroy {
   runState = RunState;
 
   //component variables
-  mainLocalPlayer: LocalPlayerData = new LocalPlayerData(this._user.user, this._user.getMainPort(), this.zone);
+  mainLocalPlayer: LocalPlayerData = new LocalPlayerData(this._user.user, OG.mainPort, this.zone);
   localPlayers: LocalPlayerData[] = [ this.mainLocalPlayer ];
   runHandler: RunHandler;
 
@@ -52,7 +53,7 @@ export class RunComponent implements OnDestroy {
     const dialogRef = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run?.timer });
     const dialogSubscription = dialogRef.afterClosed().subscribe((localPlayer: LocalPlayerData | null) => {
       dialogSubscription.unsubscribe();
-      
+
       if (localPlayer && this.runHandler.run) {
         this.localPlayers.push(localPlayer);
         this.runHandler.run.spectators.push(new Player(localPlayer.user));
