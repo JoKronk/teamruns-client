@@ -19,7 +19,9 @@ export class User extends UserBase {
     ogFolderpath: string = "";
     displayName: string;
     hasSignedIn: boolean = false;
+    
     gameLaunched: boolean = false;
+    controllerPort: number | undefined = undefined;
 
     constructor() {
         super(crypto.randomUUID(), "");

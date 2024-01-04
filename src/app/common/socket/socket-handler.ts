@@ -135,6 +135,7 @@ export class SocketHandler {
 
     changeController(controllerPort: number) {
         this.socketPackage.controllerPort = controllerPort;
+        this.user.controllerPort = controllerPort;
         if (this.socketConnected)
             this.sendSocketPackageToOpengoal(false);
     }

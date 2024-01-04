@@ -45,6 +45,7 @@ import { AccountDialogComponent } from './dialogs/account-dialog/account-dialog.
 import { UserSettingsComponent } from './user-settings/user-settings.component';
 import { AutoFocusDirective } from './common/directives/auto-focus.directive';
 import { AddPlayerComponent } from './dialogs/add-player/add-player.component';
+import { SetControllerComponent } from './dialogs/set-controller/set-controller.component';
 
 @NgModule({
   declarations: [
@@ -73,7 +74,8 @@ import { AddPlayerComponent } from './dialogs/add-player/add-player.component';
     AccountDialogComponent,
     UserSettingsComponent,
     AutoFocusDirective,
-    AddPlayerComponent
+    AddPlayerComponent,
+    SetControllerComponent
   ],
   imports: [
     BrowserModule,

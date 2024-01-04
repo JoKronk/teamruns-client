@@ -1,0 +1,14 @@
+<div class="container">
+    <p id="title">Set Controller</p>
+
+    <div *ngFor="let player of _user.localUsers">
+        <div class="option">
+            <p>{{ player.user.displayName }}</p>
+            <input type="number" min="0" max="8" [(ngModel)]="player.user.controllerPort" (change)="updateControllerPort(player)">
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="cancel" (click)="close()">Close</button>
+    </div>
+</div>

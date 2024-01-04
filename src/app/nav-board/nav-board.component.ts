@@ -5,6 +5,7 @@ import { InfoComponent } from '../dialogs/info/info.component';
 import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { UserService } from '../services/user.service';
 import { Router } from '@angular/router';
+import { SetControllerComponent } from '../dialogs/set-controller/set-controller.component';
 
 @Component({
   selector: 'app-nav-board',
@@ -40,6 +41,11 @@ export class NavBoardComponent {
 
   openInfo() {
     this.dialog.open(InfoComponent, {maxWidth: "100vw"});
+    this._user.viewSettings = false;
+  }
+
+  configControllers() {
+    this.dialog.open(SetControllerComponent);
     this._user.viewSettings = false;
   }
 

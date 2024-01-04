@@ -37,6 +37,9 @@
             <p>Copy Obs Link</p>
         </div>
         -->
+        <div *ngIf="_user.localUsers.length !== 0" class="list-item" (click)="configControllers()">
+            <p>Config Controllers</p>
+        </div>
         <div class="list-item" (click)="resetWindowSize()">
             <p>Reset Window Size</p>
         </div>
