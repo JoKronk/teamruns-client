@@ -528,7 +528,8 @@ export class RunHandler {
                     this.run?.endPlayerRun(event.userId, event.value.name === Task.forfeit);
                     this.run?.isMode(RunMode.Lockout) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
 
-                    if (isMaster && this.isOnlineInstant && this.run?.timer.runState === RunState.Ended && !this.run.teams.every(x => x.hasUsedDebugMode) && !this.run.teams.flatMap(x => x.players).every(x => x.state === PlayerState.Forfeit)) {
+                    this.run?.checkRunEndValid()
+                    if (isMaster && this.isOnlineInstant && this.run && this.run.teams.some(x => x.runIsValid)) {
                         let run: DbRun = DbRun.convertToFromRun(this.run);
 
                         this.firestoreService.getUsers().then(collection => {

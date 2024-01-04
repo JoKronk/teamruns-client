@@ -13,6 +13,7 @@ import { UserBase } from "../user/user";
 import { UserService } from "src/app/services/user.service";
 import { RunStateHandler } from "../level/run-state-handler";
 import { RemotePlayerInfo } from "../socket/remote-player-info";
+import { CategoryOption } from "./category";
 
 export class Run {
     data: RunData;
@@ -111,7 +112,7 @@ export class Run {
 
         if (state.debugModeActive) {
             const team = this.getPlayerTeam(playerId);
-            if (team) team.hasUsedDebugMode = true;
+            if (team) team.runIsValid = false;
         }
     }
 
@@ -206,6 +207,43 @@ export class Run {
 
     isMode(mode: RunMode): boolean {
         return this.data.mode === mode;
+    }
+
+    checkRunEndValid() {
+        if (this.timer.runState !== RunState.Ended) return false;
+        this.teams.forEach(team => {
+            if (!team.runIsValid) return;
+
+            if (team.players.some(x => x.state === PlayerState.Forfeit)) {
+                team.runIsValid = false;
+                return;
+            }
+
+        switch (this.data.category) {
+            case CategoryOption.Custom:
+                team.runIsValid = true;
+            break;
+            case CategoryOption.NoLts:
+                team.runIsValid = team.runState.cellCount >= 72;
+                break;
+            case CategoryOption.AllCells:
+                team.runIsValid = team.runState.cellCount === 101;
+                break;
+            case CategoryOption.Hundo:
+                team.runIsValid = team.runState.cellCount === 101 && team.runState.orbCount === 2000;
+                break;
+            case CategoryOption.Orbless:
+                team.runIsValid = team.runState.orbCount === 0;
+                break;
+            case CategoryOption.AllFlies:
+                team.runIsValid = team.runState.buzzerCount === 112;
+                break;
+            case CategoryOption.AllOrbs:
+                team.runIsValid = team.runState.orbCount === 2000;
+                break;
+            }
+        });
+        return;
     }
 
     getRemotePlayerInfo(userId: string): RemotePlayerInfo | undefined {

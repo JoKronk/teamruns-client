@@ -14,7 +14,7 @@ export class Team {
     
     runState: RunStateHandler;
 
-    hasUsedDebugMode: boolean = false;
+    runIsValid: boolean = true;
 
     constructor(id: number, name: string) {
         this.id = id;
@@ -31,7 +31,7 @@ export class Team {
             team.splits.push(Task.fromDbTask(task));
         });
         team.endTimeMs = dbTeam.endTimeMs;
-        team.hasUsedDebugMode = dbTeam.hasUsedDebugMode;
+        team.runIsValid = dbTeam.runIsValid;
         team.runState.cellCount = dbTeam.cellCount;
         return team;
     }

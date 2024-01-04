@@ -10,14 +10,14 @@ export class DbTeam {
     players: DbPlayer[] = [];
     tasks: DbTask[] = [];
     cellCount: number;
-    hasUsedDebugMode: boolean;
+    runIsValid: boolean;
 
     constructor(team: Team) {
         this.id = team.id;
         this.name = team.name;
         this.endTimeMs = team.endTimeMs;
         this.cellCount = team.runState.cellCount;
-        this.hasUsedDebugMode = team.hasUsedDebugMode;
+        this.runIsValid = team.runIsValid;
         team.splits.forEach(split => {
             this.tasks.push(new DbTask(split));
         });
