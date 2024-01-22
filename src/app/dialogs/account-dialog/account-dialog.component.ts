@@ -16,6 +16,8 @@ export class AccountDialogComponent {
   username: string;
   pw: string;
 
+  makeOldUserCheck: boolean = false;
+
   constructor(@Inject(MAT_DIALOG_DATA) public dialogData: AccountDialogData, private _user: UserService, private _firestore: FireStoreService, public dialogRef: MatDialogRef<AccountDialogComponent>) {
     if (dialogData.isLogin && _user.user.name)
       this.username = (' ' + _user.user.name).slice(1); //deep copy
@@ -25,7 +27,17 @@ export class AccountDialogComponent {
     this.dialogRef.close(false);
   }
 
-  async confirm() {
+  oldUserConfirm(isOldUser: boolean) {
+    if (!isOldUser) {
+      this._user.sendNotification("Username is already taken.");
+      this.close();
+    }
+    else {
+      this.confirm(true);
+    }
+  }
+
+  async confirm(isOldUser: boolean = false) {
     this.username = this.username.trim();
     if (!this.username || this.username.length === 0) {
       this._user.sendNotification("Please enter a valid username!");
@@ -34,7 +46,7 @@ export class AccountDialogComponent {
 
     this._firestore.getUsers().then(collection => {
       if (collection) {
-        const profile = collection.users.find(user => user.name === this.username);
+        const profile = collection.users.find(user => user.name.toLowerCase() === this.username.toLowerCase());
         
         
         if (this.dialogData.isLogin) { // handle login
@@ -62,8 +74,14 @@ export class AccountDialogComponent {
           
           
         else { // handle user registration
-          if (profile) {
-            this._user.sendNotification("Username is already taken.");
+          if (profile && !isOldUser) {
+            this._firestore.checkUserExists(profile.name).then(exists => {
+              if (exists)
+                this._user.sendNotification("Username is already taken.");
+              else
+                this.makeOldUserCheck = true;
+              return;
+            });
             return;
           }
           else {

@@ -96,8 +96,7 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
       return;
     }
 
-    const dialogRef = this.dialog.open(AccountDialogComponent, { data: { isLogin: true } });
-    const dialogSubscription = dialogRef.afterClosed().subscribe((response: AccountReply | undefined) => {
+    const dialogSubscription = this.dialog.open(AccountDialogComponent, { data: { isLogin: true } }).afterClosed().subscribe((response: AccountReply | undefined) => {
       dialogSubscription.unsubscribe();
       if (!response) return;
 
@@ -109,8 +108,7 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
   }
 
   register() {
-    const dialogRef = this.dialog.open(AccountDialogComponent, { data: { isLogin: false } });
-    const dialogSubscription = dialogRef.afterClosed().subscribe((response: AccountReply | undefined) => {
+    const dialogSubscription = this.dialog.open(AccountDialogComponent, { data: { isLogin: false } }).afterClosed().subscribe((response: AccountReply | undefined) => {
       dialogSubscription.unsubscribe();
       if (!response) return;
 

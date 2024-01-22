@@ -72,6 +72,14 @@ export class FireStoreService {
     });
   }
 
+  async checkUserExists(name: string): Promise<boolean> {
+    return this.auth.signInWithEmailAndPassword(name + "@teamrun.web.app", "none").then((userCredential) => {
+      return true;
+    }).catch(error => {
+      return (error.message as string).startsWith("Firebase: The password is invalid or the user does not have a password.");
+    });
+  }
+
   private async checkAuthenticated() { // !TODO: this currently has some problems in some case as not all firestore functions created here are async atm, but the user is usually already signed in in all use cases where it's not async..
     if (this.isAuthenticated) return;
     return await this.auth.signInWithEmailAndPassword(environment.firestoreUsername, environment.firestorePassword).then(() => {
