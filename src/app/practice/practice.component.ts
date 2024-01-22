@@ -13,8 +13,8 @@ import { LocalPlayerData } from '../common/user/local-player-data';
 import { EventType } from '../common/peer/event-type';
 import { OgCommand } from '../common/socket/og-command';
 import pkg from 'app/package.json';
-import { PositionData } from '../common/socket/position-data';
 import { OG } from '../common/opengoal/og';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-practice',
@@ -63,9 +63,9 @@ export class PracticeComponent implements OnDestroy {
   timerEndSubscription: Subscription;
 
 
-  constructor(public _user: UserService, firestoreSerivce: FireStoreService, private zone: NgZone) {
+  constructor(public _user: UserService, firestoreSerivce: FireStoreService, private dialog: MatDialog, private zone: NgZone) {
     this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, zone);
-    this.runHandler = new RunHandler(undefined, firestoreSerivce, _user, [this.mainLocalPlayer], zone);
+    this.runHandler = new RunHandler(undefined, firestoreSerivce, _user, [this.mainLocalPlayer], dialog, zone);
     this.mainLocalPlayer.socketHandler.timer.setStartConditions(1);
 
     //recording import listener

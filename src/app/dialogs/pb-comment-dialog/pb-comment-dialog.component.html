@@ -1,0 +1,20 @@
+<div class="container">
+    <p id="title">{{data.newPb ? "Congratulations" : "Input"}}</p>
+
+    <h3>{{data.newPb ? "New Personal Best!" : "Update Pb Info"}}</h3>
+    
+    <div class="option">
+        <p>Comment</p>
+        <textarea [(ngModel)]="content.comment"></textarea>
+    </div>
+    
+    <div *ngIf="!data.newPb" class="option">
+        <p>Video Link <span class="option-warning" *ngIf="showVideoLinkInfo">Link needs to be Youtube or Twitch</span></p>
+        <input [(ngModel)]="content.videoLink">
+    </div>
+    
+    <div class="buttons">
+        <button class="cancel" (click)="close()">Cancel</button>
+        <button (click)="confirm()">{{data.newPb ? "Confirm" : "Update"}}</button>
+    </div>
+</div>

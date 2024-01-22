@@ -29,6 +29,11 @@ import { GameSettings } from "../socket/game-settings";
 import { SyncRequest, SyncRequestReason } from "./sync-request";
 import { SyncResponse } from "./sync-response";
 import { OG } from "../opengoal/og";
+import { DbRecordingFile, RecordingFile } from "../socket/recording-file";
+import { PbCommentDialogComponent } from "src/app/dialogs/pb-comment-dialog/pb-comment-dialog.component";
+import { DbRunUserContent } from "../firestore/db-run-user-content";
+import { MatDialog } from "@angular/material/dialog";
+import { DbPb } from "../firestore/db-pb";
 
 export class RunHandler {
 
@@ -55,6 +60,7 @@ export class RunHandler {
         public firestoreService: FireStoreService,
         public userService: UserService,
         private localPlayers: LocalPlayerData[],
+        public dialog: MatDialog,
         public zone: NgZone,
         obsUserId: string | null = null) {
         
@@ -530,23 +536,59 @@ export class RunHandler {
                     this.run?.isMode(RunMode.Lockout) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
 
                     this.run?.checkRunEndValid()
-                    if (isMaster && this.isOnlineInstant && this.run && this.run.teams.some(x => x.runIsValid)) {
-                        let run: DbRun = DbRun.convertToFromRun(this.run);
+                    if (this.isOnlineInstant && this.run && this.run.teams.some(x => x.runIsValid)) {
 
-                        this.firestoreService.getUsers().then(collection => {
-                            const players = this.run?.getAllPlayers();
-                            if (!collection || !players) return;
-                            // add run to history if any player is signed in
-                            if (players.some(player => collection.users.find(user => user.id === player.user.id)))
-                                this.firestoreService.addRun(run); 
-                            // add pb & leadeboard data if all players are signed in
-                            if (players.every(player => collection.users.find(user => user.id === player.user.id)))
-                                run.checkUploadPbs(this.firestoreService);
+                        if (isMaster) {
+                            let run: DbRun = DbRun.convertToFromRun(this.run);
+    
+                            this.firestoreService.getUsers().then(collection => {
+                                const players = this.run?.getAllPlayers();
+                                if (!collection || !players) return;
+                                // add run to history if any player is signed in
+                                if (players.some(player => collection.users.find(user => user.id === player.user.id)))
+                                    this.firestoreService.addRun(run); 
+                                // add pb & leadeboard data if all players are signed in
+                                if (players.every(player => collection.users.find(user => user.id === player.user.id))) {
+                                    let recordings: DbRecordingFile[] = [];
+                                    this.getMainLocalPlayer().socketHandler.resetGetRecordings().forEach(recording => {
+                                        recording.formatPlayback();
+                                        recordings.push(new DbRecordingFile(recording.userId, pkg.version, recording.playback))
+                                      });
+                                    let pbUsers: Map<string, string[]> = run.checkUploadPbs(this.firestoreService, recordings);
+                                    if (pbUsers.size !== 0)
+                                        this.sendEventAsMain(EventType.NewPb, pbUsers);
+                                }
+                            });
+                        }
+                    }
+                });
+                break;
+            
+            case EventType.NewPb:
+                let pbUsers: Map<string, string[]> = event.value;
+                pbUsers.forEach((users, pbId) => {
+                    let localUserPbs = this.localPlayers.filter(localPlayer => users.includes(localPlayer.user.id));
+                    if (localUserPbs.length !== 0) {
+                        const pbSubscription = this.firestoreService.getPb(pbId).subscribe(pb => {
+                            pbSubscription.unsubscribe();
+                            if (!pb) return;
+                            localUserPbs.forEach(localPlayer => {
+                                const dialogSubscription = this.dialog.open(PbCommentDialogComponent, { data: { newPb: true } }).afterClosed().subscribe((content: DbRunUserContent) => {
+                                  dialogSubscription.unsubscribe();
+                                    if (content) {
+                                        content.userId = localPlayer.user.id;
+                                        pb = Object.assign(new DbPb(), pb);
+                                        pb.userContent = pb.userContent.filter(x => x.userId !== content.userId);
+                                        pb.userContent.push(content);
+                                        this.firestoreService.updatePb(pb);
+                                  }
+                                });
+                            });
                         });
                     }
                 });
                 break;
-
+                
             case EventType.NewPlayerState:
                 this.zone.run(() => {
                     this.run!.updateState(event.userId, event.value, this.userService);

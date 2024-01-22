@@ -14,6 +14,7 @@ import { DbLeaderboard } from '../common/firestore/db-leaderboard';
 import { DbPb } from '../common/firestore/db-pb';
 import { DbUserProfile } from '../common/firestore/db-user-profile';
 import { AccountReply } from '../dialogs/account-dialog/account-dialog.component';
+import { DbLeaderboardPb } from '../common/firestore/db-leaderboard-pb';
 
 @Injectable({
   providedIn: 'root'
@@ -56,9 +57,9 @@ export class FireStoreService {
       if (setAsCurrent)
         this.currentUser = userCredential.user;
 
-      return new AccountReply(true);
+      return new AccountReply(crypto.randomUUID(), true);
     }).catch((error: firebase.default.FirebaseError) => {
-      return new AccountReply(false, error.message);
+      return new AccountReply("", false, error.message);
     });
   }
 
@@ -112,6 +113,11 @@ export class FireStoreService {
   async getRun(id: string) {
     await this.checkAuthenticated();
     return (await this.runs.doc(id).ref.get()).data();
+  }
+
+  getPb(id: string) {
+    this.checkAuthenticated();
+    return this.personalBests.doc(id).valueChanges({idField: 'id'});
   }
 
   getLeaderboard(category: CategoryOption, sameLevel: boolean, players: number) {
@@ -170,25 +176,50 @@ export class FireStoreService {
       await this.runs.doc<DbRun>().set(JSON.parse(JSON.stringify(run)));
   }
 
-  async addPb(run: DbPb) {
+  async addPb(pb: DbPb) {
     await this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
-    if (run.userIds instanceof Map)
-      run.userIds = Object.fromEntries(run.userIds);
+    if (pb.userIds instanceof Map)
+      pb.userIds = Object.fromEntries(pb.userIds);
     
-    const id = run.id;
-    run.id = undefined;
+    const id = pb.id;
+
+    pb.clearFrontendValues();
     if (id)
-      await this.personalBests.doc<DbPb>(id).set(JSON.parse(JSON.stringify(run)));
-    else
-      await this.personalBests.doc<DbPb>().set(JSON.parse(JSON.stringify(run)));
+      await this.personalBests.doc<DbPb>(id).set(JSON.parse(JSON.stringify(pb)));
+
+  }
+
+  async updatePb(pb: DbPb) {
+    const pbId = pb.id;
+    await this.addPb(pb);
+
+    //update leaderboard comments
+    const boardSubscription = this.getLeaderboard(pb.category, pb.sameLevel, pb.playerCount).subscribe(boards => {
+      boardSubscription.unsubscribe();
+      if (boards.length !== 1)
+        return false;
+      
+      let userIds: string[] = (pb.userIds instanceof Map) ? Array.from(pb.userIds.keys()) : Array.from(new Map(Object.entries(pb.userIds)).keys());
+      
+      boards[0] = Object.assign(new DbLeaderboard(boards[0].category, boards[0].sameLevel, boards[0].players), boards[0]);
+      boards[0].pbs.forEach((lbPb, index) => {
+        boards[0].pbs[index] = Object.assign(new DbLeaderboardPb(), lbPb);
+        if (lbPb.id! !== undefined && lbPb.id === pbId || lbPb.userIds.sort().join(',') === userIds.sort().join(',')) {
+          boards[0].pbs[index].userContent = pb.userContent;
+        }
+      });
+      this.putLeaderboard(boards[0]);
+      return;
+    });
   }
   
   async putLeaderboard(leaderboard: DbLeaderboard) {
     await this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
     const id = leaderboard.id;
-    leaderboard.id = undefined;
+    leaderboard.clearFrontendValues();
+
     console.log("Cat:" + leaderboard.category + " P:" + leaderboard.players + " S:" + leaderboard.sameLevel, leaderboard);
     if (id)
       await this.leaderboards.doc<DbLeaderboard>(id).set(JSON.parse(JSON.stringify(leaderboard)));

@@ -8,13 +8,13 @@ import { DbLeaderboardPb } from "./db-leaderboard-pb";
 import { DbTeam } from "./db-team";
 import { DbUsersCollection } from "./db-users-collection";
 import { DbPb } from "./db-pb";
+import { DbRecordingFile } from "../socket/recording-file";
 
 export class DbRun {
     data: RunData;
     teams: DbTeam[] = [];
     userIds: Map<string, boolean> | any = new Map();
     date: number;
-    playback: any;
 
     id?: string;
     dateFrontend?: Date;
@@ -67,8 +67,9 @@ export class DbRun {
     }
 
 
-    checkUploadPbs(firestoreService: FireStoreService) {
-        if (this.data.category === CategoryOption.Custom) return;
+    checkUploadPbs(firestoreService: FireStoreService, recordings: DbRecordingFile[] | undefined): Map<string, string[]> {
+        let pbUsers: Map<string, string[]> = new Map();
+        if (this.data.category === CategoryOption.Custom) return pbUsers;
 
         let leaderboards: DbLeaderboard[] = [];
 
@@ -78,7 +79,7 @@ export class DbRun {
             .flatMap(x => x.players.length)
             .filter((value, index, array) => array.indexOf(value) === index);
         
-        if (playerCounts.length === 0) return;
+        if (playerCounts.length === 0) return pbUsers;
         
         const lbSubscription = firestoreService.getLeaderboards(this.data.category, this.data.requireSameLevel, playerCounts).subscribe(dbLeaderboards => {
             lbSubscription.unsubscribe();
@@ -103,9 +104,11 @@ export class DbRun {
     
                 if (!previousPb || previousPb.endTimeMs > team.endTimeMs) {
                     leaderboard.pbs = leaderboard.pbs.sort((a, b) => a.endTimeMs - b.endTimeMs);
-                    let newPb = DbPb.convertToFromRun(this, team, leaderboard.pbs.length === 0 || leaderboard.pbs[0].endTimeMs > team.endTimeMs);
+                    let newPb = DbPb.convertToFromRun(this, team, recordings?.filter(rec => team.players.some(player => player.user.id === rec.userId)), leaderboard.pbs.length === 0 || leaderboard.pbs[0].endTimeMs > team.endTimeMs);
                     leaderboard.pbs.push(DbLeaderboardPb.convertToFromPb(newPb)); //needs to come before pb being added since it removes id
-                    
+                    if (newPb.id) //this should always be true
+                        pbUsers.set(newPb.id, team.players.flatMap(x => x.user.id));
+
                     firestoreService.addPb(newPb);
                     if (previousPb)
                         leaderboard.pbs = leaderboard.pbs.filter(x => x.id !== previousPb!.id);
@@ -116,7 +119,7 @@ export class DbRun {
                 }
             });
         });
-        return;
+        return pbUsers;
     }
 
     arraysEqual(array1: string[], array2: string[]): boolean {

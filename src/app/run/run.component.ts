@@ -45,7 +45,7 @@ export class RunComponent implements OnDestroy {
       let runId = params.get('id');
       if (!runId) return;
 
-      this.runHandler = new RunHandler(runId, firestoreService, _user, this.localPlayers, zone);
+      this.runHandler = new RunHandler(runId, firestoreService, _user, this.localPlayers, dialog, zone);
     });
   }
 

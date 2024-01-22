@@ -1,0 +1,89 @@
+.container {
+    padding: 20px 20px 30px;
+    width: 380px;
+    font-family: 'jak';
+    font-weight: bold;
+    font-size: 22px;
+    border: 2px solid #1f1f1f;
+    border-radius: 4px;
+    background-color: rgba(34, 34, 34, 0.8);
+}
+::ng-deep mat-dialog-container  {
+  background-color: transparent !important;
+}
+::ng-deep .mat-mdc-dialog-container .mdc-dialog__surface {
+    background-color: transparent !important;
+}
+
+.option {
+    & p {
+        margin: 20px 4px 2px;
+    }
+    & input, select, textarea {
+        border: 2px solid rgba(7, 7, 7, 0.8);
+        background: rgba(14, 14, 14, 0.8);
+        border-radius: 4px;
+        height: 36px;
+        width: 350px;
+        transition: 0.3s;
+        transition-timing-function: ease;
+        color: #ffffff;
+        font-family: Roboto;
+        font-size: 18px;
+    }
+    & textarea {
+        height: 100px;
+    }
+    & textarea:focus, input:focus{
+        outline: none;
+        border: 2px solid rgba(0, 0, 0, 1);
+        background: rgba(24, 24, 24, 0.5);
+    }
+    &-warning {
+        font-size: 14px;
+        color: #ff0000;
+    }
+}
+
+p, h3 {
+    color: #b4b4b4;
+}
+
+#title {
+    font-family: 'precursor';
+    color: #380000;
+    position: absolute;
+    top: -14px;
+    left: 6px;
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-around;
+}
+
+button {
+    flex-shrink: 1;
+    margin-top: 26px;
+    margin-right: 12px;
+    font-family: 'jak';
+    font-size: 20px;
+    color: #cccccc;
+    height: 40px;
+    width: 165px;
+    background-color: #3e3e3e;
+    border: 1px solid #636363;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+    transition: 0.3s;
+    &:hover {
+        color: rgba(255, 255, 255, 1);
+        background-color: #a56d06;
+        border: 1px solid rgb(99, 99, 99, 0.6);
+    }
+}
+
+.cancel:hover {
+    background-color: #380000;
+}

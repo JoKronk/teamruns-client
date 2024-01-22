@@ -77,6 +77,23 @@
             background-color: rgba(0,0,0, 0.27);
             border-radius: 3px;
         }
+        &-menu {
+            width: 30px;
+            &-icon {
+                height: 18px;
+                padding-left: 12px;
+                & g {
+                    fill: #929292;
+                    transition: 0.22s;
+                }
+            }
+            &:hover {
+                cursor: pointer;
+                & g {
+                    fill: #a56d06;
+                }
+            }
+        }
     }
 }
 
@@ -164,6 +181,10 @@ hr {
     border-radius: 7px;
 }
 
+.content-cont {
+    display: flex;
+}
+
 .backtext {
     -webkit-user-select: none;
     position: absolute;
@@ -196,12 +217,13 @@ td {
     color: #a8a8a8 !important;
 }
 tr.run-expanded-row {
-height: 0;
+    height: 0;
 }
+
 tr.run-row {
     transition: 0.2s;
 }
-tr.run-row-selected {
+tr.run-expanded-row-open {
     background-color: rgba(204, 204, 204, 0.1) !important;
 }
 
@@ -214,10 +236,10 @@ tr.run-row:active {
     background-color: rgba(204, 204, 204, 0.2);
 }
 
-.mat-mdc-row:nth-child(2n+1){
+.mat-mdc-row:not(.run-expanded-row-open):nth-child(2n+1){
     background-color: rgba(0, 0, 0, 0.05);
 }
-.mat-mdc-row:nth-child(even){
+.mat-mdc-row:not(.run-expanded-row-open):nth-child(even){
     background-color: rgba(0, 0, 0, 0.23);
 }
 
@@ -228,10 +250,6 @@ border-bottom-width: 0;
 
 .mat-mdc-table {
     background: none !important;
-}
-
-.mat-mdc-row {
-    height: 42px !important;
 }
 
 .mat-button-toggle{

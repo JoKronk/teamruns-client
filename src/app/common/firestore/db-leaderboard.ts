@@ -17,4 +17,13 @@ export class DbLeaderboard {
         this.pbs = [];
         this.id = crypto.randomUUID();
     }
+
+    clearFrontendValues() {
+        this.id = undefined;
+        if (!this.pbs) return;
+
+        this.pbs.forEach(pb => {
+            pb.clearFrontendValues();
+        });
+    }
 }

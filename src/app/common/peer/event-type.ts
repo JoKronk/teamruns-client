@@ -16,5 +16,6 @@ export enum EventType {
     ChangeTeam,
     ChangeTeamName,
     ToggleReset,
-    EndPlayerRun
+    EndPlayerRun,
+    NewPb
 }

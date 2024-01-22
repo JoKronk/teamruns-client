@@ -59,7 +59,7 @@ export class AccountDialogComponent {
                 else if (this.dialogData.newPw)
                   this.updatePassword(collection, profile);
                 else
-                  this.dialogRef.close(new AccountReply(success, "User signed in successfully."));
+                  this.dialogRef.close(new AccountReply(profile.id, success, "User signed in successfully."));
               }
               else {
                 this._user.sendNotification("User sign in failed.");
@@ -68,7 +68,7 @@ export class AccountDialogComponent {
             });
           }
           else
-            this.dialogRef.close(new AccountReply(false, "User doesn't exist."));
+            this.dialogRef.close(new AccountReply("", false, "User doesn't exist."));
         }
           
           
@@ -87,12 +87,12 @@ export class AccountDialogComponent {
           else {
             this._firestore.createUser(this.username, this.pw).then(result => {
               if (result.success) {
-                const newProfile = new DbUserProfile(new UserBase(!collection.users.find(x => x.id === this._user.getId()) ? this._user.user.id : crypto.randomUUID(), this.username));
+                const newProfile = new DbUserProfile(new UserBase(profile ? profile.id : !collection.users.find(x => x.id === this._user.getId()) ? this._user.user.id : crypto.randomUUID(), this.username));
                 collection.users.push(newProfile);
                 this._firestore.updateUsers(collection).then(() => {
                   this._user.user.importDbUser(newProfile, !this._user.user.displayName ? newProfile.name : this._user.user.displayName);
                   this._user.user.hasSignedIn = true;
-                  this.dialogRef.close(new AccountReply(true, "User created successfully."));
+                  this.dialogRef.close(new AccountReply(newProfile.id, true, "User created successfully."));
                 });
               }
               else {
@@ -104,7 +104,7 @@ export class AccountDialogComponent {
         }
       }
       else 
-        this.dialogRef.close(new AccountReply(false, "Unable to fetch user."));
+        this.dialogRef.close(new AccountReply("", false, "Unable to fetch user."));
     });
   }
 
@@ -113,7 +113,7 @@ export class AccountDialogComponent {
 
     const existingUser = collection.users.find(x => x.name === this.dialogData.newUsername);
     if (existingUser) 
-      this.dialogRef.close(new AccountReply(false, "Username is already taken."));
+      this.dialogRef.close(new AccountReply(profile.id, false, "Username is already taken."));
     else {
       this._firestore.createUser(this.dialogData.newUsername, this.pw, false).then(result => {
         if (result.success) {
@@ -123,15 +123,15 @@ export class AccountDialogComponent {
               profile.name = this._user.user.name;
               
               this._firestore.updateUsers(collection).then(() => {
-                this.dialogRef.close(new AccountReply(true, "Username successfully updated!"));
+                this.dialogRef.close(new AccountReply(profile.id, true, "Username successfully updated!"));
               });
             }
             else
-              this.dialogRef.close(new AccountReply(false, "User name change failed, please contact Dexz."));
+              this.dialogRef.close(new AccountReply(profile.id, false, "User name change failed, please contact Dexz."));
           });
         }
         else
-          this.dialogRef.close(new AccountReply(false, "User name change failed."));
+          this.dialogRef.close(new AccountReply(profile.id, false, "User name change failed."));
       });
     }
   }
@@ -143,13 +143,13 @@ export class AccountDialogComponent {
       if (deleted) {
         this._firestore.createUser(this.username, this.dialogData.newPw!).then(result => {
           if (result.success)
-            this.dialogRef.close(new AccountReply(true, "Password successfully updated!"));
+            this.dialogRef.close(new AccountReply(profile.id, true, "Password successfully updated!"));
           else
-            this.dialogRef.close(new AccountReply(false, "Password change failed, please contact Dexz."));
+            this.dialogRef.close(new AccountReply(profile.id, false, "Password change failed, please contact Dexz."));
         });
       }
       else
-        this.dialogRef.close(new AccountReply(false, "Password change failed."));
+        this.dialogRef.close(new AccountReply(profile.id, false, "Password change failed."));
     });
   }
   
@@ -173,10 +173,12 @@ export class AccountDialogData {
 }
 
 export class AccountReply {
+  userId: string;
   success: boolean;
   message: string | undefined;
 
-  constructor(success: boolean, message: string | undefined = undefined) {
+  constructor(userId: string, success: boolean, message: string | undefined = undefined) {
+    this.userId = userId;
     this.success = success;
     this.message = message;
   }

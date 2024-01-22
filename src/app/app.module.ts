@@ -15,6 +15,7 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTableModule} from '@angular/material/table';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatSliderModule} from '@angular/material/slider';
+import {MatMenuModule} from '@angular/material/menu';
 
 import { NavBoardComponent } from './nav-board/nav-board.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
@@ -46,6 +47,7 @@ import { UserSettingsComponent } from './user-settings/user-settings.component';
 import { AutoFocusDirective } from './common/directives/auto-focus.directive';
 import { AddPlayerComponent } from './dialogs/add-player/add-player.component';
 import { SetControllerComponent } from './dialogs/set-controller/set-controller.component';
+import { PbCommentDialogComponent } from './dialogs/pb-comment-dialog/pb-comment-dialog.component';
 
 @NgModule({
   declarations: [
@@ -75,7 +77,8 @@ import { SetControllerComponent } from './dialogs/set-controller/set-controller.
     UserSettingsComponent,
     AutoFocusDirective,
     AddPlayerComponent,
-    SetControllerComponent
+    SetControllerComponent,
+    PbCommentDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -91,6 +94,7 @@ import { SetControllerComponent } from './dialogs/set-controller/set-controller.
     MatTableModule,
     MatButtonToggleModule,
     MatSliderModule,
+    MatMenuModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule,
     AngularFireAuthModule

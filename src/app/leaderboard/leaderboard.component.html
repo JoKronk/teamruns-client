@@ -46,8 +46,8 @@
             <ng-container matColumnDef="players">
               <th mat-header-cell *matHeaderCellDef> Players </th>
               <td mat-cell class="no-wrap" *matCellDef="let run">
-                <span *ngFor="let user of run.userIds; let end = last">
-                  {{user}}<span *ngIf="!end"> · </span>
+                <span *ngFor="let user of run.userDisplayContent; let end = last">
+                  {{user.name}}<span *ngIf="!end"> · </span>
                 </span>
               </td>
             </ng-container>
@@ -63,10 +63,51 @@
               <th mat-header-cell *matHeaderCellDef> Version </th>
               <td mat-cell *matCellDef="let run"> {{run.version}} </td>
             </ng-container>
+            <ng-container matColumnDef="options">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let run">
+                <div *ngIf="run.playbackAvailable || run.hasLocalUser" class="page-table-menu" [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                  <svg class="page-table-menu-icon" version="1.1" viewBox="-0.5 -0.5 31 111">
+                    <g>
+                      <ellipse cx="15" cy="15" rx="15" ry="15" pointer-events="all"/>
+                      <ellipse cx="15" cy="55" rx="15" ry="15" pointer-events="all"/>
+                      <ellipse cx="15" cy="95" rx="15" ry="15" pointer-events="all"/>
+                    </g>
+                  </svg>
+                </div>
+                <mat-menu #menu="matMenu">
+                  <button *ngIf="run.playbackAvailable" mat-menu-item>
+                    <span>Race</span>
+                  </button>
+                  <button *ngIf="run.playbackAvailable" mat-menu-item>
+                    <span>Download</span>
+                  </button>
+                  <button *ngIf="run.hasLocalUser" (click)="updateUserContent(run.id)" mat-menu-item>
+                    <span>Edit</span>
+                  </button>
+                </mat-menu>
+              </td>
+            </ng-container>
+
+
+            <ng-container matColumnDef="expandedRun">
+                <td mat-cell *matCellDef="let run" [attr.colspan]="columns.length">
+                  <div [@runExpand]="run == selectedRun ? 'expanded' : 'collapsed'">
+                      <div class="content-cont">
+                        <div>
+                            <div *ngFor="let content of run.userDisplayContent">
+                              <p *ngIf="content.comment"><b>{{ content.name }}:</b> {{ content.comment }}</p>
+                            </div>
+                        </div>
+                      </div>
+                  </div>
+                </td>
+            </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="columns"></tr>
             <tr mat-row *matRowDef="let run; columns: columns;" class="run-row"
-              [class.run-row-selected]="selectedRun?.id === run.id" (click)="selectRun(run)"></tr>
+              [class.run-expanded-row-open]="selectedRun?.id === run.id" (click)="selectRun(run)"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['expandedRun']" class="run-expanded-row"></tr>
           </table>
           <div *ngIf="leaderboard.pbs.length === 0 && boardHasLoaded" class="page-table-none">
             <h4>No runs found</h4>

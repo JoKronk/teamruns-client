@@ -14,11 +14,25 @@ import 'chartjs-adapter-date-fns';
 import { Timer } from '../common/run/timer';
 import { Team } from '../common/run/team';
 import { Task } from '../common/opengoal/task';
+import { DbRun } from '../common/firestore/db-run';
+import { animate, state, style, transition, trigger } from '@angular/animations';
+import { PbCommentDialogComponent } from '../dialogs/pb-comment-dialog/pb-comment-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { DbRunUserContent } from '../common/firestore/db-run-user-content';
+import { AccountDialogComponent, AccountReply } from '../dialogs/account-dialog/account-dialog.component';
+import { DbPb } from '../common/firestore/db-pb';
 
 @Component({
   selector: 'app-leaderboard',
   templateUrl: './leaderboard.component.html',
-  styleUrls: ['./leaderboard.component.scss']
+  styleUrls: ['./leaderboard.component.scss'],
+  animations: [
+    trigger('runExpand', [
+      state('collapsed', style({height: '0px', minHeight: '0'})),
+      state('expanded', style({height: '*'})),
+      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+    ])
+  ]
 })
 export class LeaderboardComponent {
 
@@ -39,12 +53,12 @@ export class LeaderboardComponent {
 
   leaderboard: DbLeaderboard = new DbLeaderboard(this.selectedCategory, this.sameLevel === "true", this.players);
   dataSource: MatTableDataSource<DbLeaderboardPb> = new MatTableDataSource();
-  columns: string[] = ["position", "players", "time", "date", "version"];
+  columns: string[] = ["position", "players", "time", "date", "version", "options"];
 
   selectedRun: DbLeaderboardPb | null = null;
   selectedTeam: Team | null = null;
 
-  constructor(public _user: UserService, private firestoreService: FireStoreService) {
+  constructor(public _user: UserService, private firestoreService: FireStoreService, private dialog: MatDialog) {
 
     this.firestoreService.getUsers().then(collection => {
       this.usersCollection = collection;
@@ -93,11 +107,11 @@ export class LeaderboardComponent {
       if (!dbLeaderboards || dbLeaderboards.length === 0)
         this.leaderboard = new DbLeaderboard(this.selectedCategory, this.sameLevel === "true", this.players);
       else
-        this.leaderboard = dbLeaderboards[0];
+        this.leaderboard = Object.assign(new DbLeaderboard(dbLeaderboards[0].category, dbLeaderboards[0].sameLevel, dbLeaderboards[0].players), dbLeaderboards[0]);
 
       this.leaderboard.pbs.forEach((pb, index) => {
         this.leaderboard.pbs[index] = Object.assign(new DbLeaderboardPb(), pb);
-        this.leaderboard.pbs[index].fillFrontendValues(this.usersCollection!);
+        this.leaderboard.pbs[index].fillFrontendValues(this.usersCollection!, this._user.user.id);
       });
       this.leaderboard.pbs = this.leaderboard.pbs.sort((a, b) => a.endTimeMs - b.endTimeMs);
 
@@ -216,5 +230,41 @@ export class LeaderboardComponent {
     }
   }
 
+  updateUserContent(pbId: string) {
+    const pbSubscription = this.firestoreService.getPb(pbId).subscribe(pb => {
+      pbSubscription.unsubscribe();
+      if (!pb) {
+        this._user.sendNotification("Unable to find PB.");
+        return;
+      }
+      if (!pb.userContent)
+        pb.userContent = [];
+
+      let existingContent = pb.userContent.find(x => x.userId === this._user.getId());
+      const dialogSubscription = this.dialog.open(PbCommentDialogComponent, { data: { newPb: false, content: existingContent } }).afterClosed().subscribe((content: DbRunUserContent) => {
+        dialogSubscription.unsubscribe();
+          if (content) {
+            content.userId = this._user.user.id;
+            
+            const loginSubscription = this.dialog.open(AccountDialogComponent, { data: { isLogin: true } }).afterClosed().subscribe((response: AccountReply | undefined) => {
+              loginSubscription.unsubscribe();
+              if (!response || !pb) return;
+              
+              pb.userContent = pb.userContent.filter(x => x.userId !== content.userId);
+              pb.userContent.push(content);
+              pb = Object.assign(new DbPb(), pb);
+              this.firestoreService.updatePb(pb).then(() => {
+                this._user.sendNotification("Update successful!");
+
+                //lazy solution
+                setTimeout(() => {
+                  this.updateLeaderboard();
+                }, 1000);
+                });
+            });
+        }
+      });
+    });
+  }
 }
 
