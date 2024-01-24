@@ -15,7 +15,7 @@ export class SetControllerComponent {
   }
 
   updateControllerPort(localPlayer: LocalPlayerData) {
-    if (localPlayer.user.controllerPort)
+    if (localPlayer.user.controllerPort !== undefined)
       localPlayer.socketHandler.changeController(localPlayer.user.controllerPort);
   }
 
