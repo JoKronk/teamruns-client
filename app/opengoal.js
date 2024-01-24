@@ -11,10 +11,8 @@ var openGoalREPL = null;
 var replHasStarted = false;
 var replIsRunning = false;
 
-var mainOpenGoalIsRunning = false;
 var openGoalInstances = [];
 var openGoalMainPort = 8111;
-
 var firstStart = true;
 
 var runRepl = false;
@@ -39,9 +37,8 @@ class OpenGoal {
         }
         openGoalREPL = new net.Socket();
 
-        if (replHasStarted || firstStart) {
+        if (replHasStarted) {
             this.killOG(openGoalMainPort);
-            firstStart = false;
             await sleep(1500);
         }
 
@@ -64,7 +61,7 @@ class OpenGoal {
         });
 
         openGoalREPL.on('error', (ex) => {
-            if (!mainOpenGoalIsRunning)
+            if (!openGoalInstances.find(x => x.port === openGoalMainPort))
                 this.sendClientMessage("Failed to start the client properly, please relaunch!");
         });
 
@@ -77,7 +74,13 @@ class OpenGoal {
 
 
     async startOG(port) {
-        if (port === openGoalMainPort || openGoalInstances.some(x => x.port === port)) {
+        
+        if (firstStart) {
+            this.killAllGks();
+            firstStart = false;
+        }
+
+        if (openGoalInstances.some(x => x.port === port)) {
             this.killGK(port);
             await sleep(1500);
         }
@@ -110,17 +113,17 @@ class OpenGoal {
             this.writeGoalCommand("(mark-repl-connected)");
         }
 
-        if (!mainOpenGoalIsRunning)
-            await this.stallSecondsForGkLaunch(5);
+        if (!openGoalInstances.find(x => x.port === port))
+            await this.stallSecondsForGkLaunch(5, port);
 
         console.log(".done");
         win.webContents.send("og-launched", port);
     }
 
-    async stallSecondsForGkLaunch(seconds) {
+    async stallSecondsForGkLaunch(seconds, port) {
         for (let i = 0; i < seconds; i++) {
             await sleep(1000);
-            if (mainOpenGoalIsRunning) {
+            if (openGoalInstances.find(x => x.port === port)) {
                 return;
             }
         }
@@ -149,8 +152,7 @@ class OpenGoal {
 
         //On Full Start
         openGoalClient.on('spawn', () => {
-            if (port === openGoalMainPort)
-                mainOpenGoalIsRunning = true;
+            
         });
     }
 
@@ -167,7 +169,7 @@ class OpenGoal {
     }
 
     killREPL() {
-        if (!replHasStarted && !firstStart) return;
+        if (!replHasStarted) return;
         try {
             var shell = new winax.Object('WScript.Shell');
             shell.Exec("taskkill /F /IM goalc.exe");
@@ -180,17 +182,19 @@ class OpenGoal {
 
     killGK(port) {
         let instance = openGoalInstances.find(x => x.port === port);
-        if (instance)
+        if (instance) {
             spawn("taskkill", ["/pid", instance.client.pid, '/f', '/t']);
-        else if (mainOpenGoalIsRunning  || firstStart) {
-            try {
-                var shell = new winax.Object('WScript.Shell');
-                shell.Exec("taskkill /F /IM gk.exe");
-    
-                mainOpenGoalIsRunning = false;
-            }
-            catch (e) { this.sendClientMessage(e); }
+            openGoalInstances = openGoalInstances.filter(x => x.port !== port);
         }
+    }
+
+    killAllGks() {
+        try {
+            var shell = new winax.Object('WScript.Shell');
+            shell.Exec("taskkill /F /IM gk.exe");
+
+        }
+        catch (e) { this.sendClientMessage(e); }
     }
 
 
