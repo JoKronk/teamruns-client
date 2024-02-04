@@ -535,7 +535,7 @@ export class RunHandler {
                     this.run?.endPlayerRun(event.userId, event.value.name === Task.forfeit);
                     this.run?.isMode(RunMode.Lockout) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
 
-                    this.run?.checkRunEndValid()
+                    this.run?.checkRunEndValid();
                     if (this.isOnlineInstant && this.run && this.run.teams.some(x => x.runIsValid)) {
 
                         if (isMaster) {
@@ -750,12 +750,6 @@ export class RunHandler {
 
             this.sendEvent(EventType.NewPlayerState, localPlayer.user.id, state);
             localPlayer.gameState = state;
-
-            //check adjust player spawn point on countdown
-            if (state.justSpawned && localPlayer.socketHandler.timer.runState === RunState.Countdown) {
-                let playerId: number = this.run.teams.flatMap(team => team.players.flatMap(x => x.user.id)).indexOf(localPlayer.user.id);
-                //OG.runCommand("(+! (-> *target* root trans x) (meters " + playerId * 3 + ".0))");
-            }
 
             //handle save & load
             let localPlayerTeam = localPlayer.getTeam();
