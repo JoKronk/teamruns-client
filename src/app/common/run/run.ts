@@ -44,8 +44,10 @@ export class Run {
         else {
             let runplayer = this.getPlayer(playerId);
             if (!runplayer) return;
-            if (team)
+            if (team) {
                 runplayer.state = PlayerState.Disconnected;
+                team.runIsValid = false;
+            }
             else
                 this.spectators = this.spectators.filter(x => x.user.id !== playerId);
         }
