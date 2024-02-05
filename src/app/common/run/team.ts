@@ -39,6 +39,7 @@ export class Team {
     resetForRun() {
         this.splits = [];
         this.runState = new RunStateHandler();
+        this.runIsValid = true;
 
         if (this.players.length === 0) return;
         this.players.forEach(player => {
