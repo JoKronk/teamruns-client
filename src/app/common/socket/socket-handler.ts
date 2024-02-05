@@ -152,7 +152,7 @@ export class SocketHandler {
     }
 
     addPlayerInteraction(interaction: UserInteractionData) {
-        const player = this.players.find(x => x.positionData.userId == interaction.userId);
+        const player = this.self.positionData.userId === interaction.userId ? this.self : this.players.find(x => x.positionData.userId == interaction.userId);
         if (!player || interaction.interType === InteractionType.none) return;
         player.interactionBuffer.push(InteractionData.getInteractionValues(interaction));
     }
@@ -328,6 +328,9 @@ export class SocketHandler {
         if (this.self) {
             if (this.self.hasInteractionUpdate()) this.self.positionData.resetCurrentInteraction();
             if (this.self.hasInfoUpdate()) this.self.positionData.resetCurrentInfo();
+
+            this.self.checkUpdateInteractionFromBuffer();
+            this.socketPackage.checkSetSelfInteraction(this.self.positionData.interaction);
         }
         this.players.forEach(player => {
             if (player.hasInteractionUpdate()) player.positionData.resetCurrentInteraction();
@@ -346,11 +349,8 @@ export class SocketHandler {
             this.socketPackage.command = this.socketCommandBuffer.shift();
         this.socketPackage.players = sendPlayers ? this.players.flatMap(x => x.positionData) : undefined;
         this.ogSocket.next(this.socketPackage);
-
-        this.socketPackage.controllerPort = undefined;
-        this.socketPackage.command = undefined;
-        this.socketPackage.selfInfo = undefined;
-        this.socketPackage.gameSettings = undefined;
+        
+        this.socketPackage.resetOneTimeValues();
     }
 
     private cleanupPlayers() {
@@ -380,14 +380,17 @@ export class SocketHandler {
                 const isNewTaskStatus: boolean = this.localTeam.runState.isNewTaskStatus(interaction);
                 
                 //check duped cell buy
-                if (positionData.userId === userId && Task.isCellWithCost(task.name) && this.localTeam && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution))
+                if (isSelfInteraction && Task.isCellWithCost(task.name) && this.localTeam && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution)) {
                     this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
+                    return;
+                }
 
                 //set players to act as ghosts on run end
-                if (isNewTaskStatus && Task.isRunEnd(interaction)) {
+                if (Task.isRunEnd(interaction)) {
                     const player = this.players.find(x => x.positionData.userId === positionData.userId);
                     if (player) player.positionData.mpState = MultiplayerState.active;
                 }
+
                 const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus));
                 if (isCell && isNewTaskStatus) { // end run split added in EndPlayerRun event
                     this.zone.run(() => {
@@ -395,27 +398,30 @@ export class SocketHandler {
                     });
                 }
                 this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
-                if (!isNewTaskStatus) break;
-
 
                 const playerTeam = this.run.getPlayerTeam(positionData.userId);
                 if (!playerTeam) break;
                 const isLocalPlayerTeam = playerTeam.id === this.localTeam.id;
-                
 
                 //handle none current user things
                 if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || isLocalPlayerTeam)) {
 
                     //task updates
-                    this.levelHandler.onInteraction(interaction);
+                    if (isNewTaskStatus)
+                        this.levelHandler.onInteraction(interaction);
 
                     //cell cost check
-                    if (isCell && isLocalPlayerTeam && (!this.run.isMode(RunMode.Lockout) || this.run.teams.length !== 1) && Task.cellCost(interaction) !== 0)
+                    if (isCell && isLocalPlayerTeam && (!this.run.isMode(RunMode.Lockout) || this.run.teams.length !== 1) && Task.cellCost(interaction) !== 0) {
+
                         this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
+                    }
                 }
+
+                if (!isNewTaskStatus) break;
                 
                 //add to team run state
-                playerTeam.runState.addTaskInteraction(interaction);
+                if (isSelfInteraction)
+                    playerTeam.runState.addTaskInteraction(interaction);
                 
                 break;
         
