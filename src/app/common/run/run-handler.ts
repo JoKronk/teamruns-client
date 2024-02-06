@@ -735,7 +735,7 @@ export class RunHandler {
         localPlayer.levelHandler.uncollectedLevelItems = new RunStateHandler();
         if (this.run.teams.length !== 0) {
             const importTeam: Team = playerTeam?.runState ? playerTeam : this.run.teams[0];
-            localPlayer.importRunStateHandler(importTeam.runState);
+            localPlayer.importRunStateHandler(importTeam.runState, true);
         }
     }
 
@@ -744,17 +744,9 @@ export class RunHandler {
         this.zone.run(() => {
             if (!this.run || this.isSpectatorOrNull(localPlayer.user.id) || localPlayer.state === PlayerState.Finished) return;
             
-            //!TODO: Fix desync check, currently broken
-            //if (this.localPlayer.gameState.cellCount !== state.cellCount)
-                //this.localPlayer.checkDesync(this.run, this.levelHandler, this.socketHandler);
-
             this.sendEvent(EventType.NewPlayerState, localPlayer.user.id, state);
             localPlayer.gameState = state;
-
-            //handle save & load
-            let localPlayerTeam = localPlayer.getTeam();
-            if (state.justLoaded && localPlayerTeam)
-                localPlayer.importRunStateHandler(localPlayerTeam.runState);
+            localPlayer.checkDesync(this.run!);
         })
     }
 

@@ -24,13 +24,6 @@ export class SocketPackage {
         this.players = undefined;
     }
 
-    checkSetSelfInteraction(interaction: InteractionData | undefined) { //currently only orb dupe interactions should be sent for local player
-        if (!interaction) return;
-
-        if (interaction.interType === InteractionType.money && interaction.interAmount < 0)
-            this.selfInteraction = interaction;
-    }
-
     resetOneTimeValues() {
         this.command = undefined;
         this.gameSettings = undefined;

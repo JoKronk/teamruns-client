@@ -180,14 +180,14 @@ export class SocketHandler {
             this.addCommand(OgCommand.None);
     }
 
-    addOrbReductionToCurrentPlayer(reductionAmount: number, level: string) {
+    addOrbAdjustmentToCurrentPlayer(adjustmentAmount: number, level: string | undefined = undefined) {
         const orbReductionInteraction: UserInteractionData = {
             interType: InteractionType.money,
-            interAmount: reductionAmount < 0 ? reductionAmount : -reductionAmount,
+            interAmount: adjustmentAmount,
             interStatus: 0,
             interName: "money",
             interParent: "entity-pool",
-            interLevel: level,
+            interLevel: level ?? "none",
             interCleanup: false,
             time: 0,
             userId: this.user.id
@@ -330,7 +330,7 @@ export class SocketHandler {
             if (this.self.hasInfoUpdate()) this.self.positionData.resetCurrentInfo();
 
             this.self.checkUpdateInteractionFromBuffer();
-            this.socketPackage.checkSetSelfInteraction(this.self.positionData.interaction);
+            this.socketPackage.selfInteraction = this.self.positionData.interaction; //should only be for handling orb dupes and syncing interaction
         }
         this.players.forEach(player => {
             if (player.hasInteractionUpdate()) player.positionData.resetCurrentInteraction();
@@ -366,7 +366,7 @@ export class SocketHandler {
     
 
     handlePlayerInteractions(positionData: CurrentPositionData) {
-        if (!positionData.interaction || positionData.interaction.interType === InteractionType.none || !this.run) return;
+        if (!positionData.interaction || positionData.interaction.interType === InteractionType.none || positionData.interaction.interCleanup || !this.run) return;
         const userId = this.user.id;
         const interaction = UserInteractionData.fromInteractionData(positionData.interaction, positionData.userId);
         const isSelfInteraction: boolean = positionData.userId === userId;
@@ -381,7 +381,7 @@ export class SocketHandler {
                 
                 //check duped cell buy
                 if (isSelfInteraction && Task.isCellWithCost(task.name) && this.localTeam && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution)) {
-                    this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
+                    this.addOrbAdjustmentToCurrentPlayer(-(Task.cellCost(interaction)), interaction.interLevel);
                     return;
                 }
 
@@ -413,7 +413,7 @@ export class SocketHandler {
                     //cell cost check
                     if (isCell && isLocalPlayerTeam && (!this.run.isMode(RunMode.Lockout) || this.run.teams.length !== 1) && Task.cellCost(interaction) !== 0) {
 
-                        this.addOrbReductionToCurrentPlayer(Task.cellCost(interaction), interaction.interLevel);
+                        this.addOrbAdjustmentToCurrentPlayer(-(Task.cellCost(interaction)), interaction.interLevel);
                     }
                 }
 
@@ -440,18 +440,22 @@ export class SocketHandler {
                 if (!this.localTeam) break;
                 
                 let teamOrbLevelState = this.localTeam.runState.getCreateLevel(interaction.interLevel);
-                if (this.localTeam.runState.isOrbDupe(interaction, teamOrbLevelState)) {
+                if (this.localTeam.runState.isOrbDupe(interaction, interaction.userId === this.user.id, teamOrbLevelState)) {
                     if (isSelfInteraction)
-                        this.addOrbReductionToCurrentPlayer(-1, interaction.interLevel);
+                        this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
                     else if (!interaction.interCleanup)
                         positionData.resetCurrentInteraction();
+                    break;
+                }
+                if (this.localTeam.runState.isFalseOrb(interaction)) {
+                    positionData.resetCurrentInteraction();
                     break;
                 }
                 if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
                     this.levelHandler.onInteraction(interaction);
                 
                 if (isSelfInteraction)
-                    this.run.getPlayerTeam(positionData.userId)?.runState.addOrbInteraction(interaction, teamOrbLevelState);
+                    this.localTeam.runState.addOrbInteraction(interaction, teamOrbLevelState);
                 break;
         
 

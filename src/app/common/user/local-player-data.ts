@@ -29,8 +29,8 @@ export class LocalPlayerData {
     this.socketHandler = new SocketHandler(port, user, this.levelHandler, this.team, zone, importedTimer);
   }
 
-  importRunStateHandler(runStateHandler: RunStateHandler) {
-    this.levelHandler.importRunStateHandler(runStateHandler, this.socketHandler, this.gameState.orbCount);
+  importRunStateHandler(runStateHandler: RunStateHandler, hardReset: boolean = false) {
+    this.levelHandler.importRunStateHandler(runStateHandler, this.socketHandler, this.gameState.orbCount, hardReset);
   }
 
   getTeam(): Team | undefined {
@@ -47,31 +47,44 @@ export class LocalPlayerData {
 
 
   checkDesync(run: Run) {
-    if (this.isSyncing) return;
     if (!this.team) this.team = run.getPlayerTeam(this.user.id);
-    if (!this.team) return;
+    if (!this.team || this.isInSync(run) || this.isSyncing) return;
 
-    if (this.team.runState.cellCount > this.gameState.cellCount || (run.isMode(RunMode.Lockout) && run.teams.reduce((a, b) => a + (b.runState.cellCount || 0), 0) > this.gameState.cellCount)) {
 
-      this.isSyncing = true;
-      setTimeout(() => {  //give the player some time to spawn in
-        if (!run.isMode(RunMode.Lockout)) {
-          this.importRunStateHandler(this.team!.runState);
-        }
-        else {
-          run.teams.forEach(runTeam => {
-            this.importRunStateHandler(runTeam.runState);
-          });
-        }
+    this.isSyncing = true;
+    setTimeout(() => {  //give the player some time to catch up if false positive
+      if (this.isInSync(run)) {
+        this.isSyncing = false;
+        return;
+      }
 
-        setTimeout(() => {
-          this.isSyncing = false;
-        }, 1000);
-      }, 300);
+      if (!run.isMode(RunMode.Lockout))
+        this.importRunStateHandler(this.team!.runState);
+      else {
+        run.teams.forEach(runTeam => {
+          this.importRunStateHandler(runTeam.runState);
+        });
+      }
+
+      setTimeout(() => {
+        this.isSyncing = false;
+      }, 500);
+    }, 1000);
     }
-    //thought of adding a check for if you have more cells than others but this would instantly mess up a run for everyone 
-    //if you accidentally loaded a file with more cells than the run in it, and even though low I think the chance for that is higher than a desync this way
 
+  private isInSync(run: Run): boolean {
+    if (!this.team) return true;
+    
+    if (this.team.runState.cellCount > this.gameState.cellCount || (run.isMode(RunMode.Lockout) && run.teams.reduce((a, b) => a + (b.runState.cellCount || 0), 0) > this.gameState.cellCount))
+    return false;
+    
+    if (this.team.runState.buzzerCount > this.gameState.buzzerCount || (run.isMode(RunMode.Lockout) && run.teams.reduce((a, b) => a + (b.runState.buzzerCount || 0), 0) > this.gameState.buzzerCount))
+    return false;
+
+    if (this.team.runState.orbCount > this.gameState.orbCount || (run.isMode(RunMode.Lockout) && run.teams.reduce((a, b) => a + (b.runState.orbCount || 0), 0) > this.gameState.orbCount))
+    return false;
+
+    return true;
   }
 
   onDestroy(): void {

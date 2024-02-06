@@ -95,28 +95,69 @@ export class RunStateHandler {
     }
 
 
-    isOrbDupe(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined): boolean {
+    isFalseOrb(interaction: UserInteractionData): boolean {
+        return interaction.interType === InteractionType.money && interaction.interName === "money" && interaction.interParent === "entity-pool" && interaction.interLevel === "none";
+    }
+
+    isOrbDupe(interaction: UserInteractionData, selfInteraction: boolean, level: LevelInteractions | undefined = undefined): boolean {
         if (!level)
             level = this.getCreateLevel(interaction.interLevel);
 
-        if (interaction.interParent.startsWith("orb-cache-top-"))
-            return 15 < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
+        if (interaction.interParent.startsWith("orb-cache-top-")) {
+            let orbAmount = (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
+            if (selfInteraction) orbAmount += 1; //since index is 0 if it's the collector and +1 when relayed to other players, could be done in a better way though
+            return this.getOrbCacheAmount(interaction.interParent) < orbAmount;
+        }
         else if (interaction.interParent.startsWith("crate-")) {
             let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x.interType) && x.interName === interaction.interParent);
-            if (parentCrate) 
-                return parentCrate.interAmount < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
+            if (parentCrate) {
+                let orbAmount = (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
+                if (selfInteraction) orbAmount += 1;
+                return parentCrate.interAmount < orbAmount;
+            }
             return false;
         }
         else if (interaction.interParent.startsWith("gnawer-")) {
             let parentGnawer = level.interactions.find(x => x.interType === InteractionType.enemyDeath && x.interName === interaction.interParent);
-            if (parentGnawer) 
-                return parentGnawer.interAmount < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
+            if (parentGnawer) {
+                let orbAmount = (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
+                if (selfInteraction) orbAmount += 1;
+                return parentGnawer.interAmount < orbAmount;
+            }
             return false;
         }
-        else if (interaction.interParent.startsWith("plant-boss-"))
-            return 5 < (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
+        else if (interaction.interParent.startsWith("plant-boss-")) {
+            let orbAmount = (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
+            if (selfInteraction) orbAmount += 1;
+            return 5 < orbAmount;
+        }
         else {
             return level.interactions.find(x => x.interType === InteractionType.money && x.interName === interaction.interName && x.userId !== interaction.userId) !== undefined; 
+        }
+    }
+
+    private getOrbCacheAmount(name: string) {
+        switch (name) {
+            case "orb-cache-top-31": //citadel
+            case "orb-cache-top-32":
+            case "orb-cache-top-33":
+                return 30;
+            case "orb-cache-top-7": //jungle
+            case "orb-cache-top-14": //village2
+                return 20;
+            case "orb-cache-top-4": //sandover
+            case "orb-cache-top-15": //misty
+            case "orb-cache-top-28": //snowy
+            case "orb-cache-top-29":
+            case "orb-cache-top-30":
+                return 15;
+            case "orb-cache-top-24": //beach
+            case "orb-cache-top-25":
+            case "orb-cache-top-26": //lpc
+            case "orb-cache-top-27":
+                return 10;
+            default:
+                return 15;
         }
     }
 }

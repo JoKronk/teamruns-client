@@ -17,58 +17,62 @@ export class LevelHandler {
 
     }
 
-    importRunStateHandler(runStateHandler: RunStateHandler, socketHandler: SocketHandler, orbCount: number) {
+    importRunStateHandler(runStateHandler: RunStateHandler, socketHandler: SocketHandler, orbCount: number, hardReset: boolean) {
+        
+        this.uncollectedLevelItems = new RunStateHandler();
 
         //reset game
-        socketHandler.addCommand(OgCommand.ResetGame);
+        if (hardReset) socketHandler.addCommand(OgCommand.ResetGame);
 
         //import task statuses to game
         runStateHandler.tasksStatuses.forEach(interaction => {
-            this.onInteraction(interaction);
+            this.resendCommonInteraction(interaction, socketHandler);
         });
-          
-        socketHandler.addCommand(OgCommand.ResetActors);
-
 
         //update collectables
         runStateHandler.levels.forEach(level => {
 
             level.interactions.filter(x => x.interType == InteractionType.crateNormal || x.interType == InteractionType.crateIron || x.interType == InteractionType.crateSteel || x.interType == InteractionType.crateDarkeco).forEach(interaction => {
-                this.onInteraction(interaction);
+                this.resendCommonInteraction(interaction, socketHandler);
             });
 
             level.interactions.filter(x => x.interType == InteractionType.buzzer).forEach(interaction => {
-                this.onInteraction(interaction);
+                this.resendCommonInteraction(interaction, socketHandler);
             });
 
             level.interactions.filter(x => x.interType == InteractionType.money).forEach(interaction => {
-                this.onInteraction(interaction);
+                this.resendCommonInteraction(interaction, socketHandler);
             });
 
             level.interactions.filter(x => x.interType == InteractionType.enemyDeath).forEach(interaction => {
-                this.onInteraction(interaction);
+                this.resendCommonInteraction(interaction, socketHandler);
             });
 
             level.interactions.filter(x => x.interType == InteractionType.periscope).forEach(interaction => {
-                this.onInteraction(interaction);
+                this.resendCommonInteraction(interaction, socketHandler);
             });
 
             level.interactions.filter(x => x.interType == InteractionType.snowBumper).forEach(interaction => {
-                this.onInteraction(interaction);
+                this.resendCommonInteraction(interaction, socketHandler);
             });
 
             level.interactions.filter(x => x.interType == InteractionType.darkCrystal).forEach(interaction => {
-                this.onInteraction(interaction);
+                this.resendCommonInteraction(interaction, socketHandler);
             });
             
             level.interactions.filter(x => x.interType == InteractionType.lpcChamber).forEach(interaction => {
+                socketHandler.addPlayerInteraction(interaction);
                 this.onLpcChamberStop(interaction);
             });
         
             const orbAdjustCount = runStateHandler.orbCount - orbCount;
-
-
+            socketHandler.addOrbAdjustmentToCurrentPlayer(orbAdjustCount);
         });
+    }
+
+    private resendCommonInteraction(interaction: UserInteractionData, socketHandler: SocketHandler) {
+        socketHandler.addPlayerInteraction(interaction);
+        this.onInteraction(interaction);
     }
     
 
