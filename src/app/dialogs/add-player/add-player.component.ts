@@ -83,9 +83,8 @@ export class AddPlayerComponent {
   startNewLocalGame() {
     this.phase = 3;
     this.port = this._user.launchNewLocalPlayer();
-    this.localPlayer = new LocalPlayerData(this.user, this.port, this.zone, this.timer);
     this.controller = this._user.getLastNewLocalPlayerDefaultController();
-    this.localPlayer.socketHandler.changeController(this.controller);
+    this.localPlayer = new LocalPlayerData(this.user, this.port, this.zone, this.timer, this.controller);
   }
 
   confirm() {

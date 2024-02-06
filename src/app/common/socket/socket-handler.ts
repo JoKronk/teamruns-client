@@ -47,7 +47,7 @@ export class SocketHandler {
     private connectionAttempts: number;
 
 
-    constructor(public socketPort: number, public user: User, public levelHandler: LevelHandler, public localTeam: Team | undefined, public zone: NgZone, private importedTimer: Timer | undefined = undefined) {
+    constructor(public socketPort: number, public user: User, public levelHandler: LevelHandler, public localTeam: Team | undefined, public zone: NgZone, private importedTimer: Timer | undefined = undefined, controllerPort: number | undefined = undefined) {
         this.ogSocket = webSocket('ws://localhost:' + socketPort);
         if (importedTimer)
             this.timer = importedTimer;
@@ -58,12 +58,17 @@ export class SocketHandler {
         if (this.user.gameLaunched)
             this.connectToOpengoal();
 
+        if (controllerPort)
+            this.changeController(controllerPort);
+
         this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
             if (port == this.socketPort) {
                 this.socketConnected = true;
                 this.connectionAttempts = 0;
                 this.user.gameLaunched = true;
                 this.connectToOpengoal();
+                if (this.user.controllerPort === undefined)
+                    this.changeController(0);
             }
 
         });

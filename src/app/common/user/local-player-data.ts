@@ -24,9 +24,9 @@ export class LocalPlayerData {
   socketHandler: SocketHandler;
   levelHandler: LevelHandler = new LevelHandler();
 
-  constructor(user: User, port: number, zone: NgZone, private importedTimer: Timer | undefined = undefined) {
+  constructor(user: User, port: number, zone: NgZone, private importedTimer: Timer | undefined = undefined, controllerPort: number | undefined = undefined) {
     this.user = user;
-    this.socketHandler = new SocketHandler(port, user, this.levelHandler, this.team, zone, importedTimer);
+    this.socketHandler = new SocketHandler(port, user, this.levelHandler, this.team, zone, importedTimer, controllerPort);
   }
 
   importRunStateHandler(runStateHandler: RunStateHandler, hardReset: boolean = false) {
