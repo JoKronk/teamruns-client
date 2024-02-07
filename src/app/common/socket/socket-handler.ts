@@ -193,7 +193,7 @@ export class SocketHandler {
             interName: "money",
             interParent: "entity-pool",
             interLevel: level ?? "none",
-            interCleanup: false,
+            interCleanup: true, //to make sure it does not run through player interaction handler
             time: 0,
             userId: this.user.id
         };
