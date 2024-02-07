@@ -13,12 +13,17 @@ export class RunStateHandler {
     buzzerCount: number;
     orbCount: number;
 
+    //exists to mark when all orbs are collected from a collection of orbs,
+    //since if we just check by orb count and p1 picks up the last orb the orb count will be completed but p2 won't now know if the orb he's getting is a duped orb or the last one
+    completedOrbGroups: string[]; 
+
     constructor() {
         this.levels = [];
         this.tasksStatuses = [];
         this.cellCount = 0;
         this.buzzerCount = 0;
         this.orbCount = 0;
+        this.completedOrbGroups = [];
     }
 
     isNewTaskStatus(interaction: InteractionData): boolean {
@@ -80,6 +85,37 @@ export class RunStateHandler {
             level = this.getCreateLevel(interaction.interLevel);
     
         this.pushLevelCleanupInteraction(level, interaction);
+
+        if (interaction.interParent.startsWith("orb-cache-top-")) {
+            if (this.completedOrbGroups.includes(interaction.interParent)) return;
+
+            if (this.getOrbCacheAmount(interaction.interParent) <= (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                this.completedOrbGroups.push(interaction.interParent);
+        }
+
+        else if (interaction.interParent.startsWith("crate-")) {
+            if (this.completedOrbGroups.includes(interaction.interParent)) return;
+
+            let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x.interType) && x.interName === interaction.interParent);
+            if (parentCrate && parentCrate.interAmount <= (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                this.completedOrbGroups.push(interaction.interParent);
+        }
+
+        else if (interaction.interParent.startsWith("gnawer-")) {
+            if (this.completedOrbGroups.includes(interaction.interParent)) return;
+
+            let parentGnawer = level.interactions.find(x => x.interType === InteractionType.enemyDeath && x.interName === interaction.interParent);
+            if (parentGnawer && parentGnawer.interAmount <= (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                this.completedOrbGroups.push(interaction.interParent);
+        }
+
+        else if (interaction.interParent.startsWith("plant-boss-")) {
+            if (this.completedOrbGroups.includes(interaction.interParent)) return;
+
+            if (5 <= (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                this.completedOrbGroups.push(interaction.interParent);
+        }
+
         if (!interaction.interCleanup)
             this.orbCount += 1;
     }
@@ -99,41 +135,23 @@ export class RunStateHandler {
         return interaction.interType === InteractionType.money && interaction.interName === "money" && interaction.interParent === "entity-pool" && interaction.interLevel === "none";
     }
 
-    isOrbDupe(interaction: UserInteractionData, selfInteraction: boolean, level: LevelInteractions | undefined = undefined): boolean {
+    isOrbDupeFromCollection(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined): boolean {
         if (!level)
             level = this.getCreateLevel(interaction.interLevel);
 
-        if (interaction.interParent.startsWith("orb-cache-top-")) {
-            let orbAmount = (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
-            if (selfInteraction) orbAmount += 1; //since index is 0 if it's the collector and +1 when relayed to other players, could be done in a better way though
-            return this.getOrbCacheAmount(interaction.interParent) < orbAmount;
-        }
-        else if (interaction.interParent.startsWith("crate-")) {
-            let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x.interType) && x.interName === interaction.interParent);
-            if (parentCrate) {
-                let orbAmount = (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
-                if (selfInteraction) orbAmount += 1;
-                return parentCrate.interAmount < orbAmount;
-            }
-            return false;
-        }
-        else if (interaction.interParent.startsWith("gnawer-")) {
-            let parentGnawer = level.interactions.find(x => x.interType === InteractionType.enemyDeath && x.interName === interaction.interParent);
-            if (parentGnawer) {
-                let orbAmount = (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
-                if (selfInteraction) orbAmount += 1;
-                return parentGnawer.interAmount < orbAmount;
-            }
-            return false;
-        }
-        else if (interaction.interParent.startsWith("plant-boss-")) {
-            let orbAmount = (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length);
-            if (selfInteraction) orbAmount += 1;
-            return 5 < orbAmount;
-        }
-        else {
+        return (interaction.interName === "money" || interaction.interName === "") && interaction.interParent !== undefined && this.completedOrbGroups.includes(interaction.interParent);
+    }
+
+    isOrbDupe(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined): boolean {
+        if (!level)
+            level = this.getCreateLevel(interaction.interLevel);
+
+        if (this.isOrbDupeFromCollection(interaction, level))
+            return true;
+        else if (interaction.interName.startsWith("money-")) {
             return level.interactions.find(x => x.interType === InteractionType.money && x.interName === interaction.interName && x.userId !== interaction.userId) !== undefined; 
         }
+        return false;
     }
 
     private getOrbCacheAmount(name: string) {

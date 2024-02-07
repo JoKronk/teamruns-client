@@ -445,7 +445,7 @@ export class SocketHandler {
                 if (!this.localTeam) break;
                 
                 let teamOrbLevelState = this.localTeam.runState.getCreateLevel(interaction.interLevel);
-                if (this.localTeam.runState.isOrbDupe(interaction, interaction.userId === this.user.id, teamOrbLevelState)) {
+                if (this.localTeam.runState.isOrbDupe(interaction, teamOrbLevelState) && this.levelHandler.uncollectedLevelItems.isOrbDupeFromCollection(interaction, teamOrbLevelState)) {
                     if (isSelfInteraction)
                         this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
                     else if (!interaction.interCleanup)
@@ -461,6 +461,10 @@ export class SocketHandler {
                 
                 if (isSelfInteraction)
                     this.localTeam.runState.addOrbInteraction(interaction, teamOrbLevelState);
+
+                //push orb collection completion to levelHandler to mark that it's completed for this specific user (to avoid p1 completing the collection and p2 not getting the last orb due to the dupe check above, levelHandler should otherwise not be used for permanent data check !TODO: do this in a better way maybe)
+                if ((interaction.interName === "money" || interaction.interName === "") && this.localTeam.runState.completedOrbGroups.includes(interaction.interParent) && !this.levelHandler.uncollectedLevelItems.completedOrbGroups.includes(interaction.interParent))
+                    this.levelHandler.uncollectedLevelItems.completedOrbGroups.push(interaction.interParent);
                 break;
         
 
