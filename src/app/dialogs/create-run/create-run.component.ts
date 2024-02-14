@@ -42,6 +42,13 @@ export class CreateRunComponent {
     this.dialogRef.close();
   }
 
+  createOfflineRun() {
+    this.runData.buildVersion = pkg.version;
+    this._user.offlineSettings = this.runData;
+    this.router.navigate(['/run']);
+    this.dialogRef.close();
+  }
+
   async getPreset() {
     this.tournamentPreset = await this._firestore.getPreset("tournament") ?? new Preset(this.runData);
   }

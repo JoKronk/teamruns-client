@@ -91,7 +91,8 @@ export class RunHandler {
         }
         //local lobby
         else {
-            this.lobby = new Lobby(RunData.getFreeroamSettings(pkg.version), this.userService.getId(), null);
+            this.lobby = new Lobby(this.userService.offlineSettings ?? RunData.getFreeroamSettings(pkg.version), this.userService.getId(), null);
+            this.userService.offlineSettings = undefined;
 
             //create run if it doesn't exist
             if (!this.run)
@@ -153,7 +154,7 @@ export class RunHandler {
     }
 
 
-    async onLobbyChange() {
+    private async onLobbyChange() {
         const userId = this.userService.getId();
         if (!this.lobby) return;
 
@@ -290,8 +291,9 @@ export class RunHandler {
                         localPlayer.updateTeam(this.run?.getPlayerTeam(this.userService.getId()));
                     }
                 });
+                this.onLobbyChange();
     
-            }, 1000);
+            }, 300);
         }
 
 

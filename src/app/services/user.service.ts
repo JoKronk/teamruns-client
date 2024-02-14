@@ -5,6 +5,7 @@ import { User } from '../common/user/user';
 import { Router } from '@angular/router';
 import { OG } from '../common/opengoal/og';
 import { LocalPlayerData } from '../common/user/local-player-data';
+import { RunData } from '../common/run/run-data';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +17,7 @@ export class UserService implements OnDestroy {
   localUsers: LocalPlayerData[] = [];
   
   viewSettings: boolean = false;
+  offlineSettings: RunData | undefined;
   private secondaryPortsInUse: number[] = [];
 
   isBrowser: boolean;

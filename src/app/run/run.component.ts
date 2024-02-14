@@ -43,9 +43,8 @@ export class RunComponent implements OnDestroy {
     //on parameter get (was swapped from route as electon had issues getting routes containing more than one (/) path)
     this.route.queryParamMap.subscribe((params) => {
       let runId = params.get('id');
-      if (!runId) return;
 
-      this.runHandler = new RunHandler(runId, firestoreService, _user, this.localPlayers, dialog, zone);
+      this.runHandler = new RunHandler(runId ?? undefined, firestoreService, _user, this.localPlayers, dialog, zone);
     });
   }
 
