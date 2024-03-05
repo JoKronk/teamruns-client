@@ -18,6 +18,7 @@ export class UserBase {
 export class User extends UserBase {
     ogFolderpath: string = "";
     displayName: string;
+    saveRecordingsLocally: boolean = true;
     hasSignedIn: boolean = false;
     
     gameLaunched: boolean = false;
@@ -53,6 +54,7 @@ export class User extends UserBase {
         this.name = user.name;
         this.ogFolderpath = user.ogFolderpath;
         this.displayName = user.displayName;
+        this.saveRecordingsLocally = user.saveRecordingsLocally;
         this.hasSignedIn = user.hasSignedIn;
     }
 }

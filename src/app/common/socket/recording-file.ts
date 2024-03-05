@@ -1,20 +1,24 @@
 import { RecordingPositionData } from "./position-data";
+import { Recording } from "./recording";
 
 export class RecordingFile {
     version: string;
+    displayName: string;
     playback: RecordingPositionData[] = [];
 
-    constructor (version: string, playback: RecordingPositionData[]) {
+    constructor (version: string, playback: RecordingPositionData[], displayName?: string) {
         this.version = version;
         this.playback = playback;
+        this.displayName = displayName ?? "Unknown";
     }
 }
 
 export class DbRecordingFile extends RecordingFile {
     userId: string;
 
-    constructor(userId: string, version: string, playback: RecordingPositionData[]) {
-        super(version, playback);
-        this.userId = userId;
+    constructor(version: string, recording: Recording, displayName?: string) {
+        recording.formatPlayback();
+        super(version, recording.playback, displayName);
+        this.userId = recording.userId;
     }
 }

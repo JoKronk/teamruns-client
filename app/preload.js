@@ -11,6 +11,8 @@ const validIpcChannelsIn = [
     "settings-write",
     "settings-select-path",
     "settings-reset-size",
+    "recordings-write",
+    "recordings-open",
     "update-check",
     "update-install"
 ];

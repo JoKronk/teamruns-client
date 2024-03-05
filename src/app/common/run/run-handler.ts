@@ -534,11 +534,22 @@ export class RunHandler {
                     if (Task.isRunEnd(event.value))
                         this.run!.addSplit(new Task(event.value));
 
-                    this.run?.endPlayerRun(event.userId, event.value.name === Task.forfeit);
-                    this.run?.isMode(RunMode.Lockout) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
+                    if (!this.run) return;
 
-                    this.run?.checkRunEndValid();
-                    if (this.isOnlineInstant && this.run && this.run.teams.some(x => x.runIsValid)) {
+                    this.run.endPlayerRun(event.userId, event.value.name === Task.forfeit);
+                    this.run.isMode(RunMode.Lockout) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
+                    
+                    let players: Player[] = this.run.getAllPlayers();
+                    let recordings: DbRecordingFile[] = [];
+                    this.getMainLocalPlayer().socketHandler.resetGetRecordings().forEach(recording => {
+                        recordings.push(new DbRecordingFile(pkg.version, recording, players.find(x => x.user.id === recording.userId)?.user.name));
+                    });
+                    
+                    if (this.userService.user.saveRecordingsLocally)
+                        (window as any).electron.send('recordings-write', recordings);
+
+                    this.run.checkRunEndValid();
+                    if (this.isOnlineInstant && this.run.teams.some(x => x.runIsValid)) {
 
                         if (isMaster) {
                             let run: DbRun = DbRun.convertToFromRun(this.run);
@@ -551,11 +562,6 @@ export class RunHandler {
                                     this.firestoreService.addRun(run); 
                                 // add pb & leadeboard data if all players are signed in
                                 if (players.every(player => collection.users.find(user => user.id === player.user.id))) {
-                                    let recordings: DbRecordingFile[] = [];
-                                    this.getMainLocalPlayer().socketHandler.resetGetRecordings().forEach(recording => {
-                                        recording.formatPlayback();
-                                        recordings.push(new DbRecordingFile(recording.userId, pkg.version, recording.playback))
-                                      });
                                     let pbUsers: Map<string, string[]> = run.checkUploadPbs(this.firestoreService, recordings);
                                     if (pbUsers.size !== 0)
                                         this.sendEventAsMain(EventType.NewPb, pbUsers);

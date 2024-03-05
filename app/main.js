@@ -116,6 +116,14 @@ function createWindow() {
     userSettings.window.x  = 10;
     userSettings.window.y = 10;
   });
+
+  ipcMain.on('recordings-write', (event, recordings) => {
+    writeRecordings(recordings);
+  });
+
+  ipcMain.on('recordings-open', () => {
+    openRecordings();
+  });
     
   ipcMain.on('window-minimize', () => {
     win.minimize();
@@ -202,6 +210,35 @@ function readSettings() {
       userSettings = user;
     }
   });
+}
+
+function getRecPath() {
+  const recPath = path.join(app.getPath('documents'), "Teamruns", "Recordings");
+  if (!fs.existsSync(recPath))
+    fs.mkdirSync(recPath, { recursive: true });
+  
+  return recPath;
+}
+
+function writeRecordings(recordings) {
+  const folderPath = path.join(getRecPath(), new Date().toISOString().split(".")[0].replace(/[T:]/g, '-').slice(0, -3));
+  if (!fs.existsSync(folderPath))
+    fs.mkdirSync(folderPath, { recursive: true });
+
+  recordings.forEach(recording => {
+    recording.userId = undefined;
+    fs.writeFile(path.join(folderPath, recording.displayName + ".json"), JSON.stringify(recording), (err) => {
+      if (err) sendClientMessage(err.message);
+    });
+  });
+}
+
+function openRecordings() {
+  const recPath = getRecPath();
+  if (!fs.existsSync(recPath))
+    fs.mkdirSync(recPath, { recursive: true });
+    
+  require('child_process').exec('start "" ' + recPath);
 }
 
 function readFile(filepath) {

@@ -83,7 +83,7 @@ export class PracticeComponent implements OnDestroy {
       const recording: Recording = new Recording(crypto.randomUUID());
       recording.userId = recording.id;
       recording.playback = data.playback;
-      recording.fillFrontendValues(this.imports[0].name);
+      recording.fillFrontendValues(data.displayName ?? this.imports[0].name);
       this.nextRecordingId += 1;
       this.recordings.push(recording);
       this.zone.run(() => {

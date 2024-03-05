@@ -26,10 +26,9 @@
     &-side {
         position: relative;
         flex: 2;
-        margin-top: 40px;
         margin-left: 16px;
 
-        p {
+        span {
             margin: 4px 4px 2px;
             color: #cccccc;
             font-size: 18px;
@@ -97,6 +96,21 @@
     }
 }
 
+.pointer {
+    cursor: pointer;
+    -webkit-user-select: none;
+}
+
+::ng-deep .mat-mdc-slide-toggle.mat-mdc-slide-toggle-checked:not(.mat-disabled) .mdc-switch__shadow {
+    background-color: #d49012;
+    /*replace with your color*/
+  }
+  
+  ::ng-deep .mat-mdc-slide-toggle.mat-mdc-slide-toggle-checked:not(.mat-disabled) .mdc-switch__track::after {
+    background-color: #a56d06 !important;
+    /*replace with your color*/
+  }
+
 .backtext {
     transition: 0.4s;
     -webkit-user-select: none;
@@ -105,7 +119,7 @@
     font-family: 'precursor';
     font-size: 80px;
     position: absolute;
-    top: 140px;
+    top: 170px;
     right:-190px;
     z-index: -1;
     color: rgba(61, 61, 61, 0.9);

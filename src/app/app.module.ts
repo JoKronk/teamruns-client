@@ -16,6 +16,7 @@ import {MatTableModule} from '@angular/material/table';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatSliderModule} from '@angular/material/slider';
 import {MatMenuModule} from '@angular/material/menu';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 
 import { NavBoardComponent } from './nav-board/nav-board.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
@@ -95,6 +96,7 @@ import { PbCommentDialogComponent } from './dialogs/pb-comment-dialog/pb-comment
     MatButtonToggleModule,
     MatSliderModule,
     MatMenuModule,
+    MatSlideToggleModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule,
     AngularFireAuthModule

@@ -31,6 +31,10 @@ export class UserSettingsComponent implements OnDestroy {
     (window as any).electron.send('settings-select-path');
   }
 
+  openRecordings() {
+    (window as any).electron.send('recordings-open');
+  }
+
   setPathListener() {
     this.pathListener = (window as any).electron.receive("settings-get-path", (path: string) => {
       this.zone.run(() => {

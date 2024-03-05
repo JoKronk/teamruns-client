@@ -21,7 +21,7 @@ export class Recording {
 
     exportRecordingToBlob(version: string) : Blob {
         this.formatPlayback();
-        const recFile: RecordingFile = new RecordingFile(version, this.playback);
+        const recFile: RecordingFile = new RecordingFile(version, this.playback, this.nameFrontend);
         const fileData = JSON.stringify(recFile);
         return new Blob([fileData], {type: "text/plain"});
     }
