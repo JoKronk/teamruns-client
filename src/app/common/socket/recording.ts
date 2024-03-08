@@ -132,3 +132,11 @@ export class Recording {
         this.nameFrontend = undefined;
     }
 }
+
+export class SelectableRecording extends Recording {
+    selected: boolean = true;
+
+    constructor(userId: string) {
+        super(userId);
+    }
+}

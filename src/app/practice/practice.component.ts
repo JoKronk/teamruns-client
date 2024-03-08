@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, NgZone, OnDestroy } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { UserService } from '../services/user.service';
-import { Recording } from '../common/socket/recording';
+import { Recording, SelectableRecording } from '../common/socket/recording';
 import { UserBase } from '../common/user/user';
 import { RunState } from '../common/run/run-state';
 import { RecordingImport } from '../common/socket/recording-import';
@@ -49,8 +49,8 @@ export class PracticeComponent implements OnDestroy {
 
   //recordings
   imports: RecordingImport[] = [];
-  recordings: Recording[] = [];
-  dataSource: MatTableDataSource<Recording> = new MatTableDataSource(this.recordings);
+  recordings: SelectableRecording[] = [];
+  dataSource: MatTableDataSource<SelectableRecording> = new MatTableDataSource(this.recordings);
   columns: string[] = ["player", "name", "time", "options"];
 
   //handlers
@@ -80,7 +80,7 @@ export class PracticeComponent implements OnDestroy {
         return;
       }
 
-      const recording: Recording = new Recording(crypto.randomUUID());
+      const recording: SelectableRecording = new SelectableRecording(crypto.randomUUID());
       recording.userId = recording.id;
       recording.playback = data.playback;
       recording.fillFrontendValues(data.displayName ?? this.imports[0].name);
@@ -143,7 +143,8 @@ export class PracticeComponent implements OnDestroy {
       if (saveRecording) {
         recording.fillFrontendValues("Rec-" + this.nextRecordingId);
         this.nextRecordingId += 1;
-        this.recordings.push(recording);
+        (recording as SelectableRecording).selected = true;
+        this.recordings.push(recording as SelectableRecording);
       }
     });
     this.dataSource = new MatTableDataSource(this.recordings);
@@ -219,7 +220,7 @@ export class PracticeComponent implements OnDestroy {
 
   playAllRecordings(selfStop: boolean = true) {
     if (this.stopPlaybackIfIsRunning()) return;
-    this.startPlayback(this.recordings, selfStop);
+    this.startPlayback(this.recordings.filter(x => x.selected), selfStop);
   }
 
   startPlayback(giveRecordings: Recording[], selfStop: boolean) {
