@@ -12,6 +12,7 @@ export class SocketPackage {
     selfInteraction: InteractionData | undefined;
     controllerPort: number | undefined;
     username: string | undefined;
+    version: string | undefined;
     players: CurrentPositionData[] | undefined;
 
     constructor() {
@@ -21,6 +22,7 @@ export class SocketPackage {
         this.selfInteraction = undefined;
         this.controllerPort = undefined;
         this.username = undefined;
+        this.version = undefined;
         this.players = undefined;
     }
 
@@ -30,5 +32,6 @@ export class SocketPackage {
         this.selfInfo = undefined;
         this.selfInteraction = undefined;
         this.controllerPort = undefined;
+        this.version = undefined;
     }
 }

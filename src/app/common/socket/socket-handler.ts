@@ -23,6 +23,7 @@ import { OgCommand } from "./og-command";
 import { GameSettings } from "./game-settings";
 import { Team } from "../run/team";
 import { OG } from "../opengoal/og";
+import pkg from 'app/package.json';
 
 export class SocketHandler {
 
@@ -102,6 +103,7 @@ export class SocketHandler {
 
             if (target.connected) {
                 this.socketConnected = true;
+                this.socketPackage.version = pkg.version;
                 this.socketPackage.username = this.user.displayName;
                 console.log("Socket Connected!");
                 this.addCommand(OgCommand.None); //send empty message to update username
