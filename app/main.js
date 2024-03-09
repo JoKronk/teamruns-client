@@ -88,6 +88,10 @@ function createWindow() {
     openGoal.startOG(port);
   });
 
+  ipcMain.on('og-close-game', (event, port) => {
+    openGoal.killGK(port);
+  });
+
   ipcMain.on('og-command', (event, command) => {
     openGoal.writeGoalCommand(command);
   });

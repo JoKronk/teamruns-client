@@ -9,6 +9,7 @@ import { LevelHandler } from "../level/level-handler";
 import { NgZone } from "@angular/core";
 import { RunStateHandler } from "../level/run-state-handler";
 import { Timer } from "../run/timer";
+import { OG } from "../opengoal/og";
 
 export class LocalPlayerData {
   user: User;
@@ -88,6 +89,9 @@ export class LocalPlayerData {
   }
 
   onDestroy(): void {
+    if (OG.mainPort !== this.socketHandler.socketPort)
+      (window as any).electron.send('og-close-game', this.socketHandler.socketPort);
+    
     this.socketHandler.onDestroy();
   }
 }

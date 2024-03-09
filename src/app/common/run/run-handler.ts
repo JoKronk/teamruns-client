@@ -59,12 +59,10 @@ export class RunHandler {
     constructor(lobbyId: string | undefined,
         public firestoreService: FireStoreService,
         public userService: UserService,
-        private localPlayers: LocalPlayerData[],
         public dialog: MatDialog,
         public zone: NgZone,
         obsUserId: string | null = null) {
         
-        this.userService.localUsers = localPlayers;
         this.isOnlineInstant = lobbyId !== undefined;
         this.zone = zone;
         this.obsUserId = obsUserId;
@@ -81,7 +79,7 @@ export class RunHandler {
                 //create run if it doesn't exist
                 if (!this.run) {
                     this.setupRun();
-                    this.localPlayers.forEach(localPlayer => {
+                    this.userService.localUsers.forEach(localPlayer => {
                         localPlayer.socketHandler.startDrawPlayers();
                     });
                 }
@@ -111,7 +109,7 @@ export class RunHandler {
     }
 
     public setupSocketListener(port: number) {
-        let localPlayer = this.localPlayers.find(x => x.socketHandler.socketPort === port);
+        let localPlayer = this.userService.localUsers.find(x => x.socketHandler.socketPort === port);
         if (!localPlayer) {
             this.userService.sendNotification("Game startup detected with no user tied to it!");
             return;
@@ -130,7 +128,7 @@ export class RunHandler {
                 this.sendPosition(positionData);
 
                 //update for local instances
-                this.localPlayers.forEach(localP => {
+                this.userService.localUsers.forEach(localP => {
                     if (positionData.userId !== localP.user.id)
                         localP.socketHandler.updatePlayerPosition(positionData);
                 });
@@ -177,7 +175,7 @@ export class RunHandler {
             if (this.lobby.backupHost?.id === userId) //replace backup host if user was backup, host is kicked out of user list and lobby host role by backupHost on data channel disconnect
                 this.getNewBackupHost();
 
-            this.localPlayers.forEach(localPlayer => {
+            this.userService.localUsers.forEach(localPlayer => {
                 if (this.lobby && !this.lobby.hasUser(userId))
                     this.lobby.addUser(new LobbyUser(localPlayer.user, false));
             });
@@ -260,14 +258,14 @@ export class RunHandler {
         console.log("Creating Run!");
         this.run = new Run(this.lobby.runData, this.getMainLocalPlayer().socketHandler.timer);
 
-        this.localPlayers.forEach(localPlayer => {
+        this.userService.localUsers.forEach(localPlayer => {
             localPlayer.socketHandler.run = this.run;
         });
 
         if (this.isOnlineInstant) {
             this.getMainLocalPlayer().user = this.userService.user;
 
-            this.localPlayers.forEach(localPlayer => {
+            this.userService.localUsers.forEach(localPlayer => {
                 localPlayer.mode = this.run!.data.mode;
                 this.run!.spectators.push(new Player(localPlayer.user));
 
@@ -282,7 +280,7 @@ export class RunHandler {
                 //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
                 this.getMainLocalPlayer().user = this.userService.user;
     
-                this.localPlayers.forEach(localPlayer => {
+                this.userService.localUsers.forEach(localPlayer => {
                     localPlayer.mode = this.run!.data.mode;
                     this.run!.spectators.push(new Player(localPlayer.user));
     
@@ -372,7 +370,7 @@ export class RunHandler {
         if (isMaster && this.isOnlineInstant)
             this.localMaster?.relayPositionToSlaves(positionData);
 
-        this.localPlayers.forEach(localPlayer => {
+        this.userService.localUsers.forEach(localPlayer => {
             if (positionData.userId !== localPlayer.user.id)
                 localPlayer.socketHandler.updatePlayerPosition(positionData);
         });
@@ -475,14 +473,14 @@ export class RunHandler {
                     this.sendEventAsMain(EventType.Disconnect, event.value);
                 else {
                     let wasLocalPlayer: boolean = false;
-                    this.localPlayers.forEach(localPlayer => {
-                        if (localPlayer.user.id ===event.value.id) {
+                    this.userService.localUsers.forEach(localPlayer => {
+                        if (localPlayer.user.id === event.value.id) {
                             localPlayer.onDestroy();
                             wasLocalPlayer = true;
                         }
                     });
                     if (wasLocalPlayer) {
-                        this.localPlayers = this.localPlayers.filter(localPlayer => localPlayer !== event.value.id);
+                        this.userService.localUsers = this.userService.localUsers.filter(localPlayer => localPlayer.user.id !== event.value.id);
                         this.sendEvent(EventType.Disconnect, event.value.id, event.value);
                     }
                 }
@@ -511,7 +509,7 @@ export class RunHandler {
                     let response: SyncResponse = event.value;
                     let run: Run = JSON.parse(JSON.stringify(response.run)); //to not cause referece so that import can run properly on the run after
                     if (response.userId !== null) { //handle single user sync
-                        let localPlayer = this.localPlayers.find(x => x.user.id === response.userId);
+                        let localPlayer = this.userService.localUsers.find(x => x.user.id === response.userId);
                         if (!localPlayer) return;
                         
                         this.run = Object.assign(new Run(run.data, localPlayer.socketHandler.timer), run).reconstructRun();
@@ -519,7 +517,7 @@ export class RunHandler {
                     }
                     else { //handle all local users sync
                         this.run = Object.assign(new Run(run.data, this.getMainLocalPlayer().socketHandler.timer), run).reconstructRun();
-                        this.localPlayers.forEach((localPlayer, i) => {
+                        this.userService.localUsers.forEach((localPlayer, i) => {
                             this.runSyncLocalPlayer(localPlayer, run, i === 0);
                         });
                     }
@@ -575,7 +573,7 @@ export class RunHandler {
             case EventType.NewPb:
                 let pbUsers: Map<string, string[]> = event.value;
                 pbUsers.forEach((users, pbId) => {
-                    let localUserPbs = this.localPlayers.filter(localPlayer => users.includes(localPlayer.user.id));
+                    let localUserPbs = this.userService.localUsers.filter(localPlayer => users.includes(localPlayer.user.id));
                     if (localUserPbs.length !== 0) {
                         const pbSubscription = this.firestoreService.getPb(pbId).subscribe(pb => {
                             pbSubscription.unsubscribe();
@@ -652,7 +650,7 @@ export class RunHandler {
             case EventType.StartRun:
                 this.zone.run(() => {
                     this.run!.start(new Date());
-                    this.localPlayers.forEach(localPlayer => {
+                    this.userService.localUsers.forEach(localPlayer => {
                         localPlayer.socketHandler.addCommand(OgCommand.SetupRun);
                     });
                 });
@@ -663,7 +661,7 @@ export class RunHandler {
             case EventType.ToggleReset:
                 this.zone.run(() => {
                     if (this.run!.toggleVoteReset(event.userId, event.value)) {
-                        this.localPlayers.forEach(localPlayer => {
+                        this.userService.localUsers.forEach(localPlayer => {
                             localPlayer.socketHandler.addCommand(OgCommand.Trip);
                             localPlayer.socketHandler.updateGameSettings(new GameSettings(undefined));
                             localPlayer.state = PlayerState.Neutral;
@@ -679,18 +677,18 @@ export class RunHandler {
     }
 
     getMainLocalPlayer(): LocalPlayerData {
-        if (this.localPlayers.length !== 0)
-            return this.localPlayers.find(x => x.user.id === this.userService.getId() || x.socketHandler.socketPort === OG.mainPort) ?? this.localPlayers[0];
+        if (this.userService.localUsers.length !== 0)
+            return this.userService.localUsers.find(x => x.user.id === this.userService.getId() || x.socketHandler.socketPort === OG.mainPort) ?? this.userService.localUsers[0];
         else {
-            this.localPlayers.push(new LocalPlayerData(this.userService.user, OG.mainPort, this.zone));
-            return this.localPlayers[0];
+            this.userService.localUsers.push(new LocalPlayerData(this.userService.user, OG.mainPort, this.zone));
+            return this.userService.localUsers[0];
         }
     }
 
     updateAllPlayerInfo() {
         if (!this.run) return;
         this.run.getAllPlayers().forEach(player => {
-            this.localPlayers.forEach(localPlayer => {
+            this.userService.localUsers.forEach(localPlayer => {
                 localPlayer.socketHandler.updatePlayerInfo(player.user.id, this.run!.getRemotePlayerInfo(player.user.id));
             });
         });
@@ -698,7 +696,7 @@ export class RunHandler {
 
     //used by both run component and practice/recording tool
     setupRunStart() {
-        this.localPlayers.forEach(localPlayer => {
+        this.userService.localUsers.forEach(localPlayer => {
             localPlayer.socketHandler.resetOngoingRecordings();
             localPlayer.levelHandler.uncollectedLevelItems = new RunStateHandler();
             localPlayer.socketHandler.updateGameSettings(new GameSettings(this.run?.data));
@@ -710,7 +708,7 @@ export class RunHandler {
         this.run?.teams.forEach(team => {
             team.runState = new RunStateHandler();
         });
-        this.localPlayers.forEach(localPlayer => {
+        this.userService.localUsers.forEach(localPlayer => {
             localPlayer.updateTeam(this.run?.getPlayerTeam(localPlayer.user.id));
         });
     }
@@ -766,9 +764,10 @@ export class RunHandler {
 
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
-        this.localPlayers.forEach(localPlayer => {
+        this.userService.localUsers.forEach(localPlayer => {
             localPlayer.onDestroy();
         });
+        this.userService.localUsers = [];
         this.launchListener();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself

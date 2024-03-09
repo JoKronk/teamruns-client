@@ -33,18 +33,19 @@ export class RunComponent implements OnDestroy {
 
   //component variables
   mainLocalPlayer: LocalPlayerData = new LocalPlayerData(this._user.user, OG.mainPort, this.zone);
-  localPlayers: LocalPlayerData[] = [ this.mainLocalPlayer ];
   runHandler: RunHandler;
 
   editingName: boolean;
 
   constructor(public _user: UserService, private firestoreService: FireStoreService, private route: ActivatedRoute, private zone: NgZone, private dialog: MatDialog, private router: Router) {
     
+    this._user.localUsers = [ this.mainLocalPlayer ];
+
     //on parameter get (was swapped from route as electon had issues getting routes containing more than one (/) path)
     this.route.queryParamMap.subscribe((params) => {
       let runId = params.get('id');
 
-      this.runHandler = new RunHandler(runId ?? undefined, firestoreService, _user, this.localPlayers, dialog, zone);
+      this.runHandler = new RunHandler(runId ?? undefined, firestoreService, _user, dialog, zone);
     });
   }
 
@@ -54,14 +55,13 @@ export class RunComponent implements OnDestroy {
       dialogSubscription.unsubscribe();
 
       if (localPlayer && this.runHandler.run) {
-        this.localPlayers.push(localPlayer);
+        this._user.localUsers.push(localPlayer);
         this.runHandler.run.spectators.push(new Player(localPlayer.user));
         this.runHandler.sendEvent(EventType.ChangeTeam, localPlayer.user.id, teamId);
         localPlayer.socketHandler.run = this.runHandler.run;
         localPlayer.updateTeam(this.runHandler.run.getPlayerTeam(localPlayer.user.id));
         this.runHandler.setupSocketListener(localPlayer.socketHandler.socketPort);
         localPlayer.socketHandler.startDrawPlayers();
-        this._user.localUsers = this.localPlayers;
       }
     });
   }
@@ -73,7 +73,7 @@ export class RunComponent implements OnDestroy {
     const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
       dialogSubscription.unsubscribe();
       if (confirmed) {
-        this.localPlayers.forEach(localPlayer => {
+        this._user.localUsers.forEach(localPlayer => {
           localPlayer.state = PlayerState.Forfeit;
           let task = new GameTaskTime(Task.forfeit, localPlayer.user, this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
           this.runHandler.sendEvent(EventType.EndPlayerRun, localPlayer.user.id, task);
@@ -83,14 +83,14 @@ export class RunComponent implements OnDestroy {
   }
 
   toggleReady() {
-    this.localPlayers.forEach(localPlayer => {
+    this._user.localUsers.forEach(localPlayer => {
       localPlayer.state = localPlayer.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
       this.runHandler.sendEvent(EventType.Ready, localPlayer.user.id, localPlayer.state);
     });
   }
 
   toggleReset() {
-    this.localPlayers.forEach(localPlayer => {
+    this._user.localUsers.forEach(localPlayer => {
       localPlayer.state = localPlayer.state === PlayerState.WantsToReset ? localPlayer.getTeam()?.splits.some(x => x.obtainedById === localPlayer.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
       this.runHandler.sendEvent(EventType.ToggleReset, localPlayer.user.id, localPlayer.state);
     });
@@ -98,11 +98,11 @@ export class RunComponent implements OnDestroy {
 
   switchTeam(teamId: number) {
     let userId = this.mainLocalPlayer.user.id;
-    if (this.localPlayers.length !== 1) {
+    if (this._user.localUsers.length !== 1) {
       
     }
 
-    let localPlayer = this.localPlayers.find(x => x.user.id === userId);
+    let localPlayer = this._user.localUsers.find(x => x.user.id === userId);
     if (!localPlayer) return;
 
     if (this.runHandler.run?.timer.runState !== RunState.Waiting && this.runHandler.isSpectatorOrNull(userId)) return;
@@ -112,7 +112,7 @@ export class RunComponent implements OnDestroy {
 
   editTeamName(teamId: number) {
     if (this.editingName) return;
-    this.localPlayers.forEach(localPlayer => {
+    this._user.localUsers.forEach(localPlayer => {
       if (teamId === localPlayer.getTeam()?.id && localPlayer.state !== PlayerState.Ready && this.runHandler?.run?.timer.runState === RunState.Waiting)
         this.editingName = !this.editingName;
         return;
@@ -147,6 +147,7 @@ export class RunComponent implements OnDestroy {
 
   destory() {
     this.runHandler.destroy();
+    this._user.destoryAllExtraLocals();
   }
 
   ngOnDestroy() {

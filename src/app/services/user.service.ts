@@ -45,6 +45,14 @@ export class UserService implements OnDestroy {
     return port;
   }
 
+  public destoryAllExtraLocals() {
+    this.secondaryPortsInUse = [];
+    this.localUsers.forEach(user => {
+      user.onDestroy();
+    });
+    this.localUsers = [];
+  }
+
   public getLastNewLocalPlayerDefaultController(): number {
     return this.secondaryPortsInUse.length + 1;
   }
