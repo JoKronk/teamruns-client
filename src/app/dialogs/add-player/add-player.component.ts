@@ -16,7 +16,6 @@ export class AddPlayerComponent {
 
   phase: number = 0;
   controller: number = 0;
-  port: number = 0;
 
   username: string;
   pw: string;
@@ -25,7 +24,7 @@ export class AddPlayerComponent {
   localPlayer: LocalPlayerData | undefined = undefined;
 
   constructor(@Inject(MAT_DIALOG_DATA) public timer: Timer, private _user: UserService, private _firestore: FireStoreService, private zone: NgZone, public dialogRef: MatDialogRef<AddPlayerComponent>) {
-    
+  
   }
 
   setUser() {
@@ -82,9 +81,15 @@ export class AddPlayerComponent {
 
   startNewLocalGame() {
     this.phase = 3;
-    this.port = this._user.launchNewLocalPlayer();
+    this.localPlayer = this._user.startGame(this.user, this.timer, this.controller);
+
+    if (!this.localPlayer) {
+      this._user.sendNotification("Unable to contact backend");
+      this.close();
+      return;
+    }
+
     this.controller = this._user.getLastNewLocalPlayerDefaultController();
-    this.localPlayer = new LocalPlayerData(this.user, this.port, this.zone, this.timer, this.controller);
   }
 
   confirm() {

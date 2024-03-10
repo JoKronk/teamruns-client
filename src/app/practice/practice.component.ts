@@ -303,7 +303,6 @@ export class PracticeComponent implements OnDestroy {
     this.fileListener();
     this.timerEndSubscription.unsubscribe();
     this.runHandler.destroy();
-    this._user.destoryAllExtraLocals();
   }
 
 }

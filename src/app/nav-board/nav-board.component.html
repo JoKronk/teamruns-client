@@ -5,9 +5,9 @@
         <div class="list-item" (click)="startGame(undefined)">
             <p>Launch OpenGOAL</p>
         </div>
-        <div *ngFor="let user of _user.localUsers">
-            <div *ngIf="user.user.id !== _user.user.id" class="list-item" (click)="startGame(user.socketHandler.socketPort)">
-                <p>Launch for {{ user.user.name }}</p>
+        <div *ngFor="let localUser of _user.localUsers">
+            <div *ngIf="localUser.user.id !== _user.user.id" class="list-item" (click)="startGame(localUser.user)">
+                <p>Launch for {{ localUser.user.name }}</p>
             </div>
         </div>
 

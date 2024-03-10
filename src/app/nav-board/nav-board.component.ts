@@ -6,6 +6,7 @@ import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { UserService } from '../services/user.service';
 import { Router } from '@angular/router';
 import { SetControllerComponent } from '../dialogs/set-controller/set-controller.component';
+import { User } from '../common/user/user';
 
 @Component({
   selector: 'app-nav-board',
@@ -18,18 +19,17 @@ export class NavBoardComponent {
     
   }
 
-  startGame(port: number | undefined) {
+  startGame(user: User | undefined) {
     if (!this._user.user.ogFolderpath)
       this.dialog.open(SetPathComponent);
     else
-      OG.startGame(port ?? OG.mainPort);
+      this._user.startGame(user ?? this._user.user);
 
     this._user.viewSettings = false;
   }
 
   navigate(path: string) {
     this._user.viewSettings = !this._user.viewSettings;
-    this._user.localUsers = [];
     this.router.navigate([path]);
   }
 

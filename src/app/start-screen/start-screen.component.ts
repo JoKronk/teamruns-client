@@ -1,10 +1,8 @@
 import { Component, ViewChild, ElementRef, OnDestroy, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { OG } from '../common/opengoal/og';
 import { User, UserBase } from '../common/user/user';
 import { NewUpdateComponent } from '../dialogs/new-update/new-update.component';
-import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { FireStoreService } from '../services/fire-store.service';
 import { UserService } from '../services/user.service';
 import { DbUserProfile } from '../common/firestore/db-user-profile';
@@ -115,13 +113,6 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
       if (response.message)
         this._user.sendNotification(response.message);
     });
-  }
-
-  startGame() {
-    if (!this._user.user.ogFolderpath)
-      this.dialog.open(SetPathComponent);
-    else
-      OG.startGame(OG.mainPort);
   }
 
   checkVideoLoad() {

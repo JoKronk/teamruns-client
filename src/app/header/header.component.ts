@@ -37,7 +37,6 @@ export class HeaderComponent {
 
   routeBack() {
     if (!this.inRun) {
-      this._user.localUsers = [];
       this.location.back();
       return;
     }

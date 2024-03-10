@@ -147,7 +147,6 @@ export class RunComponent implements OnDestroy {
 
   destory() {
     this.runHandler.destroy();
-    this._user.destoryAllExtraLocals();
   }
 
   ngOnDestroy() {

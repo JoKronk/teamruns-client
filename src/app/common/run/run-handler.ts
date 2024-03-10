@@ -75,28 +75,14 @@ export class RunHandler {
                 if (!lobby) return;
     
                 this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
-    
-                //create run if it doesn't exist
-                if (!this.run) {
-                    this.setupRun();
-                    this.userService.localUsers.forEach(localPlayer => {
-                        localPlayer.socketHandler.startDrawPlayers();
-                    });
-                }
-    
-                this.onLobbyChange();
+                this.checkSetupRun();
             });
         }
         //local lobby
         else {
             this.lobby = new Lobby(this.userService.offlineSettings ?? RunData.getFreeroamSettings(pkg.version), this.userService.getId(), null);
             this.userService.offlineSettings = undefined;
-
-            //create run if it doesn't exist
-            if (!this.run)
-                this.setupRun();
-
-            this.onLobbyChange();
+            this.checkSetupRun();
         }
 
 
@@ -108,8 +94,20 @@ export class RunHandler {
         });
     }
 
+    private checkSetupRun() {
+        if (!this.run) {
+            this.setupRun();
+            
+            this.userService.localUsers.forEach(localPlayer => {
+                localPlayer.socketHandler.startDrawPlayers();
+            });
+        }
+
+        this.onLobbyChange();
+    }
+
     public setupSocketListener(port: number) {
-        let localPlayer = this.userService.localUsers.find(x => x.socketHandler.socketPort === port);
+        const localPlayer = this.userService.localUsers.find(x => x.socketHandler.socketPort === port);
         if (!localPlayer) {
             this.userService.sendNotification("Game startup detected with no user tied to it!");
             return;
@@ -764,10 +762,7 @@ export class RunHandler {
 
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
-        this.userService.localUsers.forEach(localPlayer => {
-            localPlayer.onDestroy();
-        });
-        this.userService.localUsers = [];
+        this.userService.destoryAllExtraLocals();
         this.launchListener();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself

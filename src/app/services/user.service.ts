@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { OG } from '../common/opengoal/og';
 import { LocalPlayerData } from '../common/user/local-player-data';
 import { RunData } from '../common/run/run-data';
+import { Timer } from '../common/run/timer';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +19,6 @@ export class UserService implements OnDestroy {
   
   viewSettings: boolean = false;
   offlineSettings: RunData | undefined;
-  private secondaryPortsInUse: number[] = [];
 
   isBrowser: boolean;
 
@@ -39,22 +39,32 @@ export class UserService implements OnDestroy {
     return this.user.id;
   }
 
-  public launchNewLocalPlayer(): number {
-    let port = (this.secondaryPortsInUse.length === 0 ? OG.mainPort : this.secondaryPortsInUse[this.secondaryPortsInUse.length - 1]) - 1;
-    OG.startGame(port);
-    return port;
+  startGame(user: User, timer: Timer | undefined = undefined, controllerPort: number | undefined = undefined): LocalPlayerData | undefined {
+    if (!(window as any).electron) return undefined;
+
+    const isMainUser: boolean = user.id === this.user.id;
+    const port = isMainUser ? OG.mainPort : (OG.mainPort - this.localUsers.length);
+    
+    (window as any).electron.send('og-start-game', port);
+    
+    let localUser = this.localUsers.find(x => x.user.id === user.id);
+    if (!localUser) {
+      localUser = new LocalPlayerData(user, port, this.zone, timer, controllerPort);
+      this.localUsers.push(localUser);
+    }
+
+    return localUser;
+  }
+
+  public getLastNewLocalPlayerDefaultController(): number {
+    return this.localUsers.length - 1;
   }
 
   public destoryAllExtraLocals() {
-    this.secondaryPortsInUse = [];
     this.localUsers.forEach(user => {
       user.onDestroy();
     });
     this.localUsers = [];
-  }
-
-  public getLastNewLocalPlayerDefaultController(): number {
-    return this.secondaryPortsInUse.length + 1;
   }
 
   public routeTo(link: string) {
@@ -108,8 +118,6 @@ export class UserService implements OnDestroy {
 
       if (isMainPort)
         this.user.gameLaunched = true;
-      else
-        this.secondaryPortsInUse.push(port);
     });
 
     //game kill
@@ -118,8 +126,6 @@ export class UserService implements OnDestroy {
 
       if (isMainPort)
         this.user.gameLaunched = false;
-      else
-        this.secondaryPortsInUse = this.secondaryPortsInUse.filter(x => x !== port);
     });
     
     //settings get
