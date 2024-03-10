@@ -42,12 +42,12 @@ export class UserService implements OnDestroy {
   startGame(user: User, timer: Timer | undefined = undefined, controllerPort: number | undefined = undefined): LocalPlayerData | undefined {
     if (!(window as any).electron) return undefined;
 
+    let localUser = this.localUsers.find(x => x.user.id === user.id);
     const isMainUser: boolean = user.id === this.user.id;
-    const port = isMainUser ? OG.mainPort : (OG.mainPort - this.localUsers.length);
+    const port = isMainUser ? OG.mainPort : localUser ? localUser.socketHandler.socketPort : (OG.mainPort - this.localUsers.length);
     
     (window as any).electron.send('og-start-game', port);
     
-    let localUser = this.localUsers.find(x => x.user.id === user.id);
     if (!localUser) {
       localUser = new LocalPlayerData(user, port, this.zone, timer, controllerPort);
       this.localUsers.push(localUser);
