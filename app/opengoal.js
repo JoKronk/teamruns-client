@@ -78,6 +78,7 @@ class OpenGoal {
         if (firstStart) {
             this.killAllGks();
             firstStart = false;
+            await sleep(500);
         }
 
         if (openGoalInstances.some(x => x.port === port)) {
