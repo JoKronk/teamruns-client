@@ -88,6 +88,7 @@ export class LevelHandler {
 
 
     onInteraction(interaction: UserInteractionData) {
+        
         if (!this.levelIsActive(interaction.interLevel))
         {
             switch (interaction.interType)

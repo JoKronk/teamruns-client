@@ -1,21 +1,22 @@
 import { InteractionType } from "../opengoal/interaction-type";
 import { Task } from "../opengoal/task";
 import { TaskStatus } from "../opengoal/task-status";
+import { Player } from "../player/player";
 import { InteractionData, UserInteractionData } from "../socket/interaction-data";
 import { LevelInteractions } from "./level-interactions";
+import { OrbCollection } from "./orb-collection";
 
 export class RunStateHandler {
     levels: LevelInteractions[] = [];
 
-    ////unused in LevelHandler
+    ////unused in LevelHandler (only used for team instance)
     tasksStatuses: UserInteractionData[];
     cellCount: number;
     buzzerCount: number;
     orbCount: number;
-
-    //exists to mark when all orbs are collected from a collection of orbs,
-    //since if we just check by orb count and p1 picks up the last orb the orb count will be completed but p2 won't now know if the orb he's getting is a duped orb or the last one
-    completedOrbGroups: string[]; 
+    orbValidations: OrbCollection[]; //handles orb validation orb collection for all/each player of the team
+    //single orbs: could otherwise more easily be duped by picking up the same one at the same time and such
+    //orb vents and such: if we just check by orb count and p1 picks up the last orb the orb count will be completed but p2 won't now know if the orb he's getting is a duped orb or the last one for him
 
     constructor() {
         this.levels = [];
@@ -23,7 +24,7 @@ export class RunStateHandler {
         this.cellCount = 0;
         this.buzzerCount = 0;
         this.orbCount = 0;
-        this.completedOrbGroups = [];
+        this.orbValidations = [];
     }
 
     isNewTaskStatus(interaction: InteractionData): boolean {
@@ -62,8 +63,10 @@ export class RunStateHandler {
         }
     }
 
-    addInteraction(interaction: UserInteractionData) {
-        const level = this.getCreateLevel(interaction.interLevel);
+    addInteraction(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined) {
+        if (!level)
+            level = this.getCreateLevel(interaction.interLevel);
+
         this.pushLevelCleanupInteraction(level, interaction);
     }
 
@@ -80,46 +83,65 @@ export class RunStateHandler {
             this.buzzerCount += 1;
     }
 
-    addOrbInteraction(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined) {
-        if (!level)
-            level = this.getCreateLevel(interaction.interLevel);
+    checkDupeAddOrbInteraction(players: Player[], userId: string, interaction: UserInteractionData): boolean {
+        const level = this.getCreateLevel(interaction.interLevel);
     
-        this.pushLevelCleanupInteraction(level, interaction);
-
-        if (interaction.interParent.startsWith("orb-cache-top-")) {
-            if (this.completedOrbGroups.includes(interaction.interParent)) return;
-
-            if (this.getOrbCacheAmount(interaction.interParent) <= (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
-                this.completedOrbGroups.push(interaction.interParent);
+        //single orb check
+        if (interaction.interName.startsWith("money-")) {
+            let entity = this.getOrbCollection(interaction.interName);
+            if (entity && entity.isOrbDupe(userId))
+                return true;
+            
+            entity ? entity.addOrbCollection(players, userId) : this.orbValidations.push(new OrbCollection(interaction.interName, userId)); //add orb collection
         }
-
-        else if (interaction.interParent.startsWith("crate-")) {
-            if (this.completedOrbGroups.includes(interaction.interParent)) return;
-
-            let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x.interType) && x.interName === interaction.interParent);
-            if (parentCrate && parentCrate.interAmount <= (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
-                this.completedOrbGroups.push(interaction.interParent);
+        //orb collection checks
+        else if ((interaction.interName === "money" || interaction.interName === "") || interaction.interParent !== undefined) {
+            if (interaction.interParent.startsWith("orb-cache-top-")) {
+                if (this.checkDupeAddOrbGroupInteraction(players, userId, interaction.interParent, this.getOrbCacheAmount(interaction.interParent) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                    return true;    
+            }
+    
+            else if (interaction.interParent.startsWith("crate-")) {
+                let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x.interType) && x.interName === interaction.interParent);
+                if (this.checkDupeAddOrbGroupInteraction(players, userId, interaction.interParent, parentCrate !== undefined && parentCrate.interAmount <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                    return true;
+            }
+    
+            else if (interaction.interParent.startsWith("gnawer-")) {
+                let parentGnawer = level.interactions.find(x => x.interType === InteractionType.enemyDeath && x.interName === interaction.interParent);
+                if (this.checkDupeAddOrbGroupInteraction(players, userId, interaction.interParent, parentGnawer !== undefined && parentGnawer.interAmount <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                    return true;
+            }
+    
+            else if (interaction.interParent.startsWith("plant-boss-")) {
+                if (this.checkDupeAddOrbGroupInteraction(players, userId, interaction.interParent, 5 <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                    return true;
+            }
         }
-
-        else if (interaction.interParent.startsWith("gnawer-")) {
-            if (this.completedOrbGroups.includes(interaction.interParent)) return;
-
-            let parentGnawer = level.interactions.find(x => x.interType === InteractionType.enemyDeath && x.interName === interaction.interParent);
-            if (parentGnawer && parentGnawer.interAmount <= (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
-                this.completedOrbGroups.push(interaction.interParent);
-        }
-
-        else if (interaction.interParent.startsWith("plant-boss-")) {
-            if (this.completedOrbGroups.includes(interaction.interParent)) return;
-
-            if (5 <= (level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
-                this.completedOrbGroups.push(interaction.interParent);
-        }
+        
+        if (userId === interaction.userId)
+            this.pushLevelCleanupInteraction(level, interaction);
 
         if (!interaction.interCleanup)
             this.orbCount += 1;
+
+        return false;
     }
 
+    private getOrbCollection(entityName: string): OrbCollection | undefined {
+        return this.orbValidations.find(x => x.entityName === entityName);
+    }
+
+    private checkDupeAddOrbGroupInteraction(players: Player[], userId: string, entityName: string, isLastOrb: boolean): boolean {
+        const entity: OrbCollection | undefined = this.getOrbCollection(entityName);
+        if (entity && entity.isOrbDupe(userId))
+            return true;
+
+        if (isLastOrb) //add orb collection
+            entity ? entity.addOrbCollection(players, userId) : this.orbValidations.push(new OrbCollection(entityName, userId));
+        
+        return false;
+    }
 
     getCreateLevel(levelName: string): LevelInteractions {
         let level = this.levels.find(x => x.levelName === levelName);
@@ -130,28 +152,8 @@ export class RunStateHandler {
         return level;
     }
 
-
     isFalseOrb(interaction: UserInteractionData): boolean {
         return interaction.interType === InteractionType.money && interaction.interName === "money" && interaction.interParent === "entity-pool" && interaction.interLevel === "none";
-    }
-
-    isOrbDupeFromCollection(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined): boolean {
-        if (!level)
-            level = this.getCreateLevel(interaction.interLevel);
-
-        return (interaction.interName === "money" || interaction.interName === "") && interaction.interParent !== undefined && this.completedOrbGroups.includes(interaction.interParent);
-    }
-
-    isOrbDupe(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined): boolean {
-        if (!level)
-            level = this.getCreateLevel(interaction.interLevel);
-
-        if (this.isOrbDupeFromCollection(interaction, level))
-            return true;
-        else if (interaction.interName.startsWith("money-")) {
-            return level.interactions.find(x => x.interType === InteractionType.money && x.interName === interaction.interName && x.userId !== interaction.userId) !== undefined; 
-        }
-        return false;
     }
 
     private getOrbCacheAmount(name: string) {

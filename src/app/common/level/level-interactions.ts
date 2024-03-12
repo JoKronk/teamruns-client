@@ -1,4 +1,3 @@
-import { GameTask } from "../opengoal/game-task";
 import { UserInteractionData } from "../socket/interaction-data";
 
 export class LevelInteractions {

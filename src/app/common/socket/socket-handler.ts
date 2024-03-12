@@ -446,27 +446,22 @@ export class SocketHandler {
             case InteractionType.money:
                 if (!this.localTeam) break;
                 
-                let teamOrbLevelState = this.localTeam.runState.getCreateLevel(interaction.interLevel);
-                if (this.localTeam.runState.isOrbDupe(interaction, teamOrbLevelState) && this.levelHandler.uncollectedLevelItems.isOrbDupeFromCollection(interaction, teamOrbLevelState)) {
+                if (this.localTeam.runState.isFalseOrb(interaction)) {
+                    positionData.resetCurrentInteraction();
+                    break;
+                }
+                
+                if (this.localTeam.runState.checkDupeAddOrbInteraction(this.localTeam.players, userId, interaction)) {
                     if (isSelfInteraction)
                         this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
                     else if (!interaction.interCleanup)
                         positionData.resetCurrentInteraction();
                     break;
                 }
-                if (this.localTeam.runState.isFalseOrb(interaction)) {
-                    positionData.resetCurrentInteraction();
-                    break;
-                }
+                
                 if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
                     this.levelHandler.onInteraction(interaction);
-                
-                if (isSelfInteraction)
-                    this.localTeam.runState.addOrbInteraction(interaction, teamOrbLevelState);
 
-                //push orb collection completion to levelHandler to mark that it's completed for this specific user (to avoid p1 completing the collection and p2 not getting the last orb due to the dupe check above, levelHandler should otherwise not be used for permanent data check !TODO: do this in a better way maybe)
-                if ((interaction.interName === "money" || interaction.interName === "") && this.localTeam.runState.completedOrbGroups.includes(interaction.interParent) && !this.levelHandler.uncollectedLevelItems.completedOrbGroups.includes(interaction.interParent))
-                    this.levelHandler.uncollectedLevelItems.completedOrbGroups.push(interaction.interParent);
                 break;
         
 
