@@ -77,6 +77,7 @@ export class Recording {
         newRecordingPos.qY = this.prevPosIn?.qY === newPos.quatY ? undefined : newPos.quatY;
         newRecordingPos.qZ = this.prevPosIn?.qZ === newPos.quatZ ? undefined : newPos.quatZ;
         newRecordingPos.qW = this.prevPosIn?.qW === newPos.quatW ? undefined : newPos.quatW;
+        newRecordingPos.rY = this.prevPosIn?.rY === newPos.rotY ? undefined : newPos.rotY;
         newRecordingPos.tS = this.prevPosIn?.tS === newPos.tgtState ? undefined : newPos.tgtState;
         newRecordingPos.cL = this.prevPosIn?.cL === newPos.currentLevel ? undefined : newPos.currentLevel;
         newRecordingPos.t = newPos.time;
