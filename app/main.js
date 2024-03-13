@@ -216,7 +216,7 @@ function readSettings() {
   });
 }
 
-function getRecPath() {
+function getRecordingsPath() {
   const recPath = path.join(app.getPath('documents'), "Teamruns", "Recordings");
   if (!fs.existsSync(recPath))
     fs.mkdirSync(recPath, { recursive: true });
@@ -225,7 +225,7 @@ function getRecPath() {
 }
 
 function writeRecordings(recordings) {
-  const folderPath = path.join(getRecPath(), new Date().toISOString().split(".")[0].replace(/[T:]/g, '-').slice(0, -3));
+  const folderPath = path.join(getRecordingsPath(), new Date().toISOString().split(".")[0].replace(/[T:]/g, '-').slice(0, -3));
   if (!fs.existsSync(folderPath))
     fs.mkdirSync(folderPath, { recursive: true });
 
@@ -238,7 +238,7 @@ function writeRecordings(recordings) {
 }
 
 function openRecordings() {
-  const recPath = getRecPath();
+  const recPath = getRecordingsPath();
   if (!fs.existsSync(recPath))
     fs.mkdirSync(recPath, { recursive: true });
     
