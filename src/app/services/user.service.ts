@@ -42,7 +42,7 @@ export class UserService implements OnDestroy {
     return this.user.id;
   }
 
-  startGame(user: User, timer: Timer | undefined = undefined, controllerPort: number | undefined = undefined): LocalPlayerData | undefined {
+  startGame(user: User, timer: Timer | undefined = undefined): LocalPlayerData | undefined {
     if (!(window as any).electron || this.isBrowser || this.downloadHandler.isDownloading) return undefined;
 
     let localUser = this.localUsers.find(x => x.user.id === user.id);
@@ -52,15 +52,13 @@ export class UserService implements OnDestroy {
     (window as any).electron.send('og-start-game', port);
     
     if (!localUser) {
-      localUser = new LocalPlayerData(user, port, this.zone, timer, controllerPort);
+      if (!user.controllerPort)
+        user.controllerPort = this.localUsers.length;
+      localUser = new LocalPlayerData(user, port, this.zone, timer);
       this.localUsers.push(localUser);
     }
 
     return localUser;
-  }
-
-  public getLastNewLocalPlayerDefaultController(): number {
-    return this.localUsers.length - 1;
   }
 
   public destoryAllExtraLocals() {

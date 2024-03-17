@@ -15,7 +15,6 @@ import { UserService } from 'src/app/services/user.service';
 export class AddPlayerComponent {
 
   phase: number = 0;
-  controller: number = 0;
 
   username: string;
   pw: string;
@@ -75,21 +74,19 @@ export class AddPlayerComponent {
   }
 
   updateControllerPort() {
-    if (this.localPlayer)
-      this.localPlayer.socketHandler.changeController(this.controller);
+    if (this.localPlayer && this.user.controllerPort)
+      this.localPlayer.socketHandler.changeController(this.user.controllerPort);
   }
 
   startNewLocalGame() {
     this.phase = 3;
-    this.localPlayer = this._user.startGame(this.user, this.timer, this.controller);
+    this.localPlayer = this._user.startGame(this.user, this.timer);
 
     if (!this.localPlayer) {
       this._user.sendNotification("Unable to contact backend");
       this.close();
       return;
     }
-
-    this.controller = this._user.getLastNewLocalPlayerDefaultController();
   }
 
   confirm() {

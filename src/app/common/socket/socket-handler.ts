@@ -48,10 +48,12 @@ export class SocketHandler {
     private connectionAttempts: number;
 
 
-    constructor(public socketPort: number, public user: User, public levelHandler: LevelHandler, public localTeam: Team | undefined, public zone: NgZone, private importedTimer: Timer | undefined = undefined, controllerPort: number | undefined = undefined) {
+    constructor(public socketPort: number, public user: User, public levelHandler: LevelHandler, public localTeam: Team | undefined, public zone: NgZone, private importedTimer: Timer | undefined = undefined) {
         this.ogSocket = webSocket('ws://localhost:' + socketPort);
+        
         if (importedTimer)
             this.timer = importedTimer;
+
         this.timer.linkSocketCommands(this.socketCommandBuffer);
         if (this.user.name) //if client is fully reloaded in a place where position service is started at same time as use we pick up user on movement instead
             this.checkRegisterPlayer(this.user, MultiplayerState.interactive);
@@ -59,17 +61,12 @@ export class SocketHandler {
         if (this.user.gameLaunched)
             this.connectToOpengoal();
 
-        if (controllerPort)
-            this.changeController(controllerPort);
-
         this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
             if (port == this.socketPort) {
-                this.socketConnected = true;
                 this.connectionAttempts = 0;
                 this.user.gameLaunched = true;
                 this.connectToOpengoal();
-                if (this.user.controllerPort === undefined)
-                    this.changeController(0);
+                this.changeController(this.user.controllerPort ?? 0);
             }
 
         });
@@ -102,11 +99,11 @@ export class SocketHandler {
             }*/
 
             if (target.connected) {
-                this.socketConnected = true;
                 this.socketPackage.version = pkg.version;
                 this.socketPackage.username = this.user.displayName;
                 console.log("Socket Connected!");
-                this.addCommand(OgCommand.None); //send empty message to update username
+                this.socketConnected = true;
+                this.addCommand(OgCommand.None); //send empty message to update username, version & controller
             }
         },
         error => {
@@ -143,8 +140,7 @@ export class SocketHandler {
     changeController(controllerPort: number) {
         this.socketPackage.controllerPort = controllerPort;
         this.user.controllerPort = controllerPort;
-        if (this.socketConnected)
-            this.sendSocketPackageToOpengoal(false);
+        this.addCommand(OgCommand.None);
     }
 
     addCommand(command: OgCommand) {
@@ -352,6 +348,8 @@ export class SocketHandler {
     }
 
     private sendSocketPackageToOpengoal(sendPlayers: boolean = true) {
+        if (!this.socketConnected) return;
+
         if (this.socketCommandBuffer.length !== 0)
             this.socketPackage.command = this.socketCommandBuffer.shift();
         this.socketPackage.players = sendPlayers ? this.players.flatMap(x => x.positionData) : undefined;

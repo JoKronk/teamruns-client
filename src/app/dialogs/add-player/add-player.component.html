@@ -40,7 +40,7 @@
         <p>Set the controller for the game, check that it works in game.</p>
         <div class="option">
             <p>Controller</p>
-            <input type="number" min="0" max="8" [(ngModel)]="controller" (change)="updateControllerPort()">
+            <input type="number" min="0" max="8" [(ngModel)]="this.user.controllerPort" (change)="updateControllerPort()">
         </div>
     
         <div class="buttons">
