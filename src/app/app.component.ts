@@ -8,7 +8,7 @@ import { UserService } from './services/user.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'TeamRun';
+  title = 'Teamruns';
 
   constructor(public _user: UserService, private router: Router) {
 

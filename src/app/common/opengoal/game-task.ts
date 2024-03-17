@@ -9,7 +9,7 @@ export class GameTask {
     name: string;
     status: string;
 
-    //filled in on teamrun side
+    //filled in on teamruns side
     user: UserBase;
 
     constructor(name: string, user: UserBase, status: string = TaskStatus.needResolution) {

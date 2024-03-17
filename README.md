@@ -1,8 +1,8 @@
 # TeamRun Client
 
-Teamrun is a client that enables you to play the OpenGOAL version of Jak & Daxter the precursor legacy in a semi multiplayer setting. Where powercells and certain tasks are shared between players (more to be implemented).
+Teamruns is a client that enables you to play the OpenGOAL version of Jak & Daxter the precursor legacy in a semi multiplayer setting. Where powercells and certain tasks are shared between players (more to be implemented).
 
-Teamrun requires a modded version of OpenGOAL to be ran to function that can be found here [ADD LINK], a quick setup guide for everything can also be found here [ADD LINK].
+Teamruns requires a modded version of OpenGOAL to be ran to function that can be found here [ADD LINK], a quick setup guide for everything can also be found here [ADD LINK].
 
 # Technology
 
@@ -24,7 +24,7 @@ In the /app folder run ´npm rebuild winax --runtime=electron --target=22.2.1 --
 
 Open up the environment.ts file in /src/environments.
 
-For work on TeamRun please contact me to be added to the firebase project linked to the published version where you'll find the config data.
+For work on Teamruns please contact me to be added to the firebase project linked to the published version where you'll find the config data.
 For personal development setup a firebase project and add your personal firebase config data, and the user name and password of a created user with access to your firestore db.
 
 Go back to the root folder and run `npm run start` to run in development mode, run `npm run dist` to build the production app or `npm run pack` to build an unpacked version.

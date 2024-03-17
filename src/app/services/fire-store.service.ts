@@ -51,7 +51,7 @@ export class FireStoreService {
 
   createUser(username: string, pw: string, setAsCurrent: boolean = true): Promise<AccountReply> { //firebase forces it to be an email to doesn't require it to exist..
     this.checkAuthenticated();
-    return this.auth.createUserWithEmailAndPassword(username + "@teamrun.web.app", pw).then((userCredential) => {
+    return this.auth.createUserWithEmailAndPassword(username + "@teamruns.web.app", pw).then((userCredential) => {
       this.isAuthenticated = true;
 
       if (setAsCurrent)
@@ -64,7 +64,7 @@ export class FireStoreService {
   }
 
   authenticateUsernamePw(user: DbUserProfile, pw: string) {
-    return this.auth.signInWithEmailAndPassword(user.name + "@teamrun.web.app", pw).then((userCredential) => {
+    return this.auth.signInWithEmailAndPassword(user.name + "@teamruns.web.app", pw).then((userCredential) => {
       this.isAuthenticated = true;
       this.currentUser = userCredential.user;
       return true;
@@ -74,7 +74,7 @@ export class FireStoreService {
   }
 
   async checkUserExists(name: string): Promise<boolean> {
-    return this.auth.signInWithEmailAndPassword(name + "@teamrun.web.app", "none").then((userCredential) => {
+    return this.auth.signInWithEmailAndPassword(name + "@teamruns.web.app", "none").then((userCredential) => {
       return true;
     }).catch(error => {
       return (error.message as string).startsWith("Firebase: The password is invalid or the user does not have a password.");
