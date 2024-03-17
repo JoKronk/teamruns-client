@@ -55,12 +55,10 @@ export class RunComponent implements OnDestroy {
       dialogSubscription.unsubscribe();
 
       if (localPlayer && this.runHandler.run) {
-        this._user.localUsers.push(localPlayer);
         this.runHandler.run.spectators.push(new Player(localPlayer.user));
         this.runHandler.sendEvent(EventType.ChangeTeam, localPlayer.user.id, teamId);
         localPlayer.socketHandler.run = this.runHandler.run;
         localPlayer.updateTeam(this.runHandler.run.getPlayerTeam(localPlayer.user.id));
-        this.runHandler.setupSocketListener(localPlayer.socketHandler.socketPort);
         localPlayer.socketHandler.startDrawPlayers();
       }
     });
