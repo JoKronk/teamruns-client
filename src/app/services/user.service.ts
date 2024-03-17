@@ -42,7 +42,7 @@ export class UserService implements OnDestroy {
     return this.user.id;
   }
 
-  startGame(user: User, timer: Timer | undefined = undefined): LocalPlayerData | undefined {
+  public startGame(user: User, timer: Timer | undefined = undefined): LocalPlayerData | undefined {
     if (!(window as any).electron || this.isBrowser || this.downloadHandler.isDownloading) return undefined;
 
     let localUser = this.localUsers.find(x => x.user.id === user.id);
@@ -61,11 +61,19 @@ export class UserService implements OnDestroy {
     return localUser;
   }
 
-  public destoryAllExtraLocals() {
-    this.localUsers.forEach(user => {
+  public removeLocalPlayer(id: string): boolean {
+    let localUser = this.localUsers.find(x => x.user.id === id);
+    if (!localUser) return false;
+    localUser.onDestroy();
+    this.localUsers = this.localUsers.filter(localPlayer => localPlayer.user.id !== localUser?.user.id);
+    return true;
+  }
+
+  public removeAllExtraLocals() {
+    this.localUsers.filter(x => x.user.id !== this.user.id).forEach(user => {
       user.onDestroy();
     });
-    this.localUsers = [];
+    this.localUsers = this.localUsers.filter(x => x.user.id === this.user.id);
   }
 
   public routeTo(link: string) {

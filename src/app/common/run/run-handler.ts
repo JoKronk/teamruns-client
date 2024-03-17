@@ -478,7 +478,7 @@ export class RunHandler {
                         }
                     });
                     if (wasLocalPlayer) {
-                        this.userService.localUsers = this.userService.localUsers.filter(localPlayer => localPlayer.user.id !== event.value.id);
+                        this.userService.removeLocalPlayer(event.value.id);
                         this.sendEvent(EventType.Disconnect, event.value.id, event.value);
                     }
                 }
@@ -762,7 +762,7 @@ export class RunHandler {
 
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
-        this.userService.destoryAllExtraLocals();
+        this.userService.removeAllExtraLocals();
         this.launchListener();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself

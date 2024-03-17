@@ -90,11 +90,21 @@ export class AddPlayerComponent {
   }
 
   confirm() {
-    this.dialogRef.close(this.localPlayer);
+    this.dialogRef.close(new NewPlayerResponse(this.localPlayer, false));
   }
 
   close() {
-    this.dialogRef.close(null);
+    this.dialogRef.close(new NewPlayerResponse(this.localPlayer, true));
   }
 
+}
+
+export class NewPlayerResponse {
+  localPlayer: LocalPlayerData | undefined;
+  creationCanceled: boolean;
+
+  constructor(localPlayer: LocalPlayerData | undefined, canceled: boolean) {
+    this.localPlayer = localPlayer;
+    this.creationCanceled = canceled;
+  }
 }

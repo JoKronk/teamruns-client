@@ -15,7 +15,7 @@ import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
 import { User, UserBase } from '../common/user/user';
 import { GameTaskTime } from '../common/opengoal/game-task';
 import { TaskStatus } from '../common/opengoal/task-status';
-import { AddPlayerComponent } from '../dialogs/add-player/add-player.component';
+import { AddPlayerComponent, NewPlayerResponse } from '../dialogs/add-player/add-player.component';
 import { Player } from '../common/player/player';
 import { OG } from '../common/opengoal/og';
 
@@ -51,15 +51,17 @@ export class RunComponent implements OnDestroy {
 
   addLocalPlayer(teamId: number) {
     const dialogRef = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run?.timer });
-    const dialogSubscription = dialogRef.afterClosed().subscribe((localPlayer: LocalPlayerData | null) => {
+    const dialogSubscription = dialogRef.afterClosed().subscribe((response: NewPlayerResponse) => {
       dialogSubscription.unsubscribe();
 
-      if (localPlayer && this.runHandler.run) {
-        this.runHandler.run.spectators.push(new Player(localPlayer.user));
-        this.runHandler.sendEvent(EventType.ChangeTeam, localPlayer.user.id, teamId);
-        localPlayer.socketHandler.run = this.runHandler.run;
-        localPlayer.updateTeam(this.runHandler.run.getPlayerTeam(localPlayer.user.id));
-        localPlayer.socketHandler.startDrawPlayers();
+      if (response.creationCanceled && response.localPlayer)
+        this._user.removeLocalPlayer(response.localPlayer.user.id);
+      else if (!response.creationCanceled && response.localPlayer && this.runHandler.run) {
+        this.runHandler.run.spectators.push(new Player(response.localPlayer.user));
+        this.runHandler.sendEvent(EventType.ChangeTeam, response.localPlayer.user.id, teamId);
+        response.localPlayer.socketHandler.run = this.runHandler.run;
+        response.localPlayer.updateTeam(this.runHandler.run.getPlayerTeam(response.localPlayer.user.id));
+        response.localPlayer.socketHandler.startDrawPlayers();
       }
     });
   }
