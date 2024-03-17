@@ -8,6 +8,7 @@ import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { RunHistoryComponent } from './run-history/run-history.component';
 import { PracticeComponent } from './practice/practice.component';
 import { UserSettingsComponent } from './user-settings/user-settings.component';
+import { InstallComponent } from './install/install.component';
 
 const routes: Routes = [
   { path: 'lobby', component: LobbyComponent },
@@ -16,6 +17,7 @@ const routes: Routes = [
   { path: 'history', component: RunHistoryComponent },
   { path: 'practice', component: PracticeComponent },
   { path: 'settings', component: UserSettingsComponent },
+  { path: 'install', component: InstallComponent },
   { path: 'close', component: CloseScreenComponent },
   { path: '', component: StartScreenComponent, pathMatch: 'full' }
 ];

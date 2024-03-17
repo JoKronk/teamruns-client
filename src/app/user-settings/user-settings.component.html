@@ -11,27 +11,19 @@
                 <p class="content-subtitle">Recordings</p>
                 <mat-slide-toggle (change)="_user.writeSettings()" [(ngModel)]="_user.user.saveRecordingsLocally"><span class="pointer">Save finished runs locally</span></mat-slide-toggle>
                 
-                <br /><br /><br />
+                <br /><br /><br /><br />
                 <p class="content-subtitle">Local recordings folder</p>
                 <div class="content-option">
                     <button id="select" (click)="openRecordings()">Open</button>
                 </div>
                 
-                <br />
+                <br /><br />
                 <span>You can reset the teamruns window with CTRL + SHIFT + B</span>
             </div>
         </div>
 
         <div class="content">
-            <p class="content-subtitle">Config OpenGOAL Path (gk.exe)</p>
-            <div class="content-option">
-                <button id="select" (click)="selectPath()">Select file</button>
-                <button (click)="setPath()" [disabled]="!path">Save</button>
-                <p>Selected Path: {{ path }}</p>
-            </div>
-            
             <div *ngIf="_user.user.hasSignedIn">
-                <hr />
                 <p class="content-subtitle">Change Username / Leaderboard name</p>
                 <div class="content-option">
                     <p>New Userame</p>
@@ -41,7 +33,7 @@
                     </div>
                 </div>
                 
-                <hr />
+                <br />
                 <p class="content-subtitle">Update password</p>
                 <div class="content-option">
                     <p>New Password</p>

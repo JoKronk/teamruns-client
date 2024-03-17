@@ -17,6 +17,7 @@ export class UserBase {
 
 export class User extends UserBase {
     ogFolderpath: string = "";
+    gameVersion: string = "";
     displayName: string;
     saveRecordingsLocally: boolean = true;
     hasSignedIn: boolean = false;
@@ -36,6 +37,7 @@ export class User extends UserBase {
         return this.name === copy.name &&
             this.displayName === copy.displayName &&
             this.ogFolderpath === copy.ogFolderpath &&
+            this.gameVersion === copy.gameVersion &&
             this.hasSignedIn === copy.hasSignedIn;
     }
 
@@ -53,6 +55,7 @@ export class User extends UserBase {
         this.id =  user.id;
         this.name = user.name;
         this.ogFolderpath = user.ogFolderpath;
+        this.gameVersion = user.gameVersion;
         this.displayName = user.displayName;
         this.saveRecordingsLocally = user.saveRecordingsLocally;
         this.hasSignedIn = user.hasSignedIn;

@@ -7,6 +7,8 @@ import { OG } from '../common/opengoal/og';
 import { LocalPlayerData } from '../common/user/local-player-data';
 import { RunData } from '../common/run/run-data';
 import { Timer } from '../common/run/timer';
+import { SnackbarInstallComponent } from '../snackbar-install/snackbar-install.component';
+import { DownloadHandler } from '../common/user/download-handler';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +23,7 @@ export class UserService implements OnDestroy {
   offlineSettings: RunData | undefined;
 
   isBrowser: boolean;
+  downloadHandler: DownloadHandler = new DownloadHandler();
 
   private launchListener: any;
   private shutdownListener: any;
@@ -40,7 +43,7 @@ export class UserService implements OnDestroy {
   }
 
   startGame(user: User, timer: Timer | undefined = undefined, controllerPort: number | undefined = undefined): LocalPlayerData | undefined {
-    if (!(window as any).electron) return undefined;
+    if (!(window as any).electron || this.isBrowser || this.downloadHandler.isDownloading) return undefined;
 
     let localUser = this.localUsers.find(x => x.user.id === user.id);
     const isMainUser: boolean = user.id === this.user.id;
@@ -80,8 +83,22 @@ export class UserService implements OnDestroy {
     this.UserCopy = this.user.getCopy();
   }
 
+  public drawProgressBar() {
+    if (this.isBrowser || this.downloadHandler.isDownloading) return;
+
+    this.downloadHandler.isDownloading = true; //blocks other snackbars while installing as only one can be open at a time
+    this.zone.run(() => {
+      const snackSubcription = this._snackbar.openFromComponent(SnackbarInstallComponent, {
+        verticalPosition: 'bottom',
+        horizontalPosition: 'center'
+      }).afterDismissed().subscribe(() => {
+        this.downloadHandler.isDownloading = false;
+      });
+    });
+  }
+
   public sendNotification(message: string, notifDuration: number = 5000) {
-    if (this.isBrowser) return;
+    if (this.isBrowser || this.downloadHandler.isDownloading) return;
 
     this.zone.run(() => {
       this._snackbar.openFromComponent(SnackbarComponent, {
@@ -165,12 +182,6 @@ export class UserService implements OnDestroy {
     (window as any).electron.send('update-check');
   }
 
-  //install new update
-  installUpdate(): void {
-    if (this.isBrowser) return;
-    (window as any).electron.send('update-install');
-  }
-
   ngOnDestroy(): void {
     this.launchListener();
     this.shutdownListener();
@@ -178,5 +189,6 @@ export class UserService implements OnDestroy {
     this.settingsListener();
     this.messageListener();
     this.errorListener();
+    this.downloadHandler.onDestory();
   }
 }

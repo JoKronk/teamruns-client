@@ -17,13 +17,13 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatSliderModule} from '@angular/material/slider';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {MatProgressBarModule} from '@angular/material/progress-bar';
 
 import { NavBoardComponent } from './nav-board/nav-board.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
 import { LobbyComponent } from './lobby/lobby.component';
 import { SnackbarComponent } from './snackbar/snackbar.component';
 import { CreateRunComponent } from './dialogs/create-run/create-run.component';
-import { SetPathComponent } from './dialogs/set-path/set-path.component';
 import { RunComponent } from './run/run.component';
 import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 import { AngularFireModule } from '@angular/fire/compat';
@@ -36,7 +36,6 @@ import { CloseScreenComponent } from './close-screen/close-screen.component';
 import { LobbyViewerComponent } from './lobby-viewer/lobby-viewer.component';
 import { ConfirmComponent } from './dialogs/confirm/confirm.component';
 import { InfoComponent } from './dialogs/info/info.component';
-import { NewUpdateComponent } from './dialogs/new-update/new-update.component';
 import { InputDialogComponent } from './dialogs/input-dialog/input-dialog.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { HeaderComponent } from './header/header.component';
@@ -49,6 +48,8 @@ import { AutoFocusDirective } from './common/directives/auto-focus.directive';
 import { AddPlayerComponent } from './dialogs/add-player/add-player.component';
 import { SetControllerComponent } from './dialogs/set-controller/set-controller.component';
 import { PbCommentDialogComponent } from './dialogs/pb-comment-dialog/pb-comment-dialog.component';
+import { InstallComponent } from './install/install.component';
+import { SnackbarInstallComponent } from './snackbar-install/snackbar-install.component';
 
 @NgModule({
   declarations: [
@@ -58,7 +59,6 @@ import { PbCommentDialogComponent } from './dialogs/pb-comment-dialog/pb-comment
     LobbyComponent,
     SnackbarComponent,
     CreateRunComponent,
-    SetPathComponent,
     RunComponent,
     RunSplitsComponent,
     RunTimerComponent,
@@ -67,7 +67,6 @@ import { PbCommentDialogComponent } from './dialogs/pb-comment-dialog/pb-comment
     LobbyViewerComponent,
     ConfirmComponent,
     InfoComponent,
-    NewUpdateComponent,
     InputDialogComponent,
     LeaderboardComponent,
     HeaderComponent,
@@ -79,7 +78,9 @@ import { PbCommentDialogComponent } from './dialogs/pb-comment-dialog/pb-comment
     AutoFocusDirective,
     AddPlayerComponent,
     SetControllerComponent,
-    PbCommentDialogComponent
+    PbCommentDialogComponent,
+    InstallComponent,
+    SnackbarInstallComponent
   ],
   imports: [
     BrowserModule,
@@ -97,6 +98,7 @@ import { PbCommentDialogComponent } from './dialogs/pb-comment-dialog/pb-comment
     MatSliderModule,
     MatMenuModule,
     MatSlideToggleModule,
+    MatProgressBarModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule,
     AngularFireAuthModule

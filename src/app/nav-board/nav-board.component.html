@@ -27,11 +27,8 @@
         <div class="list-item" (click)="openInfo()">
             <p>Help / Info</p>
         </div>
-        <div class="list-item" (click)="navigate('/settings')">
-            <p>Settings</p>
-        </div>
 
-        <h4>Options</h4>
+        <h4>Settings</h4>
         <!--
         <div class="list-item" (click)="getObsLink()">
             <p>Copy Obs Link</p>
@@ -39,6 +36,12 @@
         -->
         <div *ngIf="_user.localUsers.length !== 0" class="list-item" (click)="configControllers()">
             <p>Config Controllers</p>
+        </div>
+        <div class="list-item" (click)="navigate('/settings')">
+            <p>User Settings</p>
+        </div>
+        <div class="list-item" (click)="navigate('/install')">
+            <p>Installation</p>
         </div>
         <div class="list-item" (click)="resetWindowSize()">
             <p>Reset Window Size</p>

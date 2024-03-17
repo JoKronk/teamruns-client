@@ -2,7 +2,6 @@ import { Component, ViewChild, ElementRef, OnDestroy, AfterViewInit } from '@ang
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { User, UserBase } from '../common/user/user';
-import { NewUpdateComponent } from '../dialogs/new-update/new-update.component';
 import { FireStoreService } from '../services/fire-store.service';
 import { UserService } from '../services/user.service';
 import { DbUserProfile } from '../common/firestore/db-user-profile';
@@ -34,6 +33,8 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
 
   private settingsListener: any;
   private updateListener: any;
+  private installMissingListener: any;
+  private installOutdatedListener: any;
 
   userCollection: DbUsersCollection | undefined = undefined;
   settingsFetched: boolean = false;
@@ -42,6 +43,7 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     this.checkVideoLoad();
 
     this.setupUpdateListener();
+    this.setupInstallListeners();
     this.setupSettingsListener();
 
     if (new Date().getHours() % 4 === 0) //saving some reads on the free plan db
@@ -129,7 +131,17 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
 
   setupUpdateListener() {
     this.updateListener = (window as any).electron.receive("update-available", () => {
-      this.dialog.open(NewUpdateComponent);
+      this.router.navigate(['/install'], { queryParams: { client: 1 } });
+    });
+  }
+
+  setupInstallListeners() {
+    this.installMissingListener = (window as any).electron.receive("install-missing", () => {
+      this.router.navigate(['/install'], { queryParams: { install: 1 } });
+    });
+
+    this.installOutdatedListener = (window as any).electron.receive("install-outdated", () => {
+      this.router.navigate(['/install'], { queryParams: { update: 1 } });
     });
   }
 
@@ -164,5 +176,7 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
   ngOnDestroy(): void {
     if (this.settingsListener) this.settingsListener();
     if (this.updateListener) this.updateListener();
+    if (this.installMissingListener) this.installMissingListener();
+    if (this.installOutdatedListener) this.installOutdatedListener();
   }
 }

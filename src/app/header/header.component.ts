@@ -21,7 +21,7 @@ export class HeaderComponent {
   @Input() inRun: boolean;
   @Input() showLobbyButtons: boolean;
   
-  constructor(public _user: UserService, private router: Router, private location: Location,  private dialog: MatDialog) {
+  constructor(public _user: UserService, private router: Router, private location: Location, private dialog: MatDialog) {
     
   }
   

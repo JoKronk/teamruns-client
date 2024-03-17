@@ -15,7 +15,10 @@ const validIpcChannelsIn = [
     "recordings-write",
     "recordings-open",
     "update-check",
-    "update-install"
+    "update-start",
+    "install-check",
+    "install-start",
+    "install-update"
 ];
 const validIpcChannelsOut = [
     "og-launched",
@@ -27,7 +30,11 @@ const validIpcChannelsOut = [
     "settings-get-path",
     "update-available",
     "update-progress",
-    "update-downloaded"
+    "update-downloaded",
+    "install-missing",
+    "install-found",
+    "install-outdated",
+    "install-progress",
 ];
 
 

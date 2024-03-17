@@ -1,6 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { SetPathComponent } from '../dialogs/set-path/set-path.component';
 import { UserService } from '../services/user.service';
 import pkg from 'app/package.json';
 import { FireStoreService } from '../services/fire-store.service';
@@ -38,12 +37,7 @@ export class LobbyComponent implements OnDestroy {
   lobbiesSubscription: Subscription;
 
   constructor(public _user: UserService, private _firestore: FireStoreService, private router: Router, private dialog: MatDialog) {
-    //Check if path is set
-    setTimeout(() => {
-      if (!_user.user.ogFolderpath)
-        this.dialog.open(SetPathComponent);
-    }, 300);
-
+    
     this.lobbiesSubscription = this._firestore.getOpenLobbies().subscribe((lobbies) => {
       const expireDate = new Date();
       expireDate.setHours(expireDate.getHours() - 4);

@@ -7,6 +7,7 @@
     "dependencies": {
         "bytebuffer": "^5.0.1",
         "electron-updater": "^5.3.0",
-        "winax": "^3.3.4"
+        "winax": "^3.3.4",
+        "yauzl": "^3.1.2"
     }
 }

@@ -1,4 +1,4 @@
-import { Component, NgZone, OnDestroy } from '@angular/core';
+import { Component, NgZone } from '@angular/core';
 import { FireStoreService } from '../services/fire-store.service';
 import { UserService } from '../services/user.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -10,39 +10,18 @@ import { DbUserProfile } from '../common/firestore/db-user-profile';
   templateUrl: './user-settings.component.html',
   styleUrls: ['./user-settings.component.scss']
 })
-export class UserSettingsComponent implements OnDestroy {
+export class UserSettingsComponent {
 
-  path: string;
   newUsername: string = "";
   newPw: string = "";
-  private pathListener: any;
 
-  constructor(public _user: UserService, private _firestore: FireStoreService, private dialog: MatDialog, private zone: NgZone) {
-    this.setPathListener();
-    this.path = _user.user.ogFolderpath;
-  }
+  constructor(public _user: UserService, private dialog: MatDialog, private zone: NgZone) {
 
-  setPath() {
-    this._user.user.ogFolderpath = this.path;
-    this._user.writeUserDataChangeToLocal();
-  }
-
-  selectPath() {
-    (window as any).electron.send('settings-select-path');
   }
 
   openRecordings() {
     (window as any).electron.send('recordings-open');
   }
-
-  setPathListener() {
-    this.pathListener = (window as any).electron.receive("settings-get-path", (path: string) => {
-      this.zone.run(() => {
-        this.path = path;
-      });
-    });
-  }
-
 
   updateUsername() {
     this.newUsername = this.newUsername.trim();
@@ -78,8 +57,5 @@ export class UserSettingsComponent implements OnDestroy {
   }
 
 
-  ngOnDestroy(): void {
-    if (this.pathListener) this.pathListener();
-  }
 
 }

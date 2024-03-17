@@ -1,0 +1,52 @@
+<div #blackscreen class="blackscreen"></div>
+<div class="logo">
+    <img src="./assets/teamrun-logo.png" alt="image">
+    <p>TeamRun</p>
+</div>
+
+<div class="install">
+    <div class="install-body-center">
+        <p class="install-highlighted" *ngIf="!install || !update">
+        {{
+            clientUpdate ? "Client Update"
+            : install ? "OpenGOAL Install" 
+            : update ? "Game Update"
+            : "Installation"
+        }}
+        </p>
+    </div>
+    <div class="install-body-center">
+        <div *ngIf="clientUpdate">
+            <button (click)="updateClient()">Update</button>
+        </div>
+
+        <div *ngIf="install" [dragdrop]="['.iso']" (fileDropped)="onFilesDrop($event)">
+            <button class="dropbox" (click)="selectPath(true)">Drop iso</button>
+        </div>
+        
+        <div *ngIf="update">
+            <button (click)="updateGame()">Update</button>
+        </div>
+    </div>
+    <div class="install-body">
+        <div *ngIf="!update && !clientUpdate">
+            <p>OpenGOAL Install Path:</p>
+            <p>{{ _user.user.ogFolderpath }}</p>
+            <button (click)="selectPath(false)">Change</button>
+            <button class="install-body-check" *ngIf="_user.user.gameVersion && !update" (click)="checkForInstall()">Recheck install path</button>
+        </div>
+        <div *ngIf="clientUpdate">
+            <p>New Client Update Available!</p>
+            <p>The client will automatically close and update when the download is complete.</p>
+        </div>
+        
+        <div class="install-bottom">
+            <button (click)="routeBack()">Back</button>
+        </div>
+    </div>
+</div>
+
+<video #video autoplay muted loop id="bg-video">
+    <source src="./assets/startup-bg.mp4" type="video/mp4">
+</video>
+
