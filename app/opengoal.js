@@ -1,19 +1,17 @@
 const net = require('node:net');
 const path = require('path');
-const winax = require('winax');
 const ByteBuffer = require('bytebuffer');
 const fs = require('fs');
 const spawn = require('child_process').spawn;
 const { app } = require('electron');
 let win = null;
 
-var openGoalREPL = null;
-var replHasStarted = false;
+var replSocket = null;
+var replInstance = null;
 var replIsRunning = false;
 
 var openGoalInstances = [];
 var openGoalMainPort = 8111;
-var firstStart = true;
 
 var runRepl = false;
 
@@ -31,58 +29,55 @@ class OpenGoal {
         let ogPath = await getOpenGoalPath();
         if (!ogPath) return;
 
-        if (openGoalREPL) {
-            openGoalREPL.end();
-            openGoalREPL.destroy();
+        if (replSocket) {
+            replSocket.end();
+            replSocket.destroy();
         }
-        openGoalREPL = new net.Socket();
+        replSocket = new net.Socket();
 
-        if (replHasStarted) {
+        if (replInstance) {
             this.killOG(openGoalMainPort);
             await sleep(1500);
         }
 
         //start REPL
-        try {
-            var shell = new winax.Object('Shell.Application');
-            //shell.ShellExecute(ogPath + "\\gk.exe", "-boot -fakeiso -debug", "", "open", 0);
-            shell.ShellExecute(ogPath + "\\goalc.exe", "", "", "open");
-            replHasStarted = true;
-        }
-        catch (e) { this.sendClientMessage(e); }
-        
-        await sleep(2500);
+        replInstance = spawn(ogPath + "\\goalc.exe", [], {detached: true, shell: true});
 
-        //connect to REPL
-        openGoalREPL.connect(8181, '127.0.0.1', function () { console.log('Connection made with REPL!'); });
-        openGoalREPL.on('connect', async () => {
-            replIsRunning = true;
-            this.writeGoalCommand("(mng)");
-        });
-
-        openGoalREPL.on('error', (ex) => {
-            if (!openGoalInstances.find(x => x.port === openGoalMainPort))
-                this.sendClientMessage("Failed to start the client properly, please relaunch!");
-        });
-
-        openGoalREPL.on('close', () => {
-            replHasStarted = false;
+        //On kill
+        replInstance.stdout.on('end', () => {
+            replInstance = null;
             replIsRunning = false;
         });
+
+        //On Full Start
+        replInstance.on('spawn', async () => {
+            await sleep(1500);
+            //connect to REPL
+            replSocket.connect(8181, '127.0.0.1', () => { this.sendClientMessage('Connection made with REPL!'); });
+            replSocket.on('connect', async () => {
+                replIsRunning = true;
+                this.writeGoalCommand("(mng)");
+            });
+    
+            replSocket.on('error', (ex) => {
+                if (!openGoalInstances.find(x => x.port === openGoalMainPort))
+                    this.sendClientMessage("Failed to start the REPL properly, please relaunch!");
+            });
+    
+            replSocket.on('close', () => {
+                replIsRunning = false;
+            });
+        });
+        
+        await sleep(2500);
     }
 
 
 
     async startOG(port) {
-        
-        if (firstStart) {
-            this.killAllGks();
-            firstStart = false;
-            await sleep(500);
-        }
 
         if (openGoalInstances.some(x => x.port === port)) {
-            this.killGK(port);
+            this.killOG(port);
             await sleep(1500);
         }
 
@@ -93,25 +88,23 @@ class OpenGoal {
             if (!replIsRunning)
                 await this.preStartREPL();
             
-    
-            if (!replHasStarted)
-                this.sendClientMessage("Startup failed, REPL never launched");
-            
-            
-    
-            if (replHasStarted && !replIsRunning) {
+            if (replInstance && !replIsRunning) {
                 console.log("Starting pre REPL (lt) connection sleep 1")
                 await sleep(1500);
             }
     
-            if (replHasStarted && !replIsRunning) {
+            if (replInstance && !replIsRunning) {
                 console.log("Starting pre REPL (lt) connection sleep 2")
                 await sleep(3500);
             }
             
-            console.log("Connecting to OG and writing setup commands!")
-            this.writeGoalCommand("(lt)");
-            this.writeGoalCommand("(mark-repl-connected)");
+            if (replInstance && replIsRunning) {
+                console.log("Connecting to OG and writing setup commands!")
+                this.writeGoalCommand("(lt)");
+                this.writeGoalCommand("(mark-repl-connected)");
+            }
+            else
+                this.sendClientMessage("REPL startup failed");
         }
 
         if (!openGoalInstances.find(x => x.port === port))
@@ -170,15 +163,11 @@ class OpenGoal {
     }
 
     killREPL() {
-        if (!replHasStarted) return;
-        try {
-            var shell = new winax.Object('WScript.Shell');
-            shell.Exec("taskkill /F /IM goalc.exe");
+        if (!replInstance) return;
+        spawn("taskkill", ["/pid", replInstance.pid, '/f', '/t']);
 
-            replHasStarted = false;
-            replIsRunning = false;
-        }
-        catch (e) { this.sendClientMessage(e); }
+        replInstance = null;
+        replIsRunning = false;
     }
 
     killGK(port) {
@@ -189,16 +178,6 @@ class OpenGoal {
         }
     }
 
-    killAllGks() {
-        try {
-            var shell = new winax.Object('WScript.Shell');
-            shell.Exec("taskkill /F /IM gk.exe");
-
-        }
-        catch (e) { this.sendClientMessage(e); }
-    }
-
-
 
     writeGoalCommand(args) {
         if (!replIsRunning) return;
@@ -208,7 +187,7 @@ class OpenGoal {
         var bb = new ByteBuffer().LE().writeInt(data.length).writeInt(10).writeString(args).flip().toBuffer();
         console.log("writing ", args);
         this.sendClientMessage("sending: " + args);
-        openGoalREPL.write(bb);
+        replSocket.write(bb);
     }
 
 

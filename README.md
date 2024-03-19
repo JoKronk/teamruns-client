@@ -20,8 +20,6 @@ Install "Desktop development with C++" from Visual Studio if not already install
 
 Run `npm i` in both the root folder and the /app folder to install node modules for both front and backend.
 
-In the /app folder run ´npm rebuild winax --runtime=electron --target=22.2.1 --dist-url=https://electronjs.org/headers --build-from-source´ otherwise winax will throw errors.
-
 Open up the environment.ts file in /src/environments.
 
 For work on Teamruns please contact me to be added to the firebase project linked to the published version where you'll find the config data.
