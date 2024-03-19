@@ -28,6 +28,7 @@ function createWindow() {
     y: userSettings.window.y,
     webPreferences: {
         zoomFactor: 1.0 / factor,
+        backgroundThrottling: false,
         allowRunningInsecureContent: (devServe),
         preload: path.join(__dirname, "preload.js")
     },
