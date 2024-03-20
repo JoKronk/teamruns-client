@@ -9,7 +9,7 @@ export class DbTask {
 
     constructor(task: Task) {
         this.gameTask = task.gameTask;
-        this.isCell = task.isCollectedCell;
+        this.isCell = task.isCollectedCell ?? Task.resultsInCell(task.gameTask);
         this.obtainedByName = task.obtainedByName;
         this.obtainedById = task.obtainedById;
         this.obtainedAt = task.obtainedAt;

@@ -165,9 +165,14 @@ export class FireStoreService {
   async addRun(run: DbRun) {
     await this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
+    if (!(run instanceof DbRun))
+      run = Object.assign(new DbRun(), run);
+    
     if (run.userIds instanceof Map)
       run.userIds = Object.fromEntries(run.userIds);
     
+    run.clearFrontendValues();
+
     const id = run.id;
     run.id = undefined;
     if (id)

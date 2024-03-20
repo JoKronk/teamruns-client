@@ -1,9 +1,9 @@
 export class CollectionName {
-    static personalBests = "personalBests";
-    static leaderboards = "leaderboards";
     static globalData = "globalData";
-    static runs = "runs";
+    static leaderboards = "leaderboards";
     static lobbies = "lobbies";
     static peerConnections = "peerConnections";
+    static personalBests = "personalBests";
     static presets = "presets";
+    static runs = "runs";
 }

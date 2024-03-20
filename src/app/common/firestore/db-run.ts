@@ -48,8 +48,8 @@ export class DbRun {
         this.userIds = new Map(Object.entries(this.userIds));
     }
 
-    fillFrontendValues(usersCollection: DbUsersCollection) {
-        if (this.teams.length == 0) return;
+    fillFrontendValues(usersCollection: DbUsersCollection | undefined) {
+        if (this.teams.length == 0 || !usersCollection) return;
 
         let lastTeamEndTime = this.teams.sort((a, b) => b.endTimeMs - a.endTimeMs)[0].endTimeMs;
         this.endTimeFrontend = lastTeamEndTime === 0 ? "DNF" : Timer.msToTimeFormat(lastTeamEndTime, true, true);
@@ -64,6 +64,16 @@ export class DbRun {
         });
 
         return this;
+    }
+
+    clearFrontendValues() {
+        this.endTimeFrontend = undefined;
+        this.dateFrontend = undefined;
+        this.teams.forEach((team, index) => {
+            team.players.forEach((player, i) => {
+                this.teams[index].players[i].currentUsernameFrontend = undefined;
+            });
+        });
     }
 
 
@@ -98,6 +108,8 @@ export class DbRun {
             this.teams.filter(x => x.endTimeMs !== 0 && x.runIsValid).forEach(team => {
                 let leaderboard = leaderboards.find(x => x.players === team.players.length);
                 if (!leaderboard) return;
+                const leaderboardIndex = leaderboards.indexOf(leaderboard);
+                leaderboard = Object.assign(new DbLeaderboard(leaderboard.category, leaderboard.sameLevel, leaderboard.players), leaderboard);
     
                 const runnerIds = team.players.flatMap(x => x.user.id);
                 let previousPb = leaderboard.pbs.find(x => this.arraysEqual(runnerIds, x.userIds));
@@ -106,9 +118,10 @@ export class DbRun {
                     leaderboard.pbs = leaderboard.pbs.sort((a, b) => a.endTimeMs - b.endTimeMs);
                     let newPb = DbPb.convertToFromRun(this, team, recordings?.filter(rec => team.players.some(player => player.user.id === rec.userId)), leaderboard.pbs.length === 0 || leaderboard.pbs[0].endTimeMs > team.endTimeMs);
                     leaderboard.pbs.push(DbLeaderboardPb.convertToFromPb(newPb)); //needs to come before pb being added since it removes id
+                    
                     if (newPb.id) //this should always be true
                         pbUsers.set(newPb.id, team.players.flatMap(x => x.user.id));
-
+                    
                     firestoreService.addPb(newPb);
                     if (previousPb)
                         leaderboard.pbs = leaderboard.pbs.filter(x => x.id !== previousPb!.id);
@@ -116,6 +129,7 @@ export class DbRun {
                     const leaderboardId = leaderboard.id;
                     firestoreService.putLeaderboard(leaderboard);
                     leaderboard.id = leaderboardId; //id gets removed at upload this is a "quick fix" as it's needed for other teams
+                    leaderboards[leaderboardIndex] = leaderboard; //needed as reference is probably lost when object is created anew
                 }
             });
         });
