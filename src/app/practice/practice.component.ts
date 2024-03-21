@@ -66,7 +66,7 @@ export class PracticeComponent implements OnDestroy {
   constructor(public _user: UserService, firestoreSerivce: FireStoreService, private dialog: MatDialog, private zone: NgZone) {
     this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, zone);
     this._user.localUsers = [ this.mainLocalPlayer ];
-    this.runHandler = new RunHandler(undefined, firestoreSerivce, _user, dialog, zone);
+    this.runHandler = new RunHandler(undefined, firestoreSerivce, _user, dialog, zone, true);
     this.mainLocalPlayer.socketHandler.timer.setStartConditions(1);
 
     //recording import listener

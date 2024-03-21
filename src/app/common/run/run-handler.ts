@@ -58,7 +58,8 @@ export class RunHandler {
         public firestoreService: FireStoreService,
         public userService: UserService,
         public dialog: MatDialog,
-        public zone: NgZone) {
+        public zone: NgZone,
+        public isPracticeTool: boolean = false) {
         
         this.isOnlineInstant = lobbyId !== undefined;
         this.zone = zone;
@@ -534,7 +535,7 @@ export class RunHandler {
                         (window as any).electron.send('recordings-write', recordings);
 
                     this.run.checkRunEndValid();
-                    if (this.isOnlineInstant && this.run.teams.some(x => x.runIsValid)) {
+                    if (!this.isPracticeTool && this.run.teams.some(x => x.runIsValid)) {
 
                         if (isMaster) {
                             let run: DbRun = DbRun.convertToFromRun(this.run);
