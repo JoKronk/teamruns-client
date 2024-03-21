@@ -49,8 +49,6 @@ export class RunHandler {
     localMaster: RTCPeerMaster | undefined;
     localSlave: RTCPeerSlave | undefined;
 
-    private obsUserId: string | null;
-
     dataSubscription: Subscription;
     positionSubscription: Subscription;
     lobbySubscription: Subscription;
@@ -60,12 +58,10 @@ export class RunHandler {
         public firestoreService: FireStoreService,
         public userService: UserService,
         public dialog: MatDialog,
-        public zone: NgZone,
-        obsUserId: string | null = null) {
+        public zone: NgZone) {
         
         this.isOnlineInstant = lobbyId !== undefined;
         this.zone = zone;
-        this.obsUserId = obsUserId;
 
         //lobby listener
         if (this.isOnlineInstant) {
@@ -232,7 +228,7 @@ export class RunHandler {
     }
 
     shouldBecomeHost(userId: string): boolean {
-        if (!this.lobby || this.obsUserId) return false;
+        if (!this.lobby) return false;
         if ((!this.lobby.host && (!this.lobby.backupHost || this.lobby.backupHost.id === this.getMainLocalPlayer().user.id)) || (this.lobby.host?.id === userId && !this.localMaster))
             return true;
         else
@@ -266,11 +262,6 @@ export class RunHandler {
             this.userService.localUsers.forEach(localPlayer => {
                 localPlayer.mode = this.run!.data.mode;
                 this.run!.spectators.push(new Player(localPlayer.user));
-
-                if (!this.isOnlineInstant) {
-                    this.sendEvent(EventType.ChangeTeam, localPlayer.user.id, 0);
-                    localPlayer.updateTeam(this.run?.getPlayerTeam(this.userService.getId()));
-                }
             });
         }
         else {
@@ -282,10 +273,8 @@ export class RunHandler {
                     localPlayer.mode = this.run!.data.mode;
                     this.run!.spectators.push(new Player(localPlayer.user));
     
-                    if (!this.isOnlineInstant) {
-                        this.sendEvent(EventType.ChangeTeam, localPlayer.user.id, 0);
-                        localPlayer.updateTeam(this.run?.getPlayerTeam(this.userService.getId()));
-                    }
+                    this.sendEvent(EventType.ChangeTeam, localPlayer.user.id, 0);
+                    localPlayer.updateTeam(this.run?.getPlayerTeam(this.userService.getId()));
                 });
                 this.onLobbyChange();
     
@@ -555,7 +544,7 @@ export class RunHandler {
                                 if (!collection || !players) return;
                                 // add run to history if any player is signed in
                                 if (players.some(player => collection.users.find(user => user.id === player.user.id)))
-                                    this.firestoreService.addRun(run); 
+                                    this.firestoreService.addRun(run);
                                 // add pb & leadeboard data if all players are signed in
                                 if (players.every(player => collection.users.find(user => user.id === player.user.id))) {
                                     let pbUsers: Map<string, string[]> = run.checkUploadPbs(this.firestoreService, recordings);
@@ -603,10 +592,6 @@ export class RunHandler {
                 this.zone.run(() => {
                     const user = this.getUser(event.userId)?.user;
                     this.run?.changeTeam(user, event.value);
-                    //check set team for obs window, set from run component if normal user
-                    if (this.obsUserId && this.obsUserId === event.userId) {
-                        this.getMainLocalPlayer().updateTeam(this.run?.getPlayerTeam(this.obsUserId));
-                    }
                 });
                 this.updateAllPlayerInfo();
 
@@ -727,13 +712,10 @@ export class RunHandler {
 
         //update player and team
         localPlayer.mode = this.run.data.mode;
-        let playerTeam = this.run.getPlayerTeam(this.obsUserId ? this.obsUserId : localPlayer.user.id);
-        if (playerTeam) {
-            //clean out collectables so that potentially missed ones are given on import
-            if (!this.obsUserId)
-                playerTeam.splits = [];
-
-                localPlayer.updateTeam(playerTeam);
+        let playerTeam = this.run.getPlayerTeam(localPlayer.user.id);
+        if (playerTeam) { //clean out collectables so that potentially missed ones are given on import
+            playerTeam.splits = [];
+            localPlayer.updateTeam(playerTeam);
         }
 
         localPlayer.levelHandler.uncollectedLevelItems = new RunStateHandler();
