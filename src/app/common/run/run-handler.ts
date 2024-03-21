@@ -547,7 +547,7 @@ export class RunHandler {
                                 if (players.some(player => collection.users.find(user => user.id === player.user.id)))
                                     this.firestoreService.addRun(run);
                                 // add pb & leadeboard data if all players are signed in
-                                if (players.every(player => collection.users.find(user => user.id === player.user.id))) {
+                                if (this.run?.data.submitPbs && players.every(player => collection.users.find(user => user.id === player.user.id))) {
                                     let pbUsers: Map<string, string[]> = run.checkUploadPbs(this.firestoreService, recordings);
                                     if (pbUsers.size !== 0)
                                         this.sendEventAsMain(EventType.NewPb, pbUsers);

@@ -12,6 +12,7 @@ export class RunData {
     category: CategoryOption = CategoryOption.NoLts;
     countdownSeconds: number = 10;
     mode: RunMode = RunMode.Speedrun;
+    submitPbs: boolean = true;
 
     //category settings
     requireSameLevel: boolean = false;
@@ -45,6 +46,7 @@ export class RunData {
         rundata.category = CategoryOption.Custom;
         rundata.allowSoloHubZoomers = true;
         rundata.noLTS = false;
+        rundata.submitPbs = false;
         return rundata;
     }
 }

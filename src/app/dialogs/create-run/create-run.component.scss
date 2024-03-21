@@ -83,7 +83,15 @@ button {
 }
 
 label {
-    display: block;
     font-size:16px;
     color: #a8a8a8;
+}
+
+mat-slide-toggle {
+    margin-top: 20px;
+
+    span {
+        font-size:16px;
+        color: #a8a8a8;
+    }
 }
