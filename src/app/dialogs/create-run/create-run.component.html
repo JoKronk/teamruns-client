@@ -3,7 +3,7 @@
     <div class="tab-container">
         <div class="tab">
             <div class="option">
-                <p>Run Name</p>
+                <p>Lobby Name</p>
                 <input [(ngModel)]="runData.name" maxlength="20">
             </div>
             <div class="option">
@@ -20,14 +20,15 @@
                 </select>
             </div>
             <br />
-            <label><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.requireSameLevel">Require same level for cell pickup</label>
+            <div><label matTooltip="Require players to be in the same level for cell pickups." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.requireSameLevel">Same level</label> </div>
+            
             <div *ngIf="runData.category === 0">
                 <div class="option">
                     <p>Modifiers</p>
                 </div>
-                <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label>
-                <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.enablePvp">PVP</label>
-                <label><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noLTS">No LTS</label>
+                <div><label matTooltip="Players by default need to all be on their own zoomer between the hub worlds at the same time once for it to be able to go at full speed, this disables that." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label></div>
+                <div><label matTooltip="Enables damage between ALL players." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.enablePvp">PVP</label></div>
+                <div><label matTooltip="Disables Lava Tube Skip." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noLTS">No LTS</label></div>
                 <div class="option">
                     <p>Citadel Skip</p>
                     <select [(ngModel)]="runData.citadelSkip">
