@@ -1,13 +1,13 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { SnackbarComponent } from '../snackbar/snackbar.component';
+import { SnackbarComponent } from '../snackbars/snackbar/snackbar.component';
 import { User } from '../common/user/user';
 import { Router } from '@angular/router';
 import { OG } from '../common/opengoal/og';
 import { LocalPlayerData } from '../common/user/local-player-data';
 import { RunData } from '../common/run/run-data';
 import { Timer } from '../common/run/timer';
-import { SnackbarInstallComponent } from '../snackbar-install/snackbar-install.component';
+import { SnackbarInstallComponent } from '../snackbars/snackbar-install/snackbar-install.component';
 import { DownloadHandler } from '../common/user/download-handler';
 
 @Injectable({

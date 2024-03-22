@@ -1,23 +1,23 @@
 import { Component, HostListener, NgZone, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Task } from '../common/opengoal/task';
-import { UserService } from '../services/user.service';
+import { Task } from '../../common/opengoal/task';
+import { UserService } from '../../services/user.service';
 import pkg from 'app/package.json';
-import { FireStoreService } from '../services/fire-store.service';
-import { LocalPlayerData } from '../common/user/local-player-data';
-import { RunMode } from '../common/run/run-mode';
-import { PlayerState } from '../common/player/player-state';
-import { RunState } from '../common/run/run-state';
-import { RunHandler } from '../common/run/run-handler';
-import { EventType } from '../common/peer/event-type';
+import { FireStoreService } from '../../services/fire-store.service';
+import { LocalPlayerData } from '../../common/user/local-player-data';
+import { RunMode } from '../../common/run/run-mode';
+import { PlayerState } from '../../common/player/player-state';
+import { RunState } from '../../common/run/run-state';
+import { RunHandler } from '../../common/run/run-handler';
+import { EventType } from '../../common/peer/event-type';
 import { MatDialog } from '@angular/material/dialog';
-import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
-import { User, UserBase } from '../common/user/user';
-import { GameTaskTime } from '../common/opengoal/game-task';
-import { TaskStatus } from '../common/opengoal/task-status';
-import { AddPlayerComponent, NewPlayerResponse } from '../dialogs/add-player/add-player.component';
-import { Player } from '../common/player/player';
-import { OG } from '../common/opengoal/og';
+import { ConfirmComponent } from '../../dialogs/confirm/confirm.component';
+import { User, UserBase } from '../../common/user/user';
+import { GameTaskTime } from '../../common/opengoal/game-task';
+import { TaskStatus } from '../../common/opengoal/task-status';
+import { AddPlayerComponent, NewPlayerResponse } from '../../dialogs/add-player/add-player.component';
+import { Player } from '../../common/player/player';
+import { OG } from '../../common/opengoal/og';
 
 @Component({
   selector: 'app-run',

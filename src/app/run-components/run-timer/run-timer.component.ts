@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Timer } from '../common/run/timer';
+import { Timer } from '../../common/run/timer';
 
 @Component({
   selector: 'app-run-timer',

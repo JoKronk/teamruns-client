@@ -25,7 +25,9 @@
             <input *ngIf="editingName" (keyup.enter)="newTeamName(team.id)" [(ngModel)]="team.name" maxlength="16">
             
             <button *ngIf="runHandler.connected && team.id !== mainLocalPlayer.teamId && mainLocalPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting" (click)="switchTeam(team.id)">Join</button>
-              
+            
+            <p>Orbs: {{ team.runState.orbCount }} Flies: {{ team.runState.buzzerCount }} Cells: {{ team.runState.cellCount }}</p>
+            
             <div class="team-players">
               <div *ngFor="let player of team.players">
                 <p [class.team-player-disconnected]="player.state === playerState.Disconnected" [class.team-player-ready]="player.state === playerState.Ready && (runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">

@@ -1,9 +1,9 @@
 import { Component, NgZone } from '@angular/core';
-import { FireStoreService } from '../services/fire-store.service';
-import { UserService } from '../services/user.service';
+import { FireStoreService } from '../../services/fire-store.service';
+import { UserService } from '../../services/user.service';
 import { MatDialog } from '@angular/material/dialog';
-import { AccountDialogComponent, AccountReply } from '../dialogs/account-dialog/account-dialog.component';
-import { DbUserProfile } from '../common/firestore/db-user-profile';
+import { AccountDialogComponent, AccountReply } from '../../dialogs/account-dialog/account-dialog.component';
+import { DbUserProfile } from '../../common/firestore/db-user-profile';
 
 @Component({
   selector: 'app-user-settings',

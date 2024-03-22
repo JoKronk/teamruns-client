@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { Team } from '../common/run/team';
-import { DbTeam } from '../common/firestore/db-team';
+import { Team } from '../../common/run/team';
+import { DbTeam } from '../../common/firestore/db-team';
 
 @Component({
   selector: 'app-run-splits',

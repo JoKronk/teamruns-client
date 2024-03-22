@@ -1,5 +1,5 @@
 import { Component, ElementRef, NgZone, OnDestroy, ViewChild } from '@angular/core';
-import { UserService } from '../services/user.service';
+import { UserService } from '../../services/user.service';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 

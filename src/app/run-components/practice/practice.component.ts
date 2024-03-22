@@ -1,19 +1,19 @@
 import { AfterViewInit, Component, NgZone, OnDestroy } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
-import { UserService } from '../services/user.service';
-import { Recording, SelectableRecording } from '../common/socket/recording';
-import { UserBase } from '../common/user/user';
-import { RunState } from '../common/run/run-state';
-import { RecordingImport } from '../common/socket/recording-import';
+import { UserService } from '../../services/user.service';
+import { Recording, SelectableRecording } from '../../common/socket/recording';
+import { UserBase } from '../../common/user/user';
+import { RunState } from '../../common/run/run-state';
+import { RecordingImport } from '../../common/socket/recording-import';
 import { Subscription } from 'rxjs';
-import { MultiplayerState } from '../common/opengoal/multiplayer-state';
-import { RunHandler } from '../common/run/run-handler';
-import { FireStoreService } from '../services/fire-store.service';
-import { LocalPlayerData } from '../common/user/local-player-data';
-import { EventType } from '../common/peer/event-type';
-import { OgCommand } from '../common/socket/og-command';
+import { MultiplayerState } from '../../common/opengoal/multiplayer-state';
+import { RunHandler } from '../../common/run/run-handler';
+import { FireStoreService } from '../../services/fire-store.service';
+import { LocalPlayerData } from '../../common/user/local-player-data';
+import { EventType } from '../../common/peer/event-type';
+import { OgCommand } from '../../common/socket/og-command';
 import pkg from 'app/package.json';
-import { OG } from '../common/opengoal/og';
+import { OG } from '../../common/opengoal/og';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({

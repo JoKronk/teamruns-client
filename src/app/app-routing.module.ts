@@ -2,13 +2,13 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { CloseScreenComponent } from './close-screen/close-screen.component';
 import { LobbyComponent } from './lobby/lobby.component';
-import { RunComponent } from './run/run.component';
+import { RunComponent } from './run-components/run/run.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { RunHistoryComponent } from './run-history/run-history.component';
-import { PracticeComponent } from './practice/practice.component';
-import { UserSettingsComponent } from './user-settings/user-settings.component';
-import { InstallComponent } from './install/install.component';
+import { PracticeComponent } from './run-components/practice/practice.component';
+import { UserSettingsComponent } from './settings-components/user-settings/user-settings.component';
+import { InstallComponent } from './settings-components/install/install.component';
 
 const routes: Routes = [
   { path: 'lobby', component: LobbyComponent },

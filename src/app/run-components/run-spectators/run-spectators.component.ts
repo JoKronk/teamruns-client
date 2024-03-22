@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { Player } from '../common/player/player';
-import { UserBase } from '../common/user/user';
+import { Player } from '../../common/player/player';
+import { UserBase } from '../../common/user/user';
 
 @Component({
   selector: 'app-run-spectators',
