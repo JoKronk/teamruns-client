@@ -27,6 +27,7 @@ export class AddPlayerComponent {
   }
 
   setUser() {
+    if (!this.username) this.username = "";
     this.username = this.username.trim();
     if (!this.username || this.username.length === 0) {
       this._user.sendNotification("Please enter a valid username!");
