@@ -251,14 +251,15 @@ export class RunHandler {
         if (!this.lobby) return;
 
         console.log("Creating Run!");
-        this.run = new Run(this.lobby.runData, this.getMainLocalPlayer().socketHandler.timer);
+        let localMainPlayer = this.getMainLocalPlayer();
+        this.run = new Run(this.lobby.runData, localMainPlayer.socketHandler.timer);
 
         this.userService.localUsers.forEach(localPlayer => {
             localPlayer.socketHandler.run = this.run;
         });
 
         if (this.isOnlineInstant) {
-            this.getMainLocalPlayer().user = this.userService.user;
+            localMainPlayer.user = this.userService.user;
 
             this.userService.localUsers.forEach(localPlayer => {
                 localPlayer.mode = this.run!.data.mode;
@@ -268,7 +269,7 @@ export class RunHandler {
         else {
             setTimeout(() => { //lousy way to make sure userId has loaded in before we change team !TODO: Replace
                 //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
-                this.getMainLocalPlayer().user = this.userService.user;
+                localMainPlayer.user = this.userService.user;
     
                 this.userService.localUsers.forEach(localPlayer => {
                     localPlayer.mode = this.run!.data.mode;
@@ -501,12 +502,12 @@ export class RunHandler {
                         if (!localPlayer) return;
                         
                         this.run = Object.assign(new Run(run.data, localPlayer.socketHandler.timer), run).reconstructRun();
-                        this.runSyncLocalPlayer(localPlayer, run, true);
+                        this.runSyncLocalPlayer(localPlayer, this.run, true);
                     }
                     else { //handle all local users sync
                         this.run = Object.assign(new Run(run.data, this.getMainLocalPlayer().socketHandler.timer), run).reconstructRun();
                         this.userService.localUsers.forEach((localPlayer, i) => {
-                            this.runSyncLocalPlayer(localPlayer, run, i === 0);
+                            this.runSyncLocalPlayer(localPlayer, this.run!, i === 0);
                         });
                     }
                     this.connected = true;
@@ -704,7 +705,7 @@ export class RunHandler {
         await this.firestoreService.updateLobby(this.lobby);
     }
 
-    private runSyncLocalPlayer(localPlayer: LocalPlayerData, run: Run, reconstructTimer: boolean) {
+    runSyncLocalPlayer(localPlayer: LocalPlayerData, run: Run, reconstructTimer: boolean) {
         if (!this.run) return;
 
         localPlayer.socketHandler.timer.importTimer(run.timer);
@@ -718,12 +719,7 @@ export class RunHandler {
             playerTeam.splits = [];
             localPlayer.updateTeam(playerTeam);
         }
-
         localPlayer.levelHandler.uncollectedLevelItems = new RunStateHandler();
-        if (this.run.teams.length !== 0) {
-            const importTeam: Team = playerTeam?.runState ? playerTeam : this.run.teams[0];
-            localPlayer.importRunStateHandler(importTeam.runState, true);
-        }
     }
 
 
