@@ -86,8 +86,19 @@ export class SocketHandler {
             if (target.position)
                 this.updatePlayerPosition(new UserPositionData(target.position, this.timer.totalMs, this.user));
 
-            if (target.state && target.state.justSpawned && this.socketPort === OG.mainPort)
-                this.timer.onPlayerLoad();
+            if (target.state) {
+                if (target.state.justSpawned) {
+                    if (!this.socketConnected) {
+                        setTimeout(() => { //give the game a bit of time to actually start
+                            console.log("Socket Connected!");
+                            this.socketConnected = true;
+                            this.addCommand(OgCommand.None); //send empty message to update username, version & controller
+                        }, 200);
+                    }
+                    if (this.socketPort === OG.mainPort)
+                        this.timer.onPlayerLoad();
+                }
+            }
 
             /*
             if (target.state) {
@@ -101,9 +112,6 @@ export class SocketHandler {
             if (target.connected) {
                 this.socketPackage.version = pkg.version;
                 this.socketPackage.username = this.user.displayName;
-                console.log("Socket Connected!");
-                this.socketConnected = true;
-                this.addCommand(OgCommand.None); //send empty message to update username, version & controller
             }
         },
         error => {
