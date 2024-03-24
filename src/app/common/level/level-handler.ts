@@ -36,10 +36,6 @@ export class LevelHandler {
                 this.resendCommonInteraction(interaction, socketHandler);
             });
 
-            level.interactions.filter(x => x.interType == InteractionType.buzzer).forEach(interaction => {
-                this.resendCommonInteraction(interaction, socketHandler);
-            });
-
             level.interactions.filter(x => x.interType == InteractionType.money).forEach(interaction => {
                 this.resendCommonInteraction(interaction, socketHandler);
             });
@@ -64,6 +60,12 @@ export class LevelHandler {
                 socketHandler.addPlayerInteraction(interaction);
                 this.onLpcChamberStop(interaction);
             });
+
+            setTimeout(() => { //give time for buzzer crate to get destoryed
+                level.interactions.filter(x => x.interType == InteractionType.buzzer).forEach(interaction => {
+                    this.resendCommonInteraction(interaction, socketHandler);
+                });
+            }, 500);
         
             const orbAdjustCount = runStateHandler.orbCount - orbCount;
             socketHandler.addOrbAdjustmentToCurrentPlayer(orbAdjustCount);
@@ -143,15 +145,18 @@ export class LevelHandler {
                 socketHandler.addPlayerInteraction(interaction);
             });
 
-            const buzzerUpdates = level.interactions.filter(x => x.interType == InteractionType.buzzer);
-            buzzerUpdates.forEach((interaction, index) => {
-                // cheap way of marking that this is the last buzzer and pickup should be ran on it.
-                if (index + 1 === buzzerUpdates.length && interaction.interName == "buzzer") 
-                    interaction.interName = "buzzer-last"; //!TODO: does produce a cell spawn bug on enter if the last fly is a lpc minigame one
-                    
-                socketHandler.addPlayerInteraction(interaction);
-                this.uncollectedLevelItems.buzzerCount -= 1;
-            });
+
+            setTimeout(() => { //give time for buzzer crate to get destoryed
+                const buzzerUpdates = level!.interactions.filter(x => x.interType == InteractionType.buzzer);
+                buzzerUpdates.forEach((interaction, index) => {
+                    // cheap way of marking that this is the last buzzer and pickup should be ran on it.
+                    if (index + 1 === buzzerUpdates.length && interaction.interName == "buzzer") 
+                        interaction.interName = "buzzer-last"; //!TODO: does produce a cell spawn bug on enter if the last fly is a lpc minigame one
+                        
+                    socketHandler.addPlayerInteraction(interaction);
+                    this.uncollectedLevelItems.buzzerCount -= 1;
+                });
+            }, 500);
 
             level.interactions.filter(x => x.interType == InteractionType.money).forEach(interaction => {
                 socketHandler.addPlayerInteraction(interaction);
