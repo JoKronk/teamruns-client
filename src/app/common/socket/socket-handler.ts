@@ -477,8 +477,7 @@ export class SocketHandler {
             case InteractionType.ecoRed:
                 break;
 
-            case InteractionType.fishCaught:
-            case InteractionType.fishMissed:
+            case InteractionType.fish:
                 break;
 
             case InteractionType.bossPhase:
