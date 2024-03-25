@@ -32,7 +32,7 @@ export class LevelHandler {
         //update collectables
         runStateHandler.levels.forEach(level => {
 
-            level.interactions.filter(x => x.interType == InteractionType.crateNormal || x.interType == InteractionType.crateIron || x.interType == InteractionType.crateSteel || x.interType == InteractionType.crateDarkeco).forEach(interaction => {
+            level.interactions.filter(x => x.interType == InteractionType.crate).forEach(interaction => {
                 this.resendCommonInteraction(interaction, socketHandler);
             });
 
@@ -98,11 +98,8 @@ export class LevelHandler {
                 case InteractionType.gameTask:
                     this.uncollectedLevelItems.addTaskInteraction(interaction);
                     break;
-                case InteractionType.crateNormal:
-                case InteractionType.crateIron:
-                case InteractionType.crateSteel:
-                case InteractionType.crateDarkeco:
-                    if ((InteractionData.isBuzzerCrate(interaction.interType) || InteractionData.isOrbsCrate(interaction.interType)))
+                case InteractionType.crate:
+                    if ((InteractionData.isBuzzerCrate(interaction) || InteractionData.isOrbsCrate(interaction)))
                         this.uncollectedLevelItems.addInteraction(interaction);
                     break;
                 default:
@@ -137,7 +134,7 @@ export class LevelHandler {
                 return;
 
             console.log("killing from level", level);
-            level.interactions.filter(x => x.interType == InteractionType.crateNormal || x.interType == InteractionType.crateIron || x.interType == InteractionType.crateSteel || x.interType == InteractionType.crateDarkeco).forEach(interaction => {
+            level.interactions.filter(x => x.interType == InteractionType.crate).forEach(interaction => {
                 socketHandler.addPlayerInteraction(interaction);
             });
 

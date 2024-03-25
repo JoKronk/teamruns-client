@@ -1,3 +1,4 @@
+import { CrateType } from "../opengoal/crate-type";
 import { InteractionType } from "../opengoal/interaction-type";
 import { RecordingPositionData, UserPositionData } from "./position-data";
 
@@ -41,12 +42,12 @@ export class InteractionData {
         }
     }
 
-    public static isBuzzerCrate(type: InteractionType) {
-        return type === InteractionType.crateIron;
+    public static isBuzzerCrate(interaction: InteractionData) {
+        return interaction.interType === InteractionType.crate && interaction.interStatus === CrateType.crateIron;
     }
 
-    public static isOrbsCrate(type: InteractionType) {
-        return type === InteractionType.crateSteel;
+    public static isOrbsCrate(interaction: InteractionData) {
+        return interaction.interType === InteractionType.crate && interaction.interStatus === CrateType.crateSteel;
     }
 }
 

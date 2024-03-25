@@ -484,15 +484,12 @@ export class SocketHandler {
                 break;
 
 
-            case InteractionType.crateNormal:
-            case InteractionType.crateIron:
-            case InteractionType.crateSteel:
-            case InteractionType.crateDarkeco:
+            case InteractionType.crate:
                 if (!this.localTeam) break;
-                if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !InteractionData.isBuzzerCrate(interaction.interType)) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
+                if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !InteractionData.isBuzzerCrate(interaction)) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
                     this.levelHandler.onInteraction(interaction);
 
-                if (isSelfInteraction && InteractionData.isBuzzerCrate(interaction.interType) || InteractionData.isOrbsCrate(interaction.interType))
+                if (isSelfInteraction && InteractionData.isBuzzerCrate(interaction) || InteractionData.isOrbsCrate(interaction))
                     this.run.getPlayerTeam(positionData.userId)?.runState.addInteraction(interaction);
                 break;
 

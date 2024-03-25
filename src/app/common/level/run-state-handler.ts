@@ -106,7 +106,7 @@ export class RunStateHandler {
             }
     
             else if (interaction.interParent.startsWith("crate-")) {
-                let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x.interType) && x.interName === interaction.interParent);
+                let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x) && x.interName === interaction.interParent);
                 if (this.checkDupeAddOrbGroupInteraction(players, userId, interaction.interParent, parentCrate !== undefined && parentCrate.interAmount <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
                     return true;
             }
