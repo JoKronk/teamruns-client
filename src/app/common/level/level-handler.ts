@@ -66,10 +66,10 @@ export class LevelHandler {
                     this.resendCommonInteraction(interaction, socketHandler);
                 });
             }, 500);
-        
-            const orbAdjustCount = runStateHandler.orbCount - orbCount;
-            socketHandler.addOrbAdjustmentToCurrentPlayer(orbAdjustCount);
         });
+        
+        const orbAdjustCount = runStateHandler.orbCount - orbCount;
+        socketHandler.addOrbAdjustmentToCurrentPlayer(orbAdjustCount);
     }
 
     private resendCommonInteraction(interaction: UserInteractionData, socketHandler: SocketHandler) {
