@@ -1,4 +1,4 @@
-import { Component, Inject, NgZone } from '@angular/core';
+import { Component, Inject, NgZone, OnDestroy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { OG } from 'src/app/common/opengoal/og';
 import { Timer } from 'src/app/common/run/timer';
@@ -12,7 +12,7 @@ import { UserService } from 'src/app/services/user.service';
   templateUrl: './add-player.component.html',
   styleUrls: ['./add-player.component.scss']
 })
-export class AddPlayerComponent {
+export class AddPlayerComponent implements OnDestroy {
 
   phase: number = 0;
 
@@ -21,6 +21,7 @@ export class AddPlayerComponent {
   
   user: User = new User();
   localPlayer: LocalPlayerData | undefined = undefined;
+  localPlayerCompleted: boolean = false;
 
   constructor(@Inject(MAT_DIALOG_DATA) public timer: Timer, private _user: UserService, private _firestore: FireStoreService, private zone: NgZone, public dialogRef: MatDialogRef<AddPlayerComponent>) {
   
@@ -91,21 +92,17 @@ export class AddPlayerComponent {
   }
 
   confirm() {
-    this.dialogRef.close(new NewPlayerResponse(this.localPlayer, false));
+    this.localPlayerCompleted = true;
+    this.dialogRef.close(this.localPlayer);
   }
 
   close() {
-    this.dialogRef.close(new NewPlayerResponse(this.localPlayer, true));
+    this.dialogRef.close(this.localPlayer);
   }
 
-}
-
-export class NewPlayerResponse {
-  localPlayer: LocalPlayerData | undefined;
-  creationCanceled: boolean;
-
-  constructor(localPlayer: LocalPlayerData | undefined, canceled: boolean) {
-    this.localPlayer = localPlayer;
-    this.creationCanceled = canceled;
+  ngOnDestroy(): void {
+    if (!this.localPlayerCompleted && this.localPlayer)
+    this._user.removeLocalPlayer(this.localPlayer.user.id);
   }
+
 }

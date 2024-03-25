@@ -15,7 +15,7 @@ import { ConfirmComponent } from '../../dialogs/confirm/confirm.component';
 import { User, UserBase } from '../../common/user/user';
 import { GameTaskTime } from '../../common/opengoal/game-task';
 import { TaskStatus } from '../../common/opengoal/task-status';
-import { AddPlayerComponent, NewPlayerResponse } from '../../dialogs/add-player/add-player.component';
+import { AddPlayerComponent } from '../../dialogs/add-player/add-player.component';
 import { Player } from '../../common/player/player';
 import { OG } from '../../common/opengoal/og';
 
@@ -51,17 +51,15 @@ export class RunComponent implements OnDestroy {
 
   addLocalPlayer(teamId: number) {
     const dialogRef = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run?.timer });
-    const dialogSubscription = dialogRef.afterClosed().subscribe((response: NewPlayerResponse) => {
+    const dialogSubscription = dialogRef.afterClosed().subscribe((player: LocalPlayerData | undefined) => {
       dialogSubscription.unsubscribe();
 
-      if (response.creationCanceled && response.localPlayer)
-        this._user.removeLocalPlayer(response.localPlayer.user.id);
-      else if (!response.creationCanceled && response.localPlayer && this.runHandler.run) {
-        this.runHandler.run.spectators.push(new Player(response.localPlayer.user));
-        this.runHandler.sendEvent(EventType.ChangeTeam, response.localPlayer.user.id, teamId);
-        response.localPlayer.socketHandler.run = this.runHandler.run;
-        response.localPlayer.updateTeam(this.runHandler.run.getPlayerTeam(response.localPlayer.user.id));
-        response.localPlayer.socketHandler.startDrawPlayers();
+      if (player && this.runHandler.run) {
+        this.runHandler.run.spectators.push(new Player(player.user));
+        this.runHandler.sendEvent(EventType.ChangeTeam, player.user.id, teamId);
+        player.socketHandler.run = this.runHandler.run;
+        player.updateTeam(this.runHandler.run.getPlayerTeam(player.user.id));
+        player.socketHandler.startDrawPlayers();
       }
     });
   }
