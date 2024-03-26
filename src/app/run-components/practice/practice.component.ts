@@ -120,7 +120,7 @@ export class PracticeComponent implements OnDestroy {
     this.usePlayback === "true" ? this.playAllRecordings(false) : this.replayId = crypto.randomUUID();
     this.replay = false;
 
-    if (this.resetWorld === "true")
+    if (this.resetWorld === "true" && this.usePlayback === "false")
       this.mainLocalPlayer.socketHandler.addCommand(OgCommand.ResetGame);
       
 
@@ -240,6 +240,9 @@ export class PracticeComponent implements OnDestroy {
     });
 
     this.recordingsEndtime = this.getLongestRecordingTimeMs(giveRecordings);
+
+    if (this.resetWorld === "true")
+      this.mainLocalPlayer.socketHandler.addCommand(OgCommand.ResetGame);
 
     this.runHandler.setupRunStart();
     this.mainLocalPlayer.socketHandler.timer.startTimer(undefined, false, selfStop && giveRecordings.length !== 0 ? this.recordingsEndtime : null);
