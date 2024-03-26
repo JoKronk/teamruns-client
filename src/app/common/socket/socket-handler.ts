@@ -163,7 +163,7 @@ export class SocketHandler {
     }
 
     addPlayerInteraction(interaction: UserInteractionData) {
-        const player = this.self.positionData.userId === interaction.userId ? this.self : this.players.find(x => x.positionData.userId == interaction.userId);
+        const player = this.self.positionData.userId === interaction.userId ? this.self : this.players.find(x => x.positionData.userId == interaction.userId) ?? this.self; //assume its sync data of missing user and give to self if none found
         if (!player || interaction.interType === InteractionType.none) return;
         player.interactionBuffer.push(InteractionData.getInteractionValues(interaction));
     }
