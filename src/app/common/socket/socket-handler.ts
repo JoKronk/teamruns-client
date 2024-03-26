@@ -7,7 +7,8 @@ import { MultiplayerState } from "../opengoal/multiplayer-state";
 import { InteractionType } from "../opengoal/interaction-type";
 import { Timer } from "../run/timer";
 import { InteractionData, UserInteractionData } from "./interaction-data";
-import { CurrentPlayerData, CurrentPositionData } from "./current-position-data";
+import { CurrentPositionData } from "./current-position-data";
+import { CurrentPlayerData } from "./current-player-data";
 import { GameTaskLevelTime } from "../opengoal/game-task";
 import { Task } from "../opengoal/task";
 import { PlayerState } from "../player/player-state";
@@ -90,6 +91,7 @@ export class SocketHandler {
             if (target.state) {
                 if (target.state.justSpawned) {
                     if (!this.socketConnected) {
+
                         setTimeout(() => { //give the game a bit of time to actually start
                             console.log("Socket Connected!");
                             this.socketConnected = true;
@@ -261,7 +263,7 @@ export class SocketHandler {
             if (isLocalUser) { //handled in draw update cycle for remote players
                 const runPlayer = this.run?.getPlayer(player.positionData.userId);
                 if (this.run?.timer.runState === RunState.Started && runPlayer && runPlayer.state !== PlayerState.Finished && runPlayer.state !== PlayerState.Forfeit)
-                    this.handlePlayerInteractions(player.positionData);
+                this.handlePlayerInteractions(player.positionData);
             }
         }
         else
@@ -338,7 +340,7 @@ export class SocketHandler {
         this.players.filter(x=> x.positionData.interaction && x.positionData.interaction.interType !== InteractionType.none).forEach(player => {
             const runPlayer = this.run?.getPlayer(player.positionData.userId);
             if (this.run?.timer.runState === RunState.Started && runPlayer && runPlayer.state !== PlayerState.Finished && runPlayer.state !== PlayerState.Forfeit)
-                this.handlePlayerInteractions(player.positionData);
+            this.handlePlayerInteractions(player.positionData);
         });
 
         //send data
