@@ -306,7 +306,10 @@ function writeSave(save) {
   const folderPath = getSaveFilesPath();
   fs.writeFile(path.join(folderPath, save.name + ".json"), JSON.stringify(save), (err) => {
     if (err) sendClientMessage(err.message);
-    else readSaveFiles();
+    else {
+      sendClientMessage("Game saved.");
+      readSaveFiles();
+    }
   });
 }
 

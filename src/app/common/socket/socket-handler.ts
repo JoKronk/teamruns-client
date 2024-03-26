@@ -102,15 +102,18 @@ export class SocketHandler {
                             this.addCommand(OgCommand.None); //send empty message to update username, version & controller
                         }, 300);
                     }
+
                     if (this.socketPort === OG.mainPort)
                         this.timer.onPlayerLoad();
                 }
 
                 if (target.state.justSaved && this.run?.data.mode === RunMode.Casual && this.timer.totalMs > 5000) {
                     let save: LocalSave = (this.localTeam?.runState ?? this.run.getTeam(0)?.runState) as LocalSave;
-                    save.name = this.run.data.name;
-                    save.users = this.localTeam?.players.flatMap(x => x.user) ?? [];
-                    (window as any).electron.send('save-write', save);
+                    if (save.cellCount !== 0 || save.orbCount !== 0 || save.buzzerCount !== 0) {
+                        save.name = this.run.data.name;
+                        save.users = this.localTeam?.players.flatMap(x => x.user) ?? [];
+                        (window as any).electron.send('save-write', save);
+                    }
                 }
             }
 

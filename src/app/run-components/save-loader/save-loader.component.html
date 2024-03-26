@@ -1,8 +1,8 @@
 <div class="container">
-    <p class="title">{{hideFiles ? "Save loaded" : "Game saves" }}</p>
+    <p class="title">{{!hideFiles && !internalHideFiles ? "Game saves" : hideFiles ? "Save loaded" : "Save created"  }}</p>
 
     <div class="save-container">
-        <div *ngIf="!hideFiles">
+        <div *ngIf="!hideFiles && !internalHideFiles">
             <div class="save" *ngFor="let save of saveFiles" (click)="loadSave(save)">
                 <div class="save-header">
                     <div class="save-name">

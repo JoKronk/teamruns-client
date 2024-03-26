@@ -16,7 +16,7 @@ import { TaskStatus } from '../../common/opengoal/task-status';
 import { AddPlayerComponent } from '../../dialogs/add-player/add-player.component';
 import { Player } from '../../common/player/player';
 import { OG } from '../../common/opengoal/og';
-import { RunStateHandler } from 'src/app/common/level/run-state-handler';
+import { LocalSave } from 'src/app/common/level/local-save';
 import { OgCommand } from 'src/app/common/socket/og-command';
 
 @Component({
@@ -80,12 +80,14 @@ export class RunCasualComponent implements OnDestroy {
     });
   }
 
-  loadSave(save: RunStateHandler) {
+  loadSave(save: LocalSave) {
     if (!this.runHandler.run) return;
 
     let team = this.runHandler.getMainLocalPlayer().getTeam();
     if (team)
       team.runState = save;
+
+    this.runHandler.run.data.name = save.name;
 
     this._user.localUsers.forEach(player => {
       if (this.runHandler.run) {
