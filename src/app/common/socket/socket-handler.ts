@@ -93,6 +93,7 @@ export class SocketHandler {
                         setTimeout(() => { //give the game a bit of time to actually start
                             console.log("Socket Connected!");
                             this.socketConnected = true;
+                            this.updateGameSettings(new GameSettings(this.run?.data));
                             this.addCommand(OgCommand.None); //send empty message to update username, version & controller
                         }, 300);
                     }
