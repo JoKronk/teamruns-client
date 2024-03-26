@@ -133,7 +133,7 @@ export class PracticeComponent implements OnDestroy {
     }
 
     this.runHandler.setupRunStart();
-    this.mainLocalPlayer.socketHandler.timer.startTimer(undefined, false);
+    this.mainLocalPlayer.socketHandler.timer.startTimer(null, null, false, !this.inFreecam);
   }
 
   stopRecording() {
@@ -245,7 +245,7 @@ export class PracticeComponent implements OnDestroy {
       this.mainLocalPlayer.socketHandler.addCommand(OgCommand.ResetGame);
 
     this.runHandler.setupRunStart();
-    this.mainLocalPlayer.socketHandler.timer.startTimer(undefined, false, selfStop && giveRecordings.length !== 0 ? this.recordingsEndtime : null);
+    this.mainLocalPlayer.socketHandler.timer.startTimer(undefined, selfStop && giveRecordings.length !== 0 ? this.recordingsEndtime : null, false, !this.inFreecam);
     this.mainLocalPlayer.socketHandler.startDrawPlayers();
   }
 

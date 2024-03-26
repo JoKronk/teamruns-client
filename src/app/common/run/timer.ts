@@ -17,6 +17,8 @@ export class Timer {
   private timerUpdateRateMs: number = 10;
 
   hasSpawnedPlayer: boolean = false;
+  sendTargetReleaseCommand: boolean = true;
+
   timerEndSubject: Subject<boolean> = new Subject();
   private socketCommandBuffers: OgCommand[][] = []; //one command array for each local player
 
@@ -92,6 +94,7 @@ export class Timer {
   private resetTimer() {
     this.startDateMs = null;
     this.hasSpawnedPlayer = false;
+    this.sendTargetReleaseCommand = true;
     this.pauseDateMs = null;
     this.runState = RunState.Waiting;
     this.timeString = "-0:00:" + ("0" + this.countdownSeconds).slice(-2);
@@ -99,7 +102,7 @@ export class Timer {
     this.totalMs = 0;
   }
 
-  startTimer(startDateMs: number | undefined = undefined, spawnInGeyser: boolean = true, endTimeMs: number | null = null) {
+  startTimer(startDateMs: number | null = null, endTimeMs: number | null = null, sendStartCommand: boolean = true, sendReleaseCommand: boolean = true) {
     this.resetEverything = false;
 
     if (!startDateMs) {
@@ -111,8 +114,8 @@ export class Timer {
     this.endTimeMs = endTimeMs;
     this.runState = RunState.Countdown;
 
-    if (!spawnInGeyser)
-      this.hasSpawnedPlayer = true;
+    this.hasSpawnedPlayer = !sendStartCommand;
+    this.sendTargetReleaseCommand = sendReleaseCommand;
     
     this.updateTimer();
   }
@@ -134,7 +137,7 @@ export class Timer {
         });
         this.hasSpawnedPlayer = true;
       }
-      else if (this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 10) {
+      else if (this.sendTargetReleaseCommand && this.startDateMs! <= currentTimeMs + 10) {
         this.socketCommandBuffers.forEach(buffer => {
           buffer.push(OgCommand.TargetRelease);
         });
