@@ -21,7 +21,7 @@
               
               <div class="team-players">
                 <div *ngFor="let player of team.players">
-                  <p [class.team-player-disconnected]="player.state === playerState.Disconnected" [class.team-player-ready]="player.state === playerState.Ready && (runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Waiting)" [class.team-player-reset]="player.state === playerState.WantsToReset">
+                  <p [class.team-player-disconnected]="player.state === playerState.Disconnected">
                     <img *ngIf="player.currentLevel" class="run-info-teams-level" [src]="'./assets/levels/' + player.currentLevel + '.png'">
                     <span>{{ player.user.name }}</span>
                     <span class="run-info-teams-cells-cont"><img class="run-info-teams-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>

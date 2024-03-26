@@ -46,8 +46,21 @@ export class RunCasualComponent implements OnDestroy {
       let runId = params.get('id');
 
       this.runHandler = new RunHandler(runId ?? undefined, firestoreService, _user, dialog, zone);
-      this.toggleReady();
+
+      //!TODO: Bad design (added as a quick fix), create event emitter in run handler instead and replace with that (recommend doing it when/while adding better support for mods)
+      this.checkStartGame(runId);
     });
+  }
+
+  private checkStartGame(runId: string | null) {
+    setTimeout(() => {
+      if (this.runHandler.connected) {
+        if (runId) this.switchTeam(0);
+        this.toggleReady();
+      }
+      else
+        this.checkStartGame(runId);
+    }, 300);
   }
 
   addLocalPlayer(teamId: number) {
@@ -102,17 +115,8 @@ export class RunCasualComponent implements OnDestroy {
 
 
   switchTeam(teamId: number) {
-    let userId = this.mainLocalPlayer.user.id;
-    if (this._user.localUsers.length !== 1) {
-      
-    }
-
-    let localPlayer = this._user.localUsers.find(x => x.user.id === userId);
-    if (!localPlayer) return;
-
-    if (this.runHandler.run?.timer.runState !== RunState.Waiting && this.runHandler.isSpectatorOrNull(userId)) return;
-    this.runHandler.sendEvent(EventType.ChangeTeam, userId, teamId);
-    localPlayer.updateTeam(this.runHandler.run?.getTeam(teamId) ?? undefined);
+    this.runHandler.sendEvent(EventType.ChangeTeam, this.mainLocalPlayer.user.id, teamId);
+    this.mainLocalPlayer.updateTeam(this.runHandler.run?.getTeam(teamId) ?? undefined);
   }
 
   kickPlayer(user: UserBase) {

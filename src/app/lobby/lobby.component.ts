@@ -77,11 +77,11 @@ export class LobbyComponent implements OnDestroy {
         if (!successful)
           this._user.sendNotification("Wrong password!");
         if (successful)
-        this.router.navigate(['/run' ], { queryParams: { id: lobby.id } });
+        this.router.navigate(lobby.runData.mode !== this.runMode.Casual ? ['/run'] : ['/run-casual'], { queryParams: { id: lobby.id } });
       });
     }
     else
-      this.router.navigate(['/run' ], { queryParams: { id: lobby.id } });
+      this.router.navigate(lobby.runData.mode !== this.runMode.Casual ? ['/run'] : ['/run-casual'], { queryParams: { id: lobby.id } });
   }
   
 

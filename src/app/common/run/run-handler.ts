@@ -621,8 +621,10 @@ export class RunHandler {
 
                 //check if everyone is ready, send start call if so
                 if (isMaster && event.value === PlayerState.Ready && this.run!.everyoneIsReady()) {
-                    this.lobby!.visible = false;
-                    this.updateFirestoreLobby();
+                    if (this.run.data.mode !== RunMode.Casual) {
+                        this.lobby!.visible = false;
+                        this.updateFirestoreLobby();
+                    }
 
                     this.sendEventAsMain(EventType.StartRun, new Date().toUTCString());
                 }
@@ -735,6 +737,11 @@ export class RunHandler {
         this.isBeingDestroyed = true;
         const mainLocalPlayer = this.getMainLocalPlayer();
         const wasHost = this.localMaster && this.isOnlineInstant && this.lobby?.host?.id === mainLocalPlayer.user.id;
+
+        if (wasHost && this.run?.data.mode === RunMode.Casual) {
+            this.lobby!.visible = false;
+            this.updateFirestoreLobby();
+        }
 
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
