@@ -96,6 +96,9 @@ export class SocketHandler {
                             console.log("Socket Connected!");
                             this.socketConnected = true;
                             this.updateGameSettings(new GameSettings(this.run?.data));
+                            this.run?.getAllPlayers().forEach(player => { // set the team for any users already connected
+                                this.updatePlayerInfo(player.user.id, this.run!.getRemotePlayerInfo(player.user.id));
+                            });
                             this.addCommand(OgCommand.None); //send empty message to update username, version & controller
                         }, 300);
                     }
@@ -226,8 +229,11 @@ export class SocketHandler {
     checkRegisterPlayer(user: UserBase | undefined, state: MultiplayerState) {
         if (!user || this.players.find(x => x.positionData.userId === user.id)) return;
 
-        if (user.id !== this.user.id)
+        if (user.id !== this.user.id) {
             this.players.push(new CurrentPlayerData(user, state));
+            if (this.run)
+                this.updatePlayerInfo(user.id, this.run.getRemotePlayerInfo(user.id));
+        }
         else
             this.self = new CurrentPlayerData(user, MultiplayerState.interactive);
     }

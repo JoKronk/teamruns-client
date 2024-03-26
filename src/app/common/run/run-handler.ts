@@ -339,7 +339,7 @@ export class RunHandler {
         else if (!this.isOnlineInstant)
             this.onDataChannelEvent(event, true);
     }
-
+    
 
     sendPosition(positionData: UserPositionData) {
         if (!this.isOnlineInstant) return;
@@ -589,8 +589,8 @@ export class RunHandler {
                 this.zone.run(() => {
                     const user = this.getUser(event.userId)?.user;
                     this.run?.changeTeam(user, event.value);
+                    this.updateAllPlayerInfo();
                 });
-                this.updateAllPlayerInfo();
 
                 if (!isMaster) break;
                 const user: LobbyUser | undefined = this.lobby?.getUser(event.userId);
