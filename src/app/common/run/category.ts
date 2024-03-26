@@ -23,6 +23,10 @@ export class Category {
                 key: CategoryOption.Hundo
             },
             {
+                displayName: "No FCS",
+                key: CategoryOption.NoFcs
+            },
+            {
                 displayName: "Orbless",
                 key: CategoryOption.Orbless
             },
@@ -43,6 +47,7 @@ export enum CategoryOption {
     NoLts,
     AllCells,
     Hundo,
+    NoFcs,
     Orbless,
     AllFlies,
     AllOrbs

@@ -234,6 +234,9 @@ export class Run {
             case CategoryOption.Hundo:
                 team.runIsValid = team.runState.cellCount === 101 && team.runState.orbCount === 2000;
                 break;
+            case CategoryOption.NoFcs:
+                team.runIsValid = team.runState.cellCount >= 22;
+                break;
             case CategoryOption.Orbless:
                 team.runIsValid = team.runState.orbCount === 0;
                 break;
