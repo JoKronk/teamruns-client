@@ -117,15 +117,8 @@ export class RunHandler {
             const positionData = new UserPositionData(target.position, localPlayer.socketHandler.timer.totalMs ?? 0, localPlayer.user);
 
             //handle position
-            if (localPlayer.getTeam() !== undefined) {
+            if (localPlayer.getTeam() !== undefined)
                 this.sendPosition(positionData);
-
-                //update for local instances
-                this.userService.localUsers.forEach(localP => {
-                    if (positionData.userId !== localP.user.id)
-                        localP.socketHandler.updatePlayerPosition(positionData);
-                });
-            }
 
             //handle game state changes for current player
             if (target.state)
@@ -339,9 +332,18 @@ export class RunHandler {
         else if (!this.isOnlineInstant)
             this.onDataChannelEvent(event, true);
     }
-    
 
     sendPosition(positionData: UserPositionData) {
+        this.sendPositionToRemote(positionData);
+
+        //update for local instances
+        this.userService.localUsers.forEach(localP => {
+            if (positionData.userId !== localP.user.id)
+                localP.socketHandler.updatePlayerPosition(positionData);
+        });
+    }
+
+    private sendPositionToRemote(positionData: UserPositionData) {
         if (!this.isOnlineInstant) return;
 
         if (this.localSlave) {
