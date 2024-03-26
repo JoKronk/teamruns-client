@@ -48,7 +48,7 @@
         </div>
 
         <div *ngIf="unavaliableLobbies.length !== 0" class="lobbies-old">
-          <h2>Unavailable (Version Missmatch)</h2>
+          <h2>Unavailable (Version Difference)</h2>
           <table mat-table [dataSource]="dataSourceUnavailable" multiTemplateDataRows>
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef> Lobby </th>
@@ -61,7 +61,7 @@
             <ng-container matColumnDef="category">
               <th mat-header-cell *matHeaderCellDef> Category </th>
               <td mat-cell *matCellDef="let lobby">
-                {{categoryOptions[lobby.runData.category].displayName}} 
+                {{categoryOptions[lobby.runData.category ?? 0].displayName}} 
                 <span *ngIf="lobby.runData.requireSameLevel"> (Same Level)</span>
               </td>
             </ng-container>
@@ -74,7 +74,7 @@
               <td mat-cell *matCellDef="let lobby"> {{lobby.users.length}} </td>
             </ng-container>
   
-            <tr mat-row *matRowDef="let lobby; columns: columns;" class="run-row" (mouseleave)="hideLobbyViewer()" (mouseenter)="selectLobby(lobby)"></tr>
+            <tr mat-row *matRowDef="let lobby; columns: columns;" class="run-row"></tr>
           </table>
         </div>
 
