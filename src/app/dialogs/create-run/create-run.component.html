@@ -10,19 +10,30 @@
                 <p>Mode</p>
                 <select [disabled]="usingPreset" [(ngModel)]="runData.mode" (change)="changeMode()">
                     <option [ngValue]="runMode.Speedrun">Speedrun</option>
+                    <option [ngValue]="runMode.Casual">Casual</option>
                     <option [ngValue]="runMode.Lockout">Lockout</option>
                 </select>
             </div>
-            <div class="option">
+            <div class="option" *ngIf="runData.mode !== runMode.Casual">
                 <p>Category</p>
                 <select [(ngModel)]="runData.category" (change)="changeCategory()">
                     <option *ngFor="let category of categoryOptions" [ngValue]="category.key">{{ category.displayName }}</option>
                 </select>
             </div>
-            <br />
-            <div><label matTooltip="Require players to be in the same level for cell pickups." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.requireSameLevel">Same level</label> </div>
+            <div *ngIf="runData.mode === runMode.Casual">
+                <div class="option">
+                    <p>Password (optional)</p>
+                    <input [(ngModel)]="password" maxlength="20">
+                </div>
+                <br />
+                <div><label matTooltip="Enables damage between ALL players." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.enablePvp">PVP</label></div>
+            </div>
+            <div *ngIf="runData.mode !== runMode.Casual">
+                <br />
+                <label matTooltip="Require players to be in the same level for cell pickups." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.requireSameLevel">Same level</label>
+            </div>
             
-            <div *ngIf="runData.category === 0">
+            <div *ngIf="runData.mode !== runMode.Casual && runData.category === 0">
                 <div class="option">
                     <p>Modifiers</p>
                 </div>
@@ -41,26 +52,28 @@
             
         </div>
         <div class="tab">
-            <div class="option">
-                <p>Teams (for races)</p>
-                <select [(ngModel)]="runData.teams" (change)="changeTeams()">
-                    <option *ngFor="let teams of teamsOptions" [ngValue]="teams">{{ runData.mode === runMode.Lockout && teams === 1 ? "Free for All" : teams }}</option>
-                </select>
+            <div *ngIf="runData.mode !== runMode.Casual">
+                <div class="option">
+                    <p>Teams (for races)</p>
+                    <select [(ngModel)]="runData.teams" (change)="changeTeams()">
+                        <option *ngFor="let teams of teamsOptions" [ngValue]="teams">{{ runData.mode === runMode.Lockout && teams === 1 ? "Free for All" : teams }}</option>
+                    </select>
+                </div>
+                <div class="option">
+                    <p>Timer Countdown</p>
+                    <select [(ngModel)]="runData.countdownSeconds">
+                        <option *ngFor="let secs of countdownOptions" [ngValue]="secs">{{ secs }} Seconds</option>
+                    </select>
+                </div>
+                <div class="option">
+                    <p>Password (optional)</p>
+                    <input [(ngModel)]="password" maxlength="20">
+                </div>
+                <div class="option">
+                    <mat-slide-toggle [(ngModel)]="runData.submitPbs" matTooltip="Runs by teams with guest accounts will not be submitted." matTooltipPosition="after"><span>Submit PBs</span></mat-slide-toggle>
+                </div>
+                <button *ngIf="tournamentPreset && tournamentPreset.presetIsVisible && !usingPreset" (click)="usePreset()">{{ tournamentPreset.presetButtonText }}</button>
             </div>
-            <div class="option">
-                <p>Timer Countdown</p>
-                <select [(ngModel)]="runData.countdownSeconds">
-                    <option *ngFor="let secs of countdownOptions" [ngValue]="secs">{{ secs }} Seconds</option>
-                </select>
-            </div>
-            <div class="option">
-                <p>Password (optional)</p>
-                <input [(ngModel)]="password" maxlength="20">
-            </div>
-            <div class="option">
-                <mat-slide-toggle [(ngModel)]="runData.submitPbs" matTooltip="Runs by teams with guest accounts will not be submitted." matTooltipPosition="after"><span>Submit PBs</span></mat-slide-toggle>
-            </div>
-            <button *ngIf="tournamentPreset && tournamentPreset.presetIsVisible && !usingPreset" (click)="usePreset()">{{ tournamentPreset.presetButtonText }}</button>
         </div>
     </div>
 </div>

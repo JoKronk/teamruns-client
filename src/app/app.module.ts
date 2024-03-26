@@ -50,6 +50,8 @@ import { SetControllerComponent } from './dialogs/set-controller/set-controller.
 import { PbCommentDialogComponent } from './dialogs/pb-comment-dialog/pb-comment-dialog.component';
 import { InstallComponent } from './settings-components/install/install.component';
 import { SnackbarInstallComponent } from './snackbars/snackbar-install/snackbar-install.component';
+import { RunCasualComponent } from './run-components/run-casual/run-casual.component';
+import { SaveLoaderComponent } from './run-components/save-loader/save-loader.component';
 
 @NgModule({
   declarations: [
@@ -80,7 +82,9 @@ import { SnackbarInstallComponent } from './snackbars/snackbar-install/snackbar-
     SetControllerComponent,
     PbCommentDialogComponent,
     InstallComponent,
-    SnackbarInstallComponent
+    SnackbarInstallComponent,
+    RunCasualComponent,
+    SaveLoaderComponent
   ],
   imports: [
     BrowserModule,

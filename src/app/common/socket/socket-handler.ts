@@ -24,6 +24,7 @@ import { GameSettings } from "./game-settings";
 import { Team } from "../run/team";
 import { OG } from "../opengoal/og";
 import pkg from 'app/package.json';
+import { LocalSave } from "../level/local-save";
 
 export class SocketHandler {
 
@@ -97,6 +98,13 @@ export class SocketHandler {
                     }
                     if (this.socketPort === OG.mainPort)
                         this.timer.onPlayerLoad();
+                }
+
+                if (target.state.justSaved && this.run?.data.mode === RunMode.Casual && this.timer.totalMs > 5000) {
+                    let save: LocalSave = (this.localTeam?.runState ?? this.run.getTeam(0)?.runState) as LocalSave;
+                    save.name = this.run.data.name;
+                    save.users = this.localTeam?.players.flatMap(x => x.user) ?? [];
+                    (window as any).electron.send('save-write', save);
                 }
             }
 

@@ -99,10 +99,6 @@ function createWindow() {
     openGoal.writeGoalCommand(command);
   });
 
-  ipcMain.on('file-fetch', (event, filepath) => {
-    readFile(filepath);
-  });
-
   ipcMain.on('settings-write', (event, settings) => {
     writeSettings(settings);
   });
@@ -127,12 +123,28 @@ function createWindow() {
     userSettings.window.y = 10;
   });
 
+  ipcMain.on('recordings-fetch', (event, filepath) => {
+    readFile(filepath);
+  });
+
   ipcMain.on('recordings-write', (event, recordings) => {
     writeRecordings(recordings);
   });
 
   ipcMain.on('recordings-open', () => {
-    openRecordings();
+    openFolder(getRecordingsPath());
+  });
+
+  ipcMain.on('save-fetch', () => {
+    readSaveFiles();
+  });
+
+  ipcMain.on('save-write', (event, saveFile) => {
+    writeSave(saveFile);
+  });
+
+  ipcMain.on('save-open', () => {
+    openFolder(getSaveFilesPath());
   });
     
   ipcMain.on('window-minimize', () => {
@@ -267,19 +279,50 @@ function writeRecordings(recordings) {
   });
 }
 
-function openRecordings() {
-  const recPath = getRecordingsPath();
-  if (!fs.existsSync(recPath))
-    fs.mkdirSync(recPath, { recursive: true });
+function openFolder(path) {
+  if (!fs.existsSync(path))
+    fs.mkdirSync(path, { recursive: true });
     
-  child_process.exec('start "" ' + recPath);
+  child_process.exec('start "" ' + path);
 }
 
 function readFile(filepath) {
   fs.readFile(filepath, 'utf8', function (err, data) {
     if (err) console.log(err)
-    else if (data) win.webContents.send("file-get", JSON.parse(data));
+    else if (data) win.webContents.send("recordings-get", JSON.parse(data));
   });
+}
+
+// --- SAVE FILES ---
+function getSaveFilesPath() {
+  const recPath = path.join(app.getPath('documents'), "Teamruns", "Saves");
+  if (!fs.existsSync(recPath))
+    fs.mkdirSync(recPath, { recursive: true });
+  
+  return recPath;
+}
+
+function writeSave(save) {
+  const folderPath = getSaveFilesPath();
+  fs.writeFile(path.join(folderPath, save.name + ".json"), JSON.stringify(save), (err) => {
+    if (err) sendClientMessage(err.message);
+    else readSaveFiles();
+  });
+}
+
+async function readSaveFiles() {
+  let saveFiles = [];
+  const savesPath = getSaveFilesPath();
+
+  for(const file of (await fs.promises.readdir(savesPath))) {
+    const entryPath = path.join( savesPath, file );
+    const stat = await fs.promises.stat( entryPath );
+
+    if(stat.isFile() && entryPath.endsWith(".json"))
+      saveFiles.push(JSON.parse(await fs.promises.readFile(entryPath, 'utf8')));
+  }
+
+  win.webContents.send("save-get", saveFiles);
 }
 
 

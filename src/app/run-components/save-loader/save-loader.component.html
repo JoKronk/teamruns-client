@@ -1,0 +1,27 @@
+<div class="container">
+    <p class="title">{{hideFiles ? "Save loaded" : "Game saves" }}</p>
+
+    <div class="save-container">
+        <div *ngIf="!hideFiles">
+            <div class="save" *ngFor="let save of saveFiles" (click)="loadSave(save)">
+                <div class="save-header">
+                    <div class="save-name">
+                        <h4>{{save.name}}</h4>
+                    </div>
+                    <div class="save-stats">
+                        <span class="save-cell-cont"><img class="save-cell" src="./assets/icons/cell_counter.png">{{ save.cellCount }}</span>
+                        <span class="save-orb-cont"><img class="save-orb" src="./assets/icons/orb_counter.png">{{ save.orbCount }}</span>
+                    </div>
+                </div>
+                <div>
+                    <span *ngFor="let user of save.users">{{user.name}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="save-options">
+        <button (click)="openSavesFolder()">Open Saves Folder</button>
+    </div>
+</div>
+
+<h1 class="backtext text-in-background" title="Viewers">Viewers</h1>

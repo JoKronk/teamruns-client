@@ -9,10 +9,12 @@ import { RunHistoryComponent } from './run-history/run-history.component';
 import { PracticeComponent } from './run-components/practice/practice.component';
 import { UserSettingsComponent } from './settings-components/user-settings/user-settings.component';
 import { InstallComponent } from './settings-components/install/install.component';
+import { RunCasualComponent } from './run-components/run-casual/run-casual.component';
 
 const routes: Routes = [
   { path: 'lobby', component: LobbyComponent },
   { path: 'run', component: RunComponent },
+  { path: 'run-casual', component: RunCasualComponent },
   { path: 'leaderboard', component: LeaderboardComponent },
   { path: 'history', component: RunHistoryComponent },
   { path: 'practice', component: PracticeComponent },

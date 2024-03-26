@@ -70,7 +70,7 @@ export class PracticeComponent implements OnDestroy {
     this.mainLocalPlayer.socketHandler.timer.setStartConditions(1);
 
     //recording import listener
-    this.fileListener = (window as any).electron.receive("file-get", (data: any) => {
+    this.fileListener = (window as any).electron.receive("recordings-get", (data: any) => {
 
       if (data.length === 0 || !data.version || !data.playback || !Array.isArray(data.playback)) {
         if (!this.checkTransformOldRecording(data))
@@ -291,7 +291,7 @@ export class PracticeComponent implements OnDestroy {
 
   checkAddImport() {
     if (this.imports.length != 0)
-      (window as any).electron.send('file-fetch', this.imports[0].path);
+      (window as any).electron.send('recordings-fetch', this.imports[0].path);
   }
 
 
