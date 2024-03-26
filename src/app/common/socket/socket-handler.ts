@@ -442,10 +442,8 @@ export class SocketHandler {
                         this.levelHandler.onInteraction(interaction);
 
                     //cell cost check
-                    if (isCell && isLocalPlayerTeam && (!this.run.isMode(RunMode.Lockout) || this.run.teams.length !== 1) && Task.cellCost(interaction) !== 0) {
-
+                    if (isCell && isLocalPlayerTeam && !interaction.interCleanup && (!this.run.isMode(RunMode.Lockout) || this.run.teams.length !== 1) && Task.cellCost(interaction) !== 0)
                         this.addOrbAdjustmentToCurrentPlayer(-(Task.cellCost(interaction)), interaction.interLevel);
-                    }
                 }
 
                 if (!isNewTaskStatus) break;
