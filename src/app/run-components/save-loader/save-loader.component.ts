@@ -28,17 +28,18 @@ export class SaveLoaderComponent implements OnDestroy {
   loadSave(save: LocalSave) {
     const dialogSubscription = this.dialog.open(ConfirmComponent, { data: "Are you sure you want to load " + save.name + "?" }).afterClosed().subscribe(confirmed => {
       dialogSubscription.unsubscribe();
-      if (confirmed)
-      save = Object.assign(new RunStateHandler(), save);
-      save.orbValidations.forEach((orb, index) => { //called on orb dupe checks, other objects in class doesn't really have any functions that are called after they are stored atm, but can ofc create bugs in the future..
-        const collectors = save.orbValidations[index].collectedByIds;
-        save.orbValidations[index] = Object.assign(new OrbCollection(save.orbValidations[index].entityName, ""), save.orbValidations[index]);
-        save.orbValidations[index].collectedByIds = collectors;
-      });
-      this.onLoadSave.emit(save);
+      if (confirmed) {
+        save = Object.assign(new RunStateHandler(), save);
+        save.orbValidations.forEach((orb, index) => { //called on orb dupe checks, other objects in class doesn't really have any functions that are called after they are stored atm, but can ofc create bugs in the future..
+          const collectors = save.orbValidations[index].collectedByIds;
+          save.orbValidations[index] = Object.assign(new OrbCollection(save.orbValidations[index].entityName, ""), save.orbValidations[index]);
+          save.orbValidations[index].collectedByIds = collectors;
+        });
+        this.onLoadSave.emit(save);
+      }
     });
   }
-  
+
   openSavesFolder() {
     (window as any).electron.send('save-open');
   }
