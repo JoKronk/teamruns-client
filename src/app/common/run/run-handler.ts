@@ -9,7 +9,6 @@ import { Subscription } from "rxjs";
 import { DataChannelEvent } from "../peer/data-channel-event";
 import { EventType } from "../peer/event-type";
 import { PlayerState } from "../player/player-state";
-import { RunState } from "./run-state";
 import { NgZone } from "@angular/core";
 import { Task } from "../opengoal/task";
 import { LobbyUser } from "../firestore/lobby-user";
@@ -21,7 +20,6 @@ import { Category } from "./category";
 import { DbRun } from "../firestore/db-run";
 import { UserPositionData } from "../socket/position-data";
 import { GameState } from "../opengoal/game-state";
-import { Team } from "./team";
 import pkg from 'app/package.json';
 import { RunStateHandler } from "../level/run-state-handler";
 import { OgCommand } from "../socket/og-command";
@@ -377,9 +375,6 @@ export class RunHandler {
 
             case EventType.Connect: //rtc stuff on connection is setup individually in rtc-peer-master/slave
                 const newUser: UserBase = event.value as UserBase;
-                if (event.userId === "host")
-                    this.userService.sendNotification("Client to server fallback communication established,\n please recreate the lobby if peer to peer usually works.", 10000);
-
                 console.log(newUser.name + " connected!");
 
                 if (isMaster) {
@@ -405,7 +400,7 @@ export class RunHandler {
                 }
                 else if (!this.run.hasSpectator(newUser.id))
                     this.run!.spectators.push(new Player(newUser));
-
+                
                 break;
 
 
