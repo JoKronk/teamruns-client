@@ -93,7 +93,7 @@ export class SocketHandler {
                             console.log("Socket Connected!");
                             this.socketConnected = true;
                             this.addCommand(OgCommand.None); //send empty message to update username, version & controller
-                        }, 200);
+                        }, 300);
                     }
                     if (this.socketPort === OG.mainPort)
                         this.timer.onPlayerLoad();
