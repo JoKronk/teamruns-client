@@ -35,7 +35,7 @@ export class RunComponent implements OnDestroy {
   mainLocalPlayer: LocalPlayerData = new LocalPlayerData(this._user.user, OG.mainPort, this.zone);
   runHandler: RunHandler;
 
-  editingName: boolean;
+  editingTeamId: number | null = null;
 
   constructor(public _user: UserService, private firestoreService: FireStoreService, private route: ActivatedRoute, private zone: NgZone, private dialog: MatDialog, private router: Router) {
     
@@ -96,9 +96,6 @@ export class RunComponent implements OnDestroy {
 
   switchTeam(teamId: number) {
     let userId = this.mainLocalPlayer.user.id;
-    if (this._user.localUsers.length !== 1) {
-      
-    }
 
     let localPlayer = this._user.localUsers.find(x => x.user.id === userId);
     if (!localPlayer) return;
@@ -109,24 +106,22 @@ export class RunComponent implements OnDestroy {
   }
 
   editTeamName(teamId: number) {
-    if (this.editingName) return;
-    this._user.localUsers.forEach(localPlayer => {
-      if (teamId === localPlayer.getTeam()?.id && localPlayer.state !== PlayerState.Ready && this.runHandler?.run?.timer.runState === RunState.Waiting)
-        this.editingName = !this.editingName;
-        return;
-    });
+    if (this.editingTeamId !== null)
+      this.updateTeamName();
+    if (this.mainLocalPlayer.state !== PlayerState.Ready && this.runHandler?.run?.timer.runState === RunState.Waiting)
+      this.editingTeamId = teamId;
   }
-  newTeamName(teamId: number) {
-    if (!this.runHandler.getMainLocalPlayer().getTeam()) return;
+  updateTeamName() {
+    if (this.editingTeamId === null) return;
 
-    let team = this.runHandler.run?.getTeam(teamId);
+    let team = this.runHandler.run?.getTeam(this.editingTeamId);
     if (!team) return;
 
     if (!team.name.replace(/\s/g, ''))
       team.name = "Team " + (team.id + 1);
 
     this.runHandler.sendEvent(EventType.ChangeTeamName, this.mainLocalPlayer.user.id, team);
-    this.editingName = !this.editingName;
+    this.editingTeamId = null;
   }
 
   kickPlayer(user: UserBase) {

@@ -21,8 +21,8 @@
         <div class="run-info-teams">
           <div *ngFor="let team of runHandler.run.teams; let i = index" class="team-cont" [class.team-cont-1row]="runHandler.run.teams.length < 3"[class.team-cont-2row]="runHandler.run.teams.length >= 3">
             
-            <p *ngIf="!editingName" [class.team-name-editable]="mainLocalPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting" (click)="editTeamName(team.id)" class="team-name">{{ team.name }}</p>
-            <input *ngIf="editingName" (keyup.enter)="newTeamName(team.id)" [(ngModel)]="team.name" maxlength="16">
+            <p *ngIf="this.editingTeamId !== team.id" [class.team-name-editable]="mainLocalPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting" (click)="editTeamName(team.id)" class="team-name">{{ team.name }}</p>
+            <input *ngIf="this.editingTeamId === team.id" (focusout)="updateTeamName()" (keyup.enter)="updateTeamName()" [(ngModel)]="team.name" maxlength="16">
             
             <button *ngIf="runHandler.connected && team.id !== mainLocalPlayer.teamId && mainLocalPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting" (click)="switchTeam(team.id)">Join</button>
             
