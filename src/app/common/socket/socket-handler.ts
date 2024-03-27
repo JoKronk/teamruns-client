@@ -102,7 +102,7 @@ export class SocketHandler {
                             this.addCommand(OgCommand.None); //send empty message to update username, version & controller
                         }, 300);
                     }
-
+                    
                     if (this.socketPort === OG.mainPort)
                         this.timer.onPlayerLoad();
                 }
@@ -251,7 +251,7 @@ export class SocketHandler {
     setAllRealPlayersMultiplayerState() {
         this.players.forEach(player => {
             if (!this.recordings.some(x => x.id === player.positionData.userId))
-                player.positionData.mpState = this.localTeam?.players.some(x => x.user.id === player.positionData.userId) ? MultiplayerState.interactive : MultiplayerState.active;
+                player.positionData.mpState = this.run?.isMode(RunMode.Lockout) || this.localTeam?.players.some(x => x.user.id === player.positionData.userId) ? MultiplayerState.interactive : MultiplayerState.active;
         });
     }
 
