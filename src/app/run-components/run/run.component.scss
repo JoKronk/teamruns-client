@@ -191,6 +191,7 @@
     display: flex;
     margin: 5px 0px 5px;
     min-height: 0;
+    overflow-x: auto;
     &-team{
         flex: 1;
         position: relative;

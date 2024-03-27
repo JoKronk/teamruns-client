@@ -1,9 +1,15 @@
 <div *ngIf="teamSplits !== undefined" class="container">
   <div class="team-header">
-    <h2>{{ teamSplits.name }}</h2>
+    <div class="team-name">
+      <h2>{{ teamSplits.name }}</h2>
+    </div>
     <div class="team-cells">
       <img src="./assets/icons/cell_counter.png">
       <span>{{ teamSplits.runState.cellCount }}</span>
+    </div>
+    <div class="team-orbs">
+      <img src="./assets/icons/orb_counter.png">
+      <span>{{ teamSplits.runState.orbCount }}</span>
     </div>
   </div>
   <div class="tasks-container">

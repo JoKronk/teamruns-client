@@ -11,6 +11,8 @@
     &-header {
         flex-shrink: 1;
         margin: 0px 0px 10px;
+        display: flex;
+        align-items: flex-end;
         & h2 {
             display: inline;
             float: left;
@@ -22,8 +24,14 @@
             color: rgb(212, 144, 18, 0.7) !important;
         }
     }
+    &-name {
+        flex-shrink: 1;
+        white-space: nowrap;
+    }
     &-cells {
-        display: inline-block;
+        margin-bottom: 6px;
+        flex-shrink: 1;
+        white-space: nowrap;
         height: 30px;
         & img {
             height: inherit;
@@ -32,6 +40,22 @@
         & span {
             font-family: 'precursor';
             font-size: 32px;
+            color: rgb(212, 144, 18, 0.7) !important;
+        }
+    }
+    &-orbs {
+        margin-bottom: 6px;
+        display: inline-block;
+        white-space: nowrap;
+        height: 26px;
+        margin-left: 8px;
+        & img {
+            height: 24px;
+            display: inline;
+        }
+        & span {
+            font-family: 'precursor';
+            font-size: 28px;
             color: rgb(212, 144, 18, 0.7) !important;
         }
     }
