@@ -767,7 +767,6 @@ export class RunHandler {
 
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
-        this.userService.removeAllExtraLocals();
         this.launchListener();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself
@@ -775,8 +774,13 @@ export class RunHandler {
                 console.log("Removing host!")
                 this.lobby.host = null;
             }
-            this.lobby.removeUser(mainLocalPlayer.user.id);
+
+            this.userService.localUsers.forEach(localPlayer => {
+                this.lobby!.removeUser(localPlayer.user.id);
+            });
+
             this.updateFirestoreLobby();
+            this.userService.removeAllExtraLocals();
         }
     }
 }
