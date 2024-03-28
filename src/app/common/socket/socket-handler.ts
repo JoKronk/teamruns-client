@@ -36,6 +36,8 @@ export class SocketHandler {
     timer: Timer = new Timer();
     run: Run | undefined;
 
+    private isLocalMainPlayer: boolean = true;
+    
     private self: CurrentPlayerData;
     private players: CurrentPlayerData[] = [];
     private drawPositions: boolean = false;
@@ -52,6 +54,8 @@ export class SocketHandler {
 
     constructor(public socketPort: number, public user: User, public levelHandler: LevelHandler, public localTeam: Team | undefined, public zone: NgZone, private importedTimer: Timer | undefined = undefined) {
         this.ogSocket = webSocket('ws://localhost:' + socketPort);
+
+        this.isLocalMainPlayer = socketPort === OG.mainPort;
         
         if (importedTimer)
             this.timer = importedTimer;
@@ -437,7 +441,7 @@ export class SocketHandler {
                 if (!playerTeam) break;
                 const isLocalPlayerTeam = playerTeam.id === this.localTeam.id;
 
-                if (isCell && isNewTaskStatus && isLocalPlayerTeam) { // end run split added in EndPlayerRun event
+                if (isCell && isNewTaskStatus && isLocalPlayerTeam && this.isLocalMainPlayer) { // end run split added in EndPlayerRun event
                     this.zone.run(() => {
                         this.run!.addSplit(new Task(task));
                     });
@@ -459,7 +463,7 @@ export class SocketHandler {
                 if (!isNewTaskStatus) break;
                 
                 //add to team run state
-                if (isSelfInteraction)
+                if (this.isLocalMainPlayer)
                     playerTeam.runState.addTaskInteraction(interaction);
                 
                 break;
@@ -470,7 +474,7 @@ export class SocketHandler {
                 if (!isSelfInteraction && this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id)
                     this.levelHandler.onInteraction(interaction);
 
-                if (isSelfInteraction)
+                if (this.isLocalMainPlayer)
                     this.run.getPlayerTeam(positionData.userId)?.runState.addBuzzerInteraction(interaction);
                 break;
             
@@ -483,7 +487,7 @@ export class SocketHandler {
                     break;
                 }
                 
-                if (this.localTeam.runState.checkDupeAddOrbInteraction(this.localTeam.players, userId, interaction)) {
+                if (this.localTeam.runState.checkDupeAddOrbInteraction(this.localTeam.players, userId, this.isLocalMainPlayer, interaction)) {
                     if (isSelfInteraction)
                         this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
                     else if (!interaction.interCleanup)
