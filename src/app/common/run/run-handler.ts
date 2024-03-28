@@ -68,8 +68,13 @@ export class RunHandler {
                 if (snapshot.payload.metadata.hasPendingWrites || this.isBeingDestroyed) return;
                 let lobby = snapshot.payload.data();
                 if (!lobby) return;
-    
+
+                const wasSpectator = this.isSpectatorOrNull(this.getMainLocalPlayer().user.id);
                 this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
+                
+                if (wasSpectator && !this.isSpectatorOrNull(this.getMainLocalPlayer().user.id))
+                    this.repeatAllLocalPlayerPosition(true);
+                
                 this.checkSetupRun();
             });
         }
@@ -603,6 +608,7 @@ export class RunHandler {
                 if (!this.lobby!.runnerIds.includes(user.id))
                     this.lobby!.runnerIds.push(user.id);
                 this.updateFirestoreLobby();
+                this.repeatAllLocalPlayerPosition(true);
                 break;
 
 
@@ -670,13 +676,17 @@ export class RunHandler {
         }
     }
 
-    repeatAllLocalPlayerPosition() {
+    repeatAllLocalPlayerPosition(onlyMain: boolean = false) {
         if (!this.run) return;
+        const mainId = this.getMainLocalPlayer().user.id;
         for (let i = 0; i < 2; i++) { //!TODO: This currently need to run twice for new remote jaks that don't move to not spawn at 0,0,0, should be properly fixed and reduced to one call
             this.userService.localUsers.forEach(localPlayer => {
-                const localPlayerPos = localPlayer.socketHandler.getSelfPosition();
-                if (localPlayerPos)
-                    this.sendPosition(UserPositionData.fromCurrentPositionDataWithoutInteraction(localPlayerPos, this.run?.timer.totalMs ?? 0));
+                if (localPlayer.socketHandler.socketConnected && !this.isSpectatorOrNull(localPlayer.user.id) && (!onlyMain || localPlayer.user.id === mainId)) {
+                    const localPlayerPos = localPlayer.socketHandler.getSelfPosition();
+                    console.log("Send it") 
+                    if (localPlayerPos)
+                        this.sendPosition(UserPositionData.fromCurrentPositionDataWithoutInteraction(localPlayerPos, this.run?.timer.totalMs ?? 0));
+                }
             });
         }
     }
