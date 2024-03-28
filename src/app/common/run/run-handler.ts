@@ -622,7 +622,7 @@ export class RunHandler {
 
 
             case EventType.ChangeTeamName:
-                let team = this.run.getPlayerTeam(event.value.id);
+                let team = this.run.getTeam(event.value.id);
                 if (!team) return;
                 this.zone.run(() => {
                     team!.name = event.value.name;
