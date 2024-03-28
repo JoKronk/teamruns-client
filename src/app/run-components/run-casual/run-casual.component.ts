@@ -70,6 +70,7 @@ export class RunCasualComponent implements OnDestroy {
 
       if (player && this.runHandler.run) {
         this.runHandler.run.spectators.push(new Player(player.user));
+        this.runHandler.sendEvent(EventType.Connect, player.user.id, player.user.getUserBase());
         this.runHandler.sendEvent(EventType.ChangeTeam, player.user.id, teamId);
         player.socketHandler.run = this.runHandler.run;
         player.updateTeam(this.runHandler.run.getPlayerTeam(player.user.id));
