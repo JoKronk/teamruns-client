@@ -255,6 +255,13 @@ export class SocketHandler {
         });
     }
 
+    getSelfPosition(): CurrentPositionData | undefined {
+        if (!this.self)
+            this.checkRegisterPlayer(this.user.getUserBase(), MultiplayerState.interactive);
+
+        return this.self.positionData;
+    }
+
 
     updatePlayerPosition(positionData: UserPositionData) {
         const isLocalUser = positionData.userId === this.user.id;

@@ -403,6 +403,7 @@ export class RunHandler {
                 else if (!this.run.hasSpectator(newUser.id))
                     this.run!.spectators.push(new Player(newUser));
                 
+                this.repeatAllLocalPlayerPosition();
                 break;
 
 
@@ -666,6 +667,17 @@ export class RunHandler {
         else {
             this.userService.localUsers.push(new LocalPlayerData(this.userService.user, OG.mainPort, this.zone));
             return this.userService.localUsers[0];
+        }
+    }
+
+    repeatAllLocalPlayerPosition() {
+        if (!this.run) return;
+        for (let i = 0; i < 2; i++) { //!TODO: This currently need to run twice for new remote jaks that don't move to not spawn at 0,0,0, should be properly fixed and reduced to one call
+            this.userService.localUsers.forEach(localPlayer => {
+                const localPlayerPos = localPlayer.socketHandler.getSelfPosition();
+                if (localPlayerPos)
+                    this.sendPosition(UserPositionData.fromCurrentPositionDataWithoutInteraction(localPlayerPos, this.run?.timer.totalMs ?? 0));
+            });
         }
     }
 
