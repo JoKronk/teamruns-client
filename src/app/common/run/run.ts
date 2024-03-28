@@ -150,6 +150,9 @@ export class Run {
     
         let oldTeam = this.getPlayerTeam(user.id);
         if (newTeam === oldTeam) return;
+
+        if (this.timer.runIsOngoing()) 
+            newTeam.runIsValid = false;
         
         let player = oldTeam ? oldTeam.players.find(x => x.user.id === user.id) : new Player(user);
         newTeam.players.push(player!);
