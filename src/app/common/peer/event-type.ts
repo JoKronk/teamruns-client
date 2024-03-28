@@ -7,6 +7,7 @@ export enum EventType {
     Connect,
     Disconnect,
     Reconnect,
+    GameClosed,
     Kick,
     PositionChannelOpen,
     PositionChannelClosed,

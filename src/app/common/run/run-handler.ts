@@ -5,7 +5,7 @@ import { Lobby } from "../firestore/lobby";
 import { RTCPeerMaster } from "../peer/rtc-peer-master";
 import { RTCPeerSlave } from "../peer/rtc-peer-slave";
 import { UserService } from "src/app/services/user.service";
-import { Subscription } from "rxjs";
+import { Subscription, finalize } from "rxjs";
 import { DataChannelEvent } from "../peer/data-channel-event";
 import { EventType } from "../peer/event-type";
 import { PlayerState } from "../player/player-state";
@@ -113,7 +113,9 @@ export class RunHandler {
             return;
         }
 
-        localPlayer.socketHandler.ogSocket.subscribe(target => {
+        localPlayer.socketHandler.ogSocket.pipe(finalize(() => { 
+            this.sendEvent(EventType.GameClosed, localPlayer.user.id);
+        })).subscribe(target => {
             if (!localPlayer) {
                 console.log("Missing local player!")
                 return;
@@ -476,6 +478,13 @@ export class RunHandler {
                         this.sendEvent(EventType.Disconnect, event.value.id, event.value);
                     }
                 }
+                break;
+
+
+            case EventType.GameClosed:
+                this.userService.localUsers.forEach(localPlayer => {
+                    localPlayer.socketHandler.stopDrawPlayer(event.userId);
+                });
                 break;
 
 

@@ -227,10 +227,16 @@ export class SocketHandler {
         this.addPlayerInteraction(orbReductionInteraction);
     }
 
-    removePlayer(userId: string) {
-        this.recordings = this.recordings.filter(x => x.userId !== userId);
-        this.userPositionRecordings = this.userPositionRecordings.filter(x => x.userId !== userId);
+    stopDrawPlayer(userId: string) {
+        let player = this.players.find(x => x.positionData.userId === userId);
+        if (!player) return;
+        
+        player.positionData.username = "";
+        player.positionData.mpState = MultiplayerState.disconnected;
+        this.sendSocketPackageToOpengoal();
+
         this.players = this.players.filter(x => x.positionData.userId !== userId);
+
     }
 
     checkRegisterPlayer(user: UserBase | undefined, state: MultiplayerState) {
