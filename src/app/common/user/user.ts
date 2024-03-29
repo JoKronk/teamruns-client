@@ -41,8 +41,8 @@ export class User extends UserBase {
             this.hasSignedIn === copy.hasSignedIn;
     }
 
-    createUserBaseFromDisplayName(): UserBase {
-        return new UserBase(this.id, this.displayName);
+    getUserBaseWithDisplayName(): UserBase {
+        return new UserBase(this.id, this.displayName ?? this.name);
     }
 
     importDbUser(user: DbUserProfile, displayName: string) {

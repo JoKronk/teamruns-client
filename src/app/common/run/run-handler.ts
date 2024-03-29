@@ -170,152 +170,152 @@ export class RunHandler {
 
             this.userService.localUsers.forEach(localPlayer => {
                 if (this.lobby && !this.lobby.hasUser(userId))
-                this.lobby.addUser(new LobbyUser(localPlayer.user, false));
-        });
+                    this.lobby.addUser(new LobbyUser(localPlayer.user.getUserBaseWithDisplayName(), false));
+            });
 
-        this.lobby.users = this.lobby.users.filter(x => x.isRunner || this.run?.hasSpectator(x.id));
+            this.lobby.users = this.lobby.users.filter(x => x.isRunner || this.run?.hasSpectator(x.id));
 
-        if (this.isOnlineInstant) {
-            await this.updateFirestoreLobby();
-            this.setupMaster();
+            if (this.isOnlineInstant) {
+                await this.updateFirestoreLobby();
+                this.setupMaster();
+            }
+            this.connected = true;
         }
-        this.connected = true;
+
+
+        //slave checks on lobby change
+        if (this.isOnlineInstant && !this.localMaster) {
+            //kill current slave connection if new host
+            if (this.localSlave?.hostId !== this.lobby.host?.id)
+                this.resetUser();
+
+            //become slave if not already and master exists
+            if (!this.localSlave && this.lobby.host)
+                this.setupSlave();
+        }
     }
 
+    resetUser() {
+        this.dataSubscription?.unsubscribe();
+        this.positionSubscription?.unsubscribe();
 
-    //slave checks on lobby change
-    if (this.isOnlineInstant && !this.localMaster) {
-        //kill current slave connection if new host
-        if (this.localSlave?.hostId !== this.lobby.host?.id)
-            this.resetUser();
+        if (this.localSlave) {
+            this.localSlave.destroy();
+            this.localSlave = undefined;
+        }
+        if (this.localMaster) {
+            this.localMaster.destroy();
+            this.localMaster = undefined;
+        }
 
-        //become slave if not already and master exists
-        if (!this.localSlave && this.lobby.host)
-            this.setupSlave();
+        this.connected = false;
     }
-}
 
-resetUser() {
-    this.dataSubscription?.unsubscribe();
-    this.positionSubscription?.unsubscribe();
-
-    if (this.localSlave) {
-        this.localSlave.destroy();
-        this.localSlave = undefined;
+    getUser(userId: string): Player | undefined {
+        return this.run?.getPlayer(userId);
     }
-    if (this.localMaster) {
+
+    isSpectatorOrNull(userId: string | undefined) {
+        return !userId || userId === "" || this.lobby?.hasSpectator(userId);
+    }
+
+    getNewBackupHost() {
+        if (!this.lobby) return;
+        const localPlayer = this.getMainLocalPlayer();
+        let candidate = this.run?.getAllPlayers().find(player => player.user.id !== localPlayer.user.id && player.state !== PlayerState.Disconnected) ?? this.run?.spectators.find(player => player.user.id !== localPlayer.user.id && !player.user.id.startsWith("OBS-") && player.state !== PlayerState.Disconnected) ?? null;
+        this.lobby.backupHost = candidate ? candidate.user : null;
+    }
+
+    shouldBecomeHost(userId: string): boolean {
+        if (!this.lobby) return false;
+        if ((!this.lobby.host && (!this.lobby.backupHost || this.lobby.backupHost.id === this.getMainLocalPlayer().user.id)) || (this.lobby.host?.id === userId && !this.localMaster))
+            return true;
+        else
+            return false;
+    }
+
+    dehost() { //used only for testing atm, cannot currently be used if host is in a team as he's removed from the team on dehost
+        if (!this.localMaster || !this.lobby) return;
+        console.log("dehosting");
         this.localMaster.destroy();
         this.localMaster = undefined;
+        this.lobby.host = null;
+        this.getNewBackupHost();
+        this.updateFirestoreLobby();
     }
 
-    this.connected = false;
-}
 
-getUser(userId: string): Player | undefined {
-    return this.run?.getPlayer(userId);
-}
+    setupRun() {
+        if (!this.lobby) return;
 
-isSpectatorOrNull(userId: string | undefined) {
-    return !userId || userId === "" || this.lobby?.hasSpectator(userId);
-}
-
-getNewBackupHost() {
-    if (!this.lobby) return;
-    const localPlayer = this.getMainLocalPlayer();
-    let candidate = this.run?.getAllPlayers().find(player => player.user.id !== localPlayer.user.id && player.state !== PlayerState.Disconnected) ?? this.run?.spectators.find(player => player.user.id !== localPlayer.user.id && !player.user.id.startsWith("OBS-") && player.state !== PlayerState.Disconnected) ?? null;
-    this.lobby.backupHost = candidate ? candidate.user : null;
-}
-
-shouldBecomeHost(userId: string): boolean {
-    if (!this.lobby) return false;
-    if ((!this.lobby.host && (!this.lobby.backupHost || this.lobby.backupHost.id === this.getMainLocalPlayer().user.id)) || (this.lobby.host?.id === userId && !this.localMaster))
-        return true;
-    else
-        return false;
-}
-
-dehost() { //used only for testing atm, cannot currently be used if host is in a team as he's removed from the team on dehost
-    if (!this.localMaster || !this.lobby) return;
-    console.log("dehosting");
-    this.localMaster.destroy();
-    this.localMaster = undefined;
-    this.lobby.host = null;
-    this.getNewBackupHost();
-    this.updateFirestoreLobby();
-}
-
-
-setupRun() {
-    if (!this.lobby) return;
-
-    console.log("Creating Run!");
-    let localMainPlayer = this.getMainLocalPlayer();
-    this.run = new Run(this.lobby.runData, localMainPlayer.socketHandler.timer);
-
-    this.userService.localUsers.forEach(localPlayer => {
-        localPlayer.socketHandler.run = this.run;
-    });
-
-    if (this.isOnlineInstant) {
-        localMainPlayer.user = this.userService.user;
+        console.log("Creating Run!");
+        let localMainPlayer = this.getMainLocalPlayer();
+        this.run = new Run(this.lobby.runData, localMainPlayer.socketHandler.timer);
 
         this.userService.localUsers.forEach(localPlayer => {
-            localPlayer.mode = this.run!.data.mode;
-            this.run!.spectators.push(new Player(localPlayer.user));
+            localPlayer.socketHandler.run = this.run;
         });
-    }
-    else {
-        setTimeout(() => { //lousy way to make sure userId has loaded in before we change team !TODO: Replace
-            //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
+
+        if (this.isOnlineInstant) {
             localMainPlayer.user = this.userService.user;
 
             this.userService.localUsers.forEach(localPlayer => {
                 localPlayer.mode = this.run!.data.mode;
-                this.run!.spectators.push(new Player(localPlayer.user));
-
-                this.sendEvent(EventType.ChangeTeam, localPlayer.user.id, 0);
-                localPlayer.updateTeam(this.run?.getPlayerTeam(this.userService.getId()));
+                this.run!.spectators.push(new Player(localPlayer.user.getUserBaseWithDisplayName()));
             });
-            this.onLobbyChange();
+        }
+        else {
+            setTimeout(() => { //lousy way to make sure userId has loaded in before we change team !TODO: Replace
+                //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
+                localMainPlayer.user = this.userService.user;
+    
+                this.userService.localUsers.forEach(localPlayer => {
+                    localPlayer.mode = this.run!.data.mode;
+                    this.run!.spectators.push(new Player(localPlayer.user.getUserBaseWithDisplayName()));
+    
+                    this.sendEvent(EventType.ChangeTeam, localPlayer.user.id, 0);
+                    localPlayer.updateTeam(this.run?.getPlayerTeam(this.userService.getId()));
+                });
+                this.onLobbyChange();
+    
+            }, 300);
+        }
 
-        }, 300);
+
+        //set run info
+        if (this.run.data.category == 0)
+            this.info = this.run.data.name + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOption[this.run.data.citadelSkip];
+        else
+            this.info = this.run.data.name + "\n\n" + RunMode[this.run.data.mode] + "\nCategory: " + Category.GetGategories()[this.run.data.category].displayName + "\nSame Level: " + this.run.data.requireSameLevel;
     }
 
+    setupMaster() {
+        console.log("Setting up master!");
+        this.localMaster = new RTCPeerMaster(this.userService.user.getUserBaseWithDisplayName(), this.firestoreService.getLobbyDoc(this.lobby!.id));
+        this.dataSubscription = this.localMaster.eventChannel.subscribe(event => {
+            if (!this.localMaster?.isBeingDestroyed)
+                this.onDataChannelEvent(event, true);
+        });
 
-    //set run info
-    if (this.run.data.category == 0)
-        this.info = this.run.data.name + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOption[this.run.data.citadelSkip];
-    else
-        this.info = this.run.data.name + "\n\n" + RunMode[this.run.data.mode] + "\nCategory: " + Category.GetGategories()[this.run.data.category].displayName + "\nSame Level: " + this.run.data.requireSameLevel;
-}
+        if (!this.localMaster.positionChannel) return;
+        this.positionSubscription = this.localMaster.positionChannel.subscribe(target => {
+            if (!this.localMaster?.isBeingDestroyed)
+                this.onPostionChannelUpdate(target, true);
+        });
+    }
 
-setupMaster() {
-    console.log("Setting up master!");
-    this.localMaster = new RTCPeerMaster(this.userService.user.createUserBaseFromDisplayName(), this.firestoreService.getLobbyDoc(this.lobby!.id));
-    this.dataSubscription = this.localMaster.eventChannel.subscribe(event => {
-        if (!this.localMaster?.isBeingDestroyed)
-            this.onDataChannelEvent(event, true);
-    });
+    setupSlave() {
+        console.log("Setting up slave!");
+        this.localSlave = new RTCPeerSlave(this.userService.user.getUserBaseWithDisplayName(), this.firestoreService.getLobbyDoc(this.lobby!.id), this.lobby!.host!);
+        this.dataSubscription = this.localSlave.eventChannel.subscribe(event => {
+            if (!this.localSlave?.isBeingDestroyed)
+                this.onDataChannelEvent(event, false);
+        });
 
-    if (!this.localMaster.positionChannel) return;
-    this.positionSubscription = this.localMaster.positionChannel.subscribe(target => {
-        if (!this.localMaster?.isBeingDestroyed)
-            this.onPostionChannelUpdate(target, true);
-    });
-}
-
-setupSlave() {
-    console.log("Setting up slave!");
-    this.localSlave = new RTCPeerSlave(this.userService.user.createUserBaseFromDisplayName(), this.firestoreService.getLobbyDoc(this.lobby!.id), this.lobby!.host!);
-    this.dataSubscription = this.localSlave.eventChannel.subscribe(event => {
-        if (!this.localSlave?.isBeingDestroyed)
-            this.onDataChannelEvent(event, false);
-    });
-
-    if (!this.localSlave.positionChannel) return;
-    this.positionSubscription = this.localSlave.positionChannel.subscribe(target => {
-        if (!this.localSlave?.isBeingDestroyed)
-            this.onPostionChannelUpdate(target, false);
+        if (!this.localSlave.positionChannel) return;
+        this.positionSubscription = this.localSlave.positionChannel.subscribe(target => {
+            if (!this.localSlave?.isBeingDestroyed)
+                this.onPostionChannelUpdate(target, false);
         });
     }
 
