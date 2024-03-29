@@ -1,4 +1,4 @@
-import { UserBase } from "../user/user";
+import { User } from "../user/user";
 import { CurrentPositionData } from "./current-position-data";
 import { InteractionData } from "./interaction-data";
 
@@ -48,7 +48,7 @@ export class UserPositionData extends PositionData {
     userId: string;
     username: string;
 
-    constructor(positionData: PositionData, time: number, user: UserBase) {
+    constructor(positionData: PositionData, time: number, user: User) {
         super();
         this.quatW = positionData.quatW;
         this.quatX = positionData.quatX;
@@ -69,7 +69,7 @@ export class UserPositionData extends PositionData {
         this.transZ = positionData.transZ;
         this.time = time;
         this.userId = user.id;
-        this.username = user.name;
+        this.username = user.displayName ?? user.name;
     }
     
 

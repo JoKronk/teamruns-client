@@ -193,7 +193,7 @@ export class SocketHandler {
         if (!playerInfo) return;
 
         if (!this.self)
-            this.checkRegisterPlayer(this.user.getUserBase(), MultiplayerState.interactive);
+            this.checkRegisterPlayer(this.user.getUserBaseWithDisplayName(), MultiplayerState.interactive);
 
         if (this.self.positionData.userId === userId)
             this.socketPackage.selfInfo = playerInfo;
@@ -267,7 +267,7 @@ export class SocketHandler {
 
     getSelfPosition(): CurrentPositionData | undefined {
         if (!this.self)
-            this.checkRegisterPlayer(this.user.getUserBase(), MultiplayerState.interactive);
+            this.checkRegisterPlayer(this.user.getUserBaseWithDisplayName(), MultiplayerState.interactive);
 
         return this.self.positionData;
     }
