@@ -407,7 +407,7 @@ export class RunHandler {
                 else if (event.userId === this.getMainLocalPlayer().user.id) {
                     this.sendEventAsMain(EventType.RequestRunSync, new SyncRequest(this.getMainLocalPlayer().user.id, SyncRequestReason.InitConnect));
                 }
-                else if (!this.run.hasSpectator(newUser.id))
+                else if (!this.run.hasSpectator(newUser.id) && !this.userService.localUsers.some(x => x.user.id === newUser.id))
                     this.run!.spectators.push(new Player(newUser));
                 
                 this.repeatAllLocalPlayerPosition();
@@ -692,7 +692,6 @@ export class RunHandler {
             this.userService.localUsers.forEach(localPlayer => {
                 if (localPlayer.socketHandler.socketConnected && !this.isSpectatorOrNull(localPlayer.user.id) && (!onlyMain || localPlayer.user.id === mainId)) {
                     const localPlayerPos = localPlayer.socketHandler.getSelfPosition();
-                    console.log("Send it") 
                     if (localPlayerPos)
                         this.sendPosition(UserPositionData.fromCurrentPositionDataWithoutInteraction(localPlayerPos, this.run?.timer.totalMs ?? 0));
                 }
