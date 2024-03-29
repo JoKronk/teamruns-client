@@ -62,7 +62,7 @@ export class AccountDialogComponent {
                   this.dialogRef.close(new AccountReply(profile.id, success, "User signed in successfully."));
               }
               else {
-                this._user.sendNotification("User sign in failed.");
+                this._user.sendNotification("User login failed.");
                 return;
               }
             });

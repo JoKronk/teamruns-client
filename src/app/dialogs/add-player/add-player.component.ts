@@ -61,7 +61,7 @@ export class AddPlayerComponent implements OnDestroy {
                 return;
               }
               else {
-                this._user.sendNotification("User sign in failed.");
+                this._user.sendNotification("User login failed.");
                 return;
               }
             });
