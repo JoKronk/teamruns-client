@@ -1,12 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
-import { UserService } from '../services/user.service';
+import { UserService } from '../../services/user.service';
 import pkg from 'app/package.json';
 import { MatDialog } from '@angular/material/dialog';
-import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
-import { CreateRunComponent } from '../dialogs/create-run/create-run.component';
-import { InfoComponent } from '../dialogs/info/info.component';
+import { ConfirmComponent } from '../../dialogs/confirm/confirm.component';
+import { CreateRunComponent } from '../../dialogs/create-run/create-run.component';
+import { InfoComponent } from '../../dialogs/info/info.component';
 
 @Component({
   selector: 'app-header',

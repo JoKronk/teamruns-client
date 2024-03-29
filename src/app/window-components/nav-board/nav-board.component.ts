@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { InfoComponent } from '../dialogs/info/info.component';
-import { UserService } from '../services/user.service';
+import { InfoComponent } from '../../dialogs/info/info.component';
+import { UserService } from '../../services/user.service';
 import { Router } from '@angular/router';
-import { SetControllerComponent } from '../dialogs/set-controller/set-controller.component';
-import { User } from '../common/user/user';
+import { SetControllerComponent } from '../../dialogs/set-controller/set-controller.component';
+import { User } from '../../common/user/user';
 
 @Component({
   selector: 'app-nav-board',

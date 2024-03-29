@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { CloseScreenComponent } from './close-screen/close-screen.component';
+import { CloseScreenComponent } from './window-components/close-screen/close-screen.component';
 import { LobbyComponent } from './lobby/lobby.component';
 import { RunComponent } from './run-components/run/run.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
