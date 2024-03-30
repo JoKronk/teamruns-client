@@ -13,7 +13,7 @@ import { GameTaskLevelTime } from "../opengoal/game-task";
 import { Task } from "../opengoal/task";
 import { PlayerState } from "../player/player-state";
 import { TaskStatus } from "../opengoal/task-status";
-import { RunMode } from "../run/run-mode";
+import { RunMod, RunMode } from "../run/run-mode";
 import { Run } from "../run/run";
 import { LevelHandler } from "../level/level-handler";
 import { RunState } from "../run/run-state";
@@ -420,11 +420,13 @@ export class SocketHandler {
         const userId = this.user.id;
         const interaction = UserInteractionData.fromInteractionData(positionData.interaction, positionData.userId);
         const isSelfInteraction: boolean = positionData.userId === userId;
+        const playerTeam: Team | undefined = this.run.getPlayerTeam(positionData.userId);
+        if (!this.localTeam || !playerTeam) return;
+        const isTeammate = playerTeam.id === this.localTeam.id && !RunMod.singleTeamEqualsFFA(this.run.data.mode);
 
         switch (positionData.interaction.interType) {
 
             case InteractionType.gameTask:
-                if (!this.localTeam) break;
                 
                 const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, positionData.interaction);
                 
@@ -450,20 +452,17 @@ export class SocketHandler {
                 }
                 this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
 
-                const playerTeam = this.run.getPlayerTeam(positionData.userId);
                 if (!playerTeam) break;
-                const isLocalPlayerTeam = playerTeam.id === this.localTeam.id;
-
 
                 //handle none current user things
-                if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || isLocalPlayerTeam)) {
+                if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || isTeammate)) {
 
                     //task updates
                     if (isNewTaskStatus)
                         this.levelHandler.onInteraction(interaction);
 
                     //cell cost check
-                    if (isCell && isLocalPlayerTeam && !interaction.interCleanup && (!this.run.isMode(RunMode.Lockout) || this.run.teams.length !== 1) && Task.cellCost(interaction) !== 0)
+                    if (isCell && isTeammate && !interaction.interCleanup && (!this.run.isMode(RunMode.Lockout) || this.run.teams.length !== 1) && Task.cellCost(interaction) !== 0)
                         this.addOrbAdjustmentToCurrentPlayer(-(Task.cellCost(interaction)), interaction.interLevel);
                 }
 
@@ -476,25 +475,23 @@ export class SocketHandler {
                 break;
         
             case InteractionType.buzzer:
-                if (!this.localTeam) break;
                 
-                if (!isSelfInteraction && this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id)
+                if (!isSelfInteraction && isTeammate)
                     this.levelHandler.onInteraction(interaction);
 
                 if (this.isLocalMainPlayer)
-                    this.run.getPlayerTeam(positionData.userId)?.runState.addBuzzerInteraction(interaction);
+                    playerTeam.runState.addBuzzerInteraction(interaction);
                 break;
             
 
             case InteractionType.money:
-                if (!this.localTeam) break;
                 
-                if (this.localTeam.runState.isFalseOrb(interaction)) {
+                if (playerTeam.runState.isFalseOrb(interaction)) {
                     positionData.resetCurrentInteraction();
                     break;
                 }
                 
-                if (this.localTeam.runState.checkDupeAddOrbInteraction(this.localTeam.players, userId, this.isLocalMainPlayer, interaction)) {
+                if (playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players, userId, this.isLocalMainPlayer, interaction)) {
                     if (isSelfInteraction)
                         this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
                     else if (!interaction.interCleanup)
@@ -502,7 +499,7 @@ export class SocketHandler {
                     break;
                 }
                 
-                if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
+                if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || isTeammate))
                     this.levelHandler.onInteraction(interaction);
 
                 break;
@@ -523,7 +520,7 @@ export class SocketHandler {
 
             case InteractionType.crate:
                 if (!this.localTeam) break;
-                if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !InteractionData.isBuzzerCrate(interaction)) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
+                if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !InteractionData.isBuzzerCrate(interaction)) || isTeammate))
                     this.levelHandler.onInteraction(interaction);
 
                 if (isSelfInteraction && InteractionData.isBuzzerCrate(interaction) || InteractionData.isOrbsCrate(interaction))
