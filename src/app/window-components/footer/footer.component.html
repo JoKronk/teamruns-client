@@ -1,1 +1,1 @@
-<p id="name" class="text-in-background" [title]="_user.user.displayName ?? _user.user.name">{{ _user.user.displayName ?? _user.user.name }}</p>
+<p id="name" class="text-in-background" [title]="_user.user.displayName !== '' ? _user.user.displayName :  _user.user.name">{{ _user.user.displayName !== '' ? _user.user.displayName :  _user.user.name }}</p>
