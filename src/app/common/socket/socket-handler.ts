@@ -443,16 +443,17 @@ export class SocketHandler {
                 const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus));
                 const isNewTaskStatus: boolean = this.localTeam.runState.isNewTaskStatus(interaction);
 
-                const playerTeam = this.run.getPlayerTeam(positionData.userId);
-                if (!playerTeam) break;
-                const isLocalPlayerTeam = playerTeam.id === this.localTeam.id;
-
-                if (isCell && isNewTaskStatus && isLocalPlayerTeam && this.isLocalMainPlayer) { // end run split added in EndPlayerRun event
+                if (isCell && isNewTaskStatus && this.isLocalMainPlayer) { // end run split added in EndPlayerRun event
                     this.zone.run(() => {
                         this.run!.addSplit(new Task(task));
                     });
                 }
                 this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
+
+                const playerTeam = this.run.getPlayerTeam(positionData.userId);
+                if (!playerTeam) break;
+                const isLocalPlayerTeam = playerTeam.id === this.localTeam.id;
+
 
                 //handle none current user things
                 if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || isLocalPlayerTeam)) {
