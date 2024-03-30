@@ -423,6 +423,8 @@ export class SocketHandler {
         const playerTeam: Team | undefined = this.run.getPlayerTeam(positionData.userId);
         if (!this.localTeam || !playerTeam) return;
         const isTeammate = playerTeam.id === this.localTeam.id && !RunMod.singleTeamEqualsFFA(this.run.data.mode);
+        //note that isTeammate is true for self normally but false if free for all
+        //interactions on game side is executed if the target the interaction belongs to is set to interactive, to avoid use positionData.resetCurrentInteraction();
 
         switch (positionData.interaction.interType) {
 
@@ -443,7 +445,7 @@ export class SocketHandler {
                 }
 
                 const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus));
-                const isNewTaskStatus: boolean = this.localTeam.runState.isNewTaskStatus(interaction);
+                const isNewTaskStatus: boolean = playerTeam.runState.isNewTaskStatus(interaction);
 
                 if (isCell && isNewTaskStatus && this.isLocalMainPlayer) { // end run split added in EndPlayerRun event
                     this.zone.run(() => {
