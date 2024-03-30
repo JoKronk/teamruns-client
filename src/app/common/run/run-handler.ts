@@ -1,5 +1,5 @@
 import { Run } from "./run";
-import { RunMode } from "./run-mode";
+import { RunMod, RunMode } from "./run-mode";
 import { LocalPlayerData } from "../user/local-player-data";
 import { Lobby } from "../firestore/lobby";
 import { RTCPeerMaster } from "../peer/rtc-peer-master";
@@ -536,7 +536,7 @@ export class RunHandler {
                     if (!this.run) return;
 
                     this.run.endPlayerRun(event.userId, event.value.name === Task.forfeit);
-                    this.run.isMode(RunMode.Lockout) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
+                    RunMod.endRunOnSigleTeamFinish(this.run.data.mode) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
                     
                     let players: Player[] = this.run.getAllPlayers();
                     let recordings: DbRecordingFile[] = [];

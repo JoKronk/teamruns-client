@@ -59,13 +59,7 @@ export class LocalPlayerData {
         return;
       }
 
-      if (!run.isMode(RunMode.Lockout))
-        this.importRunStateHandler(this.team!.runState);
-      else {
-        run.teams.forEach(runTeam => {
-          this.importRunStateHandler(runTeam.runState);
-        });
-      }
+      this.importRunStateHandler(this.team!.runState);
 
       setTimeout(() => {
         this.isSyncing = false;
@@ -76,13 +70,13 @@ export class LocalPlayerData {
   private isInSync(run: Run): boolean {
     if (!this.team) return true;
     
-    if (this.team.runState.cellCount > this.gameState.cellCount || (run.isMode(RunMode.Lockout) && run.teams.reduce((a, b) => a + (b.runState.cellCount || 0), 0) > this.gameState.cellCount))
+    if (this.team.runState.cellCount > this.gameState.cellCount)
     return false;
     
-    if (this.team.runState.buzzerCount > this.gameState.buzzerCount || (run.isMode(RunMode.Lockout) && run.teams.reduce((a, b) => a + (b.runState.buzzerCount || 0), 0) > this.gameState.buzzerCount))
+    if (this.team.runState.buzzerCount > this.gameState.buzzerCount)
     return false;
 
-    if (this.team.runState.orbCount > this.gameState.orbCount || (run.isMode(RunMode.Lockout) && run.teams.reduce((a, b) => a + (b.runState.orbCount || 0), 0) > this.gameState.orbCount))
+    if (this.team.runState.orbCount > this.gameState.orbCount)
     return false;
 
     return true;

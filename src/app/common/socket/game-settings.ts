@@ -1,6 +1,6 @@
 import { CategoryOption } from "../run/category";
 import { CitadelOption, RunData } from "../run/run-data";
-import { RunMode } from "../run/run-mode";
+import { RunMod, RunMode } from "../run/run-mode";
 
 export class GameSettings {
     category: CategoryOption;
@@ -16,12 +16,12 @@ export class GameSettings {
         if (runData) {
             this.category = runData.category;
             this.mode = runData.mode;
-            this.requireSameLevel = runData.requireSameLevel ? 1 : 0;;
-            this.allowSoloHubZoomers = runData.allowSoloHubZoomers ? 1 : 0;;
-            this.noLTS = runData.noLTS ? 1 : 0;;
+            this.requireSameLevel = runData.requireSameLevel ? 1 : 0;
+            this.allowSoloHubZoomers = runData.allowSoloHubZoomers ? 1 : 0;
+            this.noLTS = runData.noLTS ? 1 : 0;
             this.citadelSkip = runData.citadelSkip;
-            this.enablePvp = runData.enablePvp ? 1 : 0;;
-            this.freeForAll = runData.teams === 1 && runData.mode === RunMode.Lockout ? 1 : 0;;
+            this.enablePvp = runData.enablePvp ? 1 : 0;
+            this.freeForAll = runData.teams === 1 && RunMod.singleTeamEqualsFFA(runData.mode) ? 1 : 0;
         }
         else {
             this.category = CategoryOption.NoLts;

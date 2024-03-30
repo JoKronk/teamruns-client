@@ -1,6 +1,6 @@
 import { LocalPlayerData } from "../user/local-player-data";
 import { Player } from "../player/player";
-import { RunMode } from "./run-mode";
+import { RunMod, RunMode } from "./run-mode";
 import { RunData } from "./run-data";
 import { GameState } from "../opengoal/game-state";
 import { GameTaskTime } from "../opengoal/game-task";
@@ -82,7 +82,7 @@ export class Run {
         let player = this.getPlayer(playerId);
         if (!player) return;
         player.state = forfeit ? PlayerState.Forfeit : PlayerState.Finished;
-        if (this.everyoneHasFinished() || (!forfeit && this.isMode(RunMode.Lockout)))
+        if (this.everyoneHasFinished() || (!forfeit && RunMod.endRunOnSigleTeamFinish(this.data.mode)))
             this.timer.runState = RunState.Ended;
     }
 
@@ -101,6 +101,7 @@ export class Run {
         this.teams.forEach((team, index) => {
             this.teams[index].endTimeMs = Timer.timeToMs(task.timerTime);
         });
+        this.timer.runState = RunState.Ended;
     }
 
     updateState(playerId: string, state: GameState, userService: UserService): void {
