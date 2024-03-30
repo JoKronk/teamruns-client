@@ -422,137 +422,195 @@ export class SocketHandler {
         const isSelfInteraction: boolean = positionData.userId === userId;
         const playerTeam: Team | undefined = this.run.getPlayerTeam(positionData.userId);
         if (!this.localTeam || !playerTeam) return;
-        const isTeammate = playerTeam.id === this.localTeam.id && !RunMod.singleTeamEqualsFFA(this.run.data.mode);
-        //note that isTeammate is true for self normally but false if free for all
+        const isTeammate = isSelfInteraction || (playerTeam.id === this.localTeam.id && !RunMod.singleTeamEqualsFFA(this.run.data.mode));
         //interactions on game side is executed if the target the interaction belongs to is set to interactive, to avoid use positionData.resetCurrentInteraction();
 
         switch (positionData.interaction.interType) {
 
             case InteractionType.gameTask:
-                
-                const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, positionData.interaction);
-                
-                //check duped cell buy
-                if (isSelfInteraction && Task.isCellWithCost(task.name) && this.localTeam && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution)) {
-                    this.addOrbAdjustmentToCurrentPlayer((Task.cellCost(interaction)), interaction.interLevel);
-                    return;
-                }
-
-                //set players to act as ghosts on run end
-                if (Task.isRunEnd(interaction)) {
-                    const player = this.players.find(x => x.positionData.userId === positionData.userId);
-                    if (player) player.positionData.mpState = MultiplayerState.active;
-                }
-
-                const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus));
-                const isNewTaskStatus: boolean = playerTeam.runState.isNewTaskStatus(interaction);
-
-                if (isCell && isNewTaskStatus && this.isLocalMainPlayer) { // end run split added in EndPlayerRun event
-                    this.zone.run(() => {
-                        this.run!.addSplit(new Task(task));
-                    });
-                }
-                this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
-
-                if (!playerTeam) break;
-
-                //handle none current user things
-                if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || isTeammate)) {
-
-                    //task updates
-                    if (isNewTaskStatus)
-                        this.levelHandler.onInteraction(interaction);
-
-                    //cell cost check
-                    if (isCell && isTeammate && !interaction.interCleanup && (!this.run.isMode(RunMode.Lockout) || this.run.teams.length !== 1) && Task.cellCost(interaction) !== 0)
-                        this.addOrbAdjustmentToCurrentPlayer(-(Task.cellCost(interaction)), interaction.interLevel);
-                }
-
-                if (!isNewTaskStatus) break;
-                
-                //add to team run state
-                if (this.isLocalMainPlayer)
-                    playerTeam.runState.addTaskInteraction(interaction);
-                
+                this.onTask(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
         
             case InteractionType.buzzer:
-                
-                if (!isSelfInteraction && isTeammate)
-                    this.levelHandler.onInteraction(interaction);
-
-                if (this.isLocalMainPlayer)
-                    playerTeam.runState.addBuzzerInteraction(interaction);
+                this.onBuzzer(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
-            
 
             case InteractionType.money:
-                
-                if (playerTeam.runState.isFalseOrb(interaction)) {
-                    positionData.resetCurrentInteraction();
-                    break;
-                }
-                
-                if (playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players, userId, this.isLocalMainPlayer, interaction)) {
-                    if (isSelfInteraction)
-                        this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
-                    else if (!interaction.interCleanup)
-                        positionData.resetCurrentInteraction();
-                    break;
-                }
-                
-                if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || isTeammate))
-                    this.levelHandler.onInteraction(interaction);
-
+                this.onOrb(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
-        
 
             case InteractionType.ecoBlue:
             case InteractionType.ecoYellow:
             case InteractionType.ecoGreen:
             case InteractionType.ecoRed:
+                this.onEco(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
             case InteractionType.fish:
+                this.onFish(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
             case InteractionType.bossPhase:
+                this.onBossPhase(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
-
 
             case InteractionType.crate:
-                if (!this.localTeam) break;
-                if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !InteractionData.isBuzzerCrate(interaction)) || isTeammate))
-                    this.levelHandler.onInteraction(interaction);
-
-                if (isSelfInteraction && InteractionData.isBuzzerCrate(interaction) || InteractionData.isOrbsCrate(interaction))
-                    this.run.getPlayerTeam(positionData.userId)?.runState.addInteraction(interaction);
+                this.onCrate(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
-
 
             case InteractionType.enemyDeath:
-            case InteractionType.periscope:
-            case InteractionType.snowBumper:
-            case InteractionType.darkCrystal:
-                if (!this.localTeam) break;
-                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
-                    this.levelHandler.onInteraction(interaction);
-
-                if (isSelfInteraction)
-                    this.run.getPlayerTeam(positionData.userId)?.runState.addInteraction(interaction);
+                this.onEnemyDeath(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
+            case InteractionType.periscope:
+                this.onPeriscope(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                break;
+
+            case InteractionType.snowBumper:
+                this.onSnowBumper(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                break;
+
+            case InteractionType.darkCrystal:
+                this.onDarkCrystal(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                break;
 
             case InteractionType.lpcChamber:
-                if (!this.localTeam) break;
-                if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
-                    this.levelHandler.onLpcChamberStop(interaction);
-
-                if (isSelfInteraction)
-                    this.run.getPlayerTeam(positionData.userId)?.runState.addLpcInteraction(interaction);
+                this.onLpcChamber(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
         }
+    }
+
+    
+    onTask(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        if (!this.run) return;
+
+        const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction);
+        
+        //check duped cell buy
+        if (isSelfInteraction && Task.isCellWithCost(task.name) && this.localTeam && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution)) {
+            this.addOrbAdjustmentToCurrentPlayer((Task.cellCost(interaction)), interaction.interLevel);
+            return;
+        }
+
+        //set players to act as ghosts on run end
+        if (Task.isRunEnd(interaction)) {
+            const player = this.players.find(x => x.positionData.userId === positionData.userId);
+            if (player) player.positionData.mpState = MultiplayerState.active;
+        }
+
+        const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus));
+        const isNewTaskStatus: boolean = playerTeam.runState.isNewTaskStatus(interaction);
+
+        if (isCell && isNewTaskStatus && this.isLocalMainPlayer) { // end run split added in EndPlayerRun event
+            this.zone.run(() => {
+                this.run!.addSplit(new Task(task));
+            });
+        }
+        this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
+
+        if (!playerTeam) return;
+
+        //handle none current user things
+        if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || isTeammate)) {
+
+            //task updates
+            if (isNewTaskStatus)
+                this.levelHandler.onInteraction(interaction);
+
+            //cell cost check
+            if (isCell && isTeammate && !interaction.interCleanup && (!this.run.isMode(RunMode.Lockout) || this.run.teams.length !== 1) && Task.cellCost(interaction) !== 0)
+                this.addOrbAdjustmentToCurrentPlayer(-(Task.cellCost(interaction)), interaction.interLevel);
+        }
+
+        if (!isNewTaskStatus) return;
+        
+        //add to team run state
+        if (this.isLocalMainPlayer)
+            playerTeam.runState.addTaskInteraction(interaction);
+    }
+    
+    onBuzzer(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        if (!isSelfInteraction && isTeammate)
+        this.levelHandler.onInteraction(interaction);
+
+        if (this.isLocalMainPlayer)
+            playerTeam.runState.addBuzzerInteraction(interaction);
+    }
+    
+    onOrb(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        if (!this.run) return;
+        
+        if (playerTeam.runState.isFalseOrb(interaction)) {
+            positionData.resetCurrentInteraction();
+            return;
+        }
+        
+        if (playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players, userId, this.isLocalMainPlayer, interaction)) {
+            if (isSelfInteraction)
+                this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
+            else if (!interaction.interCleanup)
+                positionData.resetCurrentInteraction();
+                return;
+        }
+        
+        if (!isSelfInteraction && (this.run.isMode(RunMode.Lockout) || isTeammate))
+            this.levelHandler.onInteraction(interaction);
+    }
+
+    onEco(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+
+    }
+    
+    onFish(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+
+    }
+    
+    onBossPhase(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+
+    }
+    
+    onCrate(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        if (!this.run || !this.localTeam) return;
+        if (positionData.userId !== userId && ((this.run.isMode(RunMode.Lockout) && !InteractionData.isBuzzerCrate(interaction)) || isTeammate))
+            this.levelHandler.onInteraction(interaction);
+
+        if (isSelfInteraction && InteractionData.isBuzzerCrate(interaction) || InteractionData.isOrbsCrate(interaction))
+        playerTeam.runState.addInteraction(interaction);
+    }
+    
+    onEnemyDeath(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        this.onGeneralSecondaryInteraction(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+    }
+    
+    onPeriscope(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        this.onGeneralSecondaryInteraction(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+    }
+    
+    onSnowBumper(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        this.onGeneralSecondaryInteraction(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+    }
+    
+    onDarkCrystal(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        this.onGeneralSecondaryInteraction(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+    }
+    
+    onLpcChamber(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        if (!this.run || !this.localTeam) return;
+        if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || this.run.getPlayerTeam(positionData.userId)?.id === this.localTeam.id))
+            this.levelHandler.onLpcChamberStop(interaction);
+
+        if (isSelfInteraction)
+            this.run.getPlayerTeam(positionData.userId)?.runState.addLpcInteraction(interaction);
+    }
+
+    private onGeneralSecondaryInteraction(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        if (!this.run || !this.localTeam) return;
+        if (positionData.userId !== userId && (this.run.isMode(RunMode.Lockout) || playerTeam.id === this.localTeam.id))
+            this.levelHandler.onInteraction(interaction);
+
+        if (isSelfInteraction)
+            playerTeam.runState.addInteraction(interaction);
     }
 
     onDestroy(): void {
