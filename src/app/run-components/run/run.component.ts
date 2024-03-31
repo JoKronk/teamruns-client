@@ -5,7 +5,6 @@ import { UserService } from '../../services/user.service';
 import pkg from 'app/package.json';
 import { FireStoreService } from '../../services/fire-store.service';
 import { LocalPlayerData } from '../../common/user/local-player-data';
-import { RunMode } from '../../common/run/run-mode';
 import { PlayerState } from '../../common/player/player-state';
 import { RunState } from '../../common/run/run-state';
 import { RunHandler } from '../../common/run/run-handler';
@@ -18,6 +17,7 @@ import { TaskStatus } from '../../common/opengoal/task-status';
 import { AddPlayerComponent } from '../../dialogs/add-player/add-player.component';
 import { Player } from '../../common/player/player';
 import { OG } from '../../common/opengoal/og';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-run',
@@ -32,37 +32,37 @@ export class RunComponent implements OnDestroy {
   runState = RunState;
 
   //component variables
-  mainLocalPlayer: LocalPlayerData = new LocalPlayerData(this._user.user, OG.mainPort, this.zone);
+  mainLocalPlayer: LocalPlayerData | undefined = undefined;
   runHandler: RunHandler;
+
+  runSetupSubscription: Subscription;
 
   editingTeamId: number | null = null;
 
   constructor(public _user: UserService, private firestoreService: FireStoreService, private route: ActivatedRoute, private zone: NgZone, private dialog: MatDialog, private router: Router) {
     
-    this._user.localUsers = [ this.mainLocalPlayer ];
 
     //on parameter get (was swapped from route as electon had issues getting routes containing more than one (/) path)
     this.route.queryParamMap.subscribe((params) => {
       let runId = params.get('id');
 
       this.runHandler = new RunHandler(runId ?? undefined, firestoreService, _user, dialog, zone);
+      this.runSetupSubscription = this.runHandler.runSetupCompleteSubject.subscribe(runData => {
+        if (!runData || !this.runHandler.run || this.mainLocalPlayer) return;
+        
+        this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.run, this.zone);
+        this.runHandler.setupLocalMainPlayer(this.mainLocalPlayer);
+      });
     });
   }
 
   addLocalPlayer(teamId: number) {
-    const dialogRef = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run?.timer });
+    const dialogRef = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run });
     const dialogSubscription = dialogRef.afterClosed().subscribe((player: LocalPlayerData | undefined) => {
       dialogSubscription.unsubscribe();
 
-      if (player && this.runHandler.run) {
-        this.runHandler.run.spectators.push(new Player(player.user));
-        this.runHandler.sendEvent(EventType.Connect, player.user.id, player.user.getUserBase());
-        this.runHandler.sendEvent(EventType.ChangeTeam, player.user.id, teamId);
-        player.socketHandler.run = this.runHandler.run;
-        player.updateTeam(this.runHandler.run.getPlayerTeam(player.user.id));
-        player.socketHandler.startDrawPlayers();
-        this.runHandler.repeatAllLocalPlayerPosition();
-      }
+      if (player && this.runHandler.run)
+        this.runHandler.setupLocalSecondaryPlayer(player, teamId);
     });
   }
 
@@ -97,6 +97,7 @@ export class RunComponent implements OnDestroy {
   }
 
   switchTeam(teamId: number) {
+    if (!this.mainLocalPlayer) return;
     let userId = this.mainLocalPlayer.user.id;
 
     let localPlayer = this._user.localUsers.find(x => x.user.id === userId);
@@ -108,13 +109,14 @@ export class RunComponent implements OnDestroy {
   }
 
   editTeamName(teamId: number) {
+    if (!this.mainLocalPlayer) return;
     if (this.editingTeamId !== null)
       this.updateTeamName();
     if (this.mainLocalPlayer.state !== PlayerState.Ready && this.runHandler?.run?.timer.runState === RunState.Waiting)
       this.editingTeamId = teamId;
   }
   updateTeamName() {
-    if (this.editingTeamId === null) return;
+    if (this.editingTeamId === null || !this.mainLocalPlayer) return;
 
     let team = this.runHandler.run?.getTeam(this.editingTeamId);
     if (!team) return;
@@ -141,6 +143,7 @@ export class RunComponent implements OnDestroy {
 
 
   destory() {
+    if (this.runSetupSubscription) this.runSetupSubscription.unsubscribe();
     this.runHandler.destroy();
   }
 

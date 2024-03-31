@@ -7,6 +7,7 @@ import { UserService } from '../services/user.service';
 import { DbUserProfile } from '../common/firestore/db-user-profile';
 import { AccountDialogComponent, AccountReply } from '../dialogs/account-dialog/account-dialog.component';
 import { DbUsersCollection } from '../common/firestore/db-users-collection';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-start-screen',
@@ -31,20 +32,19 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
   ];
   infoText: string = this.infoTexts[Math.floor(Math.random() * this.infoTexts.length)];
 
-  private settingsListener: any;
+  private userSubscription: Subscription;
   private updateListener: any;
   private installMissingListener: any;
   private installOutdatedListener: any;
 
   userCollection: DbUsersCollection | undefined = undefined;
-  settingsFetched: boolean = false;
 
   constructor(public _user: UserService, private router: Router, private dialog: MatDialog, private _firestore: FireStoreService) {
     this.checkVideoLoad();
 
     this.setupUpdateListener();
     this.setupInstallListeners();
-    this.setupSettingsListener();
+    this.setupUserListener();
 
     if (new Date().getHours() % 4 === 0) //saving some reads on the free plan db
       this._firestore.deleteOldLobbies();
@@ -145,13 +145,10 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     });
   }
 
-  setupSettingsListener() {
+  setupUserListener() {
     if (this._user.user.hasSignedIn) return;
     
-    this.settingsListener = (window as any).electron.receive("settings-get", (localUser: User) => {
-      this._user.user.importUserCopy(localUser);
-      this.settingsFetched = true;
-
+    this.userSubscription = this._user.userSetupSubject.subscribe(localUser => {
       if (this._user.user.hasSignedIn) return;
       
       this._firestore.getUsers().then(collection => {
@@ -159,13 +156,14 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
         this.userCollection = collection;
           this.checkCollectionForUser();
       });
+
     });
   }
 
   checkCollectionForUser() {
     if (!this.userCollection) return;
 
-    const user = this.userCollection.users.find(user => user.id === this._user.getId());
+    const user = this.userCollection.users.find(user => user.id === this._user.getMainUserId());
     if (user) {
       this._user.user.importDbUser(user, this._user.user.displayName);
       this._user.user.hasSignedIn = true;
@@ -174,7 +172,7 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
-    if (this.settingsListener) this.settingsListener();
+    if (this.userSubscription) this.userSubscription.unsubscribe();
     if (this.updateListener) this.updateListener();
     if (this.installMissingListener) this.installMissingListener();
     if (this.installOutdatedListener) this.installOutdatedListener();

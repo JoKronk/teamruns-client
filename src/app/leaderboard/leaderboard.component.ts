@@ -240,7 +240,7 @@ export class LeaderboardComponent {
       if (!pb.userContent)
         pb.userContent = [];
 
-      let existingContent = pb.userContent.find(x => x.userId === this._user.getId());
+      let existingContent = pb.userContent.find(x => x.userId === this._user.getMainUserId());
       const dialogSubscription = this.dialog.open(PbCommentDialogComponent, { data: { newPb: false, content: existingContent } }).afterClosed().subscribe((content: DbRunUserContent) => {
         dialogSubscription.unsubscribe();
           if (content) {

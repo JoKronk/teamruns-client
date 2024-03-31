@@ -87,7 +87,7 @@ export class AccountDialogComponent {
           else {
             this._firestore.createUser(this.username, this.pw).then(result => {
               if (result.success) {
-                const newProfile = new DbUserProfile(new UserBase(profile ? profile.id : !collection.users.find(x => x.id === this._user.getId()) ? this._user.user.id : crypto.randomUUID(), this.username));
+                const newProfile = new DbUserProfile(new UserBase(profile ? profile.id : !collection.users.find(x => x.id === this._user.getMainUserId()) ? this._user.user.id : crypto.randomUUID(), this.username));
                 collection.users.push(newProfile);
                 this._firestore.updateUsers(collection).then(() => {
                   this._user.user.importDbUser(newProfile, !this._user.user.displayName ? newProfile.name : this._user.user.displayName);

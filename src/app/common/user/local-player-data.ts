@@ -8,8 +8,8 @@ import { SocketHandler } from "../socket/socket-handler";
 import { LevelHandler } from "../level/level-handler";
 import { NgZone } from "@angular/core";
 import { RunStateHandler } from "../level/run-state-handler";
-import { Timer } from "../run/timer";
 import { OG } from "../opengoal/og";
+import { SocketHandlerLockout } from "../socket/socket-handler-lockout";
 
 export class LocalPlayerData {
   user: User;
@@ -25,9 +25,15 @@ export class LocalPlayerData {
   socketHandler: SocketHandler;
   levelHandler: LevelHandler = new LevelHandler();
 
-  constructor(user: User, port: number, zone: NgZone, private importedTimer: Timer | undefined = undefined) {
+  constructor(user: User, port: number, run: Run, zone: NgZone) {
     this.user = user;
-    this.socketHandler = new SocketHandler(port, user, this.levelHandler, this.team, zone, importedTimer);
+    this.mode = run.data.mode;
+
+    switch (run.data.mode) {
+      default:
+        this.socketHandler = new SocketHandler(port, user, run, this.levelHandler, zone);
+        break;
+    }
   }
 
   importRunStateHandler(runStateHandler: RunStateHandler, hardReset: boolean = false) {

@@ -5,7 +5,7 @@ import { Lobby } from "../firestore/lobby";
 import { RTCPeerMaster } from "../peer/rtc-peer-master";
 import { RTCPeerSlave } from "../peer/rtc-peer-slave";
 import { UserService } from "src/app/services/user.service";
-import { Subscription, finalize } from "rxjs";
+import { BehaviorSubject, Subscription, finalize } from "rxjs";
 import { DataChannelEvent } from "../peer/data-channel-event";
 import { EventType } from "../peer/event-type";
 import { PlayerState } from "../player/player-state";
@@ -50,7 +50,10 @@ export class RunHandler {
     dataSubscription: Subscription;
     positionSubscription: Subscription;
     lobbySubscription: Subscription;
+    userSetupSubscription: Subscription;
     private launchListener: any;
+
+    runSetupCompleteSubject: BehaviorSubject<RunData | null> = new BehaviorSubject<RunData | null>(null);
 
     constructor(lobbyId: string | undefined,
         public firestoreService: FireStoreService,
@@ -61,47 +64,49 @@ export class RunHandler {
         
         this.isOnlineInstant = lobbyId !== undefined;
         this.zone = zone;
+        
+        this.userSetupSubscription = this.userService.userSetupSubject.subscribe(user => {
+            if (!user) return;
 
-        //lobby listener
-        if (this.isOnlineInstant) {
-            this.lobbySubscription = this.firestoreService.getLobbyDoc(lobbyId!).snapshotChanges().subscribe(snapshot => {
-                if (snapshot.payload.metadata.hasPendingWrites || this.isBeingDestroyed) return;
-                let lobby = snapshot.payload.data();
-                if (!lobby) return;
+            //lobby listener
+            let userId = this.userService.getMainUserId();
+            if (this.isOnlineInstant) {
+                this.lobbySubscription = this.firestoreService.getLobbyDoc(lobbyId!).snapshotChanges().subscribe(snapshot => {
+                    if (snapshot.payload.metadata.hasPendingWrites || this.isBeingDestroyed) return;
+                    let lobby = snapshot.payload.data();
+                    if (!lobby) return;
 
-                const wasSpectator = this.isSpectatorOrNull(this.getMainLocalPlayer().user.id);
-                this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
-                
-                if (wasSpectator && !this.isSpectatorOrNull(this.getMainLocalPlayer().user.id))
-                    this.repeatAllLocalPlayerPosition(true);
-                
+                    
+                    const wasSpectator = this.isSpectatorOrNull(userId);
+                    this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
+                    
+                    if (wasSpectator && !this.isSpectatorOrNull(userId))
+                        this.repeatAllLocalPlayerPosition(true);
+                    
+                    this.checkSetupRun();
+                });
+            }
+            //local lobby
+            else {
+                this.lobby = new Lobby(this.userService.offlineSettings ?? RunData.getFreeroamSettings(pkg.version), userId, null);
+                this.userService.offlineSettings = undefined;
                 this.checkSetupRun();
+            }
+
+
+            //position listener
+            if (this.userService.user.gameLaunched)
+                this.setupSocketListener(OG.mainPort);
+            this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
+                this.setupSocketListener(port);
             });
-        }
-        //local lobby
-        else {
-            this.lobby = new Lobby(this.userService.offlineSettings ?? RunData.getFreeroamSettings(pkg.version), this.userService.getId(), null);
-            this.userService.offlineSettings = undefined;
-            this.checkSetupRun();
-        }
 
-
-        //position listener
-        if (this.userService.user.gameLaunched)
-            this.setupSocketListener(OG.mainPort);
-        this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
-            this.setupSocketListener(port);
         });
     }
 
     private checkSetupRun() {
-        if (!this.run) {
+        if (!this.run)
             this.setupRun();
-            
-            this.userService.localUsers.forEach(localPlayer => {
-                localPlayer.socketHandler.startDrawPlayers();
-            });
-        }
 
         this.onLobbyChange();
     }
@@ -145,8 +150,8 @@ export class RunHandler {
     }
 
 
-    private async onLobbyChange() {
-        const userId = this.userService.getId();
+    async onLobbyChange() {
+        const userId = this.userService.getMainUserId();
         if (!this.lobby) return;
 
         console.log("Got Lobby Change!");
@@ -195,6 +200,35 @@ export class RunHandler {
         }
     }
 
+    setupLocalMainPlayer(localMain: LocalPlayerData) {
+        if (!this.run) return;
+
+        this.userService.resetLocalPlayersToNewMain(localMain);
+
+        this.run.spectators.push(new Player(localMain.user.getUserBaseWithDisplayName()));
+        localMain.socketHandler.startDrawPlayers();
+
+        if (!this.isOnlineInstant) {
+          this.onLobbyChange();
+          this.sendEvent(EventType.ChangeTeam, localMain.user.id, 0);
+          localMain.updateTeam(this.run.getPlayerTeam(localMain.user.id));
+        }
+    }
+
+    setupLocalSecondaryPlayer(localPlayer: LocalPlayerData, teamId: number) {
+        if (!this.run) return;
+
+        this.run.spectators.push(new Player(localPlayer.user.getUserBaseWithDisplayName()));
+        this.sendEvent(EventType.Connect, localPlayer.user.id, localPlayer.user.getUserBaseWithDisplayName());
+        this.sendEvent(EventType.ChangeTeam, localPlayer.user.id, teamId);
+        localPlayer.updateTeam(this.run.getPlayerTeam(localPlayer.user.id));
+
+        localPlayer.socketHandler.run = this.run;
+        localPlayer.socketHandler.startDrawPlayers();
+
+        this.repeatAllLocalPlayerPosition();
+    }
+
     resetUser() {
         this.dataSubscription?.unsubscribe();
         this.positionSubscription?.unsubscribe();
@@ -221,14 +255,14 @@ export class RunHandler {
 
     getNewBackupHost() {
         if (!this.lobby) return;
-        const localPlayer = this.getMainLocalPlayer();
-        let candidate = this.run?.getAllPlayers().find(player => player.user.id !== localPlayer.user.id && player.state !== PlayerState.Disconnected) ?? this.run?.spectators.find(player => player.user.id !== localPlayer.user.id && !player.user.id.startsWith("OBS-") && player.state !== PlayerState.Disconnected) ?? null;
+        const userId = this.userService.getMainUserId();
+        let candidate = this.run?.getAllPlayers().find(player => player.user.id !== userId && player.state !== PlayerState.Disconnected) ?? this.run?.spectators.find(player => player.user.id !== userId && !player.user.id.startsWith("OBS-") && player.state !== PlayerState.Disconnected) ?? null;
         this.lobby.backupHost = candidate ? candidate.user : null;
     }
 
     shouldBecomeHost(userId: string): boolean {
         if (!this.lobby) return false;
-        if ((!this.lobby.host && (!this.lobby.backupHost || this.lobby.backupHost.id === this.getMainLocalPlayer().user.id)) || (this.lobby.host?.id === userId && !this.localMaster))
+        if ((!this.lobby.host && (!this.lobby.backupHost || this.lobby.backupHost.id === this.userService.getMainUserId())) || (this.lobby.host?.id === userId && !this.localMaster))
             return true;
         else
             return false;
@@ -249,38 +283,9 @@ export class RunHandler {
         if (!this.lobby) return;
 
         console.log("Creating Run!");
-        let localMainPlayer = this.getMainLocalPlayer();
-        this.run = new Run(this.lobby.runData, localMainPlayer.socketHandler.timer);
+        this.run = new Run(this.lobby.runData);
 
-        this.userService.localUsers.forEach(localPlayer => {
-            localPlayer.socketHandler.run = this.run;
-        });
-
-        if (this.isOnlineInstant) {
-            localMainPlayer.user = this.userService.user;
-
-            this.userService.localUsers.forEach(localPlayer => {
-                localPlayer.mode = this.run!.data.mode;
-                this.run!.spectators.push(new Player(localPlayer.user.getUserBaseWithDisplayName()));
-            });
-        }
-        else {
-            setTimeout(() => { //lousy way to make sure userId has loaded in before we change team !TODO: Replace
-                //setup local user (this should be done here or at some point that isn't instant to give time to load in the user if a dev refresh happens while on run page)
-                localMainPlayer.user = this.userService.user;
-    
-                this.userService.localUsers.forEach(localPlayer => {
-                    localPlayer.mode = this.run!.data.mode;
-                    this.run!.spectators.push(new Player(localPlayer.user.getUserBaseWithDisplayName()));
-    
-                    this.sendEvent(EventType.ChangeTeam, localPlayer.user.id, 0);
-                    localPlayer.updateTeam(this.run?.getPlayerTeam(this.userService.getId()));
-                });
-                this.onLobbyChange();
-    
-            }, 300);
-        }
-
+        this.runSetupCompleteSubject.next(this.run.data);
 
         //set run info
         if (this.run.data.category == 0)
@@ -320,7 +325,7 @@ export class RunHandler {
     }
 
     sendEventAsMain(type: EventType, value: any = null) {
-        this.sendEventCommonLogic(new DataChannelEvent(this.userService.getId(), type, value));
+        this.sendEventCommonLogic(new DataChannelEvent(this.userService.getMainUserId(), type, value));
     }
 
     sendEvent(type: EventType, userId: string, value: any = null) {
@@ -333,7 +338,7 @@ export class RunHandler {
                 this.localSlave.peer.sendEvent(event);
             this.onDataChannelEvent(event, false); //to run on a potentially safer but slower mode disable this and send back the event from master/host
         }
-        else if (this.localMaster && this.lobby?.host?.id === this.getMainLocalPlayer().user.id && !this.localMaster.isBeingDestroyed)
+        else if (this.localMaster && this.lobby?.host?.id === this.userService.getMainUserId() && !this.localMaster.isBeingDestroyed)
             this.onDataChannelEvent(event, true);
 
         else if (!this.isOnlineInstant)
@@ -356,7 +361,7 @@ export class RunHandler {
         if (this.localSlave) {
             this.localSlave.peer.sendPosition(positionData);
         }
-        else if (this.localMaster && this.lobby?.host?.id === this.getMainLocalPlayer().user.id && !this.localMaster.isBeingDestroyed)
+        else if (this.localMaster && this.lobby?.host?.id === this.userService.getMainUserId() && !this.localMaster.isBeingDestroyed)
             this.localMaster?.relayPositionToSlaves(positionData);
     }
 
@@ -374,7 +379,7 @@ export class RunHandler {
 
     onDataChannelEvent(event: DataChannelEvent, isMaster: boolean) {
         if (!this.run) return;
-        const userId = this.userService.getId();
+        const userId = this.userService.getMainUserId();
 
         //send updates from master to all slaves | this should be here and not moved up to sendEvent as it's not the only method triggering this
         if (isMaster && this.isOnlineInstant && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
@@ -404,8 +409,8 @@ export class RunHandler {
                         this.updateFirestoreLobby();
                     }
                 }
-                else if (event.userId === this.getMainLocalPlayer().user.id) {
-                    this.sendEventAsMain(EventType.RequestRunSync, new SyncRequest(this.getMainLocalPlayer().user.id, SyncRequestReason.InitConnect));
+                else if (event.userId === userId) {
+                    this.sendEventAsMain(EventType.RequestRunSync, new SyncRequest(userId, SyncRequestReason.InitConnect));
                 }
                 else if (!this.run.hasSpectator(newUser.id) && !this.userService.localUsers.some(x => x.user.id === newUser.id))
                     this.run!.spectators.push(new Player(newUser));
@@ -458,8 +463,7 @@ export class RunHandler {
 
 
             case EventType.Kick:
-                let mainLocalPlayer = this.getMainLocalPlayer();
-                if (mainLocalPlayer.user.id === event.value.id && (this.lobby?.host?.id === event.userId || mainLocalPlayer.user.id === event.userId)) {
+                if (userId === event.value.id && (this.lobby?.host?.id === event.userId || userId === event.userId)) {
                     this.userService.sendNotification("You've been kicked from the lobby.");
                     this.userService.routeTo('/lobby');
                 }
@@ -513,13 +517,13 @@ export class RunHandler {
                         let localPlayer = this.userService.localUsers.find(x => x.user.id === response.userId);
                         if (!localPlayer) return;
                         
-                        this.run = Object.assign(new Run(run.data, localPlayer.socketHandler.timer), run).reconstructRun();
+                        this.run = Object.assign(new Run(run.data), run).reconstructRun();
                         this.runSyncLocalPlayer(localPlayer, this.run, true);
                     }
                     else { //handle all local users sync
-                        this.run = Object.assign(new Run(run.data, this.getMainLocalPlayer().socketHandler.timer), run).reconstructRun();
-                        this.userService.localUsers.forEach((localPlayer, i) => {
-                            this.runSyncLocalPlayer(localPlayer, this.run!, i === 0);
+                        this.run = Object.assign(new Run(run.data), run).reconstructRun();
+                        this.userService.localUsers.forEach((localPlayer) => {
+                            this.runSyncLocalPlayer(localPlayer, this.run!, true);
                         });
                     }
                     this.connected = true;
@@ -540,7 +544,8 @@ export class RunHandler {
                     
                     let players: Player[] = this.run.getAllPlayers();
                     let recordings: DbRecordingFile[] = [];
-                    this.getMainLocalPlayer().socketHandler.resetGetRecordings().forEach(recording => {
+
+                    this.getMainLocalPlayer()?.socketHandler.resetGetRecordings().forEach(recording => {
                         recordings.push(new DbRecordingFile(pkg.version, recording, players.find(x => x.user.id === recording.userId)?.user.name));
                     });
                     
@@ -676,18 +681,14 @@ export class RunHandler {
         }
     }
 
-    getMainLocalPlayer(): LocalPlayerData {
-        if (this.userService.localUsers.length !== 0)
-            return this.userService.localUsers.find(x => x.user.id === this.userService.getId() || x.socketHandler.socketPort === OG.mainPort) ?? this.userService.localUsers[0];
-        else {
-            this.userService.localUsers.push(new LocalPlayerData(this.userService.user, OG.mainPort, this.zone));
-            return this.userService.localUsers[0];
-        }
+    getMainLocalPlayer(): LocalPlayerData | undefined {
+        return this.userService.localUsers.find(x => x.user.id === this.userService.getMainUserId() || x.socketHandler.socketPort === OG.mainPort) ?? this.userService.localUsers[0]; 
     }
 
     repeatAllLocalPlayerPosition(onlyMain: boolean = false) {
         if (!this.run) return;
-        const mainId = this.getMainLocalPlayer().user.id;
+        const mainId = this.userService.getMainUserId();
+        if (!mainId) return;
         for (let i = 0; i < 2; i++) { //!TODO: This currently need to run twice for new remote jaks that don't move to not spawn at 0,0,0, should be properly fixed and reduced to one call
             this.userService.localUsers.forEach(localPlayer => {
                 if (localPlayer.socketHandler.socketConnected && !this.isSpectatorOrNull(localPlayer.user.id) && (!onlyMain || localPlayer.user.id === mainId)) {
@@ -728,8 +729,8 @@ export class RunHandler {
     }
 
     async updateFirestoreLobby() {
-        let localPlayer = this.getMainLocalPlayer();
-        if (!this.isOnlineInstant || !this.lobby || !(this.lobby?.backupHost?.id === localPlayer.user.id || this.lobby?.host?.id === localPlayer.user.id || this.lobby?.host === null)) return;
+        let userId = this.userService.getMainUserId();
+        if (!this.isOnlineInstant || !this.lobby || !(this.lobby?.backupHost?.id === userId || this.lobby?.host?.id === userId || this.lobby?.host === null)) return;
         this.lobby.lastUpdateDate = new Date().toUTCString();
         await this.firestoreService.updateLobby(this.lobby);
     }
@@ -765,8 +766,8 @@ export class RunHandler {
 
     destroy() {
         this.isBeingDestroyed = true;
-        const mainLocalPlayer = this.getMainLocalPlayer();
-        const wasHost = this.localMaster && this.isOnlineInstant && this.lobby?.host?.id === mainLocalPlayer.user.id;
+        const userId = this.userService.getMainUserId();
+        const wasHost: boolean = this.localMaster !== undefined && this.isOnlineInstant && this.lobby?.host?.id === userId;
 
         if (wasHost && this.run?.data.mode === RunMode.Casual) {
             this.lobby!.visible = false;
@@ -774,7 +775,7 @@ export class RunHandler {
         }
 
         this.userService.localUsers.forEach(localPlayer => {
-            if (localPlayer.user.id !== mainLocalPlayer.user.id)
+            if (localPlayer.user.id !== userId)
                 this.sendEventAsMain(EventType.Disconnect, localPlayer.user.getUserBase());
         });
 
@@ -793,7 +794,8 @@ export class RunHandler {
             });
 
             this.updateFirestoreLobby();
-            this.userService.removeAllExtraLocals();
         }
+
+        this.userService.removeAllExtraLocals();
     }
 }

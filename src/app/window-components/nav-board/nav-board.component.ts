@@ -18,7 +18,7 @@ export class NavBoardComponent {
   }
 
   startGame(user: User | undefined) {
-    this._user.startGame(user ?? this._user.user);
+    this._user.startGame(user ?? this._user.user, undefined);
     this._user.viewSettings = false;
   }
 
@@ -28,7 +28,7 @@ export class NavBoardComponent {
   }
 
   getObsLink() {
-    this._user.copyLink("https://teamrun.web.app/obs?user=" + this._user.getId() + "&height=780&bgColor=4e4e4e&timerBorder=true");
+    this._user.copyLink("https://teamrun.web.app/obs?user=" + this._user.getMainUserId() + "&height=780&bgColor=4e4e4e&timerBorder=true");
     this._user.viewSettings = false;
     this._user.sendNotification("Obs Link Copied");
   }

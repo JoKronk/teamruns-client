@@ -56,18 +56,32 @@ export class PracticeComponent implements OnDestroy {
   //handlers
   runHandler: RunHandler;
 
-  mainLocalPlayer: LocalPlayerData;
+  mainLocalPlayer: LocalPlayerData | undefined;
 
   //listeners
   fileListener: any;
   timerEndSubscription: Subscription;
+  runSetupSubscription: Subscription;
 
 
   constructor(public _user: UserService, firestoreSerivce: FireStoreService, private dialog: MatDialog, private zone: NgZone) {
-    this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, zone);
-    this._user.localUsers = [ this.mainLocalPlayer ];
+
     this.runHandler = new RunHandler(undefined, firestoreSerivce, _user, dialog, zone, true);
-    this.mainLocalPlayer.socketHandler.timer.setStartConditions(1);
+    this.runSetupSubscription = this.runHandler.runSetupCompleteSubject.subscribe(runData => {
+      if (!runData || !this.runHandler.run || this.mainLocalPlayer) return;
+      
+      this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.run, this.zone);
+      this._user.resetLocalPlayersToNewMain(this.mainLocalPlayer);
+      this.runHandler.run.timer.setStartConditions(1);
+      
+
+      //timer end listener
+      this.timerEndSubscription = this.mainLocalPlayer.socketHandler.timer.timerEndSubject.subscribe(ended => {
+        this.stopPlaybackIfIsRunning();
+      });
+    });
+
+
 
     //recording import listener
     this.fileListener = (window as any).electron.receive("recordings-get", (data: any) => {
@@ -94,11 +108,6 @@ export class PracticeComponent implements OnDestroy {
       this.checkAddImport();
 
     });
-
-    //timer end listener
-    this.timerEndSubscription = this.mainLocalPlayer.socketHandler.timer.timerEndSubject.subscribe(ended => {
-      this.stopPlaybackIfIsRunning();
-    });
   }
 
   //!TODO: This should be deleted after current recordings have been migrated
@@ -114,6 +123,7 @@ export class PracticeComponent implements OnDestroy {
   }
 
   startRecording() {
+    if (!this.mainLocalPlayer) return;
     this.stopPlaybackIfIsRunning();
     this.currentRecording = this.usePlayback === "true" ? "all" : "none";
 
@@ -137,6 +147,7 @@ export class PracticeComponent implements OnDestroy {
   }
 
   stopRecording() {
+    if (!this.mainLocalPlayer) return;
     const saveRecording = this.mainLocalPlayer.socketHandler.timer.totalMs > 0;
 
     this.stopPlaybackIfIsRunning();
@@ -152,15 +163,18 @@ export class PracticeComponent implements OnDestroy {
   }
 
   storeCheckpoint() {
+    if (!this.mainLocalPlayer) return;
     this.mainLocalPlayer.socketHandler.addCommand(OgCommand.TempCheckpointStore);
     this.hasStoredCheckpoint = true;
   }
 
   loadCheckpoint() {
+    if (!this.mainLocalPlayer) return;
     this.mainLocalPlayer.socketHandler.addCommand(OgCommand.TempCheckpointLoad);
   }
 
   toggleFreecam() {
+    if (!this.mainLocalPlayer) return;
     if (!this.inFreecam) {
       if (!this.hasStoredCheckpoint)
         this.storeCheckpoint();
@@ -190,6 +204,7 @@ export class PracticeComponent implements OnDestroy {
 
 
   shiftPlaybackStart() {
+    if (!this.mainLocalPlayer) return;
     this.recordingPausedBeforeDrag = this.recordingPaused;
     if (!this.recordingPausedBeforeDrag)
       this.pause();
@@ -198,6 +213,7 @@ export class PracticeComponent implements OnDestroy {
   }
 
   shiftPlaybackEnd() {
+    if (!this.mainLocalPlayer) return;
     this.mainLocalPlayer.socketHandler.timer.shiftTimerByMs(this.recordingDragStart - this.mainLocalPlayer.socketHandler.timer.totalMs);
     this.recordingDragStart = 0;
 
@@ -206,6 +222,7 @@ export class PracticeComponent implements OnDestroy {
   }
 
   pause() {
+    if (!this.mainLocalPlayer) return;
     this.mainLocalPlayer.socketHandler.timer.togglePause();
     this.recordingPaused = this.mainLocalPlayer.socketHandler.timer.isPaused();
   }
@@ -225,6 +242,7 @@ export class PracticeComponent implements OnDestroy {
   }
 
   startPlayback(giveRecordings: Recording[], selfStop: boolean) {
+    if (!this.mainLocalPlayer) return;
     this.replay = true;
     this.replayId = crypto.randomUUID();
 
@@ -236,7 +254,7 @@ export class PracticeComponent implements OnDestroy {
       const recordingUser = new UserBase(rec.id, rec.nameFrontend ?? "");
       this.runHandler.sendEvent(EventType.Connect, rec.id, recordingUser);
       this.runHandler.sendEvent(EventType.ChangeTeam, rec.id, 0);
-      this.mainLocalPlayer.socketHandler.addRecording(rec, recordingUser, this.recordingsState);
+      this.mainLocalPlayer!.socketHandler.addRecording(rec, recordingUser, this.recordingsState);
     });
 
     this.recordingsEndtime = this.getLongestRecordingTimeMs(giveRecordings);
@@ -250,6 +268,8 @@ export class PracticeComponent implements OnDestroy {
   }
 
   stopPlaybackIfIsRunning(): boolean {
+    if (!this.mainLocalPlayer) return false;
+
     if (this.mainLocalPlayer.socketHandler.timer.runState !== RunState.Waiting) {
       this.mainLocalPlayer.socketHandler.timer.reset();
 
@@ -304,7 +324,8 @@ export class PracticeComponent implements OnDestroy {
       this.toggleFreecam();
 
     this.fileListener();
-    this.timerEndSubscription.unsubscribe();
+    if (this.runSetupSubscription) this.runSetupSubscription.unsubscribe();
+    if (this.timerEndSubscription) this.timerEndSubscription.unsubscribe();
     this.runHandler.destroy();
   }
 

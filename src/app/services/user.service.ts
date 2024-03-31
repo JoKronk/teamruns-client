@@ -6,9 +6,11 @@ import { Router } from '@angular/router';
 import { OG } from '../common/opengoal/og';
 import { LocalPlayerData } from '../common/user/local-player-data';
 import { RunData } from '../common/run/run-data';
-import { Timer } from '../common/run/timer';
 import { SnackbarInstallComponent } from '../snackbars/snackbar-install/snackbar-install.component';
 import { DownloadHandler } from '../common/user/download-handler';
+import { BehaviorSubject } from 'rxjs';
+import { Run } from '../common/run/run';
+import pkg from 'app/package.json';
 
 @Injectable({
   providedIn: 'root'
@@ -32,17 +34,20 @@ export class UserService implements OnDestroy {
   private messageListener: any;
   private errorListener: any;
 
+  userSetupSubject: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
+  
+
   constructor(private _snackbar: MatSnackBar, private zone: NgZone, private router: Router) { 
     this.isBrowser = !(window as any).electron;
     this.setupReceiver();
     this.readSettings();
   }
 
-  public getId() {
+  public getMainUserId() {
     return this.user.id;
   }
 
-  public startGame(user: User, timer: Timer | undefined = undefined): LocalPlayerData | undefined {
+  public startGame(user: User, run: Run | undefined): LocalPlayerData | undefined {
     if (!(window as any).electron || this.isBrowser || this.downloadHandler.isDownloading) return undefined;
 
     let localUser = this.localUsers.find(x => x.user.id === user.id);
@@ -54,7 +59,7 @@ export class UserService implements OnDestroy {
     if (!localUser) {
       if (!user.controllerPort)
         user.controllerPort = this.localUsers.length;
-      localUser = new LocalPlayerData(user, port, this.zone, timer);
+      localUser = new LocalPlayerData(user, port, run ?? new Run(RunData.getFreeroamSettings(pkg.version)), this.zone);
       this.localUsers.push(localUser);
     }
 
@@ -74,6 +79,13 @@ export class UserService implements OnDestroy {
       user.onDestroy();
     });
     this.localUsers = this.localUsers.filter(x => x.user.id === this.user.id);
+  }
+
+  public resetLocalPlayersToNewMain(newMain: LocalPlayerData) {
+    this.localUsers.forEach(user => {
+      user.onDestroy();
+    });
+    this.localUsers = [ newMain ];
   }
 
   public routeTo(link: string) {
@@ -155,6 +167,7 @@ export class UserService implements OnDestroy {
     this.settingsListener = (window as any).electron.receive("settings-get", (data: User) => {
       this.user.importUserCopy(data);
       this.UserCopy = data;
+      this.userSetupSubject.next(this.user);
     });
     
     //backend messages

@@ -1,7 +1,6 @@
 import { Component, Inject, NgZone, OnDestroy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { OG } from 'src/app/common/opengoal/og';
-import { Timer } from 'src/app/common/run/timer';
+import { Run } from 'src/app/common/run/run';
 import { LocalPlayerData } from 'src/app/common/user/local-player-data';
 import { User } from 'src/app/common/user/user';
 import { FireStoreService } from 'src/app/services/fire-store.service';
@@ -23,7 +22,7 @@ export class AddPlayerComponent implements OnDestroy {
   localPlayer: LocalPlayerData | undefined = undefined;
   localPlayerCompleted: boolean = false;
 
-  constructor(@Inject(MAT_DIALOG_DATA) public timer: Timer, private _user: UserService, private _firestore: FireStoreService, private zone: NgZone, public dialogRef: MatDialogRef<AddPlayerComponent>) {
+  constructor(@Inject(MAT_DIALOG_DATA) public run: Run, private _user: UserService, private _firestore: FireStoreService, private zone: NgZone, public dialogRef: MatDialogRef<AddPlayerComponent>) {
   
   }
 
@@ -82,7 +81,7 @@ export class AddPlayerComponent implements OnDestroy {
 
   startNewLocalGame() {
     this.phase = 3;
-    this.localPlayer = this._user.startGame(this.user, this.timer);
+    this.localPlayer = this._user.startGame(this.user, this.run);
 
     if (!this.localPlayer) {
       this._user.sendNotification("Unable to contact backend");

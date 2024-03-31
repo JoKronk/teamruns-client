@@ -18,6 +18,7 @@ import { Player } from '../../common/player/player';
 import { OG } from '../../common/opengoal/og';
 import { LocalSave } from 'src/app/common/level/local-save';
 import { OgCommand } from 'src/app/common/socket/og-command';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-run-casual',
@@ -32,50 +33,39 @@ export class RunCasualComponent implements OnDestroy {
   runState = RunState;
 
   //component variables
-  mainLocalPlayer: LocalPlayerData = new LocalPlayerData(this._user.user, OG.mainPort, this.zone);
+  mainLocalPlayer: LocalPlayerData | undefined = undefined;
   runHandler: RunHandler;
+
+  runSetupSubscription: Subscription;
 
   hasLoadedFile: boolean;
 
   constructor(public _user: UserService, private firestoreService: FireStoreService, private route: ActivatedRoute, private zone: NgZone, private dialog: MatDialog, private router: Router) {
-    
-    this._user.localUsers = [ this.mainLocalPlayer ];
 
     //on parameter get (was swapped from route as electon had issues getting routes containing more than one (/) path)
     this.route.queryParamMap.subscribe((params) => {
       let runId = params.get('id');
 
       this.runHandler = new RunHandler(runId ?? undefined, firestoreService, _user, dialog, zone);
-
-      //!TODO: Bad design (added as a quick fix), create event emitter in run handler instead and replace with that (recommend doing it when/while adding better support for mods)
-      this.checkStartGame(runId);
+      this.runSetupSubscription = this.runHandler.runSetupCompleteSubject.subscribe(runData => {
+        if (!runData || !this.runHandler.run || this.mainLocalPlayer) return;
+        
+        this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.run, this.zone);
+        this.runHandler.setupLocalMainPlayer(this.mainLocalPlayer);
+        this.toggleReady();
+        
+      });
     });
   }
 
-  private checkStartGame(runId: string | null) {
-    setTimeout(() => {
-      if (this.runHandler.connected) {
-        if (runId) this.switchTeam(0);
-        this.toggleReady();
-      }
-      else
-        this.checkStartGame(runId);
-    }, 300);
-  }
 
   addLocalPlayer(teamId: number) {
-    const dialogRef = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run?.timer });
+    const dialogRef = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run });
     const dialogSubscription = dialogRef.afterClosed().subscribe((player: LocalPlayerData | undefined) => {
       dialogSubscription.unsubscribe();
 
       if (player && this.runHandler.run) {
-        this.runHandler.run.spectators.push(new Player(player.user));
-        this.runHandler.sendEvent(EventType.Connect, player.user.id, player.user.getUserBase());
-        this.runHandler.sendEvent(EventType.ChangeTeam, player.user.id, teamId);
-        player.socketHandler.run = this.runHandler.run;
-        player.updateTeam(this.runHandler.run.getPlayerTeam(player.user.id));
-        player.socketHandler.startDrawPlayers();
-        this.runHandler.repeatAllLocalPlayerPosition();
+        this.runHandler.setupLocalSecondaryPlayer(player, teamId);
         player.socketHandler.addCommand(OgCommand.StartRun);
       }
     });
@@ -98,7 +88,11 @@ export class RunCasualComponent implements OnDestroy {
   loadSave(save: LocalSave) {
     if (!this.runHandler.run) return;
 
-    let team = this.runHandler.getMainLocalPlayer().getTeam();
+    let mainPlayer = this.runHandler.getMainLocalPlayer();
+    if (!mainPlayer)
+      return;
+
+    let team = mainPlayer.getTeam();
     if (team)
       team.runState = save;
 
@@ -117,6 +111,7 @@ export class RunCasualComponent implements OnDestroy {
 
 
   switchTeam(teamId: number) {
+    if (!this.mainLocalPlayer) return;
     this.runHandler.sendEvent(EventType.ChangeTeam, this.mainLocalPlayer.user.id, teamId);
     this.mainLocalPlayer.updateTeam(this.runHandler.run?.getTeam(teamId) ?? undefined);
   }
@@ -136,6 +131,7 @@ export class RunCasualComponent implements OnDestroy {
 
 
   destory() {
+    if (this.runSetupSubscription) this.runSetupSubscription.unsubscribe();
     this.runHandler.destroy();
   }
 

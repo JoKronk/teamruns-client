@@ -21,9 +21,8 @@ export class Run {
     spectators: Player[] = [];
     timer: Timer = new Timer();
 
-    constructor(runData: RunData, timer: Timer) {
+    constructor(runData: RunData) {
         this.data = runData;
-        this.timer = timer;
         this.timer.setStartConditions(this.data.countdownSeconds);
 
         if (this.data.teams > 1) {

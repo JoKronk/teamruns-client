@@ -1,19 +1,19 @@
 <mat-sidenav-container fullscreen>
     <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="sidenav">
   
-      <div *ngIf="!runHandler.connected && runHandler.localSlave" class="logs">
+      <div *ngIf="!runHandler.connected && !this.mainLocalPlayer && runHandler.localSlave" class="logs">
         <p *ngFor="let log of runHandler.localSlave.connectionLogs">{{ log }}</p>
       </div>
   
       <!-- SAVES -->
-      <app-save-loader *ngIf="runHandler.lobby?.host?.id === mainLocalPlayer.user.id" [hideFiles]="hasLoadedFile" (onLoadSave)="loadSave($event)"></app-save-loader>
+      <app-save-loader *ngIf="runHandler.lobby?.host?.id === mainLocalPlayer?.user?.id" [hideFiles]="hasLoadedFile" (onLoadSave)="loadSave($event)"></app-save-loader>
     </mat-sidenav>
   
     <mat-sidenav-content class="run">
       <!-- HEADER -->
-      <app-header [runInfo]="runHandler.info" [inRun]="this.mainLocalPlayer.teamId != null" [title]="runHandler.run?.data?.name ?? ''"></app-header>
+      <app-header [runInfo]="runHandler.info" [inRun]="this.mainLocalPlayer?.teamId != null" [title]="runHandler.run?.data?.name ?? ''"></app-header>
   
-      <div class="run-body" *ngIf="runHandler.connected && runHandler.run">
+      <div class="run-body" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
         <!-- TEAMS -->
         <div class="run-info">
           <div class="run-info-teams">
@@ -61,7 +61,7 @@
             </div>
         </div>
       </div>
-      <div *ngIf="!runHandler.connected" id="connecting">
+      <div *ngIf="!runHandler.connected && !this.mainLocalPlayer" id="connecting">
         <h1 class="text-in-background">Connecting to Lobby</h1>
         <mat-spinner class="spinner"></mat-spinner>
       </div>

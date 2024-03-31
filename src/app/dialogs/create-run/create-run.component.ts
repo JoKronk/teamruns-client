@@ -39,7 +39,7 @@ export class CreateRunComponent {
     if (this.runData.mode === this.runMode.Casual)
       this.runData.applyCasualSettings();
     
-    const lobby = new Lobby(this.runData, this._user.getId(), this.password);
+    const lobby = new Lobby(this.runData, this._user.getMainUserId(), this.password);
     this._firestore.addLobby(lobby);
     this.router.navigate(this.runData.mode !== this.runMode.Casual ? ['/run'] : ['/run-casual'], { queryParams: { id: lobby.id } });
     this.dialogRef.close();
