@@ -295,7 +295,8 @@ export class SocketHandler {
         else
             this.checkRegisterPlayer(new UserBase(positionData.userId, positionData.username), MultiplayerState.interactive);
 
-        if (this.timer.totalMs === 0) return;
+        if (this.timer.totalMs === 0 || !this.isLocalMainPlayer) return;
+
         //handle user position recording
         let userRecording = this.userPositionRecordings.find(x => x.userId === positionData.userId);
 
