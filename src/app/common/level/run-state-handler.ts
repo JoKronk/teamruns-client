@@ -92,9 +92,8 @@ export class RunStateHandler {
             let entity = this.getOrbCollection(interaction.interName);
             if (entity) {
                 alreadyCollected = true;
-                if (entity.isOrbDupe(userId)) {
-                return true;
-                }
+                if (entity.isOrbDupe(userId))
+                    return true;
             }
             entity ? entity.addOrbCollection(teamPlayers, userId) : this.orbValidations.push(new OrbCollection(interaction.interName, userId)); //add orb collection
         }
@@ -107,18 +106,21 @@ export class RunStateHandler {
             }
     
             else if (interaction.interParent.startsWith("crate-")) {
+                alreadyCollected = this.getOrbCollection(interaction.interName) !== undefined;
                 let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x) && x.interName === interaction.interParent);
                 if (this.checkDupeAddOrbGroupInteraction(teamPlayers, userId, interaction.interParent, parentCrate !== undefined && parentCrate.interAmount <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
                     return true;
             }
     
             else if (interaction.interParent.startsWith("gnawer-")) {
+                alreadyCollected = this.getOrbCollection(interaction.interName) !== undefined;
                 let parentGnawer = level.interactions.find(x => x.interType === InteractionType.enemyDeath && x.interName === interaction.interParent);
                 if (this.checkDupeAddOrbGroupInteraction(teamPlayers, userId, interaction.interParent, parentGnawer !== undefined && parentGnawer.interAmount <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
                     return true;
             }
     
             else if (interaction.interParent.startsWith("plant-boss-")) {
+            alreadyCollected = this.getOrbCollection(interaction.interName) !== undefined;
                 if (this.checkDupeAddOrbGroupInteraction(teamPlayers, userId, interaction.interParent, 5 <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
                     return true;
             }
