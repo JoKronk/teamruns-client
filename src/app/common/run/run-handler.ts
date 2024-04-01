@@ -745,10 +745,8 @@ export class RunHandler {
         //update player and team
         localPlayer.mode = this.run.data.mode;
         let playerTeam = this.run.getPlayerTeam(localPlayer.user.id);
-        if (playerTeam) { //clean out collectables so that potentially missed ones are given on import
-            playerTeam.splits = [];
+        if (playerTeam)
             localPlayer.updateTeam(playerTeam);
-        }
         localPlayer.levelHandler.uncollectedLevelItems = new RunStateHandler();
     }
 
