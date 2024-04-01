@@ -9,16 +9,12 @@ import { LevelHandler } from "../level/level-handler";
 import { NgZone } from "@angular/core";
 import { RunStateHandler } from "../level/run-state-handler";
 import { OG } from "../opengoal/og";
-import { SocketHandlerLockout } from "../socket/socket-handler-lockout";
 
 export class LocalPlayerData {
   user: User;
-  private team: Team | undefined = undefined;
   mode: RunMode = RunMode.Speedrun;
   gameState: GameState = new GameState();
   state: PlayerState = PlayerState.Neutral;
-
-  teamId: number | null = null; //purely here since frontend html can't access private team
 
   isSyncing: boolean = false;
 
@@ -41,21 +37,18 @@ export class LocalPlayerData {
   }
 
   getTeam(): Team | undefined {
-    return this.team;
+    return this.socketHandler.localTeam;
   }
 
   updateTeam(team: Team | undefined) {
-    this.teamId = team ? team.id : null;
     if (!team) return;
-
-    this.team = team;
-    this.socketHandler.updateLocalTeam(team);
+    this.socketHandler.localTeam = team;
   }
 
 
   checkDesync(run: Run) {
-    if (!this.team) this.team = run.getPlayerTeam(this.user.id);
-    if (!this.team || this.isInSync(run) || this.isSyncing) return;
+    if (!this.socketHandler.localTeam) this.socketHandler.localTeam = run.getPlayerTeam(this.user.id, true);
+    if (!this.socketHandler.localTeam || this.isInSync(run) || this.isSyncing) return;
 
 
     this.isSyncing = true;
@@ -64,8 +57,8 @@ export class LocalPlayerData {
         this.isSyncing = false;
         return;
       }
-
-      this.importRunStateHandler(this.team!.runState);
+      
+      this.importRunStateHandler(this.socketHandler.localTeam!.runState);
 
       setTimeout(() => {
         this.isSyncing = false;
@@ -74,15 +67,15 @@ export class LocalPlayerData {
     }
 
   private isInSync(run: Run): boolean {
-    if (!this.team) return true;
+    if (!this.socketHandler.localTeam) return true;
     
-    if (this.team.runState.cellCount > this.gameState.cellCount)
+    if (this.socketHandler.localTeam.runState.cellCount > this.gameState.cellCount)
     return false;
     
-    if (this.team.runState.buzzerCount > this.gameState.buzzerCount)
+    if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount)
     return false;
 
-    if (this.team.runState.orbCount > this.gameState.orbCount)
+    if (this.socketHandler.localTeam.runState.orbCount > this.gameState.orbCount)
     return false;
 
     return true;

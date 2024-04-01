@@ -24,7 +24,7 @@
             <p *ngIf="this.editingTeamId !== team.id" [class.team-name-editable]="mainLocalPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting" (click)="editTeamName(team.id)" class="team-name">{{ team.name }}</p>
             <input *ngIf="this.editingTeamId === team.id" (focusout)="updateTeamName()" (keyup.enter)="updateTeamName()" [(ngModel)]="team.name" maxlength="16">
             
-            <button *ngIf="team.id !== mainLocalPlayer.teamId && mainLocalPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting" (click)="switchTeam(team.id)">Join</button>
+            <button *ngIf="team.id !== mainLocalPlayer.socketHandler.localTeam?.id" (click)="switchTeam(team.id)">Join</button>
             
             <div class="team-players">
               <div *ngFor="let player of team.players">
@@ -44,7 +44,7 @@
         <!-- READY -->
         <div class="run-info-details">
           <button [class.run-info-details-ready]="mainLocalPlayer.state == playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
-            [disabled]="runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Ended || mainLocalPlayer.state === playerState.Forfeit || mainLocalPlayer.state === playerState.WantsToReset || !mainLocalPlayer.socketHandler.socketConnected || mainLocalPlayer.teamId === null"
+            [disabled]="runHandler.run.timer.runState === runState.Countdown || runHandler.run.timer.runState === runState.Ended || mainLocalPlayer.state === playerState.Forfeit || mainLocalPlayer.state === playerState.WantsToReset || !mainLocalPlayer.socketHandler.socketConnected || mainLocalPlayer.socketHandler.localTeam?.id === undefined"
             (click)="runHandler.run.timer.runState === runState.Started ? forfeit() : toggleReady()">{{ runHandler.run.timer.runState === runState.Started ? "Forfeit" : "Ready" }}</button>
 
             <button class="run-info-details-reset" 

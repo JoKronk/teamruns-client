@@ -83,7 +83,7 @@ export class RunStateHandler {
             this.buzzerCount += 1;
     }
 
-    checkDupeAddOrbInteraction(teamPlayers: Player[], userId: string, isLocalMainPlayer: boolean, interaction: UserInteractionData): boolean {
+    checkDupeAddOrbInteraction(teamPlayers: Player[], userId: string, addInteraction: boolean, interaction: UserInteractionData): boolean {
         const level = this.getCreateLevel(interaction.interLevel);
         let alreadyCollected: boolean = false;
     
@@ -126,8 +126,8 @@ export class RunStateHandler {
             }
         }
         
-        if (isLocalMainPlayer)
-            this.pushLevelCleanupInteraction(level, interaction);
+        if (addInteraction)
+            this.addInteraction(interaction, level);
 
         if (!alreadyCollected && !interaction.interCleanup)
             this.orbCount += 1;

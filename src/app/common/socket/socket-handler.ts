@@ -58,8 +58,8 @@ export class SocketHandler {
 
         this.run = run;
         this.timer = run.timer;
-        this.localTeam = run.getPlayerTeam(user.id);
         this.isLocalMainPlayer = socketPort === OG.mainPort;
+        this.localTeam = run.getPlayerTeam(user.id, !this.isLocalMainPlayer);
 
         this.timer.linkSocketCommands(this.socketCommandBuffer);
         if (this.user.name) //if client is fully reloaded in a place where position service is started at same time as use we pick up user on movement instead
@@ -161,10 +161,6 @@ export class SocketHandler {
 
     resetOngoingRecordings() {
         this.userPositionRecordings = [];
-    }
-
-    updateLocalTeam(team: Team) {
-        this.localTeam = team;
     }
 
     changeController(controllerPort: number) {
@@ -421,7 +417,7 @@ export class SocketHandler {
         const userId = this.user.id;
         const interaction = UserInteractionData.fromInteractionData(positionData.interaction, positionData.userId);
         const isSelfInteraction: boolean = positionData.userId === userId;
-        const playerTeam: Team | undefined = this.run.getPlayerTeam(positionData.userId);
+        const playerTeam: Team | undefined = isSelfInteraction ? this.localTeam : this.run.getPlayerTeam(positionData.userId, true);
         if (!this.localTeam || !playerTeam) return;
         const isTeammate = isSelfInteraction || (playerTeam.id === this.localTeam.id && (this.run.teams.length !== 1 || !RunMod.singleTeamEqualsFFA(this.run.data.mode)));
         //interactions on game side is executed if the target the interaction belongs to is set to interactive, to avoid use positionData.resetCurrentInteraction();
@@ -509,8 +505,6 @@ export class SocketHandler {
         }
         this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
 
-        if (!playerTeam) return;
-
         //handle none current user things
         if (!isSelfInteraction && isTeammate) {
 
@@ -526,15 +520,15 @@ export class SocketHandler {
         if (!isNewTaskStatus) return;
         
         //add to team run state
-        if (this.isLocalMainPlayer)
+        if (this.isLocalMainPlayer || this.run.isFFA)
             playerTeam.runState.addTaskInteraction(interaction);
     }
     
     protected onBuzzer(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isSelfInteraction && isTeammate)
-        this.levelHandler.onInteraction(interaction);
+            this.levelHandler.onInteraction(interaction);
 
-        if (this.isLocalMainPlayer)
+        if (this.isLocalMainPlayer || this.run.isFFA)
             playerTeam.runState.addBuzzerInteraction(interaction);
     }
     
@@ -545,7 +539,7 @@ export class SocketHandler {
             return;
         }
         
-        if (playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players, userId, this.isLocalMainPlayer, interaction)) {
+        if (playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players, userId, this.isLocalMainPlayer || this.run.isFFA, interaction)) {
             if (isSelfInteraction)
                 this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
             else if (!interaction.interCleanup)
@@ -575,8 +569,8 @@ export class SocketHandler {
             if (!isSelfInteraction && isTeammate)
                 this.levelHandler.onInteraction(interaction);
     
-            if (this.isLocalMainPlayer)
-            playerTeam.runState.addInteraction(interaction);
+            if (this.isLocalMainPlayer || this.run.isFFA)
+                playerTeam.runState.addInteraction(interaction);
         }
     }
     
@@ -601,7 +595,7 @@ export class SocketHandler {
         if (!isSelfInteraction && isTeammate)
             this.levelHandler.onLpcChamberStop(interaction);
 
-        if (this.isLocalMainPlayer)
+        if (this.isLocalMainPlayer || this.run.isFFA)
             playerTeam.runState.addLpcInteraction(interaction);
     }
 
@@ -610,7 +604,7 @@ export class SocketHandler {
         if (!isSelfInteraction && isTeammate)
             this.levelHandler.onInteraction(interaction);
 
-        if (this.isLocalMainPlayer)
+        if (this.isLocalMainPlayer || this.run.isFFA)
             playerTeam.runState.addInteraction(interaction);
     }
 

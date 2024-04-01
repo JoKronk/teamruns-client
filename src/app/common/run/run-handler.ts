@@ -724,7 +724,7 @@ export class RunHandler {
             team.runState = new RunStateHandler();
         });
         this.userService.localUsers.forEach(localPlayer => {
-            localPlayer.updateTeam(this.run?.getPlayerTeam(localPlayer.user.id));
+            localPlayer.updateTeam(this.run?.getPlayerTeam(localPlayer.user.id, localPlayer.user.id !== this.userService.getMainUserId())); //give new team to none main FFA users
         });
     }
 
@@ -744,9 +744,10 @@ export class RunHandler {
 
         //update player and team
         localPlayer.mode = this.run.data.mode;
-        let playerTeam = this.run.getPlayerTeam(localPlayer.user.id);
+        let playerTeam = this.run.getPlayerTeam(localPlayer.user.id, localPlayer.user.id !== this.userService.getMainUserId());
         if (playerTeam)
             localPlayer.updateTeam(playerTeam);
+
         localPlayer.levelHandler.uncollectedLevelItems = new RunStateHandler();
     }
 

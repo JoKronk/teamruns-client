@@ -1,4 +1,3 @@
-import { LocalPlayerData } from "../user/local-player-data";
 import { Player } from "../player/player";
 import { RunMod, RunMode } from "./run-mode";
 import { RunData } from "./run-data";
@@ -21,6 +20,8 @@ export class Run {
     spectators: Player[] = [];
     timer: Timer = new Timer();
 
+    isFFA: boolean = false;
+
     constructor(runData: RunData) {
         this.data = runData;
         this.timer.setStartConditions(this.data.countdownSeconds);
@@ -31,6 +32,8 @@ export class Run {
         }
         else
             this.teams.push(new Team(0, "Team"));
+
+        this.isFFA = this.data.teams === 1 && RunMod.singleTeamEqualsFFA(this.data.mode);
     }
 
     removePlayer(playerId: string): void {
@@ -177,8 +180,12 @@ export class Run {
         return this.teams.find(x => x.id === teamId);
     }
 
-    getPlayerTeam(playerId: string): Team | undefined {
-        return this.teams.find(x => x.players.some(player => player.user.id === playerId));
+    getPlayerTeam(playerId: string, giveUniqueTeamIfFFA: boolean = false): Team | undefined {
+        if (giveUniqueTeamIfFFA && this.isFFA) {
+            return new Team(0, "Local FFA Team");
+        }
+        else 
+            return this.teams.find(x => x.players.some(player => player.user.id === playerId));
     }
 
     getPlayer(playerId: string): Player | undefined {
@@ -197,12 +204,11 @@ export class Run {
         return this.getPlayerTeam(playerId)?.splits.filter(x => x.obtainedById === playerId) ?? [];
     }
 
-
     playerTeamHasSplit(taskName: string, playerId: string): boolean {
         return this.getPlayerTeam(playerId)?.hasSplit(taskName) ?? false;
     }
 
-    runHasSplit(taskName: string): boolean {
+    hasSplit(taskName: string): boolean {
         return this.teams.some(x => x.splits.some(y => y.gameTask === taskName));
     }
 
