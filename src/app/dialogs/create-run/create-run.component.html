@@ -69,7 +69,7 @@
                     <p>Password (optional)</p>
                     <input [(ngModel)]="password" maxlength="20">
                 </div>
-                <div class="option">
+                <div *ngIf="runData.mode === runMode.Speedrun" class="option">
                     <mat-slide-toggle [(ngModel)]="runData.submitPbs" matTooltip="Runs by teams with guest accounts will not be submitted." matTooltipPosition="after"><span>Submit PBs</span></mat-slide-toggle>
                 </div>
                 <button *ngIf="tournamentPreset && tournamentPreset.presetIsVisible && !usingPreset" (click)="usePreset()">{{ tournamentPreset.presetButtonText }}</button>
