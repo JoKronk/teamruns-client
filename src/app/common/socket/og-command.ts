@@ -13,5 +13,6 @@ export enum OgCommand {
     FreeCamEnter,
     FreeCamExit,
     OnRemoteLevelUpdate,
-    EnableDebugMode
+    EnableDebugMode,
+    DisableDebugMode
 }

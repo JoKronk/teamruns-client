@@ -1,4 +1,3 @@
-import { InteractionType } from "../opengoal/interaction-type";
 import { CurrentPositionData } from "./current-position-data";
 import { GameSettings } from "./game-settings";
 import { InteractionData } from "./interaction-data";
@@ -10,6 +9,7 @@ export class SocketPackage {
     gameSettings: GameSettings | undefined;
     selfInfo: RemotePlayerInfo | undefined;
     selfInteraction: InteractionData | undefined;
+    forceContinue: string | undefined;
     controllerPort: number | undefined;
     username: string | undefined;
     version: string | undefined;
@@ -20,6 +20,7 @@ export class SocketPackage {
         this.gameSettings = undefined;
         this.selfInfo = undefined;
         this.selfInteraction = undefined;
+        this.forceContinue = undefined;
         this.controllerPort = undefined;
         this.username = undefined;
         this.version = undefined;
@@ -31,6 +32,7 @@ export class SocketPackage {
         this.gameSettings = undefined;
         this.selfInfo = undefined;
         this.selfInteraction = undefined;
+        this.forceContinue = undefined;
         this.controllerPort = undefined;
         this.version = undefined;
     }

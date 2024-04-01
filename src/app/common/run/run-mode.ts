@@ -24,4 +24,13 @@ export class RunMod {
                 return false;
         }
     }
+
+    public static usesMidGameRestartPenaltyLogic(mode: RunMode) {
+        switch (mode) {
+            case RunMode.Casual:
+                return false;
+            default:
+                return true;
+        }
+    }
 }

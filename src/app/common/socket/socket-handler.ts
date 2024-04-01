@@ -38,6 +38,8 @@ export class SocketHandler {
     localTeam: Team | undefined;
 
     protected isLocalMainPlayer: boolean = true;
+
+    inMidRunRestartPenaltyWait: number = 0;
     
     protected self: CurrentPlayerData;
     protected players: CurrentPlayerData[] = [];
@@ -80,6 +82,7 @@ export class SocketHandler {
 
         this.shutdownListener = (window as any).electron.receive("og-closed", (port: number) => {
             if (port == this.socketPort) {
+                this.inMidRunRestartPenaltyWait = 0;
                 this.socketConnected = false;
                 this.ogSocket.complete();
                 this.ogSocket = webSocket('ws://localhost:' + socketPort);
@@ -90,6 +93,25 @@ export class SocketHandler {
 
     private connectToOpengoal() {
         this.ogSocket.subscribe(target => {
+
+            if (target.connected) {
+                this.socketPackage.version = pkg.version;
+                this.socketPackage.username = this.user.displayName;
+
+                //handle mid game restarts
+                if (this.run?.timer.runState !== RunState.Waiting && RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode)) {
+                    this.inMidRunRestartPenaltyWait = 10;
+                    this.addCommand(OgCommand.DisableDebugMode);
+                    const lastCheckpoint = this.run?.getPlayer(this.user.id)?.gameState.currentCheckpoint;
+                    if (lastCheckpoint) this.forceCheckpointSpawn(lastCheckpoint);
+
+                    setTimeout(() => {
+                        this.inMidRunRestartPenaltyWait = 0;
+                        this.addCommand(OgCommand.TargetRelease);
+                    }, (this.inMidRunRestartPenaltyWait * 1000));
+                }
+            }
+
             if (target.position)
                 this.updatePlayerPosition(new UserPositionData(target.position, this.timer.totalMs, this.user));
 
@@ -133,11 +155,6 @@ export class SocketHandler {
             if (target.levels) {
               console.log(target.levels)
             }*/
-
-            if (target.connected) {
-                this.socketPackage.version = pkg.version;
-                this.socketPackage.username = this.user.displayName;
-            }
         },
         error => {
             if (this.connectionAttempts < 4) {
@@ -176,6 +193,10 @@ export class SocketHandler {
         this.socketCommandBuffer.push(command);
         while (this.socketCommandBuffer.length != 0 && !this.drawPositions && this.socketConnected)
             this.sendSocketPackageToOpengoal(false);
+    }
+
+    forceCheckpointSpawn(checkpoint: string) {
+        this.socketPackage.forceContinue = checkpoint;
     }
 
     private addRecordingInteractionToBuffer(currentPlayer: CurrentPlayerData, positionData: RecordingPositionData) {
