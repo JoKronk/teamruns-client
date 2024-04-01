@@ -9,6 +9,7 @@ import { LevelHandler } from "../level/level-handler";
 import { NgZone } from "@angular/core";
 import { RunStateHandler } from "../level/run-state-handler";
 import { OG } from "../opengoal/og";
+import { SocketHandlerLockout } from "../socket/socket-handler-lockout";
 
 export class LocalPlayerData {
   user: User;
@@ -26,6 +27,9 @@ export class LocalPlayerData {
     this.mode = run.data.mode;
 
     switch (run.data.mode) {
+      case RunMode.Lockout:
+        this.socketHandler = new SocketHandlerLockout(port, user, run, this.levelHandler, zone);
+        break;
       default:
         this.socketHandler = new SocketHandler(port, user, run, this.levelHandler, zone);
         break;
