@@ -97,12 +97,13 @@ export class SocketHandlerLockout extends SocketHandler {
         //could be written a lot smaller but I'm keeping it like this for a better readability
         if (!isTeammate) {
             if (this.run.teams.length !== 1) { //2+ teams, player interaction from enemy team
+                super.onOrb(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+
                 if (positionData.interaction) {
                     positionData.interaction.interCleanup = true;
                     interaction.interCleanup = true;
                 }
-                
-                super.onOrb(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+
                 this.removeOrbWithoutOrbCounter(positionData, userId, interaction, isSelfInteraction);
             } 
             else { //1 team (FFA), not self
