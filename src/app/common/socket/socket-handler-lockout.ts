@@ -97,6 +97,11 @@ export class SocketHandlerLockout extends SocketHandler {
         //could be written a lot smaller but I'm keeping it like this for a better readability
         if (!isTeammate) {
             if (this.run.teams.length !== 1) { //2+ teams, player interaction from enemy team
+                if (positionData.interaction) {
+                    positionData.interaction.interCleanup = true;
+                    interaction.interCleanup = true;
+                }
+                
                 super.onOrb(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
                 this.removeOrbWithoutOrbCounter(positionData, userId, interaction, isSelfInteraction);
             } 
@@ -195,12 +200,9 @@ export class SocketHandlerLockout extends SocketHandler {
             interaction.interCleanup = true;
         }
 
-        if (this.localTeam?.runState.checkDupeAddOrbInteraction(this.localTeam.players, userId, this.isLocalMainPlayer || this.run.isFFA, interaction)) {
+        if (this.localTeam?.runState.checkDupeAddOrbInteraction(this.localTeam.players, userId, true, interaction)) {
             if (isSelfInteraction)
                 this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
-            else if (!interaction.interCleanup)
-                positionData.resetCurrentInteraction();
-                return;
         }
         
         if (!isSelfInteraction)
