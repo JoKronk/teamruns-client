@@ -115,12 +115,12 @@ export class UserService implements OnDestroy {
     });
   }
 
-  public sendNotification(message: string, notifDuration: number = 5000) {
+  public sendNotification(message: string, notifDurationMs: number = 5000) {
     if (this.isBrowser || this.downloadHandler.isDownloading) return;
 
     this.zone.run(() => {
       this._snackbar.openFromComponent(SnackbarComponent, {
-        duration: notifDuration,
+        duration: notifDurationMs,
         data: message,
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
