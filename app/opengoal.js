@@ -107,7 +107,7 @@ class OpenGoal {
                 this.sendClientMessage("REPL startup failed");
         }
 
-        if (!openGoalInstances.find(x => x.port === port))
+        if (!openGoalInstances.some(x => x.port === port))
             await this.stallSecondsForGkLaunch(5, port);
 
         console.log(".done");
@@ -117,7 +117,7 @@ class OpenGoal {
     async stallSecondsForGkLaunch(seconds, port) {
         for (let i = 0; i < seconds; i++) {
             await sleep(1000);
-            if (openGoalInstances.find(x => x.port === port)) {
+            if (openGoalInstances.some(x => x.port === port)) {
                 return;
             }
         }
@@ -133,15 +133,13 @@ class OpenGoal {
             const msg = data.toString();
             if (!msg.startsWith("[DECI2] Got message:")) {
                 console.log("OG Error!: " + data.toString());
-                this.sendClientMessage("OG Error!: " + data.toString());
             }
         });
 
         //On kill
         openGoalClient.stdout.on('end', () => {
             win.webContents.send("og-closed", port);
-            openGoalInstances.splice(openGoalInstances.indexOf(newInstance), 1);
-            this.sendClientMessage("OG Disconneted!");
+            openGoalInstances = openGoalInstances.filter(x => x.port !== port);
         });
 
         //On Full Start
@@ -172,10 +170,8 @@ class OpenGoal {
 
     killGK(port) {
         let instance = openGoalInstances.find(x => x.port === port);
-        if (instance) {
+        if (instance)
             spawn("taskkill", ["/pid", instance.client.pid, '/f', '/t']);
-            openGoalInstances = openGoalInstances.filter(x => x.port !== port);
-        }
     }
 
 
