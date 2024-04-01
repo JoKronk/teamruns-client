@@ -110,12 +110,12 @@ export class Run {
         let player = this.getPlayer(playerId);
         if (!player) return;
 
-        if (!player.gameState.debugModeActive && state.debugModeActive)
+        if (!player.gameState.debugModeActive && state.debugModeActive && this.timer.runState !== RunState.Waiting)
             userService.sendNotification(player.user.name + " just activated debug mode!");
 
         player.gameState = state;
 
-        if (state.debugModeActive) {
+        if (state.debugModeActive && this.timer.runState !== RunState.Waiting) {
             const team = this.getPlayerTeam(playerId);
             if (team) team.runIsValid = false;
         }
