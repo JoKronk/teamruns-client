@@ -99,11 +99,14 @@ export class SocketHandler {
 
                         setTimeout(() => { //give the game a bit of time to actually start
                             console.log("Socket Connected!");
-                            this.socketConnected = true;
+                            this.zone.run(() => {
+                                this.socketConnected = true;
+                            });
                             this.updateGameSettings(new GameSettings(this.run.data));
                             this.run.getAllPlayers().forEach(player => { // set the team for any users already connected
                                 this.updatePlayerInfo(player.user.id, this.run.getRemotePlayerInfo(player.user.id));
                             });
+
                             this.addCommand(OgCommand.None); //send empty message to update username, version & controller
                         }, 300);
                     }
@@ -544,7 +547,7 @@ export class SocketHandler {
                 this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
             else if (!interaction.interCleanup)
                 positionData.resetCurrentInteraction();
-            
+
             return;
         }
         
