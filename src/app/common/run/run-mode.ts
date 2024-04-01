@@ -8,14 +8,20 @@ export enum RunMode {
 export class RunMod {
 
     public static singleTeamEqualsFFA(mode: RunMode) {
-        return ([
-            RunMode.Lockout
-        ]).includes(mode);
+        switch (mode) {
+            case RunMode.Lockout:
+                return true;
+            default:
+                return false;
+        }
     }
 
     public static endRunOnSigleTeamFinish(mode: RunMode) {
-        return ([
-            RunMode.Lockout
-        ]).includes(mode);
+        switch (mode) {
+            case RunMode.Lockout:
+                return true;
+            default:
+                return false;
+        }
     }
 }
