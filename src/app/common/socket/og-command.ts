@@ -12,5 +12,6 @@ export enum OgCommand {
     TempCheckpointLoad,
     FreeCamEnter,
     FreeCamExit,
-    OnRemoteLevelUpdate
+    OnRemoteLevelUpdate,
+    EnableDebugMode
 }

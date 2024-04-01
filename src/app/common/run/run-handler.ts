@@ -666,6 +666,7 @@ export class RunHandler {
                     if (this.run!.toggleVoteReset(event.userId, event.value)) {
                         this.userService.localUsers.forEach(localPlayer => {
                             localPlayer.socketHandler.addCommand(OgCommand.Trip);
+                            localPlayer.socketHandler.addCommand(OgCommand.EnableDebugMode);
                             localPlayer.socketHandler.updateGameSettings(new GameSettings(undefined));
                             localPlayer.state = PlayerState.Neutral;
                         });
