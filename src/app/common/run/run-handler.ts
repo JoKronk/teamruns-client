@@ -256,7 +256,7 @@ export class RunHandler {
     getNewBackupHost() {
         if (!this.lobby) return;
         const userId = this.userService.getMainUserId();
-        let candidate = this.run?.getAllPlayers().find(player => player.user.id !== userId && player.state !== PlayerState.Disconnected) ?? this.run?.spectators.find(player => player.user.id !== userId && !player.user.id.startsWith("OBS-") && player.state !== PlayerState.Disconnected) ?? null;
+        let candidate = this.run?.getAllPlayers().find(player => player.user.id !== userId && player.state !== PlayerState.Disconnected) ?? this.run?.spectators.find(player => player.user.id !== userId && player.state !== PlayerState.Disconnected) ?? null;
         this.lobby.backupHost = candidate ? candidate.user : null;
     }
 
@@ -467,8 +467,6 @@ export class RunHandler {
                     this.userService.sendNotification("You've been kicked from the lobby.");
                     this.userService.routeTo('/lobby');
                 }
-                else if (isMaster && event.value.id.startsWith("OBS-"))
-                    this.sendEventAsMain(EventType.Disconnect, event.value);
                 else {
                     let wasLocalPlayer: boolean = false;
                     this.userService.localUsers.forEach(localPlayer => {
