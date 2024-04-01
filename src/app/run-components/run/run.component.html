@@ -1,7 +1,7 @@
 <mat-sidenav-container fullscreen>
   <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="sidenav">
 
-    <div *ngIf="!runHandler.connected && !this.mainLocalPlayer && runHandler.localSlave" class="logs">
+    <div *ngIf="(!runHandler.connected || !this.mainLocalPlayer) && runHandler.localSlave" class="logs">
       <p *ngFor="let log of runHandler.localSlave.connectionLogs">{{ log }}</p>
     </div>
 
@@ -64,7 +64,7 @@
         <app-run-splits *ngFor="let team of runHandler.run.teams; let i = index" [team]="team" class="progress-team" [class.progress-team-splitter]="i !== 0"></app-run-splits>
       </div>
     </div>
-    <div *ngIf="!runHandler.connected && !this.mainLocalPlayer" id="connecting">
+    <div *ngIf="!runHandler.connected || !this.mainLocalPlayer" id="connecting">
       <h1 class="text-in-background">Connecting to Lobby</h1>
       <mat-spinner class="spinner"></mat-spinner>
     </div>
