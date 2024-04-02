@@ -226,34 +226,42 @@ function writeSettings(settings) {
 }
 
 function readSettings() {
-  fs.readFile(path.join(app.getPath('userData'), 'settings.json'), 'utf8', function (err, data) {
-    if (err) console.log(err)
-    else if (data) {
-      const user = JSON.parse(data);
-      
-      if (!user.ogFolderpath) {
-        user.ogFolderpath = getInstallPath();
-        writeSettings(user);
-      }
+  let settingsPath = path.join(app.getPath('userData'), 'settings.json');
+  if (!fs.existsSync(settingsPath))
+    onUserSettingsRead("{}");
+  else {
+    fs.readFile(path.join(app.getPath('userData'), 'settings.json'), 'utf8', function (err, data) {
+      if (err) console.log(err)
+      else if (data) 
+        onUserSettingsRead(data);
+    });
+  }
+}
 
-      win.webContents.send("settings-get", user);
-    
-      if (user.window) {
-        if (user.window.width && user.window.height && (user.window.width !== userSettings.window.width || user.window.height !== userSettings.window.height))
-          win.setSize(user.window.width, user.window.height);
-        if (user.window.x && user.window.y && (user.window.x !== userSettings.window.x || user.window.y !== userSettings.window.y))
-          win.setPosition(user.window.x, user.window.y);
-      }
-      else
-      user.window = userSettings.window;
-      
-      userSettings = user;
+function onUserSettingsRead(data) {
+  const user = JSON.parse(data);
+  
+  if (!user.ogFolderpath) {
+    user.ogFolderpath = getInstallPath();
+    writeSettings(user);
+  }
 
-      setTimeout(() => { //timeout to give client update to be check first
-        checkInstallUpToDate();
-      }, 1000);
-    }
-  });
+  win.webContents.send("settings-get", user);
+
+  if (user.window) {
+    if (user.window.width && user.window.height && (user.window.width !== userSettings.window.width || user.window.height !== userSettings.window.height))
+      win.setSize(user.window.width, user.window.height);
+    if (user.window.x && user.window.y && (user.window.x !== userSettings.window.x || user.window.y !== userSettings.window.y))
+      win.setPosition(user.window.x, user.window.y);
+  }
+  else
+  user.window = userSettings.window;
+  
+  userSettings = user;
+
+  setTimeout(() => { //timeout to give client update to be check first
+    checkInstallUpToDate();
+  }, 1000);
 }
 
 
