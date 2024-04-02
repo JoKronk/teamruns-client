@@ -12,7 +12,6 @@ import { FireStoreService } from '../../services/fire-store.service';
 import { LocalPlayerData } from '../../common/user/local-player-data';
 import { EventType } from '../../common/peer/event-type';
 import { OgCommand } from '../../common/socket/og-command';
-import pkg from 'app/package.json';
 import { OG } from '../../common/opengoal/og';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -87,7 +86,7 @@ export class PracticeComponent implements OnDestroy {
     this.fileListener = (window as any).electron.receive("recordings-get", (data: any) => {
 
       if (data.length === 0 || !data.version || !data.playback || !Array.isArray(data.playback)) {
-        if (!this.checkTransformOldRecording(data))
+        if (!Recording.checkTransformOldRecording(data))
           this._user.sendNotification("File was not recognized as a recording.");
         
         this.imports.shift();
@@ -108,18 +107,6 @@ export class PracticeComponent implements OnDestroy {
       this.checkAddImport();
 
     });
-  }
-
-  //!TODO: This should be deleted after current recordings have been migrated
-  checkTransformOldRecording(data: any): boolean {
-    if (Array.isArray(data) && data.length !== 0 && (data[0].transX !== undefined && data[0].quatW !== undefined && data[0].tgtState !== undefined)) {
-      let rec: Recording = new Recording(crypto.randomUUID());
-      for (let i = data.length - 1; i >= 0; i--)
-        rec.addPositionData(data[i]);
-      this.exportRecording(rec);
-      return true;
-    }
-    return false;
   }
 
   startRecording() {
@@ -186,14 +173,6 @@ export class PracticeComponent implements OnDestroy {
       this.mainLocalPlayer.socketHandler.addCommand(OgCommand.FreeCamExit);
     }
     this.inFreecam = !this.inFreecam;
-  }
-
-  exportRecording(recording: Recording) {
-    const url = URL.createObjectURL(recording.exportRecordingToBlob(pkg.version));
-    const link = document.createElement('a');
-    link.download = recording.nameFrontend + '.json';
-    link.href = url;
-    link.click();
   }
 
   deleteRecording(id: string) {

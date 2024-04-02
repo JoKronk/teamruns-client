@@ -2,6 +2,7 @@ import { InteractionType } from "../opengoal/interaction-type";
 import { Timer } from "../run/timer";
 import { PositionData, RecordingPositionData } from "./position-data";
 import { RecordingFile } from "./recording-file";
+import pkg from 'app/package.json';
 
 export class Recording {
     id: string = crypto.randomUUID();
@@ -132,6 +133,29 @@ export class Recording {
         this.timeFrontend = undefined;
         this.nameFrontend = undefined;
     }
+
+    //!TODO: This should be deleted after current recordings have been migrated
+    static checkTransformOldRecording(data: any): boolean {
+
+        if (Array.isArray(data) && data.length !== 0 && (data[0].transX !== undefined && data[0].quatW !== undefined && data[0].tgtState !== undefined)) {
+            let rec: Recording = new Recording(crypto.randomUUID());
+            for (let i = data.length - 1; i >= 0; i--)
+                rec.addPositionData(data[i]);
+                
+            rec.exportRecording();
+            return true;
+        }
+        return false;
+    }
+
+    exportRecording() {
+      const url = URL.createObjectURL(this.exportRecordingToBlob(pkg.version));
+      const link = document.createElement('a');
+      link.download = this.nameFrontend + '.json';
+      link.href = url;
+      link.click();
+    }
+    
 }
 
 export class SelectableRecording extends Recording {
