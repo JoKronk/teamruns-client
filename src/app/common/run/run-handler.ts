@@ -27,7 +27,7 @@ import { GameSettings } from "../socket/game-settings";
 import { SyncRequest, SyncRequestReason } from "./sync-request";
 import { SyncResponse } from "./sync-response";
 import { OG } from "../opengoal/og";
-import { DbRecordingFile, RecordingFile } from "../socket/recording-file";
+import { DbRecordingFile, RecordingFile } from "../recording/recording-file";
 import { PbCommentDialogComponent } from "src/app/dialogs/pb-comment-dialog/pb-comment-dialog.component";
 import { DbRunUserContent } from "../firestore/db-run-user-content";
 import { MatDialog } from "@angular/material/dialog";

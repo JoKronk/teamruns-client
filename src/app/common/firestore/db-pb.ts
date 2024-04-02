@@ -1,5 +1,5 @@
 import { CategoryOption } from "../run/category";
-import { DbRecordingFile } from "../socket/recording-file";
+import { DbRecordingFile } from "../recording/recording-file";
 import { DbLeaderboardPb } from "./db-leaderboard-pb";
 import { DbPlayer } from "./db-player";
 import { DbRun } from "./db-run";

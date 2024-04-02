@@ -1,4 +1,4 @@
-import { RecordingPositionData } from "./position-data";
+import { RecordingPositionData } from "../socket/position-data";
 import { Recording } from "./recording";
 
 export class RecordingFile {

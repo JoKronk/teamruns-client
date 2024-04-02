@@ -1,6 +1,6 @@
 
 import { WebSocketSubject, webSocket } from "rxjs/webSocket";
-import { Recording } from "./recording";
+import { Recording } from "../recording/recording";
 import { RecordingPositionData, UserPositionData } from "./position-data";
 import { User, UserBase } from "../user/user";
 import { MultiplayerState } from "../opengoal/multiplayer-state";

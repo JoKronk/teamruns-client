@@ -8,7 +8,7 @@ import { DbLeaderboardPb } from "./db-leaderboard-pb";
 import { DbTeam } from "./db-team";
 import { DbUsersCollection } from "./db-users-collection";
 import { DbPb } from "./db-pb";
-import { DbRecordingFile } from "../socket/recording-file";
+import { DbRecordingFile } from "../recording/recording-file";
 
 export class DbRun {
     data: RunData;

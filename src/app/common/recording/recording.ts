@@ -1,6 +1,6 @@
 import { InteractionType } from "../opengoal/interaction-type";
 import { Timer } from "../run/timer";
-import { PositionData, RecordingPositionData } from "./position-data";
+import { PositionData, RecordingPositionData } from "../socket/position-data";
 import { RecordingFile } from "./recording-file";
 import pkg from 'app/package.json';
 
@@ -156,12 +156,4 @@ export class Recording {
       link.click();
     }
     
-}
-
-export class SelectableRecording extends Recording {
-    selected: boolean = true;
-
-    constructor(userId: string) {
-        super(userId);
-    }
 }
