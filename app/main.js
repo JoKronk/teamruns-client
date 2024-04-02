@@ -219,10 +219,10 @@ app.on('activate', () => {
 
 
 // --- SETTINGS ---
-function writeSettings(settings) {
+async function writeSettings(settings) {
   settings.window = userSettings.window;
   userSettings = settings;
-  fs.writeFile(path.join(app.getPath('userData'), 'settings.json'), JSON.stringify(settings), (err) => {
+  await fs.promises.writeFile(path.join(app.getPath('userData'), 'settings.json'), JSON.stringify(settings), (err) => {
     if (err) sendClientMessage("Failed to update user data!");
   });
 }
@@ -400,7 +400,9 @@ async function checkInstallUpToDate() {
 
 function writeInstallVersionToSetting(version) {
   userSettings.gameVersion = version;
-  writeSettings(userSettings);
+  writeSettings(userSettings).then(() => {
+    readSettings();
+  });
 }
 
 function sendInstallProgress(progress, message) {
