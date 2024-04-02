@@ -331,7 +331,7 @@ async function readSaveFiles() {
 
 // --- OPENGOAL INSTALLATION ---
 function getInstallPath() {
-  return userSettings.ogFolderpath ?? path.join(app.getPath('userData'), "tr-project");
+  return userSettings.ogFolderpath ?? path.join(app.getPath('documents'), "Teamruns", "jak-project");
 }
 
 function selectFolderPath() {
