@@ -55,7 +55,7 @@ function createWindow() {
   } 
   else {
     win.loadURL(url.format({      
-        pathname: path.join( __dirname, 'teamrun-client/index.html'),       
+        pathname: path.join( __dirname, 'teamruns-client/index.html'),       
         protocol: 'file:',      
         slashes: true
     }));

@@ -1,7 +1,7 @@
 {
-  "name": "teamrun-client",
+  "name": "teamruns-client",
   "version": "0.0.0",
-  "description": "OpenGOAL TeamRun client.",
+  "description": "OpenGOAL Teamruns client.",
   "main": "app/main.js",
   "scripts": {
     "ng": "ng",
@@ -17,8 +17,8 @@
     "watch": "ng build --watch --configuration development"
   },
   "build": {
-    "appId": "teamrun-client",
-    "productName": "TeamRun",
+    "appId": "teamruns-client",
+    "productName": "Teamruns",
     "extraResources": [
       "./tracker/*"
     ],
@@ -28,8 +28,8 @@
       "oneClick": false,
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
-      "uninstallDisplayName": "TeamRun",
-      "shortcutName": "TeamRun"
+      "uninstallDisplayName": "Teamruns",
+      "shortcutName": "Teamruns"
     },
     "win": {
       "artifactName": "${name}-${version}-portable.${ext}",
@@ -42,7 +42,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/JoKronk/TeamRun-Client.git"
+    "url": "https://github.com/JoKronk/teamruns-client.git"
   },
   "private": true,
   "dependencies": {

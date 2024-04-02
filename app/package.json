@@ -1,6 +1,6 @@
 {
-    "name": "teamrun-client",
-    "description": "OpenGOAL TeamRun client.",
+    "name": "teamruns-client",
+    "description": "OpenGOAL Teamruns client.",
     "version": "0.8.1",
     "main": "main.js",
     "private": true,
