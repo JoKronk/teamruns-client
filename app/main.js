@@ -366,11 +366,14 @@ async function checkGameIsInstalled() {
 }
 
 async function getLatestGameReleaseVersion() {
-  const response = await axios.get("https://api.github.com/repos/open-goal/jak-project/tags", { headers: { 'User-Agent': 'Teamruns' } });
+  const response = await axios.get("https://api.github.com/repos/JoKronk/teamruns-jak-project/releases", { headers: { 'User-Agent': 'Teamruns' } });
 
-  return tag = response.data.sort(function (a, b) {
-    return ('' + b.name).localeCompare(a.name);
-    })[0].name.substring(1);
+  if (response.data.length !== 0) {
+    return response.data.sort(function (a, b) {
+      return ('' + b.name).localeCompare(a.name);
+      })[0].name.substring(1);
+  }
+  return "";
 }
 
 async function checkInstallUpToDate() {
@@ -435,7 +438,7 @@ async function installGame(isoPath) { //downloads and unzips project, then calls
   sendInstallProgress(1, "Fetching game version");
   const version = await getLatestGameReleaseVersion();
   sendInstallProgress(3, "Downloading release");
-  const response = await axios.get("https://github.com/open-goal/jak-project/releases/latest/download/opengoal-windows-v" + version + ".zip", { responseType: 'arraybuffer' });
+  const response = await axios.get("https://github.com/JoKronk/teamruns-jak-project/releases/latest/download/opengoal-windows-v" + version + ".zip", { responseType: 'arraybuffer' });
   
   sendInstallProgress(5, "Unzipping");
   let folderPath = getInstallPath();
