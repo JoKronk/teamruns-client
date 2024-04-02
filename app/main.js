@@ -5,6 +5,8 @@ const url = require('url');
 const fs = require('fs');
 const child_process = require('child_process');
 const axios = require('axios');
+const yauzl = require('yauzl');
+const mkdirp = require('mkdirp');
 const { OpenGoal } = require('./opengoal');
 	
 let win = null;
@@ -438,9 +440,7 @@ async function cleanGameInstallLocation() {
 
 //runs update if isoPath is null
 async function installGame(isoPath) { //downloads and unzips project, then calls extractISO
-  var yauzl = require('yauzl');
-  var mkdirp = require('mkdirp');
-
+  
   await cleanGameInstallLocation();
 
   sendInstallProgress(1, "Fetching game version");
