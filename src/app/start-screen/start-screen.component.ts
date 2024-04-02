@@ -28,6 +28,7 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     "Thanks Stellar",
     "Thanks Tombo",
     "Thanks Zed",
+    "Thanks Cippy",
     "goonin3"
   ];
   infoText: string = this.infoTexts[Math.floor(Math.random() * this.infoTexts.length)];
