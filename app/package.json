@@ -1,6 +1,9 @@
 {
     "name": "teamruns-client",
     "description": "OpenGOAL Teamruns client.",
+    "author": {
+        "name": "Dexz"
+    },
     "version": "0.9.0",
     "main": "main.js",
     "private": true,
