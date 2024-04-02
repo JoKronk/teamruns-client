@@ -92,8 +92,8 @@ export class UserService implements OnDestroy {
     this.router.navigate([link]);
   }
 
-  public userHasChanged(): boolean {
-    return !this.user.isEqualToDataCopy(this.UserCopy);
+  public userHasChanged(checkBaseOnly: boolean = false): boolean {
+    return checkBaseOnly ? this.user.isEqualToDataCopyBase(this.UserCopy) : !this.user.isEqualToDataCopy(this.UserCopy);
   }
 
   public writeUserDataChangeToLocal() {

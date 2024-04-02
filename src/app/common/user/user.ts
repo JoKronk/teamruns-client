@@ -41,6 +41,10 @@ export class User extends UserBase {
             this.hasSignedIn === copy.hasSignedIn;
     }
 
+    isEqualToDataCopyBase(copy: UserBase) : boolean {
+        return this.name === copy.name
+    }
+
     getUserBaseWithDisplayName(): UserBase {
         return new UserBase(this.id, this.displayName ?? this.name);
     }

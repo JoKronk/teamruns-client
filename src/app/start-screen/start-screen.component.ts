@@ -64,17 +64,19 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     if (this._user.userHasChanged()) {
       this._user.writeUserDataChangeToLocal();
 
-      this._firestore.getUsers().then(collection => {
-        if (!collection) return;
-
-        let user = collection.users.find(user => user.id === this._user.user.id);
-        if (user)
-          user = new DbUserProfile(this._user.user);
-        else
-          collection.users.push(new DbUserProfile(this._user.user));
-
-        this._firestore.updateUsers(collection);
-      });
+      if (this._user.user.hasSignedIn && this._user.userHasChanged(true)) {
+        this._firestore.getUsers().then(collection => {
+          if (!collection || !this._user.user.id) return;
+  
+          let user = collection.users.find(user => user.id === this._user.user.id);
+          if (user)
+            user = new DbUserProfile(this._user.user);
+          else
+            collection.users.push(new DbUserProfile(this._user.user));
+  
+          this._firestore.updateUsers(collection);
+        });
+      }
     }
 
     this.blackscreen.nativeElement.classList.remove('blackscreen-fade');
