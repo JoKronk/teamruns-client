@@ -11,11 +11,10 @@ import { RunHandler } from '../../common/run/run-handler';
 import { EventType } from '../../common/peer/event-type';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmComponent } from '../../dialogs/confirm/confirm.component';
-import { User, UserBase } from '../../common/user/user';
-import { GameTaskTime } from '../../common/opengoal/game-task';
+import { UserBase } from '../../common/user/user';
+import { GameTaskLevelTime } from '../../common/opengoal/game-task';
 import { TaskStatus } from '../../common/opengoal/task-status';
 import { AddPlayerComponent } from '../../dialogs/add-player/add-player.component';
-import { Player } from '../../common/player/player';
 import { OG } from '../../common/opengoal/og';
 import { Subscription } from 'rxjs';
 
@@ -75,7 +74,7 @@ export class RunComponent implements OnDestroy {
       if (confirmed) {
         this._user.localUsers.forEach(localPlayer => {
           localPlayer.state = PlayerState.Forfeit;
-          let task = new GameTaskTime(Task.forfeit, localPlayer.user, this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
+          const task = new GameTaskLevelTime(Task.forfeit, localPlayer.user.getUserBaseWithDisplayName(), this.runHandler.run?.getPlayer(localPlayer.user.id)?.currentLevel ?? "", this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
           this.runHandler.sendEvent(EventType.EndPlayerRun, localPlayer.user.id, task);
         });
       }

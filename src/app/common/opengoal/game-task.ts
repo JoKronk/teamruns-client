@@ -27,33 +27,25 @@ export class GameTask {
     }
 }
 
-export class GameTaskTime extends GameTask {
+export class GameTaskLevelTime extends GameTask {
     timerTime: string;
+    level: string;
 
-    constructor(name: string, user: UserBase, timerTime: string, status: string = TaskStatus.needResolution) {
+    constructor(name: string, user: UserBase, level: string, timerTime: string, status: string = TaskStatus.needResolution) {
         super(name, user, status);
         this.timerTime = timerTime;
+        this.level = level;
     }
 
-
-    public static override fromPositionData(positionData: UserPositionData): GameTaskTime {
+    public static override fromPositionData(positionData: UserPositionData): GameTaskLevelTime {
         return {
             name: positionData.interName,
             status: TaskStatus.nameFromEnum(positionData.interStatus),
             user: new UserBase(positionData.userId, positionData.username),
-            timerTime: Timer.msToTimeFormat(positionData.time, true, true)
+            timerTime: Timer.msToTimeFormat(positionData.time, true, true),
+            level: positionData.interLevel
         }
     }
-}
-
-export class GameTaskLevelTime extends GameTaskTime {
-    level: string;
-
-    constructor(name: string, user: UserBase, level: string, timerTime: string, status: string = TaskStatus.needResolution) {
-        super(name, user, timerTime, status);
-        this.level = level;
-    }
-
 
     //interaction sent seperately just to ensure it's not null
     public static fromCurrentPositionData(positionData: CurrentPositionData, interaction: InteractionData): GameTaskLevelTime {

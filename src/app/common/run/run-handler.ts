@@ -33,6 +33,8 @@ import { PbCommentDialogComponent } from "src/app/dialogs/pb-comment-dialog/pb-c
 import { DbRunUserContent } from "../firestore/db-run-user-content";
 import { MatDialog } from "@angular/material/dialog";
 import { DbPb } from "../firestore/db-pb";
+import { GameTaskLevelTime } from "../opengoal/game-task";
+import { InteractionType } from "../opengoal/interaction-type";
 
 export class RunHandler {
 
@@ -127,6 +129,9 @@ export class RunHandler {
                 return;
             }
 
+            if (target.position.interType === InteractionType.gameTask)
+                console.log(target.position);
+
             const positionData = new UserPositionData(target.position, localPlayer.socketHandler.timer.totalMs ?? 0, localPlayer.user);
 
             //handle position
@@ -141,10 +146,11 @@ export class RunHandler {
                 localPlayer.levelHandler.onLevelsUpdate(target.levels, localPlayer.socketHandler);
             
             // check for run end
-            if (Task.isRunEnd(positionData)) {
+            if (Task.isRunEnd(positionData) && this.run) {
+                const task: GameTaskLevelTime = GameTaskLevelTime.fromPositionData(positionData);
                 this.zone.run(() => {
                     localPlayer!.state = PlayerState.Finished;
-                    this.sendEvent(EventType.EndPlayerRun, localPlayer!.user.id, positionData);
+                    this.sendEvent(EventType.EndPlayerRun, localPlayer!.user.id, task);
                 });
             }
         });
@@ -533,13 +539,12 @@ export class RunHandler {
 
             case EventType.EndPlayerRun:
                 this.zone.run(() => {
-                    if (Task.isRunEnd(event.value))
-                        this.run!.addSplit(new Task(event.value));
-
                     if (!this.run) return;
+                    const endTask: GameTaskLevelTime = event.value;
+                    this.run.addSplit(new Task(endTask));
 
-                    this.run.endPlayerRun(event.userId, event.value.name === Task.forfeit);
-                    RunMod.endRunOnSigleTeamFinish(this.run.data.mode) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
+                    this.run.endPlayerRun(event.userId, endTask.name === Task.forfeit);
+                    RunMod.endRunOnSigleTeamFinish(this.run.data.mode) ? this.run.endAllTeamsRun(endTask) : this.run?.endTeamRun(endTask);
                     
                     //!TODO: Add support for saving secondary locals recordings if on different team?
                     const players: Player[] = this.run.getAllPlayers();

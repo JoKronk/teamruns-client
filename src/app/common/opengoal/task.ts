@@ -1,8 +1,7 @@
 import { DbTask } from "../firestore/db-task";
 import { InteractionData } from "../socket/interaction-data";
-import { GameTask, GameTaskTime } from "./game-task";
+import { GameTaskLevelTime } from "./game-task";
 import { InteractionType } from "./interaction-type";
-import { Level } from "./levels";
 import { TaskStatus } from "./task-status";
 
 export class Task {
@@ -12,7 +11,7 @@ export class Task {
     obtainedById: string;
     obtainedAt: string;
 
-    constructor(task: GameTaskTime) {
+    constructor(task: GameTaskLevelTime) {
         this.gameTask = task.name;
         this.isCollectedCell = Task.isCellCollect(task.name, task.status);
         this.obtainedById = task.user.id;

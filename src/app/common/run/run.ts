@@ -2,7 +2,7 @@ import { Player } from "../player/player";
 import { RunMod, RunMode } from "./run-mode";
 import { RunData } from "./run-data";
 import { GameState } from "../opengoal/game-state";
-import { GameTaskTime } from "../opengoal/game-task";
+import { GameTaskLevelTime } from "../opengoal/game-task";
 import { Task } from "../opengoal/task";
 import { Team } from "./team";
 import { Timer } from "./timer";
@@ -92,14 +92,14 @@ export class Run {
         return this.teams.every(x => x.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit));
     }
 
-    endTeamRun(task: GameTaskTime): void {
+    endTeamRun(task: GameTaskLevelTime): void {
         let team = this.getPlayerTeam(task.user.id);
         if (!team) return;
         if (team.players.every(y => y.state === PlayerState.Finished))
             team.endTimeMs = Timer.timeToMs(task.timerTime);
     }
 
-    endAllTeamsRun(task: GameTaskTime): void {
+    endAllTeamsRun(task: GameTaskLevelTime): void {
         this.teams.forEach((team, index) => {
             this.teams[index].endTimeMs = Timer.timeToMs(task.timerTime);
         });
@@ -226,7 +226,7 @@ export class Run {
         this.teams.forEach(team => {
             let isPlayerTeam = team.id === teamId;
             if (!team.runIsValid) { 
-                if (isPlayerTeam) msg = "Run has already been marked invalid";
+                if (isPlayerTeam) msg = "Run invalid from earlier.";
                 return;
             }
 
