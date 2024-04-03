@@ -221,7 +221,6 @@ export class Run {
     }
 
     checkRunEndValid(teamId: number): string | undefined {
-        if (this.timer.runState !== RunState.Ended) return "Run end check triggered but timer is still going?";
         let msg: string | undefined = undefined;
         this.teams.forEach(team => {
             let isPlayerTeam = team.id === teamId;

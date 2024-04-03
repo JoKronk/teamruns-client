@@ -49,6 +49,10 @@ export class Team {
         })
     }
 
+    everyoneHasFinished(): boolean {
+        return this.players.every(x => x.state === PlayerState.Finished || x.state === PlayerState.Forfeit);
+    }
+
     everyoneOnSameVersion(): boolean {
         if (this.players.length === 0) 
             return true;

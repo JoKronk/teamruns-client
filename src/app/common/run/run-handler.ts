@@ -550,7 +550,7 @@ export class RunHandler {
                     const players: Player[] = this.run.getAllPlayers();
                     let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings();
                     let playerTeam = this.run.getPlayerTeam(userId);
-                    if (playerTeam) {
+                    if (playerTeam && playerTeam.everyoneHasFinished()) {
                         let userTeamPlayerIds: string[] = playerTeam.players.flatMap(x => x.user.id) ?? [];
     
                         if (!recordings)
