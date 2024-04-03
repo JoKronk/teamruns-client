@@ -80,7 +80,7 @@ export class RunCasualComponent implements OnDestroy {
 
   toggleReset() {
     this._user.localUsers.forEach(localPlayer => {
-      localPlayer.state = localPlayer.state === PlayerState.WantsToReset ? localPlayer.getTeam()?.splits.some(x => x.obtainedById === localPlayer.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
+      localPlayer.state = localPlayer.state === PlayerState.WantsToReset ? localPlayer.socketHandler.localTeam?.splits.some(x => x.obtainedById === localPlayer.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
       this.runHandler.sendEvent(EventType.ToggleReset, localPlayer.user.id, localPlayer.state);
     });
   }
@@ -92,7 +92,7 @@ export class RunCasualComponent implements OnDestroy {
     if (!mainPlayer)
       return;
 
-    let team = mainPlayer.getTeam();
+    let team = mainPlayer.socketHandler.localTeam;
     if (team)
       team.runState = save;
 

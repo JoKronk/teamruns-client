@@ -1,4 +1,5 @@
 export class GameState {
+    gameVersion: string = "";
     debugModeActive: boolean = false;
     justSpawned: boolean = false;
     justLoaded: boolean = false;

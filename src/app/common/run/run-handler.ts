@@ -130,7 +130,7 @@ export class RunHandler {
             const positionData = new UserPositionData(target.position, localPlayer.socketHandler.timer.totalMs ?? 0, localPlayer.user);
 
             //handle position
-            if (localPlayer.getTeam() !== undefined)
+            if (localPlayer.socketHandler.localTeam !== undefined)
                 this.sendPosition(positionData);
 
             //handle game state changes for current player
@@ -729,8 +729,18 @@ export class RunHandler {
 
         this.updateAllPlayerInfo();
 
+        const mainLocalPlayer = this.getMainLocalPlayer();
+
         this.run?.teams.forEach(team => {
-            team.runState = new RunStateHandler();
+            team.resetForRun(false);
+            if (!team.everyoneOnSameVersion())
+                this.userService.sendNotification("OpenGOAL version mismatch found in \"" + team.name + "\" run for team marked invalid.", 10000);
+
+            if (mainLocalPlayer?.socketHandler.localTeam?.id === team.id && this.isHost() && team.players.find(x => x.user.id === mainLocalPlayer.user.id)?.gameState.gameVersion !== this.userService.user.gameVersion) {
+                team.runIsValid = false;
+                this.userService.sendNotification("OpenGOAL version mismatch for host, run for team marked invalid.", 10000);
+            }
+
         });
         this.userService.localUsers.forEach(localPlayer => {
             localPlayer.updateTeam(this.run?.getPlayerTeam(localPlayer.user.id, localPlayer.user.id !== this.userService.getMainUserId())); //give new team to none main FFA users
@@ -776,11 +786,15 @@ export class RunHandler {
         })
     }
 
+    isHost(): boolean {
+        return !this.isOnlineInstant || (this.localMaster !== undefined && this.lobby?.host?.id === this.userService.getMainUserId());
+    }
+
 
     destroy() {
         this.isBeingDestroyed = true;
         const userId = this.userService.getMainUserId();
-        const wasHost: boolean = this.localMaster !== undefined && this.isOnlineInstant && this.lobby?.host?.id === userId;
+        const wasHost: boolean = this.isHost() && this.isOnlineInstant;
 
         if (wasHost && this.run?.data.mode === RunMode.Casual) {
             this.lobby!.visible = false;

@@ -40,10 +40,6 @@ export class LocalPlayerData {
     this.levelHandler.importRunStateHandler(runStateHandler, this.socketHandler, this.gameState.orbCount, hardReset);
   }
 
-  getTeam(): Team | undefined {
-    return this.socketHandler.localTeam;
-  }
-
   updateTeam(team: Team | undefined) {
     if (!team) return;
     this.socketHandler.localTeam = team;

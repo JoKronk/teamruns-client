@@ -36,16 +36,25 @@ export class Team {
         return team;
     }
 
-    resetForRun() {
+    resetForRun(resetPlayers: boolean = true) {
         this.splits = [];
         this.runState = new RunStateHandler();
-        this.runIsValid = true;
+        this.runIsValid = this.everyoneOnSameVersion();
 
-        if (this.players.length === 0) return;
+
+        if (!resetPlayers) return;
         this.players.forEach(player => {
             player.state = PlayerState.Neutral;
             player.cellsCollected = 0;
         })
+    }
+
+    everyoneOnSameVersion(): boolean {
+        if (this.players.length === 0) 
+            return true;
+
+        const gameVersion = this.players[0].gameState.gameVersion;
+        return this.players.every(x => x.gameState.gameVersion === gameVersion);
     }
     
     addSplit(split: Task) {
