@@ -815,6 +815,7 @@ export class RunHandler {
 
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
+        this.userSetupSubscription?.unsubscribe();
         this.launchListener();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself
