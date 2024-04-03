@@ -11,7 +11,6 @@ const { OpenGoal } = require('./opengoal');
 	
 let win = null;
 const runRepl = false;
-const devServe = (process.argv.at(-1) === '--serve');
 var openGoal;
 var userSettings = { window: { x: 10, y: 10, width: 1000, height: 800 } };
 
@@ -31,7 +30,7 @@ function createWindow() {
     webPreferences: {
         zoomFactor: 1.0 / factor,
         backgroundThrottling: false,
-        allowRunningInsecureContent: (devServe),
+        allowRunningInsecureContent: (!app.isPackaged),
         preload: path.join(__dirname, "preload.js")
     },
     titleBarOverlay: {
@@ -47,7 +46,7 @@ function createWindow() {
   });
 
 
-  if (devServe) {
+  if (!app.isPackaged) {
     const debug = require('electron-debug');
     debug();
     require('electron-reloader')(module);
