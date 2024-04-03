@@ -186,6 +186,9 @@ export class FireStoreService {
   async addPb(pb: DbPb) {
     await this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
+    if (!(pb instanceof DbPb))
+      pb = Object.assign(new DbPb(), pb);
+
     if (pb.userIds instanceof Map)
       pb.userIds = Object.fromEntries(pb.userIds);
     
