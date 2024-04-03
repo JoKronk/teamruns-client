@@ -543,22 +543,26 @@ export class RunHandler {
                     
                     //!TODO: Add support for saving secondary locals recordings if on different team?
                     const players: Player[] = this.run.getAllPlayers();
-                    let userTeamPlayerIds: string[] = this.run.getPlayerTeam(this.userService.getMainUserId())?.players.flatMap(x => x.user.id) ?? [];
-
-
                     let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings();
-                    if (!recordings)
-                        this.userService.sendNotification("Failed to fetch run recordings!");
-                    else if (this.userService.user.saveRecordingsLocally && recordings) { 
-
-                        let userTeamRecordings = recordings.filter(x => userTeamPlayerIds.includes(x.userId));
-                        if (userTeamRecordings.length === 0)
-                            this.userService.sendNotification("Failed to fetch users team run recordings!");
-
-                        (window as any).electron.send('recordings-write', new RecordingFile(pkg.version, userTeamRecordings));
+                    let playerTeam = this.run.getPlayerTeam(userId);
+                    if (playerTeam) {
+                        let userTeamPlayerIds: string[] = playerTeam.players.flatMap(x => x.user.id) ?? [];
+    
+                        if (!recordings)
+                            this.userService.sendNotification("Failed to fetch run recordings!");
+                        else if (this.userService.user.saveRecordingsLocally && recordings) { 
+    
+                            let userTeamRecordings = recordings.filter(x => userTeamPlayerIds.includes(x.userId));
+                            if (userTeamRecordings.length === 0)
+                                this.userService.sendNotification("Failed to fetch users team run recordings!");
+    
+                            (window as any).electron.send('recordings-write', new RecordingFile(pkg.version, userTeamRecordings));
+                        }
+                        
+                        const invalidRunMessage = this.run.checkRunEndValid(playerTeam.id);
+                        if (invalidRunMessage) this.userService.sendNotification(invalidRunMessage, 10000);
                     }
 
-                    this.run.checkRunEndValid();
                     if (isMaster && this.run.isMode(RunMode.Speedrun) && !this.isPracticeTool && this.run.teams.some(x => x.runIsValid)) {
                         this.firestoreService.getUsers().then(collection => {
                             if (!collection || !players || !this.run) return;

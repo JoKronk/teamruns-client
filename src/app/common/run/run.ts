@@ -220,10 +220,15 @@ export class Run {
         return this.data.mode === mode;
     }
 
-    checkRunEndValid() {
-        if (this.timer.runState !== RunState.Ended) return false;
+    checkRunEndValid(teamId: number): string | undefined {
+        if (this.timer.runState !== RunState.Ended) return "Run end check triggered but timer is still going?";
+        let msg: string | undefined = undefined;
         this.teams.forEach(team => {
-            if (!team.runIsValid) return;
+            let isPlayerTeam = team.id === teamId;
+            if (!team.runIsValid) { 
+                if (isPlayerTeam) msg = "Run has already been marked invalid";
+                return;
+            }
 
             if (team.players.some(x => x.state === PlayerState.Forfeit)) {
                 team.runIsValid = false;
@@ -236,28 +241,46 @@ export class Run {
             break;
             case CategoryOption.NoLts:
                 team.runIsValid = team.runState.cellCount >= 72;
+                if (!team.runIsValid && isPlayerTeam)
+                    msg = "Run invalid, only " + team.runState.cellCount + "cells registered.";
                 break;
             case CategoryOption.AllCells:
                 team.runIsValid = team.runState.cellCount === 101;
+                if (!team.runIsValid && isPlayerTeam)
+                    msg = "Run invalid, only " + team.runState.cellCount + "cells registered.";
                 break;
             case CategoryOption.Hundo:
                 team.runIsValid = team.runState.cellCount === 101 && team.runState.totalOrbCount === 2000;
+                if (!team.runIsValid && isPlayerTeam) {
+                    if (team.runState.totalOrbCount !== 2000)
+                        msg = "Run invalid, only " + team.runState.totalOrbCount + "orbs registered.";
+                    else
+                        msg = "Run invalid, only " + team.runState.cellCount + "cells registered.";
+                }
                 break;
             case CategoryOption.NoFcs:
                 team.runIsValid = team.runState.cellCount >= 22;
+                if (!team.runIsValid && isPlayerTeam)
+                    msg = "Run invalid, only " + team.runState.cellCount + "cells registered.";
                 break;
             case CategoryOption.Orbless:
                 team.runIsValid = team.runState.totalOrbCount === 0;
+                if (!team.runIsValid && isPlayerTeam)
+                    msg = "Run invalid " + team.runState.totalOrbCount + "orbs registered.";
                 break;
             case CategoryOption.AllFlies:
                 team.runIsValid = team.runState.buzzerCount === 112;
+                if (!team.runIsValid && isPlayerTeam)
+                    msg = "Run invalid, only " + team.runState.buzzerCount + "scoutflies registered.";
                 break;
             case CategoryOption.AllOrbs:
                 team.runIsValid = team.runState.totalOrbCount === 2000;
+                if (!team.runIsValid && isPlayerTeam)
+                    msg = "Run invalid, only " + team.runState.totalOrbCount + "orbs registered.";
                 break;
             }
         });
-        return;
+        return msg;
     }
 
     getRemotePlayerInfo(userId: string): RemotePlayerInfo | undefined {
