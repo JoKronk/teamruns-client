@@ -241,19 +241,19 @@ export class Run {
                 team.runIsValid = team.runState.cellCount === 101;
                 break;
             case CategoryOption.Hundo:
-                team.runIsValid = team.runState.cellCount === 101 && team.runState.orbCount === 2000;
+                team.runIsValid = team.runState.cellCount === 101 && team.runState.totalOrbCount === 2000;
                 break;
             case CategoryOption.NoFcs:
                 team.runIsValid = team.runState.cellCount >= 22;
                 break;
             case CategoryOption.Orbless:
-                team.runIsValid = team.runState.orbCount === 0;
+                team.runIsValid = team.runState.totalOrbCount === 0;
                 break;
             case CategoryOption.AllFlies:
                 team.runIsValid = team.runState.buzzerCount === 112;
                 break;
             case CategoryOption.AllOrbs:
-                team.runIsValid = team.runState.orbCount === 2000;
+                team.runIsValid = team.runState.totalOrbCount === 2000;
                 break;
             }
         });
