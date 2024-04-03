@@ -42,7 +42,7 @@ testem.log
 Thumbs.db
 
 #TeamRun Client
-/app/teamrun-client
+/app/teamruns-client
 /app/node_modules
 /src/environments/environment.ts
 
