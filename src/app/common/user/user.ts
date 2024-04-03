@@ -34,7 +34,8 @@ export class User extends UserBase {
     }
 
     isEqualToDataCopy(copy: User) : boolean {
-        return this.name === copy.name &&
+        return this.id === copy.id &&
+            this.name === copy.name &&
             this.displayName === copy.displayName &&
             this.ogFolderpath === copy.ogFolderpath &&
             this.gameVersion === copy.gameVersion &&
@@ -42,7 +43,8 @@ export class User extends UserBase {
     }
 
     isEqualToDataCopyBase(copy: UserBase) : boolean {
-        return this.name === copy.name
+        return this.name === copy.name &&
+        this.name === copy.name;
     }
 
     getUserBaseWithDisplayName(): UserBase {
