@@ -10,6 +10,7 @@ import { DbUsersCollection } from "./db-users-collection";
 import { DbPb } from "./db-pb";
 import { DbRecordingFile } from "./db-recording-file";
 import { UserRecording } from "../recording/user-recording";
+import { Observable, map } from "rxjs";
 
 export class DbRun {
     data: RunData;
@@ -78,9 +79,8 @@ export class DbRun {
     }
 
 
-    checkUploadPbs(firestoreService: FireStoreService, signedInPlayerIds: string[], recordings: UserRecording[] | undefined): Map<string, string[]> {
-        let pbUsers: Map<string, string[]> = new Map();
-        if (this.data.category === CategoryOption.Custom) return pbUsers;
+    checkUploadPbs(firestoreService: FireStoreService, signedInPlayerIds: string[], recordings: UserRecording[] | undefined): Observable<Map<string, string[]>> | undefined {
+        if (this.data.category === CategoryOption.Custom) return;
 
         let leaderboards: DbLeaderboard[] = [];
 
@@ -90,79 +90,82 @@ export class DbRun {
             .flatMap(x => x.players.length)
             .filter((value, index, array) => array.indexOf(value) === index);
         
-        if (playerCounts.length === 0) return pbUsers;
+        if (playerCounts.length === 0) return;
         
-        const lbSubscription = firestoreService.getLeaderboards(this.data.category, this.data.requireSameLevel, playerCounts).subscribe(dbLeaderboards => {
-            lbSubscription.unsubscribe();
-            if (!dbLeaderboards) return;
-            leaderboards = dbLeaderboards;
-
-            playerCounts.forEach(count => {
-                let leaderboard = dbLeaderboards.find(x => x.players === count);
-                if (!leaderboard)
-                    leaderboards.push(new DbLeaderboard(this.data.category, this.data.requireSameLevel, count));
-            });
-
+        return firestoreService.getLeaderboards(this.data.category, this.data.requireSameLevel, playerCounts).pipe(
+                map(dbLeaderboards => {
+                    let pbUsers: Map<string, string[]> = new Map();
+                    
+                    if (!dbLeaderboards) return pbUsers;
+                    leaderboards = dbLeaderboards;
+        
+                    playerCounts.forEach(count => {
+                        let leaderboard = dbLeaderboards.find(x => x.players === count);
+                        if (!leaderboard)
+                            leaderboards.push(new DbLeaderboard(this.data.category, this.data.requireSameLevel, count));
+                    });
+        
+                    
             
-    
-            //fill leaderboards with pbs (filtered by valid and signed in)
-            this.teams.filter(x => x.endTimeMs !== 0 && x.runIsValid && x.players.every(player => signedInPlayerIds.includes(player.user.id))).forEach(team => {
-                let leaderboard = leaderboards.find(x => x.players === team.players.length);
-                if (!leaderboard) return;
-                const leaderboardIndex = leaderboards.indexOf(leaderboard);
-                leaderboard = Object.assign(new DbLeaderboard(leaderboard.category, leaderboard.sameLevel, leaderboard.players), leaderboard);
-    
-                const runnerIds = team.players.flatMap(x => x.user.id);
-                let previousPb = leaderboard.pbs.find(x => this.arraysEqual(runnerIds, x.userIds));
-                
-                //if new pb
-                if (!previousPb || previousPb.endTimeMs > team.endTimeMs) {
-                    leaderboard.pbs = leaderboard.pbs.sort((a, b) => a.endTimeMs - b.endTimeMs);
-                    
-                    let newPb = DbPb.convertToFromRun(this, team, leaderboard.pbs.length === 0 || leaderboard.pbs[0].endTimeMs > team.endTimeMs);
-                    leaderboard.pbs.push(DbLeaderboardPb.convertToFromPb(newPb)); //needs to come before pb being added since it removes id
-                    
-                    if (!newPb.id) { //this should always be true
-                        console.log("new pb id missing!");
-                        newPb.id = crypto.randomUUID();
-                    }
-                    
-                    //add users to new pbs map
-                    pbUsers.set(newPb.id, team.players.flatMap(x => x.user.id));
-                    
-
-                    //delete old recording if any
-                    if (previousPb && previousPb.id && previousPb.playbackAvailable) {
-                        const oldPbSubscription = firestoreService.getPb(previousPb.id).subscribe(oldDbPb => {
-                            oldPbSubscription.unsubscribe();
-                            if (oldDbPb) {
-                                oldDbPb.playbackAvailable = false;
-                                firestoreService.deleteRecording(oldDbPb.id);
-                                firestoreService.updatePb(oldDbPb);
-                            }
-                        });
-                    }
-                    
-                    //create and add recording to db
-                    let userTeamRecordings: DbRecordingFile = new DbRecordingFile(newPb.version, recordings?.filter(rec => team.players.some(player => player.user.id === rec.userId)) ?? [], newPb.id);
-                    if (userTeamRecordings.recordings.length !== 0)
-                        firestoreService.addRecording(userTeamRecordings);
+                    //fill leaderboards with pbs (filtered by valid and signed in)
+                    this.teams.filter(x => x.endTimeMs !== 0 && x.runIsValid && x.players.every(player => signedInPlayerIds.includes(player.user.id))).forEach(team => {
+                        let leaderboard = leaderboards.find(x => x.players === team.players.length);
+                        if (!leaderboard) return;
+                        const leaderboardIndex = leaderboards.indexOf(leaderboard);
+                        leaderboard = Object.assign(new DbLeaderboard(leaderboard.category, leaderboard.sameLevel, leaderboard.players), leaderboard);
+            
+                        const runnerIds = team.players.flatMap(x => x.user.id);
+                        let previousPb = leaderboard.pbs.find(x => this.arraysEqual(runnerIds, x.userIds));
                         
-
-                    //add pb to db
-                    firestoreService.addPb(newPb);
-                    if (previousPb)
-                        leaderboard.pbs = leaderboard.pbs.filter(x => x.id !== previousPb!.id);
-                    
-                    //update leaderboard
-                    const leaderboardId = leaderboard.id;
-                    firestoreService.putLeaderboard(leaderboard);
-                    leaderboard.id = leaderboardId; //id gets removed at upload this is a "quick fix" as it's needed for other teams
-                    leaderboards[leaderboardIndex] = leaderboard; //needed as reference is probably lost when object is created anew
-                }
-            });
-        });
-        return pbUsers;
+                        //if new pb
+                        if (!previousPb || previousPb.endTimeMs > team.endTimeMs) {
+                            leaderboard.pbs = leaderboard.pbs.sort((a, b) => a.endTimeMs - b.endTimeMs);
+                            
+                            let newPb = DbPb.convertToFromRun(this, team, leaderboard.pbs.length === 0 || leaderboard.pbs[0].endTimeMs > team.endTimeMs);
+                            leaderboard.pbs.push(DbLeaderboardPb.convertToFromPb(newPb)); //needs to come before pb being added since it removes id
+                            
+                            if (!newPb.id) { //this should always be true
+                                console.log("new pb id missing!");
+                                newPb.id = crypto.randomUUID();
+                            }
+                            
+                            //add users to new pbs map
+                            let teamUserIds = team.players.flatMap(x => x.user.id);
+                            pbUsers.set(newPb.id, teamUserIds);
+                            
+        
+                            //delete old recording if any
+                            if (previousPb && previousPb.id && previousPb.playbackAvailable) {
+                                const oldPbSubscription = firestoreService.getPb(previousPb.id).subscribe(oldDbPb => {
+                                    oldPbSubscription.unsubscribe();
+                                    if (oldDbPb) {
+                                        oldDbPb.playbackAvailable = false;
+                                        firestoreService.deleteRecording(oldDbPb.id);
+                                        firestoreService.updatePb(oldDbPb);
+                                    }
+                                });
+                            }
+                            
+                            //create and add recording to db
+                            let userTeamRecordings: DbRecordingFile = new DbRecordingFile(newPb.version, recordings?.filter(rec => teamUserIds.includes(rec.userId)) ?? [], newPb.id);
+                            if (userTeamRecordings.recordings.length !== 0)
+                                firestoreService.addRecording(userTeamRecordings);
+                                
+        
+                            //add pb to db
+                            firestoreService.addPb(newPb);
+                            if (previousPb)
+                                leaderboard.pbs = leaderboard.pbs.filter(x => x.id !== previousPb!.id);
+                            
+                            //update leaderboard
+                            const leaderboardId = leaderboard.id;
+                            firestoreService.putLeaderboard(leaderboard);
+                            leaderboard.id = leaderboardId; //id gets removed at upload this is a "quick fix" as it's needed for other teams
+                            leaderboards[leaderboardIndex] = leaderboard; //needed as reference is probably lost when object is created anew
+                        }
+                    });
+                    return pbUsers;
+                })); 
     }
 
     arraysEqual(array1: string[], array2: string[]): boolean {

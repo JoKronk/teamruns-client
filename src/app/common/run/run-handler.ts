@@ -571,17 +571,22 @@ export class RunHandler {
                             if (!collection || !players || !this.run) return;
                             
                             let signedInPlayers: string[] = players.filter(player => collection.users.some(user => user.id === player.user.id)).flatMap(x => x.user.id);
-                            let run: DbRun = DbRun.convertToFromRun(this.run);
+                            let dbRun: DbRun = DbRun.convertToFromRun(this.run);
                         
                             // add run to history if any player is signed in
                             if (players.some(player => collection.users.find(user => user.id === player.user.id)))
-                                this.firestoreService.addRun(run);
+                                this.firestoreService.addRun(dbRun);
                             
                             // add pb
                             if (this.run?.data.submitPbs) {
-                                let pbUsers: Map<string, string[]> = run.checkUploadPbs(this.firestoreService, signedInPlayers, recordings);
-                                if (pbUsers.size !== 0)
-                                    this.sendEventAsMain(EventType.NewPb, pbUsers);
+                                const pbUploadSubscription = dbRun.checkUploadPbs(this.firestoreService, signedInPlayers, recordings)?.subscribe(pbUsers => {
+                                    pbUploadSubscription?.unsubscribe();
+                                    if (pbUsers.size !== 0) {
+                                        setTimeout(() => { //give some time for pb to upload !TODO: replace with proper pipe
+                                            this.sendEventAsMain(EventType.NewPb, pbUsers);
+                                        }, 1000);
+                                    }
+                                });
                             }
                         });
                     }
@@ -595,7 +600,7 @@ export class RunHandler {
                         if (this.pbSubscription) this.pbSubscription.unsubscribe();
                         let currentPbData: DbPb | undefined = undefined;
                         this.pbSubscription = this.firestoreService.getPb(pbId).subscribe(pb => {
-                            if (!pb) return;
+                            if (!pb?.category) return; //checking category specifically because the id is returned if none is found
                             if (currentPbData)
                                 currentPbData = pb; //incase it gets updated while writing a comment
                             else {
