@@ -234,49 +234,50 @@ export class Run {
                 return;
             }
 
-        switch (this.data.category) {
-            case CategoryOption.Custom:
-                team.runIsValid = true;
-            break;
-            case CategoryOption.NoLts:
-                team.runIsValid = team.runState.cellCount >= 72;
-                if (!team.runIsValid && isPlayerTeam)
-                    msg = "Run invalid, only " + team.runState.cellCount + "cells registered.";
-                break;
-            case CategoryOption.AllCells:
-                team.runIsValid = team.runState.cellCount === 101;
-                if (!team.runIsValid && isPlayerTeam)
-                    msg = "Run invalid, only " + team.runState.cellCount + "cells registered.";
-                break;
-            case CategoryOption.Hundo:
-                team.runIsValid = team.runState.cellCount === 101 && team.runState.totalOrbCount === 2000;
-                if (!team.runIsValid && isPlayerTeam) {
-                    if (team.runState.totalOrbCount !== 2000)
-                        msg = "Run invalid, only " + team.runState.totalOrbCount + "orbs registered.";
-                    else
-                        msg = "Run invalid, only " + team.runState.cellCount + "cells registered.";
-                }
-                break;
-            case CategoryOption.NoFcs:
-                team.runIsValid = team.runState.cellCount >= 22;
-                if (!team.runIsValid && isPlayerTeam)
-                    msg = "Run invalid, only " + team.runState.cellCount + "cells registered.";
-                break;
-            case CategoryOption.Orbless:
-                team.runIsValid = team.runState.totalOrbCount === 0;
-                if (!team.runIsValid && isPlayerTeam)
-                    msg = "Run invalid " + team.runState.totalOrbCount + "orbs registered.";
-                break;
-            case CategoryOption.AllFlies:
-                team.runIsValid = team.runState.buzzerCount === 112;
-                if (!team.runIsValid && isPlayerTeam)
-                    msg = "Run invalid, only " + team.runState.buzzerCount + "scoutflies registered.";
-                break;
-            case CategoryOption.AllOrbs:
-                team.runIsValid = team.runState.totalOrbCount === 2000;
-                if (!team.runIsValid && isPlayerTeam)
-                    msg = "Run invalid, only " + team.runState.totalOrbCount + "orbs registered.";
-                break;
+            switch (this.data.category) {
+                case CategoryOption.NoLts:
+                    team.runIsValid = team.runState.cellCount >= 72;
+                    if (!team.runIsValid && isPlayerTeam)
+                        msg = "Run invalid, only " + team.runState.cellCount + " cells registered.";
+                    break;
+                case CategoryOption.AllCells:
+                    team.runIsValid = team.runState.cellCount === 101;
+                    if (!team.runIsValid && isPlayerTeam)
+                        msg = "Run invalid, only " + team.runState.cellCount + " cells registered.";
+                    break;
+                case CategoryOption.Hundo:
+                    team.runIsValid = team.runState.cellCount === 101 && team.runState.totalOrbCount === 2000;
+                    if (!team.runIsValid && isPlayerTeam) {
+                        if (team.runState.totalOrbCount !== 2000)
+                            msg = "Run invalid, only " + team.runState.totalOrbCount + " orbs registered.";
+                        else
+                            msg = "Run invalid, only " + team.runState.cellCount + " cells registered.";
+                    }
+                    break;
+                case CategoryOption.NoFcs:
+                    team.runIsValid = team.runState.cellCount >= 22;
+                    if (!team.runIsValid && isPlayerTeam)
+                        msg = "Run invalid, only " + team.runState.cellCount + " cells registered.";
+                    break;
+                case CategoryOption.Orbless:
+                    team.runIsValid = team.runState.totalOrbCount === 0;
+                    if (!team.runIsValid && isPlayerTeam)
+                        msg = "Run invalid " + team.runState.totalOrbCount + "orbs registered.";
+                    break;
+                case CategoryOption.AllFlies:
+                    team.runIsValid = team.runState.buzzerCount === 112;
+                    if (!team.runIsValid && isPlayerTeam)
+                        msg = "Run invalid, only " + team.runState.buzzerCount + " scoutflies registered.";
+                    break;
+                case CategoryOption.AllOrbs:
+                    team.runIsValid = team.runState.totalOrbCount === 2000;
+                    if (!team.runIsValid && isPlayerTeam)
+                        msg = "Run invalid, only " + team.runState.totalOrbCount + " orbs registered.";
+                    break;
+                default:
+                    team.runIsValid = false;
+                    msg = "Run invalid, category is not a registered speedrun category.";
+                    break;
             }
         });
         return msg;
