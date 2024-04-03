@@ -1,6 +1,7 @@
 import { CrateType } from "../opengoal/crate-type";
 import { InteractionType } from "../opengoal/interaction-type";
-import { RecordingPositionData, UserPositionData } from "./position-data";
+import { RecordingPositionData } from "../recording/recording-position-data";
+import { UserPositionData } from "./position-data";
 
 export class InteractionData {
     interType: number;

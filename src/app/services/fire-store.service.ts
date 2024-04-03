@@ -6,7 +6,6 @@ import { CollectionName } from '../common/firestore/collection-name';
 import { DbRun } from '../common/firestore/db-run';
 import { Lobby } from '../common/firestore/lobby';
 import { Preset } from '../common/firestore/preset';
-import { DataChannelEvent } from '../common/peer/data-channel-event';
 import { RTCPeer } from '../common/peer/rtc-peer';
 import { DbUsersCollection } from '../common/firestore/db-users-collection';
 import { CategoryOption } from '../common/run/category';
@@ -15,28 +14,31 @@ import { DbPb } from '../common/firestore/db-pb';
 import { DbUserProfile } from '../common/firestore/db-user-profile';
 import { AccountReply } from '../dialogs/account-dialog/account-dialog.component';
 import { DbLeaderboardPb } from '../common/firestore/db-leaderboard-pb';
+import { DbRecordingFile } from '../common/firestore/db-recording-file';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FireStoreService {
 
-  private personalBests: AngularFirestoreCollection<DbPb>;
-  private leaderboards: AngularFirestoreCollection<DbLeaderboard>;
-  private runs: AngularFirestoreCollection<DbRun>;
   private globalData: AngularFirestoreCollection<DbUsersCollection>;
+  private leaderboards: AngularFirestoreCollection<DbLeaderboard>;
   private lobbies: AngularFirestoreCollection<Lobby>;
+  private personalBests: AngularFirestoreCollection<DbPb>;
+  private recordings: AngularFirestoreCollection<DbRecordingFile>;
+  private runs: AngularFirestoreCollection<DbRun>;
 
   private isAuthenticated: boolean = false;
   private currentUser: firebase.default.User | null = null;
 
   constructor(public firestore: AngularFirestore, public auth: AngularFireAuth) {
 
-    this.personalBests = firestore.collection<DbPb>(CollectionName.personalBests);
-    this.leaderboards = firestore.collection<DbLeaderboard>(CollectionName.leaderboards);
-    this.runs = firestore.collection<DbRun>(CollectionName.runs);
     this.globalData = firestore.collection<DbUsersCollection>(CollectionName.globalData);
+    this.leaderboards = firestore.collection<DbLeaderboard>(CollectionName.leaderboards);
     this.lobbies = firestore.collection<Lobby>(CollectionName.lobbies);
+    this.personalBests = firestore.collection<DbPb>(CollectionName.personalBests);
+    this.recordings = firestore.collection<DbRecordingFile>(CollectionName.recordings);
+    this.runs = firestore.collection<DbRun>(CollectionName.runs);
   }
 
   async deleteCurrentUser(): Promise<boolean> {
@@ -172,7 +174,7 @@ export class FireStoreService {
       run.userIds = Object.fromEntries(run.userIds);
     
     run.clearFrontendValues();
-
+    
     const id = run.id;
     run.id = undefined;
     if (id)
@@ -193,6 +195,13 @@ export class FireStoreService {
     if (id)
       await this.personalBests.doc<DbPb>(id).set(JSON.parse(JSON.stringify(pb)));
 
+  }
+
+  async addRecording(recording: DbRecordingFile) {
+    await this.checkAuthenticated();
+    //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
+    
+    await this.recordings.doc<DbRecordingFile>(recording.pdId).set(JSON.parse(JSON.stringify(recording)));
   }
 
   async updatePb(pb: DbPb) {
@@ -269,5 +278,10 @@ export class FireStoreService {
   async deleteRun(id: string) {
     await this.checkAuthenticated();
     await this.runs.doc<DbRun>(id).delete();
+  }
+
+  async deleteRecording(id: string) {
+    await this.checkAuthenticated();
+    await this.recordings.doc<DbRecordingFile>(id).delete();
   }
 }

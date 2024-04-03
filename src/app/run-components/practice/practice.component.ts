@@ -15,6 +15,7 @@ import { EventType } from '../../common/peer/event-type';
 import { OgCommand } from '../../common/socket/og-command';
 import { OG } from '../../common/opengoal/og';
 import { MatDialog } from '@angular/material/dialog';
+import { RecordingFile } from 'src/app/common/recording/recording-file';
 
 @Component({
   selector: 'app-practice',
@@ -84,26 +85,16 @@ export class PracticeComponent implements OnDestroy {
 
 
     //recording import listener
-    this.fileListener = (window as any).electron.receive("recordings-get", (data: any) => {
+    this.fileListener = (window as any).electron.receive("recordings-get", (data: RecordingFile) => {
+      
+      SelectableRecording.fromRecordingFile(data, undefined).forEach(recording => {
+        this.recordings.push(recording);
+      });
 
-      if (data.length === 0 || !data.version || !data.playback || !Array.isArray(data.playback)) {
-        if (!Recording.checkTransformOldRecording(data))
-          this._user.sendNotification("File was not recognized as a recording.");
-        
-        this.imports.shift();
-        this.checkAddImport();
-        return;
-      }
-
-      const recording: SelectableRecording = new SelectableRecording(crypto.randomUUID());
-      recording.userId = recording.id;
-      recording.playback = data.playback;
-      recording.fillFrontendValues(data.displayName ?? this.imports[0].name);
-      this.nextRecordingId += 1;
-      this.recordings.push(recording);
       this.zone.run(() => {
         this.dataSource = new MatTableDataSource(this.recordings);
       });
+
       this.imports.shift();
       this.checkAddImport();
 
@@ -141,10 +132,9 @@ export class PracticeComponent implements OnDestroy {
     this.stopPlaybackIfIsRunning();
     this.mainLocalPlayer.socketHandler.resetGetRecordings().forEach(recording => {
       if (saveRecording) {
-        recording.fillFrontendValues("Rec-" + this.nextRecordingId);
+        recording.username = "Rec-" + this.nextRecordingId;
         this.nextRecordingId += 1;
-        (recording as SelectableRecording).selected = true;
-        this.recordings.push(recording as SelectableRecording);
+        this.recordings.push(SelectableRecording.fromRecordingBase(recording));
       }
     });
     this.dataSource = new MatTableDataSource(this.recordings);
@@ -230,11 +220,11 @@ export class PracticeComponent implements OnDestroy {
     this.mainLocalPlayer.socketHandler.resetGetRecordings();
     this.currentRecording = giveRecordings.length === 1 ? giveRecordings[0].id : "all";
 
-    giveRecordings.forEach((rec, index) => {
-      const recordingUser = new UserBase(rec.id, rec.nameFrontend ?? "");
-      this.runHandler.sendEvent(EventType.Connect, rec.id, recordingUser);
-      this.runHandler.sendEvent(EventType.ChangeTeam, rec.id, 0);
-      this.mainLocalPlayer!.socketHandler.addRecording(rec, recordingUser, this.recordingsState);
+    giveRecordings.forEach(rec => {
+      const recordingUser: UserBase = this.mainLocalPlayer!.socketHandler.addRecording(rec, this.recordingsState);
+      this.runHandler.sendEvent(EventType.Connect, recordingUser.id, recordingUser);
+      this.runHandler.sendEvent(EventType.ChangeTeam, recordingUser.id, 0);
+      
     });
 
     this.recordingsEndtime = this.getLongestRecordingTimeMs(giveRecordings);
@@ -254,7 +244,7 @@ export class PracticeComponent implements OnDestroy {
       this.mainLocalPlayer.socketHandler.timer.reset();
 
       this.mainLocalPlayer.socketHandler.recordings.forEach(rec => {
-        this.runHandler.sendEvent(EventType.Disconnect, rec.userId, new UserBase(rec.userId, rec.nameFrontend ?? ""));
+        this.runHandler.sendEvent(EventType.Disconnect, rec.id, new UserBase(rec.id, rec.username ?? ""));
       });
 
       this.mainLocalPlayer.socketHandler.stopDrawPlayers();

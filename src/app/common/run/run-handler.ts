@@ -27,7 +27,8 @@ import { GameSettings } from "../socket/game-settings";
 import { SyncRequest, SyncRequestReason } from "./sync-request";
 import { SyncResponse } from "./sync-response";
 import { OG } from "../opengoal/og";
-import { DbRecordingFile, RecordingFile } from "../recording/recording-file";
+import { RecordingFile } from "../recording/recording-file";
+import { UserRecording } from "../recording/user-recording";
 import { PbCommentDialogComponent } from "src/app/dialogs/pb-comment-dialog/pb-comment-dialog.component";
 import { DbRunUserContent } from "../firestore/db-run-user-content";
 import { MatDialog } from "@angular/material/dialog";
@@ -540,31 +541,40 @@ export class RunHandler {
                     this.run.endPlayerRun(event.userId, event.value.name === Task.forfeit);
                     RunMod.endRunOnSigleTeamFinish(this.run.data.mode) ? this.run.endAllTeamsRun(event.value) : this.run?.endTeamRun(event.value);
                     
-                    let players: Player[] = this.run.getAllPlayers();
-                    let recordings: DbRecordingFile[] = [];
+                    //!TODO: Add support for saving secondary locals recordings if on different team?
+                    const players: Player[] = this.run.getAllPlayers();
+                    let userTeamPlayerIds: string[] = this.run.getPlayerTeam(this.userService.getMainUserId())?.players.flatMap(x => x.user.id) ?? [];
 
-                    this.getMainLocalPlayer()?.socketHandler.resetGetRecordings().forEach(recording => {
-                        recordings.push(new DbRecordingFile(pkg.version, recording, players.find(x => x.user.id === recording.userId)?.user.name));
-                    });
-                    
-                    if (this.userService.user.saveRecordingsLocally)
-                        (window as any).electron.send('recordings-write', recordings);
+
+                    let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings();
+                    if (!recordings)
+                        this.userService.sendNotification("Failed to fetch run recordings!");
+                    else if (this.userService.user.saveRecordingsLocally && recordings) { 
+
+                        let userTeamRecordings = recordings.filter(x => userTeamPlayerIds.includes(x.userId));
+                        if (userTeamRecordings.length === 0)
+                            this.userService.sendNotification("Failed to fetch users team run recordings!");
+
+                        (window as any).electron.send('recordings-write', new RecordingFile(pkg.version, userTeamRecordings));
+                    }
 
                     this.run.checkRunEndValid();
                     if (!this.isPracticeTool && this.run.teams.some(x => x.runIsValid)) {
 
                         if (isMaster) {
-                            let run: DbRun = DbRun.convertToFromRun(this.run);
-    
                             this.firestoreService.getUsers().then(collection => {
-                                const players = this.run?.getAllPlayers();
-                                if (!collection || !players) return;
+                                if (!collection || !players || !this.run) return;
+                                
+                                let signedInPlayers: string[] = players.filter(player => collection.users.some(user => user.id === player.user.id)).flatMap(x => x.user.id);
+                                let run: DbRun = DbRun.convertToFromRun(this.run);
+                            
                                 // add run to history if any player is signed in
                                 if (players.some(player => collection.users.find(user => user.id === player.user.id)))
                                     this.firestoreService.addRun(run);
-                                // add pb & leadeboard data if all players are signed in
-                                if (this.run?.data.submitPbs && players.every(player => collection.users.find(user => user.id === player.user.id))) {
-                                    let pbUsers: Map<string, string[]> = run.checkUploadPbs(this.firestoreService, recordings);
+                                
+                                // add pb
+                                if (this.run?.data.submitPbs) {
+                                    let pbUsers: Map<string, string[]> = run.checkUploadPbs(this.firestoreService, signedInPlayers, recordings);
                                     if (pbUsers.size !== 0)
                                         this.sendEventAsMain(EventType.NewPb, pbUsers);
                                 }

@@ -1,63 +1,50 @@
 import { InteractionType } from "../opengoal/interaction-type";
 import { Timer } from "../run/timer";
-import { PositionData, RecordingPositionData } from "../socket/position-data";
+import { PositionData } from "../socket/position-data";
 import { RecordingFile } from "./recording-file";
 import pkg from 'app/package.json';
+import { RecordingPositionData } from "./recording-position-data";
+import { DbUsersCollection } from "../firestore/db-users-collection";
+import { DbRecordingFile } from "../firestore/db-recording-file";
+import { RecordingBase } from "./recording-base";
 
-export class Recording {
+export class Recording extends RecordingBase {
     id: string = crypto.randomUUID();
-    userId: string;
-    playback: RecordingPositionData[] = [];
 
     prevPosIn: RecordingPositionData | undefined;
     posOut: PositionData = new PositionData();
     currentRecordingDataIndex: number;
 
     timeFrontend?: string;
-    nameFrontend?: string;
 
-    constructor(userId: string) {
-        this.userId = userId;
+    constructor(displayName: string) {
+        super(displayName);
     }
 
-    exportRecordingToBlob(version: string) : Blob {
-        this.formatPlayback();
-        const recFile: RecordingFile = new RecordingFile(version, this.playback, this.nameFrontend);
-        const fileData = JSON.stringify(recFile);
-        return new Blob([fileData], {type: "text/plain"});
+    static fromRecordingFile(recFile: RecordingFile): Recording[] {
+        let recordings: Recording[] = [];
+
+        recFile.recordings.forEach(rec => {
+            const recording = new Recording(rec.username);
+            recording.playback = rec.playback;
+            recording.fillFrontendValues();
+            recordings.push(recording);
+        });
+
+        return recordings;
     }
 
-    formatPlayback() {
-        let prevData: RecordingPositionData = new RecordingPositionData();
-        for (let i = this.playback.length - 1; i >= 0; i--)
-        {
-            if (this.playback[i].tX) this.playback[i].tX = Math.round((this.playback[i].tX! + Number.EPSILON) * 10) / 10;
-            if (this.playback[i].tY) this.playback[i].tY = Math.round((this.playback[i].tY! + Number.EPSILON) * 10) / 10;
-            if (this.playback[i].tZ) this.playback[i].tZ = Math.round((this.playback[i].tZ! + Number.EPSILON) * 10) / 10;
-            if (this.playback[i].qX) this.playback[i].qX = Math.round((this.playback[i].qX! + Number.EPSILON) * 1000) / 1000;
-            if (this.playback[i].qY) this.playback[i].qY = Math.round((this.playback[i].qY! + Number.EPSILON) * 1000) / 1000;
-            if (this.playback[i].qZ) this.playback[i].qZ = Math.round((this.playback[i].qZ! + Number.EPSILON) * 1000) / 1000;
-            if (this.playback[i].qW) this.playback[i].qW = Math.round((this.playback[i].qW! + Number.EPSILON) * 1000) / 1000;
-            if (this.playback[i].rY) this.playback[i].rY = Math.round((this.playback[i].rY! + Number.EPSILON) * 1000) / 1000;
+    static fromDbRecording(recFile: DbRecordingFile, userCollection: DbUsersCollection | undefined = undefined): Recording[] {
+        let recordings: Recording[] = [];
 
-            if (prevData.tX === this.playback[i].tX) this.playback[i].tX = undefined;
-            if (prevData.tY === this.playback[i].tY) this.playback[i].tY = undefined;
-            if (prevData.tZ === this.playback[i].tZ) this.playback[i].tZ = undefined;
-            if (prevData.qX === this.playback[i].qX) this.playback[i].qX = undefined;
-            if (prevData.qY === this.playback[i].qY) this.playback[i].qY = undefined;
-            if (prevData.qZ === this.playback[i].qZ) this.playback[i].qZ = undefined;
-            if (prevData.qW === this.playback[i].qW) this.playback[i].qW = undefined;
-            if (prevData.rY === this.playback[i].rY) this.playback[i].rY = undefined;
-            
-            if (this.playback[i].tX) prevData.tX = this.playback[i].tX;
-            if (this.playback[i].tY) prevData.tY = this.playback[i].tY;
-            if (this.playback[i].tZ) prevData.tZ = this.playback[i].tZ;
-            if (this.playback[i].qX) prevData.qX = this.playback[i].qX;
-            if (this.playback[i].qY) prevData.qY = this.playback[i].qY;
-            if (this.playback[i].qZ) prevData.qZ = this.playback[i].qZ;
-            if (this.playback[i].qW) prevData.qW = this.playback[i].qW;
-            if (this.playback[i].qW) prevData.rY = this.playback[i].rY;
-        }
+        recFile.recordings.forEach(rec => {
+            const recording = new Recording(userCollection?.users.find(x => x.id === rec.userId)?.name ?? rec.username);
+            recording.playback = rec.playback;
+            recording.fillFrontendValues();
+            recordings.push(recording);
+        });
+
+        return recordings;
     }
 
     //used to optimize format for file size
@@ -124,36 +111,21 @@ export class Recording {
         return this.posOut;
     }
 
-    fillFrontendValues(name: string) {
-        this.nameFrontend = name;
+    fillFrontendValues() {
         this.timeFrontend = this.playback.length === 0 ? "0s" : Timer.msToTimeFormat(this.playback[0].t, true, true);
     }
 
     clean() {
         this.timeFrontend = undefined;
-        this.nameFrontend = undefined;
-    }
-
-    //!TODO: This should be deleted after current recordings have been migrated
-    static checkTransformOldRecording(data: any): boolean {
-
-        if (Array.isArray(data) && data.length !== 0 && (data[0].transX !== undefined && data[0].quatW !== undefined && data[0].tgtState !== undefined)) {
-            let rec: Recording = new Recording(crypto.randomUUID());
-            for (let i = data.length - 1; i >= 0; i--)
-                rec.addPositionData(data[i]);
-                
-            rec.exportRecording();
-            return true;
-        }
-        return false;
     }
 
     exportRecording() {
-      const url = URL.createObjectURL(this.exportRecordingToBlob(pkg.version));
-      const link = document.createElement('a');
-      link.download = this.nameFrontend + '.json';
-      link.href = url;
-      link.click();
+        this.optimizePlaybackSize();
+        const blob = new Blob([JSON.stringify(new RecordingFile(pkg.version, [this]))], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = this.username + '.json';
+        link.href = url;
+        link.click();
     }
-    
 }

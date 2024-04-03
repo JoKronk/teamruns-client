@@ -1,5 +1,4 @@
 import { CategoryOption } from "../run/category";
-import { DbRecordingFile } from "../recording/recording-file";
 import { DbLeaderboardPb } from "./db-leaderboard-pb";
 import { DbPlayer } from "./db-player";
 import { DbRun } from "./db-run";
@@ -15,18 +14,16 @@ export class DbPb extends DbLeaderboardPb {
     players: DbPlayer[] = [];
     wasRace: boolean;
     wasWr: boolean;
-    playback: DbRecordingFile[] | undefined;
 
 
-    static convertToFromRun(run: DbRun, team: DbTeam, playback: DbRecordingFile[] | undefined, isWr: boolean): DbPb {
+    static convertToFromRun(run: DbRun, team: DbTeam, isWr: boolean): DbPb {
         let pb = new DbPb();
 
         pb.version = run.data.buildVersion;
         pb.date = run.date;
         pb.tasks = team.tasks;
         pb.endTimeMs = team.endTimeMs;
-        pb.playback = playback;
-        pb.playbackAvailable = playback !== undefined;
+        pb.playbackAvailable = true;
 
         pb.id = crypto.randomUUID(); //id can't be same as runId since there might be multiple teams pbing which would create duplicates
         pb.runId = run.id ?? "";

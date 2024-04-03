@@ -5,5 +5,6 @@ export class CollectionName {
     static peerConnections = "peerConnections";
     static personalBests = "personalBests";
     static presets = "presets";
+    static recordings = "recordings";
     static runs = "runs";
 }

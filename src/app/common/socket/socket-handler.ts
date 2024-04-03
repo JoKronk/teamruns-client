@@ -1,7 +1,9 @@
 
 import { WebSocketSubject, webSocket } from "rxjs/webSocket";
 import { Recording } from "../recording/recording";
-import { RecordingPositionData, UserPositionData } from "./position-data";
+import { UserRecording } from "../recording/user-recording";
+import { UserPositionData } from "./position-data";
+import { RecordingPositionData } from "../recording/recording-position-data";
 import { User, UserBase } from "../user/user";
 import { MultiplayerState } from "../opengoal/multiplayer-state";
 import { InteractionType } from "../opengoal/interaction-type";
@@ -31,7 +33,7 @@ export class SocketHandler {
 
     recordings: Recording[] = [];
     private hasDrawnRecordingNames: boolean = false;
-    private userPositionRecordings: Recording[] = [];
+    private userPositionRecordings: UserRecording[] = [];
 
     timer: Timer;
     run: Run;
@@ -169,7 +171,7 @@ export class SocketHandler {
         });
     }
 
-    resetGetRecordings(): Recording[] {
+    resetGetRecordings(): UserRecording[] {
         const recordings = this.userPositionRecordings;
         this.cleanupPlayers();
 
@@ -271,11 +273,11 @@ export class SocketHandler {
             this.self = new CurrentPlayerData(user, MultiplayerState.interactive);
     }
 
-    addRecording(recording: Recording, user: UserBase, state: MultiplayerState = MultiplayerState.active) {
-        recording.userId = recording.id;
-        user.id = recording.id;
-        this.checkRegisterPlayer(user, state);
+    addRecording(recording: Recording, state: MultiplayerState = MultiplayerState.active): UserBase {
+        const recordingUser = new UserBase(recording.id, recording.username);
+        this.checkRegisterPlayer(recordingUser, state);
         this.recordings.push(recording);
+        return recordingUser;
     }
 
     setAllRealPlayersMultiplayerState() {
@@ -322,7 +324,7 @@ export class SocketHandler {
 
         //registner new if missing
         if (!userRecording) {
-            userRecording = new Recording(positionData.userId);
+            userRecording = new UserRecording(positionData.username, positionData.userId);
             this.userPositionRecordings.push(userRecording);
         }
 
@@ -351,7 +353,7 @@ export class SocketHandler {
             this.recordings.forEach(recording => {
                 const positionData = recording.getNextPositionData(this.timer.totalMs);
                 if (positionData) {
-                    const currentPlayer = this.players.find(x => x.positionData.userId === recording.userId);
+                    const currentPlayer = this.players.find(x => x.positionData.userId === recording.id);
                     if (currentPlayer) {
 
                         if (currentPlayer.positionData.currentLevel !== positionData.currentLevel)
@@ -376,8 +378,8 @@ export class SocketHandler {
         if (this.timer.totalMs > 200) {
             if (!this.hasDrawnRecordingNames) {
                 this.recordings.forEach(recording => {
-                    const currentPlayer = this.players.find(x => x.positionData.userId === recording.userId);
-                    if (currentPlayer) currentPlayer.positionData.username = recording.nameFrontend ?? "BLANK";
+                    const currentPlayer = this.players.find(x => x.positionData.userId === recording.id);
+                    if (currentPlayer) currentPlayer.positionData.username = recording.username ?? "BLANK";
                 });
             }
         }
