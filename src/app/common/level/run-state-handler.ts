@@ -14,6 +14,7 @@ export class RunStateHandler {
     cellCount: number;
     buzzerCount: number;
     orbCount: number;
+    totalOrbCount: number;
     orbValidations: OrbCollection[]; //handles orb validation orb collection for all/each player of the team
     //single orbs: could otherwise more easily be duped by picking up the same one at the same time and such
     //orb vents and such: if we just check by orb count and p1 picks up the last orb the orb count will be completed but p2 won't now know if the orb he's getting is a duped orb or the last one for him
@@ -24,6 +25,7 @@ export class RunStateHandler {
         this.cellCount = 0;
         this.buzzerCount = 0;
         this.orbCount = 0;
+        this.totalOrbCount = 0;
         this.orbValidations = [];
     }
 
@@ -129,8 +131,10 @@ export class RunStateHandler {
         if (addInteraction)
             this.addInteraction(interaction, level);
 
-        if (!alreadyCollected && !interaction.interCleanup)
+        if (!alreadyCollected && !interaction.interCleanup) {
             this.orbCount += 1;
+            this.totalOrbCount += 1;
+        }
 
         return false;
     }
