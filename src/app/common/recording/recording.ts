@@ -3,7 +3,6 @@ import { Timer } from "../run/timer";
 import { PositionData } from "../socket/position-data";
 import { RecordingFile } from "./recording-file";
 import pkg from 'app/package.json';
-import { RecordingPositionData } from "./recording-position-data";
 import { DbUsersCollection } from "../firestore/db-users-collection";
 import { DbRecordingFile } from "../firestore/db-recording-file";
 import { RecordingBase } from "./recording-base";
@@ -11,7 +10,7 @@ import { RecordingBase } from "./recording-base";
 export class Recording extends RecordingBase {
     id: string = crypto.randomUUID();
 
-    prevPosIn: RecordingPositionData | undefined;
+    prevPosIn: PositionData | undefined;
     posOut: PositionData = new PositionData();
     currentRecordingDataIndex: number;
 
@@ -45,35 +44,6 @@ export class Recording extends RecordingBase {
         });
 
         return recordings;
-    }
-
-    //used to optimize format for file size
-    addPositionData(newPos: PositionData) {
-        let newRecordingPos: RecordingPositionData = new RecordingPositionData();
-        const noInteraction: boolean = newPos.interType === InteractionType.none;
-        newRecordingPos.iT = noInteraction ? undefined : newPos.interType;
-        newRecordingPos.iA = noInteraction ? undefined : newPos.interAmount;
-        newRecordingPos.iS = noInteraction ? undefined : newPos.interStatus;
-        newRecordingPos.iN = noInteraction ? undefined : newPos.interName;
-        newRecordingPos.iP = noInteraction ? undefined : newPos.interParent;
-        newRecordingPos.iL = noInteraction ? undefined : newPos.interLevel;
-        newRecordingPos.iC = noInteraction ? undefined : newPos.interCleanup;
-        newRecordingPos.tX = this.prevPosIn?.tX === newPos.transX ? undefined : newPos.transX;
-        newRecordingPos.tY = this.prevPosIn?.tY === newPos.transY ? undefined : newPos.transY;
-        newRecordingPos.tZ = this.prevPosIn?.tZ === newPos.transZ ? undefined : newPos.transZ;
-        newRecordingPos.qX = this.prevPosIn?.qX === newPos.quatX ? undefined : newPos.quatX;
-        newRecordingPos.qY = this.prevPosIn?.qY === newPos.quatY ? undefined : newPos.quatY;
-        newRecordingPos.qZ = this.prevPosIn?.qZ === newPos.quatZ ? undefined : newPos.quatZ;
-        newRecordingPos.qW = this.prevPosIn?.qW === newPos.quatW ? undefined : newPos.quatW;
-        newRecordingPos.rY = this.prevPosIn?.rY === newPos.rotY ? undefined : newPos.rotY;
-        newRecordingPos.tS = this.prevPosIn?.tS === newPos.tgtState ? undefined : newPos.tgtState;
-        newRecordingPos.cL = this.prevPosIn?.cL === newPos.currentLevel ? undefined : newPos.currentLevel;
-        newRecordingPos.t = newPos.time;
-        
-        if (this.prevPosIn)
-            this.playback.unshift(this.prevPosIn);
-
-        this.prevPosIn = newRecordingPos;
     }
 
     getNextPositionData(time: number): PositionData {
