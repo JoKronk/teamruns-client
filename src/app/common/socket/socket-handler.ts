@@ -67,7 +67,7 @@ export class SocketHandler {
 
         this.timer.linkSocketCommands(this.socketCommandBuffer);
         if (this.user.name) //if client is fully reloaded in a place where position service is started at same time as use we pick up user on movement instead
-            this.checkRegisterPlayer(this.user, MultiplayerState.interactive);
+            this.checkRegisterPlayer(this.user.getUserBaseWithDisplayName(), MultiplayerState.interactive);
 
         if (this.user.gameLaunched)
             this.connectToOpengoal();
