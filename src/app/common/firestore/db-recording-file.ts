@@ -7,10 +7,12 @@ export class DbRecordingFile extends RecordingFile {
 
 
     constructor(version: string, recordings: UserRecordingBase[], pbId: string) {
+        super(version, []);
+        this.pdId = pbId;
+
         recordings.forEach(recording => {
             recording.optimizePlaybackSize();
+            this.recordings.push(UserRecordingBase.recreateFromDerivedClass(recording));
         });
-        super(version, recordings, false);
-        this.pdId = pbId;
     }
 }

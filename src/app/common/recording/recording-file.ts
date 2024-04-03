@@ -8,14 +8,11 @@ export class RecordingFile {
     runData: RunData;
     recordings: RecordingBase[] = [];
 
-    constructor (version: string, recordings: UserRecordingBase[] | RecordingBase[], removeUserIds: boolean = true) {
+    constructor (version: string, recordings: UserRecordingBase[] | RecordingBase[]) {
         this.version = version;
 
         recordings.forEach(recording => {
-            if (recording instanceof RecordingBase || removeUserIds)
-                this.recordings.push(RecordingBase.recreateFromDerivedClass(recording));
-            else
-                this.recordings.push(UserRecordingBase.recreateFromDerivedClass(recording));
+            this.recordings.push(RecordingBase.recreateFromDerivedClass(recording));
         });
     }
 }
