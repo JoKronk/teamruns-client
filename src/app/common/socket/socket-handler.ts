@@ -97,7 +97,7 @@ export class SocketHandler {
         this.ogSocket.subscribe(target => {
 
             if (target.connected) {
-                this.socketPackage.version = pkg.version;
+                this.socketPackage.version = "v" + pkg.version;
                 this.socketPackage.username = this.user.displayName;
 
                 //handle mid game restarts
