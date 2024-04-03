@@ -742,10 +742,10 @@ export class RunHandler {
             if (!team.everyoneOnSameVersion())
                 this.userService.sendNotification("OpenGOAL version mismatch found in \"" + team.name + "\" run for team marked invalid.", 10000);
 
-            if (mainLocalPlayer?.socketHandler.localTeam?.id === team.id && this.isHost() && team.players.find(x => x.user.id === mainLocalPlayer.user.id)?.gameState.gameVersion !== this.userService.user.gameVersion) {
-                team.runIsValid = false;
-                this.userService.sendNotification("OpenGOAL version mismatch for host, run for team marked invalid.", 10000);
-            }
+                if (mainLocalPlayer?.socketHandler.localTeam?.id === team.id && this.isHost() && team.players.find(x => x.user.id === mainLocalPlayer.user.id)?.gameState.gameVersion !== this.userService.user.gameVersion) {
+                    team.runIsValid = false;
+                    this.userService.sendNotification("OpenGOAL version mismatch for host, run for team marked invalid.", 10000);
+                }
 
         });
         this.userService.localUsers.forEach(localPlayer => {
@@ -782,6 +782,7 @@ export class RunHandler {
             if (!this.run || this.isSpectatorOrNull(localPlayer.user.id) || localPlayer.state === PlayerState.Finished) return;
             
             if (state.justSpawned && RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode) && localPlayer.socketHandler.inMidRunRestartPenaltyWait !== 0) {
+                state.debugModeActive = false;
                 localPlayer.socketHandler.addCommand(OgCommand.TargetGrab);
                 this.userService.sendNotification("Mid run restart penalty applied, you will be released in " + localPlayer.socketHandler.inMidRunRestartPenaltyWait + " seconds.", 10000);
             }
