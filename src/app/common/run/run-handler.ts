@@ -556,7 +556,7 @@ export class RunHandler {
                             if (userTeamRecordings.length === 0)
                                 this.userService.sendNotification("Failed to fetch users team run recordings!");
     
-                            (window as any).electron.send('recordings-write', new RecordingFile(pkg.version, userTeamRecordings));
+                            (window as any).electron.send('recordings-write', [new RecordingFile(pkg.version, userTeamRecordings)]);
                         }
                         
                         const invalidRunMessage = this.run.checkRunEndValid(playerTeam.id);

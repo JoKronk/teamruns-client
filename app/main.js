@@ -277,13 +277,12 @@ function getRecordingsPath() {
 }
 
 function writeRecordings(recordings) {
-  const folderPath = path.join(getRecordingsPath(), new Date().toISOString().split(".")[0].replace(/[T:]/g, '-').slice(0, -3));
-  if (!fs.existsSync(folderPath))
-    fs.mkdirSync(folderPath, { recursive: true });
+  if (!recordings) return;
+  const folderPath = getRecordingsPath();
+  const fileName = new Date().toISOString().split(".")[0].replace(/[T:]/g, '-').slice(0, -3);
 
-  recordings.forEach(recording => {
-    recording.userId = undefined;
-    fs.writeFile(path.join(folderPath, recording.displayName + ".json"), JSON.stringify(recording), (err) => {
+  recordings.forEach((recording, index) => {
+    fs.writeFile(path.join(folderPath, (recordings.length === 1 ? fileName : (fileName + "_" + (index + 1))) + ".json"), JSON.stringify(recording), (err) => {
       if (err) sendClientMessage(err.message);
     });
   });
