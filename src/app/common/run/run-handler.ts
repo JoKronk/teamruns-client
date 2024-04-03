@@ -130,9 +130,6 @@ export class RunHandler {
                 return;
             }
 
-            if (target.position.interType === InteractionType.gameTask)
-                console.log(target.position);
-
             const positionData = new UserPositionData(target.position, localPlayer.socketHandler.timer.totalMs ?? 0, localPlayer.user);
 
             //handle position
@@ -569,7 +566,7 @@ export class RunHandler {
                         if (invalidRunMessage) this.userService.sendNotification(invalidRunMessage, 10000);
                     }
 
-                    if (isMaster && this.run.isMode(RunMode.Speedrun) && !this.isPracticeTool && this.run.teams.some(x => x.runIsValid)) {
+                    if (isMaster && this.run.isMode(RunMode.Speedrun) && !this.isPracticeTool && this.run.everyoneHasFinished() && this.run.teams.some(x => x.runIsValid)) {
                         this.firestoreService.getUsers().then(collection => {
                             if (!collection || !players || !this.run) return;
                             
