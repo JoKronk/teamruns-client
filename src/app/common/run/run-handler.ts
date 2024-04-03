@@ -559,27 +559,24 @@ export class RunHandler {
                     }
 
                     this.run.checkRunEndValid();
-                    if (!this.isPracticeTool && this.run.teams.some(x => x.runIsValid)) {
-
-                        if (isMaster) {
-                            this.firestoreService.getUsers().then(collection => {
-                                if (!collection || !players || !this.run) return;
-                                
-                                let signedInPlayers: string[] = players.filter(player => collection.users.some(user => user.id === player.user.id)).flatMap(x => x.user.id);
-                                let run: DbRun = DbRun.convertToFromRun(this.run);
+                    if (isMaster && this.run.isMode(RunMode.Speedrun) && !this.isPracticeTool && this.run.teams.some(x => x.runIsValid)) {
+                        this.firestoreService.getUsers().then(collection => {
+                            if (!collection || !players || !this.run) return;
                             
-                                // add run to history if any player is signed in
-                                if (players.some(player => collection.users.find(user => user.id === player.user.id)))
-                                    this.firestoreService.addRun(run);
-                                
-                                // add pb
-                                if (this.run?.data.submitPbs) {
-                                    let pbUsers: Map<string, string[]> = run.checkUploadPbs(this.firestoreService, signedInPlayers, recordings);
-                                    if (pbUsers.size !== 0)
-                                        this.sendEventAsMain(EventType.NewPb, pbUsers);
-                                }
-                            });
-                        }
+                            let signedInPlayers: string[] = players.filter(player => collection.users.some(user => user.id === player.user.id)).flatMap(x => x.user.id);
+                            let run: DbRun = DbRun.convertToFromRun(this.run);
+                        
+                            // add run to history if any player is signed in
+                            if (players.some(player => collection.users.find(user => user.id === player.user.id)))
+                                this.firestoreService.addRun(run);
+                            
+                            // add pb
+                            if (this.run?.data.submitPbs) {
+                                let pbUsers: Map<string, string[]> = run.checkUploadPbs(this.firestoreService, signedInPlayers, recordings);
+                                if (pbUsers.size !== 0)
+                                    this.sendEventAsMain(EventType.NewPb, pbUsers);
+                            }
+                        });
                     }
                 });
                 break;
