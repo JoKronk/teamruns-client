@@ -54,6 +54,7 @@ export class RunHandler {
     positionSubscription: Subscription;
     lobbySubscription: Subscription;
     userSetupSubscription: Subscription;
+    pbSubscription: Subscription;
     private launchListener: any;
 
     runSetupCompleteSubject: BehaviorSubject<RunData | null> = new BehaviorSubject<RunData | null>(null);
@@ -593,23 +594,27 @@ export class RunHandler {
             case EventType.NewPb:
                 let pbUsers: Map<string, string[]> = event.value;
                 pbUsers.forEach((users, pbId) => {
-                    let localUserPbs = this.userService.localUsers.filter(localPlayer => users.includes(localPlayer.user.id));
-                    if (localUserPbs.length !== 0) {
-                        const pbSubscription = this.firestoreService.getPb(pbId).subscribe(pb => {
-                            pbSubscription.unsubscribe();
+                    if (users.includes(userId)) {
+                        if (this.pbSubscription) this.pbSubscription.unsubscribe();
+                        let currentPbData: DbPb | undefined = undefined;
+                        this.pbSubscription = this.firestoreService.getPb(pbId).subscribe(pb => {
                             if (!pb) return;
-                            localUserPbs.forEach(localPlayer => {
+                            if (currentPbData)
+                                currentPbData = pb; //incase it gets updated while writing a comment
+                            else {
+                                currentPbData = pb;
                                 const dialogSubscription = this.dialog.open(PbCommentDialogComponent, { data: { newPb: true } }).afterClosed().subscribe((content: DbRunUserContent) => {
                                   dialogSubscription.unsubscribe();
                                     if (content) {
-                                        content.userId = localPlayer.user.id;
+                                        content.userId = userId;
                                         pb = Object.assign(new DbPb(), pb);
                                         pb.userContent = pb.userContent.filter(x => x.userId !== content.userId);
                                         pb.userContent.push(content);
+                                        this.pbSubscription.unsubscribe();
                                         this.firestoreService.updatePb(pb);
                                   }
                                 });
-                            });
+                            }
                         });
                     }
                 });
@@ -816,6 +821,7 @@ export class RunHandler {
         this.resetUser();
         this.lobbySubscription?.unsubscribe();
         this.userSetupSubscription?.unsubscribe();
+        this.pbSubscription?.unsubscribe();
         this.launchListener();
 
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself
