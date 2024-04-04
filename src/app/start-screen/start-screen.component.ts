@@ -59,6 +59,11 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     if (!asGuest && (!this._user.user.displayName || this._user.user.displayName.length === 0))
       this._user.user.displayName = this._user.user.name;
 
+    if (!this._user.user.displayName) {
+      this._user.sendNotification("Please choose a name.")
+      return;
+    }
+
     this._user.user.hasSignedIn = !asGuest;
 
     if (!this._user.user.id)
