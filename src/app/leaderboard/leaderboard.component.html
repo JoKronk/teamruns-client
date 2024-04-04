@@ -19,7 +19,7 @@
       </div>
       <div class="subcategory subcategory-players">
         <select [(ngModel)]="players" (change)="changePlayerCount()">
-          <option *ngFor="let playerCount of playerOptions" [ngValue]="playerCount">{{ playerCount }} players</option>
+          <option *ngFor="let playerCount of playerOptions" [ngValue]="playerCount">{{ playerCount + (playerCount === 1 ? " player" : " players") }}</option>
         </select>
       </div>
       <div class="subcategory">
