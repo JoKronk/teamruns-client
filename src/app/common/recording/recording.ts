@@ -6,6 +6,7 @@ import pkg from 'app/package.json';
 import { DbUsersCollection } from "../firestore/db-users-collection";
 import { DbRecordingFile } from "../firestore/db-recording-file";
 import { RecordingBase } from "./recording-base";
+import { CategoryOption } from "../run/category";
 
 export class Recording extends RecordingBase {
     id: string = crypto.randomUUID();
@@ -94,6 +95,21 @@ export class Recording extends RecordingBase {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.download = this.username + '.json';
+        link.href = url;
+        link.click();
+    }
+
+    static exportDbRecording(recording: DbRecordingFile, userCollection: DbUsersCollection | undefined = undefined) {
+        if (userCollection) {
+            recording.recordings.forEach(rec => {
+                rec.username = userCollection?.users.find(x => x.id === rec.userId)?.name ?? rec.username;
+            });
+        }
+
+        const blob = new Blob([JSON.stringify(new RecordingFile(recording.version, recording.recordings, recording.runData))], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = CategoryOption[recording.runData?.category ?? 0] + 'Pb.json';
         link.href = url;
         link.click();
     }

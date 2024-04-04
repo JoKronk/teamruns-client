@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { UserService } from '../services/user.service';
 import { FireStoreService } from '../services/fire-store.service';
 import { Subscription } from 'rxjs';
@@ -21,6 +21,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { DbRunUserContent } from '../common/firestore/db-run-user-content';
 import { AccountDialogComponent, AccountReply } from '../dialogs/account-dialog/account-dialog.component';
 import { DbPb } from '../common/firestore/db-pb';
+import { DbRecordingFile } from '../common/firestore/db-recording-file';
+import { Recording } from '../common/recording/recording';
 
 @Component({
   selector: 'app-leaderboard',
@@ -34,7 +36,7 @@ import { DbPb } from '../common/firestore/db-pb';
     ])
   ]
 })
-export class LeaderboardComponent {
+export class LeaderboardComponent implements OnDestroy {
 
   categoryOptions: Category[] = Category.GetGategories();
   usersCollection?: DbUsersCollection;
@@ -57,12 +59,18 @@ export class LeaderboardComponent {
 
   selectedRun: DbLeaderboardPb | null = null;
   selectedTeam: Team | null = null;
+  
+  downloadListener: any;
 
   constructor(public _user: UserService, private firestoreService: FireStoreService, private dialog: MatDialog) {
 
     this.firestoreService.getUsers().then(collection => {
       this.usersCollection = collection;
       this.updateContent();
+      
+      this.downloadListener = (window as any).electron.receive("recordings-download-get", (recording: DbRecordingFile) => {
+        Recording.exportDbRecording(recording, this.usersCollection);
+      });
     });
   }
 
@@ -265,6 +273,18 @@ export class LeaderboardComponent {
         }
       });
     });
+  }
+
+  downloadRecording(pbId: string) {
+    const downloadSubscription = this.firestoreService.downloadRecording(pbId).subscribe(found => {
+      downloadSubscription.unsubscribe();
+      if (!found)
+       this._user.sendNotification("Failed to fetch recording.");
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.downloadListener();
   }
 }
 
