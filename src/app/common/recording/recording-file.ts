@@ -11,8 +11,12 @@ export class RecordingFile {
         this.version = version;
         this.runData = runData;
 
-        recordings.forEach(recording => {
-            this.recordings.push(RecordingBase.recreateFromDerivedClass(recording));
+        recordings.forEach((recording, i) => {
+            if (!(recording instanceof RecordingBase))
+                recordings[i] = Object.assign(new RecordingBase(recordings[i].username, recordings[i].playback), recording)
+            
+            recordings[i].optimizePlaybackSize();
+            this.recordings.push(RecordingBase.recreateFromDerivedClass(recordings[i]));
         });
     }
 }

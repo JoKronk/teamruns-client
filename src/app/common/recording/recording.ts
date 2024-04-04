@@ -90,7 +90,6 @@ export class Recording extends RecordingBase {
     }
 
     exportRecording() {
-        this.optimizePlaybackSize();
         const blob = new Blob([JSON.stringify(new RecordingFile(pkg.version, [this]))], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
