@@ -15,6 +15,7 @@ export class DbLeaderboardPb {
     playbackAvailable: boolean;
 
     //frontend values
+    positionFrontend?: number;
     dateFrontend?: Date;
     endTimeFrontend?: string;
     userDisplayContent?: UserDisplayContent[];
@@ -42,8 +43,9 @@ export class DbLeaderboardPb {
         return pb;
     }
 
-    fillFrontendValues(usersCollection: DbUsersCollection, userId: string) {
+    fillFrontendValues(usersCollection: DbUsersCollection, userId: string, position: number) {
             
+        this.positionFrontend = position;
         this.endTimeFrontend = this.endTimeMs === 0 ? "DNF" : Timer.msToTimeFormat(this.endTimeMs, true, true);
         this.hasLocalUser = this.userIds.find(x => x === userId) !== undefined;
         
@@ -67,6 +69,7 @@ export class DbLeaderboardPb {
     }
 
     clearFrontendValues() {
+        this.positionFrontend = undefined;
         this.dateFrontend = undefined;
         this.endTimeFrontend = undefined;
         this.userDisplayContent = undefined;

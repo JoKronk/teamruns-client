@@ -41,7 +41,7 @@
           <table *ngIf="leaderboard.pbs.length !== 0" mat-table [dataSource]="dataSource" multiTemplateDataRows>
             <ng-container matColumnDef="position">
               <th mat-header-cell *matHeaderCellDef> # </th>
-              <td mat-cell *matCellDef="let run; let i = dataIndex">{{i + 1}}</td>
+              <td mat-cell *matCellDef="let run">{{run.positionFrontend}}</td>
             </ng-container>
             <ng-container matColumnDef="players">
               <th mat-header-cell *matHeaderCellDef> Players </th>

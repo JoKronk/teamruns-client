@@ -109,11 +109,11 @@ export class LeaderboardComponent {
       else
         this.leaderboard = Object.assign(new DbLeaderboard(dbLeaderboards[0].category, dbLeaderboards[0].sameLevel, dbLeaderboards[0].players), dbLeaderboards[0]);
 
+      this.leaderboard.pbs = this.leaderboard.pbs.sort((a, b) => a.endTimeMs - b.endTimeMs);
       this.leaderboard.pbs.forEach((pb, index) => {
         this.leaderboard.pbs[index] = Object.assign(new DbLeaderboardPb(), pb);
-        this.leaderboard.pbs[index].fillFrontendValues(this.usersCollection!, this._user.user.id);
+        this.leaderboard.pbs[index].fillFrontendValues(this.usersCollection!, this._user.user.id, (index + 1));
       });
-      this.leaderboard.pbs = this.leaderboard.pbs.sort((a, b) => a.endTimeMs - b.endTimeMs);
 
       this.dataSource = new MatTableDataSource(this.leaderboard.pbs);
       this.boardHasLoaded = true;
