@@ -76,9 +76,6 @@
                   </svg>
                 </div>
                 <mat-menu #menu="matMenu">
-                  <button *ngIf="run.playbackAvailable" mat-menu-item>
-                    <span>Race</span>
-                  </button>
                   <button *ngIf="run.playbackAvailable" (click)="downloadRecording(run.id)" mat-menu-item>
                     <span>Download</span>
                   </button>
