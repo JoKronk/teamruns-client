@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
+import { AngularFireStorage, AngularFireStorageReference } from '@angular/fire/compat/storage';
 import { environment } from 'src/environments/environment';
 import { CollectionName } from '../common/firestore/collection-name';
 import { DbRun } from '../common/firestore/db-run';
@@ -15,6 +16,7 @@ import { DbUserProfile } from '../common/firestore/db-user-profile';
 import { AccountReply } from '../dialogs/account-dialog/account-dialog.component';
 import { DbLeaderboardPb } from '../common/firestore/db-leaderboard-pb';
 import { DbRecordingFile } from '../common/firestore/db-recording-file';
+import { Observable, catchError, map, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -25,19 +27,19 @@ export class FireStoreService {
   private leaderboards: AngularFirestoreCollection<DbLeaderboard>;
   private lobbies: AngularFirestoreCollection<Lobby>;
   private personalBests: AngularFirestoreCollection<DbPb>;
-  private recordings: AngularFirestoreCollection<DbRecordingFile>;
+  private recordings: AngularFireStorageReference;
   private runs: AngularFirestoreCollection<DbRun>;
 
   private isAuthenticated: boolean = false;
   private currentUser: firebase.default.User | null = null;
 
-  constructor(public firestore: AngularFirestore, public auth: AngularFireAuth) {
+  constructor(public firestore: AngularFirestore, public storage: AngularFireStorage, public auth: AngularFireAuth) {
 
     this.globalData = firestore.collection<DbUsersCollection>(CollectionName.globalData);
     this.leaderboards = firestore.collection<DbLeaderboard>(CollectionName.leaderboards);
     this.lobbies = firestore.collection<Lobby>(CollectionName.lobbies);
     this.personalBests = firestore.collection<DbPb>(CollectionName.personalBests);
-    this.recordings = firestore.collection<DbRecordingFile>(CollectionName.recordings);
+    this.recordings = storage.ref(CollectionName.recordings);
     this.runs = firestore.collection<DbRun>(CollectionName.runs);
   }
 
@@ -122,6 +124,19 @@ export class FireStoreService {
     return this.personalBests.doc(id).valueChanges({idField: 'id'});
   }
 
+  downloadRecording(pbId: string): Observable<boolean> { //calls backend to fetch the file
+    this.checkAuthenticated();
+    return this.recordings.child(pbId).getDownloadURL().pipe(
+      map((url: URL) => {
+        (window as any).electron.send('recordings-download', url);
+        return true;
+      }),
+      catchError(error => {
+        return of (false);
+      })
+    );
+  }
+
   getLeaderboard(category: CategoryOption, sameLevel: boolean, players: number) {
     this.checkAuthenticated();
     return this.firestore.collection<DbLeaderboard>(CollectionName.leaderboards, ref => ref.where('category', '==', category).where('sameLevel', '==', sameLevel).where('players', '==', players)).valueChanges({idField: 'id'});
@@ -200,11 +215,11 @@ export class FireStoreService {
 
   }
 
-  async addRecording(recording: DbRecordingFile) {
+  async uploadRecording(recording: DbRecordingFile) {
     await this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
     
-    await this.recordings.doc<DbRecordingFile>(recording.pdId).set(JSON.parse(JSON.stringify(recording)));
+    await this.recordings.child(recording.pdId).put(new Blob([JSON.stringify(recording)], {type: "application/json"}));
   }
 
   async updatePb(pb: DbPb) {
@@ -283,8 +298,8 @@ export class FireStoreService {
     await this.runs.doc<DbRun>(id).delete();
   }
 
-  async deleteRecording(id: string) {
+  async deleteRecording(pbId: string) {
     await this.checkAuthenticated();
-    await this.recordings.doc<DbRecordingFile>(id).delete();
+    this.recordings.child(pbId).delete();
   }
 }

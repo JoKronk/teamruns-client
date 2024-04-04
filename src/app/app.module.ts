@@ -19,15 +19,17 @@ import {MatMenuModule} from '@angular/material/menu';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 
+import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
+import { AngularFireModule } from '@angular/fire/compat';
+import { AngularFireAuthModule } from '@angular/fire/compat/auth';
+import { AngularFireStorageModule } from '@angular/fire/compat/storage';
+
 import { NavBoardComponent } from './window-components/nav-board/nav-board.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
 import { LobbyComponent } from './lobby/lobby.component';
 import { SnackbarComponent } from './snackbars/snackbar/snackbar.component';
 import { CreateRunComponent } from './dialogs/create-run/create-run.component';
 import { RunComponent } from './run-components/run/run.component';
-import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
-import { AngularFireModule } from '@angular/fire/compat';
-import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { environment } from '../environments/environment';
 import { RunSplitsComponent } from './run-components/run-splits/run-splits.component';
 import { RunTimerComponent } from './run-components/run-timer/run-timer.component';
@@ -107,7 +109,8 @@ import { FooterComponent } from './window-components/footer/footer.component';
     MatProgressBarModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule,
-    AngularFireAuthModule
+    AngularFireAuthModule,
+    AngularFireStorageModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -85,7 +85,7 @@ export class PracticeComponent implements OnDestroy {
 
 
     //recording import listener
-    this.fileListener = (window as any).electron.receive("recordings-get", (data: RecordingFile) => {
+    this.fileListener = (window as any).electron.receive("recordings-fetch-get", (data: RecordingFile) => {
       
       SelectableRecording.fromRecordingFile(data, undefined).forEach(recording => {
         this.recordings.push(recording);

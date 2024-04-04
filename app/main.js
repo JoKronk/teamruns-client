@@ -124,6 +124,10 @@ function createWindow() {
     userSettings.window.y = 10;
   });
 
+  ipcMain.on('recordings-download', (event, url) => {
+    downloadRecording(url);
+  });
+
   ipcMain.on('recordings-fetch', (event, filepath) => {
     readFile(filepath);
   });
@@ -297,8 +301,23 @@ function openFolder(path) {
 function readFile(filepath) {
   fs.readFile(filepath, 'utf8', function (err, data) {
     if (err) console.log(err)
-    else if (data) win.webContents.send("recordings-get", JSON.parse(data));
+    else if (data) win.webContents.send("recordings-fetch-get", JSON.parse(data));
   });
+}
+
+async function downloadRecording(url) {
+  if (!url.startsWith("https://firebasestorage.googleapis.com/")) return;
+  
+  try {
+    const response = (await axios.get(url));
+    if (response.data)
+      win.webContents.send("recordings-download-get", response.data);
+    else
+      sendClientMessage("Failed to fetch recording.");
+  }
+  catch (error) {
+    sendClientMessage("Failed to fetch recording.");
+  }
 }
 
 // --- SAVE FILES ---
