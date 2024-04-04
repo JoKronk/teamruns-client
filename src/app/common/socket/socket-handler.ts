@@ -377,8 +377,15 @@ export class SocketHandler {
                             //handle missed pickups
                             if (previousRecordingdataIndex && (previousRecordingdataIndex - 1) > newRecordingdataIndex) {
                                 console.log("skipped frames", previousRecordingdataIndex - newRecordingdataIndex - 1);
-                                for (let i = previousRecordingdataIndex - 1; i >= newRecordingdataIndex; i--)
+
+                                let newDataIndexHasAnimationState = positionData.tgtState !== undefined;
+                                for (let i = previousRecordingdataIndex - 1; i >= newRecordingdataIndex; i--) {
                                     this.addRecordingInteractionToBuffer(currentPlayer, recording.playback[i]);
+                                    if (!newDataIndexHasAnimationState && recording.playback[i].tS !== undefined) { //make sure we don't skip any animation states
+                                        currentPlayer.positionData.tgtState = recording.playback[i].tS;
+                                        newDataIndexHasAnimationState = true;
+                                    }
+                                }
                             }
                         }
                     }
