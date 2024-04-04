@@ -46,7 +46,7 @@ export class DbLeaderboardPb {
     fillFrontendValues(usersCollection: DbUsersCollection, userId: string, position: number) {
             
         this.positionFrontend = position;
-        this.endTimeFrontend = this.endTimeMs === 0 ? "DNF" : Timer.msToTimeFormat(this.endTimeMs, true, true);
+        this.endTimeFrontend = this.endTimeMs === 0 ? "DNF" : Timer.msToTextFormat(this.endTimeMs);
         this.hasLocalUser = this.userIds.find(x => x === userId) !== undefined;
         
         if (this.date)

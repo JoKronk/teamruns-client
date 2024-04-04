@@ -192,17 +192,25 @@ export class Timer {
   }
 
   public static msToTimeFormat(ms: number, includeMs: boolean = false, shortenedFormat: boolean = false): string {
-      let time: string = Timer.getHour(ms) + ":" + Timer.getMinutes(ms) + ":" + Timer.getSecond(ms);
-      
-      if (includeMs)
-          time += "." + Math.trunc(Math.floor((ms % 1000)) / 100);
-      
-      if (shortenedFormat) {
-          for (let i = 0; i < 3 && (time.charAt(0) === "0" || time.charAt(0) === ":"); i++)
-          time = time.substring(1);
-      }
+    let time: string = Timer.getHour(ms) + ":" + Timer.getMinutes(ms) + ":" + Timer.getSecond(ms);
+    
+    if (includeMs)
+        time += "." + Math.trunc(Math.floor((ms % 1000)) / 100);
+    
+    if (shortenedFormat) {
+        for (let i = 0; i < 3 && (time.charAt(0) === "0" || time.charAt(0) === ":"); i++)
+        time = time.substring(1);
+    }
+    return time;
+  }
 
-      return time;
+  public static msToTextFormat(ms: number): string {
+    let time: string = Timer.getHour(ms) + "h " + Timer.getMinutes(ms) + "m " + Timer.getSecond(ms) + "s";
+    
+    for (let i = 0; i < 3 && (time.charAt(0) === "0" || time.charAt(0) === "h" || time.charAt(0) === "m"); i++)
+      time = time.substring(1);
+
+    return time;
   }
 
   public static msToTimeTextFormat(ms: number) {

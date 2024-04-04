@@ -54,7 +54,7 @@ export class DbRun {
         if (this.teams.length == 0 || !usersCollection) return;
 
         let lastTeamEndTime = this.teams.sort((a, b) => b.endTimeMs - a.endTimeMs)[0].endTimeMs;
-        this.endTimeFrontend = lastTeamEndTime === 0 ? "DNF" : Timer.msToTimeFormat(lastTeamEndTime, true, true);
+        this.endTimeFrontend = lastTeamEndTime === 0 ? "DNF" : Timer.msToTextFormat(lastTeamEndTime);
 
         if (this.date)
             this.dateFrontend = new Date(this.date);
