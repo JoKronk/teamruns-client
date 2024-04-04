@@ -147,7 +147,7 @@ export class DbRun {
                             }
                             
                             //create and add recording to db
-                            let userTeamRecordings: DbRecordingFile = new DbRecordingFile(newPb.version, recordings?.filter(rec => teamUserIds.includes(rec.userId)) ?? [], newPb.id);
+                            let userTeamRecordings: DbRecordingFile = new DbRecordingFile(newPb.version, recordings?.filter(rec => teamUserIds.includes(rec.userId)) ?? [], newPb.id, this.data);
                             if (userTeamRecordings.recordings.length !== 0)
                                 firestoreService.uploadRecording(userTeamRecordings);
                                 

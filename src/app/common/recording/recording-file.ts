@@ -1,15 +1,15 @@
 import { RunData } from "../run/run-data";
 import { RecordingBase } from "./recording-base";
-import { UserRecordingBase } from "./user-recording";
 import { RecordingPositionData } from "./recording-position-data";
 
 export class RecordingFile {
     version: string;
-    runData: RunData;
+    runData: RunData | undefined;
     recordings: RecordingBase[] = [];
 
-    constructor (version: string, recordings: UserRecordingBase[] | RecordingBase[]) {
+    constructor(version: string, recordings: RecordingBase[], runData: RunData | undefined = undefined) {
         this.version = version;
+        this.runData = runData;
 
         recordings.forEach(recording => {
             this.recordings.push(RecordingBase.recreateFromDerivedClass(recording));

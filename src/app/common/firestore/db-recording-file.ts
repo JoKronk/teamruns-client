@@ -1,13 +1,14 @@
 import { UserRecordingBase } from "../recording/user-recording";
 import { RecordingFile } from "../recording/recording-file";
+import { RunData } from "../run/run-data";
 
 export class DbRecordingFile extends RecordingFile {
     pdId: string;
     override recordings: UserRecordingBase[] = [];
 
 
-    constructor(version: string, recordings: UserRecordingBase[], pbId: string) {
-        super(version, []);
+    constructor(version: string, recordings: UserRecordingBase[], pbId: string, runData: RunData) {
+        super(version, [], runData);
         this.pdId = pbId;
 
         recordings.forEach(recording => {
