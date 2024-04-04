@@ -638,10 +638,10 @@ export class RunHandler {
                 break;
             
             case EventType.ImportRecordings:
-                let recordings: Recording[] = event.value;
+                let recPackage: RecordingPackage = event.value;
                 this.userService.localUsers.forEach(localPlayer => {
-                    recordings.forEach(rec => {
-                    const recordingUser: UserBase = localPlayer.socketHandler.addRecording(rec, localPlayer.socketHandler.localTeam?.players.some(x => x.user.id === rec.id) ? MultiplayerState.interactive : MultiplayerState.active);
+                    recPackage.recordings.forEach(rec => {
+                    const recordingUser: UserBase = localPlayer.socketHandler.addRecording(rec, recPackage.forceState !== undefined ? recPackage.forceState : localPlayer.socketHandler.localTeam?.id === recPackage.teamId ? MultiplayerState.interactive : MultiplayerState.active);
                     });
                 });
                 break;
@@ -823,7 +823,7 @@ export class RunHandler {
           this.sendEvent(EventType.ChangeTeam, recUser.id, recordingPackage.teamId);
         });
   
-        this.sendEventAsMain(EventType.ImportRecordings, recordingPackage.recordings);
+        this.sendEventAsMain(EventType.ImportRecordings, recordingPackage);
     }
 
     removeAllSelfRecordings() {
