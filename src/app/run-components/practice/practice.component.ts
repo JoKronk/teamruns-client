@@ -136,7 +136,9 @@ export class PracticeComponent implements OnDestroy {
       if (saveRecording) {
         recording.username = "Rec-" + this.nextRecordingId;
         this.nextRecordingId += 1;
-        this.recordings.push(SelectableRecording.fromRecordingBase(recording));
+        let newRecording = SelectableRecording.fromRecordingBase(recording);
+        newRecording.fillFrontendValues();
+        this.recordings.push(newRecording);
       }
     });
     this.dataSource = new MatTableDataSource(this.recordings);
