@@ -54,6 +54,7 @@ import { InstallComponent } from './settings-components/install/install.componen
 import { SnackbarInstallComponent } from './snackbars/snackbar-install/snackbar-install.component';
 import { RunCasualComponent } from './run-components/run-casual/run-casual.component';
 import { SaveLoaderComponent } from './run-components/save-loader/save-loader.component';
+import { RunImportComponent } from './dialogs/run-import/run-import.component';
 import { FooterComponent } from './window-components/footer/footer.component';
 
 @NgModule({
@@ -88,6 +89,7 @@ import { FooterComponent } from './window-components/footer/footer.component';
     SnackbarInstallComponent,
     RunCasualComponent,
     SaveLoaderComponent,
+    RunImportComponent,
     FooterComponent
   ],
   imports: [

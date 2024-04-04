@@ -34,12 +34,15 @@ import { DbRunUserContent } from "../firestore/db-run-user-content";
 import { MatDialog } from "@angular/material/dialog";
 import { DbPb } from "../firestore/db-pb";
 import { GameTaskLevelTime } from "../opengoal/game-task";
-import { InteractionType } from "../opengoal/interaction-type";
+import { RecordingPackage } from "../recording/recording-package";
+import { Recording } from "../recording/recording";
+import { MultiplayerState } from "../opengoal/multiplayer-state";
 
 export class RunHandler {
 
     lobby: Lobby | undefined;
     run: Run | undefined;
+    selfImportedRecordings: UserBase[] = [];
 
     connected: boolean = false;
     info: string = "";
@@ -427,6 +430,15 @@ export class RunHandler {
             case EventType.Disconnect:
                 if (!this.lobby) return;
                 const disconnectedUser: UserBase = event.value as UserBase;
+
+                //remove if recording
+                this.userService.localUsers.forEach(localPlayer => {
+                    if (!localPlayer.socketHandler.checkRemoveRecording(disconnectedUser.id))
+                        localPlayer.socketHandler.stopDrawPlayer(disconnectedUser.id);
+                });
+                this.selfImportedRecordings = this.selfImportedRecordings.filter(x => x.id !== disconnectedUser.id);
+
+                //remove from run
                 this.zone.run(() => {
                     this.run?.removePlayer(disconnectedUser.id);
                 });
@@ -484,6 +496,9 @@ export class RunHandler {
                         this.userService.removeLocalPlayer(event.value.id);
                         this.sendEvent(EventType.Disconnect, event.value.id, event.value);
                     }
+                    
+                    if (this.selfImportedRecordings.some(x => x.id === event.value.id))
+                        this.sendEvent(EventType.Disconnect, event.value.id, event.value);
                 }
                 break;
 
@@ -621,6 +636,15 @@ export class RunHandler {
                     }
                 });
                 break;
+            
+            case EventType.ImportRecordings:
+                let recordings: Recording[] = event.value;
+                this.userService.localUsers.forEach(localPlayer => {
+                    recordings.forEach(rec => {
+                    const recordingUser: UserBase = localPlayer.socketHandler.addRecording(rec, localPlayer.socketHandler.localTeam?.players.some(x => x.user.id === rec.id) ? MultiplayerState.interactive : MultiplayerState.active);
+                    });
+                });
+                break;
                 
             case EventType.NewPlayerState:
                 this.zone.run(() => {
@@ -657,6 +681,18 @@ export class RunHandler {
 
 
             case EventType.Ready:
+                //repeat for locals
+                if (event.userId === userId) {
+                    this.userService.localUsers.forEach(localPlayer => {
+                        if (localPlayer.user.id === userId) return;
+                        localPlayer.state = event.value;
+                        this.sendEvent(EventType.Ready, localPlayer.user.id, event.value);
+                    });
+                    this.selfImportedRecordings.forEach(recPlayer => {
+                        this.sendEvent(EventType.Ready, recPlayer.id, event.value);
+                    })
+                }
+                
                 this.zone.run(() => {
                     this.run!.toggleReady(event.userId, event.value);
                 });
@@ -685,6 +721,18 @@ export class RunHandler {
 
 
             case EventType.ToggleReset:
+                //repeat for locals
+                if (event.userId === userId) {
+                    this.userService.localUsers.forEach(localPlayer => {
+                        if (localPlayer.user.id === userId) return;
+                        localPlayer.state = event.value;
+                        this.sendEvent(EventType.ToggleReset, localPlayer.user.id, event.value);
+                    });
+                    this.selfImportedRecordings.forEach(recPlayer => {
+                        this.sendEvent(EventType.ToggleReset, recPlayer.id, event.value);
+                    })
+                }
+
                 this.zone.run(() => {
                     if (this.run!.toggleVoteReset(event.userId, event.value)) {
                         this.userService.localUsers.forEach(localPlayer => {
@@ -767,6 +815,26 @@ export class RunHandler {
         await this.firestoreService.updateLobby(this.lobby);
     }
 
+    importRecordingsFromLocal(recordingPackage: RecordingPackage) {
+        recordingPackage.recordings.forEach(recording => {
+          const recUser = Recording.getUserBase(recording);
+          this.selfImportedRecordings.push(recUser);
+          this.sendEvent(EventType.Connect, recUser.id, recUser);
+          this.sendEvent(EventType.ChangeTeam, recUser.id, recordingPackage.teamId);
+        });
+  
+        this.sendEventAsMain(EventType.ImportRecordings, recordingPackage.recordings);
+    }
+
+    removeAllSelfRecordings() {
+        this.selfImportedRecordings.forEach(recUser => {
+              this.sendEvent(EventType.Disconnect, recUser.id, recUser);
+        });
+        this.userService.localUsers.forEach(localPlayer => {
+            localPlayer.socketHandler.resetGetRecordings();
+        });
+    }
+
     runSyncLocalPlayer(localPlayer: LocalPlayerData, run: Run, reconstructTimer: boolean) {
         if (!this.run) return;
 
@@ -810,22 +878,31 @@ export class RunHandler {
         const userId = this.userService.getMainUserId();
         const wasHost: boolean = this.isHost() && this.isOnlineInstant;
 
-        if (wasHost && this.run?.data.mode === RunMode.Casual) {
+        //disconnect recordings
+        this.removeAllSelfRecordings();
+
+        //disconnect local users
+        this.userService.localUsers.forEach(localPlayer => {
+            if (localPlayer.user.id !== userId)
+                this.sendEvent(EventType.Disconnect, localPlayer.user.id, localPlayer.user.getUserBase());
+        });
+
+        //hide lobby if causal
+        if (wasHost && this.run?.isMode(RunMode.Casual) && this.lobby!.visible) {
             this.lobby!.visible = false;
             this.updateFirestoreLobby();
         }
 
-        this.userService.localUsers.forEach(localPlayer => {
-            if (localPlayer.user.id !== userId)
-                this.sendEventAsMain(EventType.Disconnect, localPlayer.user.getUserBase());
-        });
-
+        //reset main user
         this.resetUser();
+
+        //unsubscribes
         this.lobbySubscription?.unsubscribe();
         this.userSetupSubscription?.unsubscribe();
         this.pbSubscription?.unsubscribe();
         this.launchListener();
 
+        //remove demote if host
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself
             if (wasHost) {
                 console.log("Removing host!")

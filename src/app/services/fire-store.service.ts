@@ -124,6 +124,11 @@ export class FireStoreService {
     return this.personalBests.doc(id).valueChanges({idField: 'id'});
   }
 
+  getPbs() {
+    this.checkAuthenticated();
+    return this.personalBests.valueChanges({idField: 'id'});
+  }
+
   downloadRecording(pbId: string): Observable<boolean> { //calls backend to fetch the file
     this.checkAuthenticated();
     return this.recordings.child(pbId).getDownloadURL().pipe(
@@ -135,6 +140,11 @@ export class FireStoreService {
         return of (false);
       })
     );
+  }
+
+  getAllLbs() {
+    this.checkAuthenticated();
+    return this.leaderboards.valueChanges({idField: 'id'});
   }
 
   getLeaderboard(category: CategoryOption, sameLevel: boolean, players: number) {
@@ -198,6 +208,18 @@ export class FireStoreService {
       await this.runs.doc<DbRun>().set(JSON.parse(JSON.stringify(run)));
   }
 
+  /*
+  async addOldRun(run: Run) {
+    await this.checkAuthenticated();
+    //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
+    const id = run.id;
+    run.id = undefined;
+    if (id)
+      await this.firestore.collection<Run>("oldRuns").doc<Run>(id).set(JSON.parse(JSON.stringify(run)));
+    else
+      await this.firestore.collection<Run>("oldRuns").doc<Run>().set(JSON.parse(JSON.stringify(run)));
+  }*/
+
   async addPb(pb: DbPb) {
     await this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
@@ -220,6 +242,23 @@ export class FireStoreService {
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
     
     await this.recordings.child(recording.pdId).put(new Blob([JSON.stringify(recording)], {type: "application/json"}));
+  }
+
+
+  async addBackupPb(pb: DbPb) {
+    await this.checkAuthenticated();
+    //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
+      if (!(pb instanceof DbPb))
+        pb = Object.assign(new DbPb(), pb);
+
+    if (pb.userIds instanceof Map)
+      pb.userIds = Object.fromEntries(pb.userIds);
+    
+    const id = pb.id;
+
+    pb.clearFrontendValues();
+    await this.firestore.collection<DbPb>("backupPbs").doc<DbPb>(id).set(JSON.parse(JSON.stringify(pb)));
+
   }
 
   async updatePb(pb: DbPb) {
@@ -257,6 +296,19 @@ export class FireStoreService {
       await this.leaderboards.doc<DbLeaderboard>(id).set(JSON.parse(JSON.stringify(leaderboard)));
     else
       await this.leaderboards.doc<DbLeaderboard>().set(JSON.parse(JSON.stringify(leaderboard)));
+  }
+  
+  async putBackupLeaderboard(leaderboard: DbLeaderboard) {
+    await this.checkAuthenticated();
+    //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
+    leaderboard = Object.assign(new DbLeaderboard(leaderboard.category, leaderboard.sameLevel, leaderboard.players), leaderboard);
+    const id = leaderboard.id;
+    leaderboard.clearFrontendValues();
+
+    if (id)
+      await this.firestore.collection<DbLeaderboard>("backupLbs").doc<DbLeaderboard>(id).set(JSON.parse(JSON.stringify(leaderboard)));
+    else
+      await this.firestore.collection<DbLeaderboard>("backupLbs").doc<DbLeaderboard>().set(JSON.parse(JSON.stringify(leaderboard)));
   }
 
   async updateUsers(userCollection: DbUsersCollection) {

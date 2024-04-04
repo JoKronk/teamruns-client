@@ -16,6 +16,7 @@ import { OgCommand } from '../../common/socket/og-command';
 import { OG } from '../../common/opengoal/og';
 import { MatDialog } from '@angular/material/dialog';
 import { RecordingFile } from 'src/app/common/recording/recording-file';
+import { RecordingPackage } from 'src/app/common/recording/recording-package';
 
 @Component({
   selector: 'app-practice',
@@ -37,7 +38,6 @@ export class PracticeComponent implements OnDestroy {
 
   //replay
   replay: boolean = false;
-  replayId: string = crypto.randomUUID();
   nextRecordingId: number = 1;
   currentRecording: string = "none";
   recordingBeingEdited: string | null = null;
@@ -87,7 +87,7 @@ export class PracticeComponent implements OnDestroy {
     //recording import listener
     this.fileListener = (window as any).electron.receive("recordings-fetch-get", (data: RecordingFile) => {
       
-      SelectableRecording.fromRecordingFile(data, undefined).forEach(recording => {
+      SelectableRecording.fromRecordingFile(data).forEach(recording => {
         this.recordings.push(recording);
       });
 
@@ -106,7 +106,9 @@ export class PracticeComponent implements OnDestroy {
     this.stopPlaybackIfIsRunning();
     this.currentRecording = this.usePlayback === "true" ? "all" : "none";
 
-    this.usePlayback === "true" ? this.playAllRecordings(false) : this.replayId = crypto.randomUUID();
+    if (this.usePlayback === "true")
+      this.playAllRecordings(false);
+
     this.replay = false;
 
     if (this.resetWorld === "true" && this.usePlayback === "false")
@@ -214,18 +216,12 @@ export class PracticeComponent implements OnDestroy {
   startPlayback(giveRecordings: Recording[], selfStop: boolean) {
     if (!this.mainLocalPlayer) return;
     this.replay = true;
-    this.replayId = crypto.randomUUID();
 
     this.runHandler.run?.checkForRunReset(true);
-    this.mainLocalPlayer.socketHandler.resetGetRecordings();
+    this.runHandler.removeAllSelfRecordings();
     this.currentRecording = giveRecordings.length === 1 ? giveRecordings[0].id : "all";
 
-    giveRecordings.forEach(rec => {
-      const recordingUser: UserBase = this.mainLocalPlayer!.socketHandler.addRecording(rec, this.recordingsState);
-      this.runHandler.sendEvent(EventType.Connect, recordingUser.id, recordingUser);
-      this.runHandler.sendEvent(EventType.ChangeTeam, recordingUser.id, 0);
-      
-    });
+    this.runHandler.importRecordingsFromLocal(new RecordingPackage(0, giveRecordings));
 
     this.recordingsEndtime = this.getLongestRecordingTimeMs(giveRecordings);
 

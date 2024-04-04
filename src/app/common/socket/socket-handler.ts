@@ -274,10 +274,20 @@ export class SocketHandler {
     }
 
     addRecording(recording: Recording, state: MultiplayerState = MultiplayerState.active): UserBase {
-        const recordingUser = new UserBase(recording.id, recording.username);
+        const recordingUser = Recording.getUserBase(recording);
         this.checkRegisterPlayer(recordingUser, state);
         this.recordings.push(recording);
         return recordingUser;
+    }
+
+    checkRemoveRecording(recordingId: string): boolean {
+        let recording = this.recordings.find(x => x.id === recordingId);
+        if (recording) {
+            this.recordings = this.recordings.filter(x => x.id !== x.id);
+            this.stopDrawPlayer(recordingId);
+            return true;
+        }
+        return false;
     }
 
     setAllRealPlayersMultiplayerState() {
@@ -349,6 +359,7 @@ export class SocketHandler {
     private async drawPlayers() {
         if (!this.drawPositions) return;
 
+        //handle recordings
         if (this.timer.totalMs > 0) {
             this.recordings.forEach(recording => {
                 const positionData = recording.getNextPositionData(this.timer.totalMs);
@@ -375,6 +386,7 @@ export class SocketHandler {
             });
         }
 
+        //set recording names
         if (this.timer.totalMs > 200) {
             if (!this.hasDrawnRecordingNames) {
                 this.recordings.forEach(recording => {

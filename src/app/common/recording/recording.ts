@@ -7,6 +7,7 @@ import { DbUsersCollection } from "../firestore/db-users-collection";
 import { DbRecordingFile } from "../firestore/db-recording-file";
 import { RecordingBase } from "./recording-base";
 import { CategoryOption } from "../run/category";
+import { UserBase } from "../user/user";
 
 export class Recording extends RecordingBase {
     id: string = crypto.randomUUID();
@@ -19,6 +20,10 @@ export class Recording extends RecordingBase {
 
     constructor(displayName: string) {
         super(displayName);
+    }
+
+    static getUserBase(recording: Recording) { //static because in most use cases the recording won't have class functions
+        return new UserBase(recording.id, recording.username);
     }
 
     static fromRecordingFile(recFile: RecordingFile): Recording[] {
@@ -105,7 +110,7 @@ export class Recording extends RecordingBase {
                 rec.username = userCollection?.users.find(x => x.id === rec.userId)?.name ?? rec.username;
             });
         }
-
+        
         const blob = new Blob([JSON.stringify(new RecordingFile(recording.version, recording.recordings, recording.runData))], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');

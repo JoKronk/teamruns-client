@@ -6,9 +6,18 @@
     </div>
 
     <!-- TIMER -->
-    <app-run-timer *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run !== undefined" [timer]="runHandler.run.timer"></app-run-timer>
-
-    <app-run-spectators *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run" [spectators]="runHandler.run.spectators" [isHost]="runHandler.lobby?.host?.id === mainLocalPlayer.user.id" [userId]="mainLocalPlayer.user.id" (onKick)="kickPlayer($event)"></app-run-spectators>
+    <div class="run-sidenav">
+      <div class="run-sidenav-content">
+        <app-run-timer *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run" [timer]="runHandler.run.timer"></app-run-timer>
+    
+        <app-run-spectators *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run" [spectators]="runHandler.run.spectators" [isHost]="runHandler.lobby?.host?.id === mainLocalPlayer.user.id" [userId]="mainLocalPlayer.user.id" (onKick)="kickPlayer($event)"></app-run-spectators>
+      </div>
+      <div class="run-sidenav-menu-container">
+        <div *ngIf="runHandler.connected && runHandler.run" class="run-sidenav-menu">
+          <button (click)="importRun()">Import Run</button>
+        </div>
+      </div>
+    </div>
   </mat-sidenav>
 
   <mat-sidenav-content class="run">

@@ -17,6 +17,8 @@ import { TaskStatus } from '../../common/opengoal/task-status';
 import { AddPlayerComponent } from '../../dialogs/add-player/add-player.component';
 import { OG } from '../../common/opengoal/og';
 import { Subscription } from 'rxjs';
+import { RunImportComponent } from 'src/app/dialogs/run-import/run-import.component';
+import { RecordingPackage } from 'src/app/common/recording/recording-package';
 
 @Component({
   selector: 'app-run',
@@ -56,12 +58,20 @@ export class RunComponent implements OnDestroy {
   }
 
   addLocalPlayer(teamId: number) {
-    const dialogRef = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run });
-    const dialogSubscription = dialogRef.afterClosed().subscribe((player: LocalPlayerData | undefined) => {
+    const dialogSubscription = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run?.timer }).afterClosed().subscribe((player: LocalPlayerData | undefined) => {
       dialogSubscription.unsubscribe();
 
       if (player && this.runHandler.run)
         this.runHandler.setupLocalSecondaryPlayer(player, teamId);
+    });
+  }
+  
+  importRun() {
+    const dialogSubscription = this.dialog.open(RunImportComponent, { data: this.runHandler.run }).afterClosed().subscribe((recordingPackage: RecordingPackage | undefined) => {
+      dialogSubscription.unsubscribe();
+      if (!recordingPackage) return;
+
+      this.runHandler.importRecordingsFromLocal(recordingPackage);
     });
   }
 
@@ -72,27 +82,33 @@ export class RunComponent implements OnDestroy {
     const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
       dialogSubscription.unsubscribe();
       if (confirmed) {
+
         this._user.localUsers.forEach(localPlayer => {
           localPlayer.state = PlayerState.Forfeit;
           const task = new GameTaskLevelTime(Task.forfeit, localPlayer.user.getUserBaseWithDisplayName(), this.runHandler.run?.getPlayer(localPlayer.user.id)?.currentLevel ?? "", this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
           this.runHandler.sendEvent(EventType.EndPlayerRun, localPlayer.user.id, task);
+        });
+
+        this.runHandler.selfImportedRecordings.forEach(recPlayer => {
+          const task = new GameTaskLevelTime(Task.forfeit, recPlayer, this.runHandler.run?.getPlayer(recPlayer.id)?.currentLevel ?? "", this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
+          this.runHandler.sendEvent(EventType.EndPlayerRun, recPlayer.id, task);
         });
       }
     });
   }
 
   toggleReady() {
-    this._user.localUsers.forEach(localPlayer => {
-      localPlayer.state = localPlayer.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
-      this.runHandler.sendEvent(EventType.Ready, localPlayer.user.id, localPlayer.state);
-    });
+    if (!this.mainLocalPlayer) return;
+      
+    this.mainLocalPlayer.state = this.mainLocalPlayer.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
+    this.runHandler.sendEventAsMain(EventType.Ready, this.mainLocalPlayer.state);
   }
 
   toggleReset() {
-    this._user.localUsers.forEach(localPlayer => {
-      localPlayer.state = localPlayer.state === PlayerState.WantsToReset ? localPlayer.socketHandler.localTeam?.splits.some(x => x.obtainedById === localPlayer.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
-      this.runHandler.sendEvent(EventType.ToggleReset, localPlayer.user.id, localPlayer.state);
-    });
+    if (!this.mainLocalPlayer) return;
+
+    this.mainLocalPlayer.state = this.mainLocalPlayer.state === PlayerState.WantsToReset ? this.mainLocalPlayer.socketHandler.localTeam?.splits.some(x => x.obtainedById === this.mainLocalPlayer?.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
+    this.runHandler.sendEventAsMain(EventType.ToggleReset, this.mainLocalPlayer.state);
   }
 
   switchTeam(teamId: number) {
@@ -143,6 +159,7 @@ export class RunComponent implements OnDestroy {
 
   destory() {
     if (this.runSetupSubscription) this.runSetupSubscription.unsubscribe();
+  
     this.runHandler.destroy();
   }
 

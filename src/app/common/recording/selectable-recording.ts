@@ -18,7 +18,7 @@ export class SelectableRecording extends Recording {
         return recording;
     }
 
-    static override fromRecordingFile(recFile: RecordingFile, userCollection: DbUsersCollection | undefined = undefined): SelectableRecording[] {
+    static override fromRecordingFile(recFile: RecordingFile): SelectableRecording[] {
         let recordings: SelectableRecording[] = [];
 
         recFile.recordings.forEach(rec => {
@@ -31,7 +31,7 @@ export class SelectableRecording extends Recording {
         return recordings;
     }
 
-    static override fromDbRecording(recFile: DbRecordingFile, userCollection: DbUsersCollection | undefined = undefined): Recording[] {
+    static override fromDbRecording(recFile: DbRecordingFile, userCollection: DbUsersCollection | undefined = undefined): SelectableRecording[] {
         let recordings: SelectableRecording[] = [];
 
         recFile.recordings.forEach(rec => {

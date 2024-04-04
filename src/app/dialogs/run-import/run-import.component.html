@@ -1,0 +1,89 @@
+<div class="container">
+  <p id="title">Import Run</p>
+
+  <div *ngIf="phase === 0" class="option-start">
+    <p>Select import type</p>
+    <div>
+      <button (click)="gotoLeaderboardPhase()">Leaderboard</button>
+      <button (click)="phase = 2">File</button>
+    </div>
+  </div>
+
+  <div *ngIf="phase === 1">
+    <div class="option-players">
+      <select [(ngModel)]="players" (change)="changePlayerCount()">
+        <option *ngFor="let playerCount of playerOptions" [ngValue]="playerCount">{{ playerCount + (playerCount === 1 ?
+          " player" : " players") }}</option>
+      </select>
+    </div>
+
+    <div *ngIf="leaderboardHasLoaded && leaderboardPbs !== 0" class="table-container">
+      <table mat-table [dataSource]="leaderboardSource" multiTemplateDataRows>
+        <ng-container matColumnDef="position">
+          <th mat-header-cell *matHeaderCellDef> # </th>
+          <td mat-cell *matCellDef="let run">{{run.positionFrontend}}</td>
+        </ng-container>
+        <ng-container matColumnDef="players">
+          <th mat-header-cell *matHeaderCellDef> Players </th>
+          <td mat-cell class="no-wrap" *matCellDef="let run">
+            <span *ngFor="let user of run.userDisplayContent; let end = last">
+              {{user.name}}<span *ngIf="!end"> · </span>
+            </span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="time">
+          <th mat-header-cell *matHeaderCellDef> Time </th>
+          <td mat-cell *matCellDef="let run"> {{run.endTimeFrontend}} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="leaderboardColumns"></tr>
+        <tr mat-row *matRowDef="let run; columns: leaderboardColumns;" class="run-row" (click)="selectRun(run)"></tr>
+      </table>
+    </div>
+    <p class="table-none" *ngIf="leaderboardHasLoaded && leaderboardPbs === 0">No runs found.</p>
+  </div>
+
+  <div *ngIf="phase === 2" class="dropbox-container" [dragdrop]="['.json']" (fileDropped)="onFilesDrop($event)">
+    <button class="dropbox">Drop recording to import</button>
+  </div>
+
+  <div *ngIf="phase === 3" class="loader">
+    <h2 class="center-text">Fetching recording</h2>
+    <mat-spinner class="loader-spinner" color="primary"></mat-spinner>
+  </div>
+
+  <div *ngIf="phase === 4">
+    <div class="option-teams">
+      <p>Import to Team</p>
+      <select [(ngModel)]="selectedTeamId">
+        <option *ngFor="let team of run.teams" [ngValue]="team.id">{{ team.name }}</option>
+      </select>
+    </div>
+
+    <div class="table-container">
+      <table mat-table [dataSource]="recordingsSource" multiTemplateDataRows>
+        <ng-container matColumnDef="selected">
+          <th mat-header-cell *matHeaderCellDef> Select </th>
+          <td mat-cell *matCellDef="let recording">
+            <input class="table-select" type="checkbox" (click)="$event.stopPropagation()"
+              [(ngModel)]="recording.selected">
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef> Name </th>
+          <td mat-cell *matCellDef="let recording"> {{ recording.username }} </td>
+        </ng-container>
+        <ng-container matColumnDef="time">
+          <th mat-header-cell *matHeaderCellDef> Time </th>
+          <td mat-cell *matCellDef="let recording"> {{ recording.timeFrontend }} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="recordingColumns"></tr>
+        <tr mat-row *matRowDef="let recording; columns: recordingColumns;" class="run-row"
+          (click)="recording.selected = !recording.selected"></tr>
+      </table>
+      <button class="option-import" (click)="importRecordings()">Import</button>
+    </div>
+    
+  </div>
+</div>
