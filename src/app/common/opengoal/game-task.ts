@@ -48,11 +48,11 @@ export class GameTaskLevelTime extends GameTask {
     }
 
     //interaction sent seperately just to ensure it's not null
-    public static fromCurrentPositionData(positionData: CurrentPositionData, interaction: InteractionData): GameTaskLevelTime {
+    public static fromCurrentPositionData(positionData: CurrentPositionData, interaction: InteractionData, username: string): GameTaskLevelTime {
         return {
             name: interaction.interName,
             status: TaskStatus.nameFromEnum(interaction.interStatus),
-            user: new UserBase(positionData.userId, positionData.username),
+            user: new UserBase(positionData.userId, username),
             timerTime: Timer.msToTimeFormat(interaction.time, true, true),
             level: interaction.interLevel
         }

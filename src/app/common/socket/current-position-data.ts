@@ -20,7 +20,7 @@ export class CurrentPositionData {
     playerInfo: RemotePlayerInfo | undefined;
 
     userId: string;
-    username: string;
+    private username: string | undefined;
     color: Color;
     mpState: MultiplayerState;
 
@@ -33,6 +33,20 @@ export class CurrentPositionData {
 
     updateCurrentInteraction(interactionData: InteractionData) {
         this.interaction = InteractionData.getInteractionValues(interactionData);
+    }
+
+    updateUsername(username: string) {
+        this.username = username;
+    }
+
+    cleanupOneTimeData() {
+        this.resetPositionDataUsername();
+        this.resetCurrentInteraction();
+        this.resetCurrentInfo();
+    }
+    
+    resetPositionDataUsername() {
+        this.username = undefined;
     }
 
     resetCurrentInteraction() {

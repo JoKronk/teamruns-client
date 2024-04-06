@@ -21,7 +21,7 @@ export class SocketHandlerLockout extends SocketHandler {
 
     override onTask(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
 
-        const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction);
+        const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction, this.self.currentUsername);
         
         //check duped cell buy
         if (isSelfInteraction && Task.isCellWithCost(task.name) && this.localTeam && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution)) {

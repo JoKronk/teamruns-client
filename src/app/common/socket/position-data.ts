@@ -46,32 +46,6 @@ export class UserPositionData extends PositionData {
         this.userId = user.id;
         this.username = user.displayName ?? user.name;
     }
-    
-
-    static fromCurrentPositionDataWithoutInteraction(positionData: CurrentPositionData, time: number) : UserPositionData {
-        return {
-            transX: positionData.transX, 
-            transY: positionData.transY, 
-            transZ: positionData.transZ, 
-            quatX: positionData.quatX, 
-            quatY: positionData.quatY, 
-            quatZ: positionData.quatZ, 
-            quatW: positionData.quatW, 
-            rotY: positionData.rotY, 
-            tgtState: positionData.tgtState, 
-            currentLevel: positionData.currentLevel, 
-            interType: 0,
-            interAmount: 0,
-            interStatus: 0,
-            interName: "",
-            interParent: "",
-            interLevel: "",
-            interCleanup: false,
-            userId: positionData.userId,
-            username: positionData.username,
-            time: time
-        }
-    }
 }
 
 

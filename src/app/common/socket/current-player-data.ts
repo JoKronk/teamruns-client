@@ -8,12 +8,15 @@ import { PositionData } from "./position-data";
 export class CurrentPlayerData {
     positionData: CurrentPositionData;
 
+    userId: string;
+    currentUsername: string = ""; //username in positionData should only be set when we want to update it in game, use this to check username instead
     interactionBufferRateLimit: boolean = false;
     interactionBuffer: InteractionData[] = []; // updates gets pushed from top of list first
     recordingDataIndex: number | undefined; // only used by recordings
 
     constructor(user: UserBase, state: MultiplayerState) {
         this.positionData = new CurrentPositionData(user, state);
+        this.userId = user.id;
         this.interactionBuffer = [];
     }
 
@@ -21,12 +24,8 @@ export class CurrentPlayerData {
         return this.positionData.interaction !== undefined && this.positionData.interaction.interType !== InteractionType.none;
     }
 
-    hasInfoUpdate(): boolean {
-        return this.positionData.playerInfo != undefined;
-    }
-
     // returns if has updated
-    updateCurrentPosition(positionData: PositionData, isLocalUser: boolean, recordingDataIndex: number | undefined = undefined) : boolean {
+    updateCurrentPosition(positionData: PositionData, username: string, isLocalUser: boolean, socketConnected: boolean, recordingDataIndex: number | undefined = undefined) : boolean {
         if (recordingDataIndex) {
             if (recordingDataIndex === this.recordingDataIndex)
                 return false;
@@ -35,7 +34,7 @@ export class CurrentPlayerData {
         }
 
         //handle interaction data
-        if (positionData.interType !== InteractionType.none) {
+        if (socketConnected && positionData.interType !== InteractionType.none) {
             if (this.hasInteractionUpdate() && !isLocalUser)
                 this.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
             else
@@ -52,8 +51,17 @@ export class CurrentPlayerData {
         this.positionData.transX = positionData.transX;
         this.positionData.transY = positionData.transY;
         this.positionData.transZ = positionData.transZ;
+        
+        if (socketConnected) this.checkUpdateUsername(username);
 
         return true;
+    }
+
+    checkUpdateUsername(username: string) {
+        if (this.currentUsername === username) return;
+
+        this.positionData.updateUsername(username);
+        this.currentUsername = username;
     }
 
     checkUpdateInteractionFromBuffer() {

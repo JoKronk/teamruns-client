@@ -32,7 +32,6 @@ import { LocalSave } from "../level/local-save";
 export class SocketHandler {
 
     recordings: Recording[] = [];
-    private hasDrawnRecordingNames: boolean = false;
     private userPositionRecordings: UserRecording[] = [];
 
     timer: Timer;
@@ -86,6 +85,11 @@ export class SocketHandler {
             if (port == this.socketPort) {
                 this.inMidRunRestartPenaltyWait = 0;
                 this.socketConnected = false;
+                this.socketCommandBuffer = [];
+                this.self.interactionBuffer = [];
+                this.players.forEach(player => {
+                    player.checkUpdateUsername("");
+                });
                 this.ogSocket.complete();
                 this.ogSocket = webSocket('ws://localhost:' + socketPort);
             }
@@ -254,7 +258,7 @@ export class SocketHandler {
         let player = this.players.find(x => x.positionData.userId === userId);
         if (!player) return;
         
-        player.positionData.username = "";
+        player.checkUpdateUsername("");
         player.positionData.mpState = MultiplayerState.disconnected;
         this.sendSocketPackageToOpengoal();
 
@@ -297,15 +301,40 @@ export class SocketHandler {
         });
     }
 
-    getSelfPosition(): CurrentPositionData | undefined {
+    getSelfUserPositionData(time: number): UserPositionData | undefined {
         if (!this.self)
             this.checkRegisterPlayer(this.user.getUserBaseWithDisplayName(), MultiplayerState.interactive);
+        
+        if (!this.self.positionData)
+            return undefined;
 
-        return this.self.positionData;
+        return {
+            transX: this.self.positionData.transX, 
+            transY: this.self.positionData.transY, 
+            transZ: this.self.positionData.transZ, 
+            quatX: this.self.positionData.quatX, 
+            quatY: this.self.positionData.quatY, 
+            quatZ: this.self.positionData.quatZ, 
+            quatW: this.self.positionData.quatW, 
+            rotY: this.self.positionData.rotY, 
+            tgtState: this.self.positionData.tgtState, 
+            currentLevel: this.self.positionData.currentLevel, 
+            interType: 0,
+            interAmount: 0,
+            interStatus: 0,
+            interName: "",
+            interParent: "",
+            interLevel: "",
+            interCleanup: false,
+            userId: this.self.positionData.userId,
+            username: this.self.currentUsername,
+            time: time
+        }
     }
 
 
     updatePlayerPosition(positionData: UserPositionData) {
+        
         const isLocalUser = positionData.userId === this.user.id;
         let player = !isLocalUser ? this.players.find(x => x.positionData.userId === positionData.userId) : this.self;
         if (player) {
@@ -315,7 +344,7 @@ export class SocketHandler {
                 if (runPlayer) runPlayer.currentLevel = positionData.currentLevel;
             }
             
-            player.updateCurrentPosition(positionData, isLocalUser);
+            player.updateCurrentPosition(positionData, positionData.username, isLocalUser, this.socketConnected);
 
 
             if (isLocalUser) { //handled in draw update cycle for remote players
@@ -372,7 +401,7 @@ export class SocketHandler {
 
                         const previousRecordingdataIndex = currentPlayer.recordingDataIndex;
                         const newRecordingdataIndex = recording.currentRecordingDataIndex;
-                        if (currentPlayer.updateCurrentPosition(positionData, false, newRecordingdataIndex)) {
+                        if (currentPlayer.updateCurrentPosition(positionData, recording.username, false, this.socketConnected, newRecordingdataIndex)) {
 
                             //handle missed pickups
                             if (previousRecordingdataIndex && (previousRecordingdataIndex - 1) > newRecordingdataIndex) {
@@ -393,16 +422,6 @@ export class SocketHandler {
             });
         }
 
-        //set recording names
-        if (this.timer.totalMs > 200) {
-            if (!this.hasDrawnRecordingNames) {
-                this.recordings.forEach(recording => {
-                    const currentPlayer = this.players.find(x => x.positionData.userId === recording.id);
-                    if (currentPlayer) currentPlayer.positionData.username = recording.username ?? "BLANK";
-                });
-            }
-        }
-
         //handle interaction data for run and player (handled in position update for local player)
         //needs to be done before sending data over socket for orb dupe removals
         this.players.filter(x=> x.positionData.interaction && x.positionData.interaction.interType !== InteractionType.none).forEach(player => {
@@ -416,15 +435,13 @@ export class SocketHandler {
 
         //post cleanup and buffer check
         if (this.self) {
-            if (this.self.hasInteractionUpdate()) this.self.positionData.resetCurrentInteraction();
-            if (this.self.hasInfoUpdate()) this.self.positionData.resetCurrentInfo();
+            this.self.positionData.cleanupOneTimeData();
 
             this.self.checkUpdateInteractionFromBuffer();
             this.socketPackage.selfInteraction = this.self.positionData.interaction; //should only be for handling orb dupes and syncing interaction
         }
         this.players.forEach(player => {
-            if (player.hasInteractionUpdate()) player.positionData.resetCurrentInteraction();
-            if (player.hasInfoUpdate()) player.positionData.resetCurrentInfo();
+            player.positionData.cleanupOneTimeData();
 
             //fill interaction from buffer if possible
             player.checkUpdateInteractionFromBuffer();
@@ -449,7 +466,7 @@ export class SocketHandler {
         if (!this.players.some(x => x.positionData.mpState !== MultiplayerState.disconnected)) return;
 
         this.players.forEach(player => {
-            player.positionData.username = "";
+            player.checkUpdateUsername("");
             player.positionData.mpState = MultiplayerState.disconnected;
         });
 
@@ -526,7 +543,7 @@ export class SocketHandler {
     
     protected onTask(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
 
-        const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction);
+        const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction, this.self.currentUsername);
         
         //check duped cell buy
         if (isSelfInteraction && Task.isCellWithCost(task.name) && this.localTeam && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution)) {

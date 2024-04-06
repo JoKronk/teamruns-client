@@ -762,9 +762,8 @@ export class RunHandler {
         for (let i = 0; i < 2; i++) { //!TODO: This currently need to run twice for new remote jaks that don't move to not spawn at 0,0,0, should be properly fixed and reduced to one call
             this.userService.localUsers.forEach(localPlayer => {
                 if (localPlayer.socketHandler.socketConnected && !this.isSpectatorOrNull(localPlayer.user.id) && (!onlyMain || localPlayer.user.id === mainId)) {
-                    const localPlayerPos = localPlayer.socketHandler.getSelfPosition();
-                    if (localPlayerPos)
-                        this.sendPosition(UserPositionData.fromCurrentPositionDataWithoutInteraction(localPlayerPos, this.run?.timer.totalMs ?? 0));
+                    const userPos = localPlayer.socketHandler.getSelfUserPositionData(this.run?.timer.totalMs ?? 0);
+                    if (userPos) this.sendPosition(userPos);
                 }
             });
         }
