@@ -2,6 +2,7 @@
 import { Subject } from 'rxjs';
 import { OgCommand } from '../socket/og-command';
 import { RunState } from './run-state';
+import { CommandBuffer } from '../socket/command-buffer';
 
 export class Timer {
 
@@ -20,7 +21,7 @@ export class Timer {
   sendTargetReleaseCommand: boolean = true;
 
   timerEndSubject: Subject<boolean> = new Subject();
-  private socketCommandBuffers: OgCommand[][] = []; //one command array for each local player
+  private socketCommandBuffers: CommandBuffer[] = []; //one command array for each local player
 
   freezePlayerInCountdown: boolean = true;
   runState: RunState;
@@ -31,8 +32,12 @@ export class Timer {
     this.resetTimer();
   }
 
-  linkSocketCommands(socketCommandBuffer: OgCommand[]) {
+  linkSocketCommandBuffer(socketCommandBuffer: CommandBuffer) {
     this.socketCommandBuffers.push(socketCommandBuffer);
+  }
+
+  removeSocketCommandBuffer(userId: string) {
+    this.socketCommandBuffers = this.socketCommandBuffers.filter(x => x.userId !== userId);
   }
   
   importTimer(timer: Timer) {
@@ -73,7 +78,7 @@ export class Timer {
   onPlayerLoad() {
     if (this.runState === RunState.Countdown && this.freezePlayerInCountdown) {
       this.socketCommandBuffers.forEach(buffer => {
-        buffer.push(OgCommand.TargetGrab);
+        buffer.commandBuffer.push(OgCommand.TargetGrab);
       });
     }
   }
@@ -133,13 +138,13 @@ export class Timer {
     if (this.runState === RunState.Countdown) {
       if (!this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
         this.socketCommandBuffers.forEach(buffer => {
-          buffer.push(OgCommand.StartRun);
+          buffer.commandBuffer.push(OgCommand.StartRun);
         });
         this.hasSpawnedPlayer = true;
       }
       else if (this.sendTargetReleaseCommand && this.startDateMs! <= currentTimeMs + 10) {
         this.socketCommandBuffers.forEach(buffer => {
-          buffer.push(OgCommand.TargetRelease);
+          buffer.commandBuffer.push(OgCommand.TargetRelease);
         });
       }
       

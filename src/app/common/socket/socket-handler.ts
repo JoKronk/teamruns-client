@@ -28,6 +28,7 @@ import { Team } from "../run/team";
 import { OG } from "../opengoal/og";
 import pkg from 'app/package.json';
 import { LocalSave } from "../level/local-save";
+import { CommandBuffer } from "./command-buffer";
 
 export class SocketHandler {
 
@@ -64,7 +65,6 @@ export class SocketHandler {
         this.isLocalMainPlayer = socketPort === OG.mainPort;
         this.localTeam = run.getPlayerTeam(user.id, !this.isLocalMainPlayer);
 
-        this.timer.linkSocketCommands(this.socketCommandBuffer);
         if (this.user.name) //if client is fully reloaded in a place where position service is started at same time as use we pick up user on movement instead
             this.checkRegisterPlayer(this.user.getUserBaseWithDisplayName(), MultiplayerState.interactive);
 
@@ -74,6 +74,7 @@ export class SocketHandler {
         this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
             if (port == this.socketPort) {
                 this.connectionAttempts = 0;
+                this.timer.linkSocketCommandBuffer(new CommandBuffer(this.user.id, this.socketCommandBuffer));
                 this.user.gameLaunched = true;
                 this.connectToOpengoal();
                 this.changeController(this.user.controllerPort ?? 0);
@@ -85,6 +86,7 @@ export class SocketHandler {
             if (port == this.socketPort) {
                 this.inMidRunRestartPenaltyWait = 0;
                 this.socketConnected = false;
+                this.timer.removeSocketCommandBuffer(this.user.id);
                 this.socketCommandBuffer = [];
                 this.self.interactionBuffer = [];
                 this.players.forEach(player => {
