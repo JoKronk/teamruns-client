@@ -862,8 +862,10 @@ export class RunHandler {
             }
 
             this.sendEvent(EventType.NewPlayerState, localPlayer.user.id, state);
+
             localPlayer.gameState = state;
-            localPlayer.checkDesync(this.run!);
+            if (state.justSpawned || localPlayer.gameState.currentCheckpoint !== state.currentCheckpoint)
+                localPlayer.checkDesync(this.run!);
         })
     }
 

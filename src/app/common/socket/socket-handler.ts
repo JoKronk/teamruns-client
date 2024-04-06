@@ -42,6 +42,7 @@ export class SocketHandler {
     protected isLocalMainPlayer: boolean = true;
 
     inMidRunRestartPenaltyWait: number = 0;
+    isSyncing: boolean = false;
     
     protected self: CurrentPlayerData;
     protected players: CurrentPlayerData[] = [];
@@ -85,6 +86,7 @@ export class SocketHandler {
         this.shutdownListener = (window as any).electron.receive("og-closed", (port: number) => {
             if (port == this.socketPort) {
                 this.inMidRunRestartPenaltyWait = 0;
+                this.isSyncing = false
                 this.socketConnected = false;
                 this.timer.removeSocketCommandBuffer(this.user.id);
                 this.socketCommandBuffer = [];
@@ -109,12 +111,14 @@ export class SocketHandler {
                 //handle mid game restarts
                 if (this.run?.timer.runState !== RunState.Waiting && RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode)) {
                     this.inMidRunRestartPenaltyWait = 10;
+                    this.isSyncing = false;
                     this.addCommand(OgCommand.DisableDebugMode);
                     const lastCheckpoint = this.run?.getPlayer(this.user.id)?.gameState.currentCheckpoint;
                     if (lastCheckpoint) this.forceCheckpointSpawn(lastCheckpoint);
 
                     setTimeout(() => {
                         this.inMidRunRestartPenaltyWait = 0;
+                        this.isSyncing = false;
                         this.addCommand(OgCommand.TargetRelease);
                     }, (this.inMidRunRestartPenaltyWait * 1000));
                 }
@@ -144,7 +148,7 @@ export class SocketHandler {
                     if (this.socketPort === OG.mainPort)
                         this.timer.onPlayerLoad();
                 }
-
+                //local save logic
                 if (target.state.justSaved && this.run.data.mode === RunMode.Casual && this.timer.totalMs > 5000) {
                     let save: LocalSave = (this.localTeam?.runState ?? this.run.getTeam(0)?.runState) as LocalSave;
                     if (save.cellCount !== 0 || save.orbCount !== 0 || save.buzzerCount !== 0) {

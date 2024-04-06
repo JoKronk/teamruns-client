@@ -3,6 +3,7 @@ import { Task } from "../opengoal/task";
 import { PlayerState } from "../player/player-state";
 import { RunStateHandler } from "../level/run-state-handler";
 import { DbTeam } from "../firestore/db-team";
+import { GameState } from "../opengoal/game-state";
 
 
 export class Team {
@@ -46,6 +47,7 @@ export class Team {
         this.players.forEach(player => {
             player.state = PlayerState.Neutral;
             player.cellsCollected = 0;
+            player.gameState = new GameState();
         })
     }
 

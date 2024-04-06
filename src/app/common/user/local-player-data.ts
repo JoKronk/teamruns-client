@@ -17,8 +17,6 @@ export class LocalPlayerData {
   gameState: GameState = new GameState();
   state: PlayerState = PlayerState.Neutral;
 
-  isSyncing: boolean = false;
-
   socketHandler: SocketHandler;
   levelHandler: LevelHandler = new LevelHandler();
 
@@ -38,6 +36,11 @@ export class LocalPlayerData {
 
   importRunStateHandler(runStateHandler: RunStateHandler, hardReset: boolean = false) {
     this.levelHandler.importRunStateHandler(runStateHandler, this.socketHandler, this.gameState, hardReset);
+
+    setTimeout(() => {
+      if (this.socketHandler.inMidRunRestartPenaltyWait === 0)
+        this.socketHandler.isSyncing = false;
+    }, 100);
   }
 
   updateTeam(team: Team | undefined) {
@@ -48,21 +51,18 @@ export class LocalPlayerData {
 
   checkDesync(run: Run) {
     if (!this.socketHandler.localTeam) this.socketHandler.localTeam = run.getPlayerTeam(this.user.id, true);
-    if (!this.socketHandler.localTeam || this.isInSync(run) || this.isSyncing) return;
+    if (!this.socketHandler.localTeam || this.isInSync(run) || this.socketHandler.isSyncing) return;
 
 
-    this.isSyncing = true;
+    this.socketHandler.isSyncing = true;
     setTimeout(() => {  //give the player some time to catch up if false positive
       if (this.isInSync(run)) {
-        this.isSyncing = false;
+        this.socketHandler.isSyncing = false;
         return;
       }
       
       this.importRunStateHandler(this.socketHandler.localTeam!.runState);
 
-      setTimeout(() => {
-        this.isSyncing = false;
-      }, 500);
     }, 1000);
     }
 
