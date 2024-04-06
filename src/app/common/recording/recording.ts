@@ -8,10 +8,12 @@ import { DbRecordingFile } from "../firestore/db-recording-file";
 import { RecordingBase } from "./recording-base";
 import { CategoryOption } from "../run/category";
 import { UserBase } from "../user/user";
+import { MultiplayerState } from "../opengoal/multiplayer-state";
 
 export class Recording extends RecordingBase {
     id: string = crypto.randomUUID();
 
+    state: MultiplayerState = MultiplayerState.active;
     prevPosIn: PositionData | undefined;
     posOut: PositionData = new PositionData();
     currentRecordingDataIndex: number;

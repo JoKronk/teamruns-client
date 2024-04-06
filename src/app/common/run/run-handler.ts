@@ -641,7 +641,7 @@ export class RunHandler {
                 let recPackage: RecordingPackage = event.value;
                 this.userService.localUsers.forEach(localPlayer => {
                     recPackage.recordings.forEach(rec => {
-                    const recordingUser: UserBase = localPlayer.socketHandler.addRecording(rec, recPackage.forceState !== undefined ? recPackage.forceState : localPlayer.socketHandler.localTeam?.id === recPackage.teamId ? MultiplayerState.interactive : MultiplayerState.active);
+                    localPlayer.socketHandler.addRecording(rec, recPackage.forceState !== undefined ? recPackage.forceState : localPlayer.socketHandler.localTeam?.id === recPackage.teamId ? MultiplayerState.interactive : MultiplayerState.active);
                     });
                 });
                 break;

@@ -279,11 +279,9 @@ export class SocketHandler {
             this.self = new CurrentPlayerData(user, MultiplayerState.interactive);
     }
 
-    addRecording(recording: Recording, state: MultiplayerState = MultiplayerState.active): UserBase {
-        const recordingUser = Recording.getUserBase(recording);
-        this.checkRegisterPlayer(recordingUser, state);
+    addRecording(recording: Recording, state: MultiplayerState) {
+        recording.state = state; //set here because rec state on import is determined by player depending on team relation which isn't known for everyone at import
         this.recordings.push(recording);
-        return recordingUser;
     }
 
     checkRemoveRecording(recordingId: string): boolean {
@@ -396,8 +394,9 @@ export class SocketHandler {
                 const positionData = recording.getNextPositionData(this.timer.totalMs);
                 if (positionData) {
                     const currentPlayer = this.players.find(x => x.positionData.userId === recording.id);
-                    if (currentPlayer) {
-
+                    if (!currentPlayer)
+                        this.checkRegisterPlayer(Recording.getUserBase(recording), recording.state);
+                    else {
                         if (currentPlayer.positionData.currentLevel !== positionData.currentLevel)
                             this.addCommand(OgCommand.OnRemoteLevelUpdate);
 
