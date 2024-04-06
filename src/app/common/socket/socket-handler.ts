@@ -477,9 +477,8 @@ export class SocketHandler {
 
     private handlePlayerInteractions(positionData: CurrentPositionData) {
         if (!positionData.interaction || positionData.interaction.interType === InteractionType.none || positionData.interaction.interCleanup) return;
-        const userId = this.user.id;
         const interaction = UserInteractionData.fromInteractionData(positionData.interaction, positionData.userId);
-        const isSelfInteraction: boolean = positionData.userId === userId;
+        const isSelfInteraction: boolean = positionData.userId === this.user.id;
         const playerTeam: Team | undefined = isSelfInteraction ? this.localTeam : this.run.getPlayerTeam(positionData.userId, true);
         if (!this.localTeam || !playerTeam) return;
         const isTeammate = isSelfInteraction || (playerTeam.id === this.localTeam.id && (this.run.teams.length !== 1 || !RunMod.singleTeamEqualsFFA(this.run.data.mode)));
@@ -488,61 +487,61 @@ export class SocketHandler {
         switch (positionData.interaction.interType) {
 
             case InteractionType.gameTask:
-                this.onTask(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.onTask(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
         
             case InteractionType.buzzer:
-                this.onBuzzer(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.onBuzzer(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
             case InteractionType.money:
-                this.onOrb(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.onOrb(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
             case InteractionType.ecoBlue:
             case InteractionType.ecoYellow:
             case InteractionType.ecoGreen:
             case InteractionType.ecoRed:
-                this.onEco(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.onEco(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
             case InteractionType.fish:
-                this.onFish(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.onFish(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
             case InteractionType.bossPhase:
-                this.onBossPhase(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.onBossPhase(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
             case InteractionType.crate:
-                this.onCrate(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.onCrate(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
             case InteractionType.enemyDeath:
-                this.onEnemyDeath(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.onEnemyDeath(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
             case InteractionType.periscope:
-                this.onPeriscope(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.onPeriscope(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
             case InteractionType.snowBumper:
-                this.onSnowBumper(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.onSnowBumper(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
             case InteractionType.darkCrystal:
-                this.onDarkCrystal(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.onDarkCrystal(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
             case InteractionType.lpcChamber:
-                this.onLpcChamber(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.onLpcChamber(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
 
         }
     }
 
     
-    protected onTask(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    protected onTask(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
 
         const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction, this.self.currentUsername);
         
@@ -587,7 +586,7 @@ export class SocketHandler {
             playerTeam.runState.addTaskInteraction(interaction);
     }
     
-    protected onBuzzer(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    protected onBuzzer(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isSelfInteraction && isTeammate)
             this.levelHandler.onInteraction(interaction);
 
@@ -595,14 +594,14 @@ export class SocketHandler {
             playerTeam.runState.addBuzzerInteraction(interaction);
     }
     
-    protected onOrb(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    protected onOrb(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
 
         if (playerTeam.runState.isFalseOrb(interaction)) {
             positionData.resetCurrentInteraction();
             return;
         }
         
-        if (playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players, userId, (this.isLocalMainPlayer || this.run.isFFA), interaction)) {
+        if (playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players, this.user.id, (this.isLocalMainPlayer || this.run.isFFA), interaction)) {
             if (isSelfInteraction)
                 this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
             else if (!interaction.interCleanup)
@@ -615,19 +614,19 @@ export class SocketHandler {
             this.levelHandler.onInteraction(interaction);
     }
 
-    protected onEco(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    protected onEco(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
 
     }
     
-    protected onFish(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    protected onFish(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
 
     }
     
-    protected onBossPhase(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    protected onBossPhase(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
 
     }
     
-    protected onCrate(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    protected onCrate(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!this.localTeam) return;
         if ((InteractionData.isBuzzerCrate(interaction) || InteractionData.isOrbsCrate(interaction))) {
             if (!isSelfInteraction && isTeammate)
@@ -638,23 +637,23 @@ export class SocketHandler {
         }
     }
     
-    protected onEnemyDeath(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-        this.onGeneralSecondaryInteraction(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+    protected onEnemyDeath(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        this.onGeneralSecondaryInteraction(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    protected onPeriscope(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-        this.onGeneralSecondaryInteraction(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+    protected onPeriscope(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        this.onGeneralSecondaryInteraction(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    protected onSnowBumper(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-        this.onGeneralSecondaryInteraction(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+    protected onSnowBumper(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        this.onGeneralSecondaryInteraction(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    protected onDarkCrystal(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-        this.onGeneralSecondaryInteraction(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+    protected onDarkCrystal(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        this.onGeneralSecondaryInteraction(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    protected onLpcChamber(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    protected onLpcChamber(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!this.localTeam) return;
         if (!isSelfInteraction && isTeammate)
             this.levelHandler.onLpcChamberStop(interaction);
@@ -663,7 +662,7 @@ export class SocketHandler {
             playerTeam.runState.addLpcInteraction(interaction);
     }
 
-    protected onGeneralSecondaryInteraction(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    protected onGeneralSecondaryInteraction(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!this.localTeam) return;
         if (!isSelfInteraction && isTeammate)
             this.levelHandler.onInteraction(interaction);

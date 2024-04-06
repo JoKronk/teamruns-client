@@ -19,7 +19,7 @@ export class SocketHandlerLockout extends SocketHandler {
         super(socketPort, user, run, levelHandler, zone);
     }
 
-    override onTask(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    override onTask(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
 
         const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction, this.self.currentUsername);
         
@@ -80,14 +80,14 @@ export class SocketHandlerLockout extends SocketHandler {
         }
     }
     
-    override onBuzzer(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    override onBuzzer(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isTeammate)
             positionData.resetCurrentInteraction();
         
-        super.onBuzzer(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+        super.onBuzzer(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    override onOrb(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    override onOrb(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
 
         if (this.localTeam?.runState.isFalseOrb(interaction)) {
             positionData.resetCurrentInteraction();
@@ -97,111 +97,111 @@ export class SocketHandlerLockout extends SocketHandler {
         //could be written a lot smaller but I'm keeping it like this for a better readability
         if (!isTeammate) {
             if (this.run.teams.length !== 1) { //2+ teams, player interaction from enemy team
-                super.onOrb(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                super.onOrb(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
 
                 if (positionData.interaction) {
                     positionData.interaction.interCleanup = true;
                     interaction.interCleanup = true;
                 }
 
-                this.removeOrbWithoutOrbCounter(positionData, userId, interaction, isSelfInteraction);
+                this.removeOrbWithoutOrbCounter(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
             } 
             else { //1 team (FFA), not self
                 if (positionData.interaction) {
                     positionData.interaction.interCleanup = true;
                     interaction.interCleanup = true;
                 }
-                super.onOrb(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
-                this.removeOrbWithoutOrbCounter(positionData, userId, interaction, isSelfInteraction);
+                super.onOrb(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
+                this.removeOrbWithoutOrbCounter(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
             }
         }
 
         else if (!isSelfInteraction) { //2+ teams, interaction from teammate
-            super.onOrb(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+            super.onOrb(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
         }
 
         else {
             if (this.run.teams.length !== 1) { //2+ teams, self interaction
-                super.onOrb(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                super.onOrb(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
             } 
             else { //1 team (FFA), self interaction
-                super.onOrb(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+                super.onOrb(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
             }
         }
                 
     }
 
-    override onEco(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    override onEco(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isTeammate)
             positionData.resetCurrentInteraction();
         else
-            super.onEco(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+            super.onEco(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    override onFish(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    override onFish(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isTeammate)
             positionData.resetCurrentInteraction();
         else
-            super.onFish(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+            super.onFish(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    override onBossPhase(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    override onBossPhase(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isTeammate)
             positionData.resetCurrentInteraction();
         else
-            super.onBossPhase(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+            super.onBossPhase(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    override onCrate(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    override onCrate(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isTeammate && InteractionData.isBuzzerCrate(interaction))
             positionData.resetCurrentInteraction();
         else
-            super.onCrate(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+            super.onCrate(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    override onEnemyDeath(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    override onEnemyDeath(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isTeammate)
             positionData.resetCurrentInteraction();
         else
-            super.onEnemyDeath(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+            super.onEnemyDeath(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    override onPeriscope(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    override onPeriscope(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isTeammate)
             positionData.resetCurrentInteraction();
         else
-            super.onPeriscope(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+            super.onPeriscope(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    override onSnowBumper(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    override onSnowBumper(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isTeammate)
             positionData.resetCurrentInteraction();
         else
-            super.onSnowBumper(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+            super.onSnowBumper(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    override onDarkCrystal(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    override onDarkCrystal(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isTeammate)
             positionData.resetCurrentInteraction();
         else
-            super.onDarkCrystal(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+            super.onDarkCrystal(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
-    override onLpcChamber(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+    override onLpcChamber(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isTeammate)
             positionData.resetCurrentInteraction();
         else
-            super.onLpcChamber(positionData, userId, interaction, isSelfInteraction, playerTeam, isTeammate);
+            super.onLpcChamber(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
 
 
-    private removeOrbWithoutOrbCounter(positionData: CurrentPositionData, userId: string, interaction: UserInteractionData, isSelfInteraction: boolean) {
+    private removeOrbWithoutOrbCounter(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (positionData.interaction) {
             positionData.interaction.interCleanup = true;
             interaction.interCleanup = true;
         }
 
-        if (this.localTeam?.runState.checkDupeAddOrbInteraction(this.localTeam.players, userId, true, interaction)) {
+        if (this.localTeam?.runState.checkDupeAddOrbInteraction(this.localTeam.players, this.user.id, true, interaction)) {
             if (isSelfInteraction)
                 this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
         }
