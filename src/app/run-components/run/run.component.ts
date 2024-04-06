@@ -14,7 +14,7 @@ import { ConfirmComponent } from '../../dialogs/confirm/confirm.component';
 import { UserBase } from '../../common/user/user';
 import { GameTaskLevelTime } from '../../common/opengoal/game-task';
 import { TaskStatus } from '../../common/opengoal/task-status';
-import { AddPlayerComponent } from '../../dialogs/add-player/add-player.component';
+import { AddPlayerComponent, AddPlayerResponse } from '../../dialogs/add-player/add-player.component';
 import { OG } from '../../common/opengoal/og';
 import { Subscription } from 'rxjs';
 import { RunImportComponent } from 'src/app/dialogs/run-import/run-import.component';
@@ -57,12 +57,12 @@ export class RunComponent implements OnDestroy {
     });
   }
 
-  addLocalPlayer(teamId: number) {
-    const dialogSubscription = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run?.timer }).afterClosed().subscribe((player: LocalPlayerData | undefined) => {
+  addLocalPlayer() {
+    const dialogSubscription = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run }).afterClosed().subscribe((response: AddPlayerResponse | undefined) => {
       dialogSubscription.unsubscribe();
 
-      if (player && this.runHandler.run)
-        this.runHandler.setupLocalSecondaryPlayer(player, teamId);
+      if (response?.player && this.runHandler.run)
+        this.runHandler.setupLocalSecondaryPlayer(response.player, response.teamId);
     });
   }
   

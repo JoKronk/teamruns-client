@@ -14,12 +14,13 @@ import { UserService } from 'src/app/services/user.service';
 export class AddPlayerComponent implements OnDestroy {
 
   phase: number = 0;
+  teamId: number = 0;
 
   username: string;
   pw: string;
   
   user: User = new User();
-  localPlayer: LocalPlayerData | undefined = undefined;
+  response: AddPlayerResponse | undefined = undefined;
   localPlayerCompleted: boolean = false;
 
   constructor(@Inject(MAT_DIALOG_DATA) public run: Run, private _user: UserService, private _firestore: FireStoreService, private zone: NgZone, public dialogRef: MatDialogRef<AddPlayerComponent>) {
@@ -75,15 +76,15 @@ export class AddPlayerComponent implements OnDestroy {
   }
 
   updateControllerPort() {
-    if (this.localPlayer && this.user.controllerPort)
-      this.localPlayer.socketHandler.changeController(this.user.controllerPort);
+    if (this.response?.player && this.user.controllerPort)
+      this.response.player.socketHandler.changeController(this.user.controllerPort);
   }
 
   startNewLocalGame() {
     this.phase = 3;
-    this.localPlayer = this._user.startGame(this.user, this.run);
+    this.response = new AddPlayerResponse(this._user.startGame(this.user, this.run), this.teamId);
 
-    if (!this.localPlayer) {
+    if (!this.response.player) {
       this._user.sendNotification("Unable to contact backend");
       this.close();
       return;
@@ -92,16 +93,26 @@ export class AddPlayerComponent implements OnDestroy {
 
   confirm() {
     this.localPlayerCompleted = true;
-    this.dialogRef.close(this.localPlayer);
+    this.dialogRef.close(this.response);
   }
 
   close() {
-    this.dialogRef.close(this.localPlayer);
+    this.dialogRef.close(this.response);
   }
 
   ngOnDestroy(): void {
-    if (!this.localPlayerCompleted && this.localPlayer)
-    this._user.removeLocalPlayer(this.localPlayer.user.id);
+    if (!this.localPlayerCompleted && this.response?.player)
+    this._user.removeLocalPlayer(this.response.player.user.id);
   }
 
+}
+
+export class AddPlayerResponse {
+  teamId: number;
+  player: LocalPlayerData | undefined;
+
+  constructor(player: LocalPlayerData | undefined, teamId: number) {
+    this.teamId = teamId;
+    this.player = player;
+  }
 }

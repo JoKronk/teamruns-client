@@ -14,7 +14,6 @@ import { ConfirmComponent } from '../../dialogs/confirm/confirm.component';
 import { UserBase } from '../../common/user/user';
 import { TaskStatus } from '../../common/opengoal/task-status';
 import { AddPlayerComponent } from '../../dialogs/add-player/add-player.component';
-import { Player } from '../../common/player/player';
 import { OG } from '../../common/opengoal/og';
 import { LocalSave } from 'src/app/common/level/local-save';
 import { OgCommand } from 'src/app/common/socket/og-command';

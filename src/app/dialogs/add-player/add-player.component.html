@@ -2,7 +2,14 @@
     <p id="title">Add Player</p>
 
     <div *ngIf="phase === 0">
-        <p>Select account type for new local player.</p>
+        <p>Select account type and team for player</p>
+
+        <div class="option-teams">
+          <select [(ngModel)]="teamId">
+            <option *ngFor="let team of run.teams" [ngValue]="team.id">{{ team.name }}</option>
+          </select>
+        </div>
+
         <button (click)="phase = 1">Play as Guest</button>
         <button (click)="phase = 2">Login as User</button>
     </div>
