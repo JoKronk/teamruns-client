@@ -7,6 +7,7 @@ import { InteractionData, UserInteractionData } from "../socket/interaction-data
 import { InteractionType } from "../opengoal/interaction-type";
 import { TaskStatus } from "../opengoal/task-status";
 import { OgCommand } from "../socket/og-command";
+import { GameState } from "../opengoal/game-state";
 
 export class LevelHandler {
 
@@ -17,7 +18,7 @@ export class LevelHandler {
 
     }
 
-    importRunStateHandler(runStateHandler: RunStateHandler, socketHandler: SocketHandler, orbCount: number, hardReset: boolean) {
+    importRunStateHandler(runStateHandler: RunStateHandler, socketHandler: SocketHandler, gameState: GameState, hardReset: boolean) {
         
         this.uncollectedLevelItems = new RunStateHandler();
 
@@ -63,12 +64,14 @@ export class LevelHandler {
 
             setTimeout(() => { //give time for buzzer crate to get destoryed
                 level.interactions.filter(x => x.interType == InteractionType.buzzer).forEach(interaction => {
+                    if (gameState.buzzerCount === 0) //re give all scoutflies if restart
+                        interaction.interCleanup = false;
                     this.resendCommonInteraction(interaction, socketHandler);
                 });
             }, 500);
         });
         
-        const orbAdjustCount = runStateHandler.orbCount - orbCount;
+        const orbAdjustCount = runStateHandler.orbCount - gameState.orbCount;
         socketHandler.addOrbAdjustmentToCurrentPlayer(orbAdjustCount);
     }
 

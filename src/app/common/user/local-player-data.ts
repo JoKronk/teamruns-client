@@ -37,7 +37,7 @@ export class LocalPlayerData {
   }
 
   importRunStateHandler(runStateHandler: RunStateHandler, hardReset: boolean = false) {
-    this.levelHandler.importRunStateHandler(runStateHandler, this.socketHandler, this.gameState.orbCount, hardReset);
+    this.levelHandler.importRunStateHandler(runStateHandler, this.socketHandler, this.gameState, hardReset);
   }
 
   updateTeam(team: Team | undefined) {
