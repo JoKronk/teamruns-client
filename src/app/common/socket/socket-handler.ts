@@ -395,7 +395,7 @@ export class SocketHandler {
         if (!this.drawPositions) return;
 
         //handle recordings
-        if (this.timer.totalMs > 0) {
+        if (this.timer.totalMs > 0 && this.timer.runState === RunState.Started) {
             this.recordings.forEach(recording => {
                 const positionData = recording.getNextPositionData(this.timer.totalMs);
                 if (positionData) {
@@ -575,7 +575,7 @@ export class SocketHandler {
         if (isCell && isNewTaskStatus) { // end run split added in EndPlayerRun event
             if (!this.run.isMode(RunMode.Casual))
                 this.socketPackage.timer?.updateSplit(task, undefined);
-
+            
             if (this,this.isLocalMainPlayer) {
                 this.zone.run(() => {
                     this.run.addSplit(new Task(task));
