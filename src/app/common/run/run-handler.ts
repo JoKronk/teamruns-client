@@ -165,7 +165,7 @@ export class RunHandler {
         console.log("Got Lobby Change!");
         //become master if needed (for example host disconnect or no host at start)
         if (this.shouldBecomeHost(userId)) {
-            let player = this.getUser(userId);
+            let player = this.run?.getPlayer(userId);
             if (!player) return;
 
             console.log("Becomming host!");
@@ -251,10 +251,6 @@ export class RunHandler {
         }
 
         this.connected = false;
-    }
-
-    getUser(userId: string): Player | undefined {
-        return this.run?.getPlayer(userId);
     }
 
     isSpectatorOrNull(userId: string | undefined) {
@@ -654,7 +650,7 @@ export class RunHandler {
 
             case EventType.ChangeTeam:
                 this.zone.run(() => {
-                    const user = this.getUser(event.userId)?.user;
+                    const user = this.run?.getPlayer(event.userId)?.user;
                     this.run?.changeTeam(user, event.value);
                     this.updateAllPlayerInfo();
                 });
@@ -793,13 +789,15 @@ export class RunHandler {
 
         this.run?.teams.forEach(team => {
             team.resetForRun(false);
-            if (!this.run?.isMode(RunMode.Casual) && !team.everyoneOnSameVersion())
-                this.userService.sendNotification("OpenGOAL version mismatch found in \"" + team.name + "\" run for team marked invalid.", 10000);
-
+            if (!this.run?.isMode(RunMode.Casual)) {
+                if (!team.everyoneOnSameVersion())
+                    this.userService.sendNotification("OpenGOAL version mismatch found in \"" + team.name + "\" run for team marked invalid.", 10000);
+    
                 if (mainLocalPlayer?.socketHandler.localTeam?.id === team.id && this.isHost() && team.players.find(x => x.user.id === mainLocalPlayer.user.id)?.gameState.gameVersion !== this.userService.user.gameVersion) {
                     team.runIsValid = false;
                     this.userService.sendNotification("OpenGOAL version mismatch for host, run for team marked invalid.", 10000);
                 }
+            }
 
         });
         this.userService.localUsers.forEach(localPlayer => {

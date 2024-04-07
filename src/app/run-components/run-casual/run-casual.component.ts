@@ -51,7 +51,10 @@ export class RunCasualComponent implements OnDestroy {
         
         this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.run, this.zone);
         this.runHandler.setupLocalMainPlayer(this.mainLocalPlayer);
-        this.toggleReady();
+        setTimeout(() => {
+          this.switchTeam(0);
+          this.toggleReady();
+        }, 1000);
         
       });
     });
