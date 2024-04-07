@@ -29,6 +29,7 @@ import { OG } from "../opengoal/og";
 import pkg from 'app/package.json';
 import { LocalSave } from "../level/local-save";
 import { CommandBuffer } from "./command-buffer";
+import { TimerPackage } from "./timer-package";
 
 export class SocketHandler {
 
@@ -90,6 +91,7 @@ export class SocketHandler {
                 this.socketConnected = false;
                 this.timer.removeSocketCommandBuffer(this.user.id);
                 this.socketCommandBuffer = [];
+                this.socketPackage.timer = undefined;
                 this.self.interactionBuffer = [];
                 this.players.forEach(player => {
                     player.checkUpdateUsername("");
@@ -461,6 +463,12 @@ export class SocketHandler {
 
         if (this.socketCommandBuffer.length !== 0)
             this.socketPackage.command = this.socketCommandBuffer.shift();
+
+        if (this.timer.totalMs > 0 && this.timer.runState === RunState.Started && !this.run.isMode(RunMode.Casual)) {
+            if (!this.socketPackage.timer) this.socketPackage.timer = new TimerPackage();
+            this.socketPackage.timer.updateTime(this.timer.totalMs);
+        }
+
         this.socketPackage.players = sendPlayers ? this.players.flatMap(x => x.positionData) : undefined;
         this.ogSocket.next(this.socketPackage);
         
@@ -564,10 +572,15 @@ export class SocketHandler {
         const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus));
         const isNewTaskStatus: boolean = playerTeam.runState.isNewTaskStatus(interaction);
 
-        if (isCell && isNewTaskStatus && this.isLocalMainPlayer) { // end run split added in EndPlayerRun event
-            this.zone.run(() => {
-                this.run.addSplit(new Task(task));
-            });
+        if (isCell && isNewTaskStatus) { // end run split added in EndPlayerRun event
+            if (!this.run.isMode(RunMode.Casual))
+                this.socketPackage.timer?.updateSplit(task, undefined);
+
+            if (this,this.isLocalMainPlayer) {
+                this.zone.run(() => {
+                    this.run.addSplit(new Task(task));
+                });
+            }
         }
         this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
 

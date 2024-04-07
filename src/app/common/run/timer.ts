@@ -192,9 +192,22 @@ export class Timer {
       return ("0" + Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))).slice(-2);
   }
 
+  public static getMinutesSimple(ms: number): number {
+      return Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  }
+
   public static getSecond(ms: number): string {
       return ("0" + Math.abs(Math.floor((ms % (1000 * 60)) / 1000))).slice(-2);
   }
+
+  public static getSecondSimple(ms: number): number {
+      return Math.abs(Math.floor((ms % (1000 * 60)) / 1000));
+  }
+
+  public static getMsSimple(ms: number): number {
+      return Math.trunc(Math.floor((ms % 1000)) / 100);
+  }
+
 
   public static msToTimeFormat(ms: number, includeMs: boolean = false, shortenedFormat: boolean = false): string {
     let time: string = Timer.getHour(ms) + ":" + Timer.getMinutes(ms) + ":" + Timer.getSecond(ms);
