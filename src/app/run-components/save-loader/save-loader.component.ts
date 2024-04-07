@@ -46,10 +46,6 @@ export class SaveLoaderComponent implements OnDestroy {
     });
   }
 
-  openSavesFolder() {
-    (window as any).electron.send('save-open');
-  }
-
   ngOnDestroy(): void {
     this.fileListener();
   }

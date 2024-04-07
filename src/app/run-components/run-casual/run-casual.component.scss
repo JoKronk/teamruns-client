@@ -121,6 +121,46 @@
             }
         }
     }
+    &-sidenav {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+
+        &-content {
+            flex-grow: 3;
+        }
+        &-menu {
+            flex-shrink: 1;
+            margin: 20px 10px;
+            &-container {
+                flex-shrink: 1;
+                display: flex;
+                justify-content: center;
+            }
+            & button {
+                border: 1px solid rgba(24, 24, 24, 0.8);
+                background: rgba(24, 24, 24, 0.7);
+                border-radius: 4px;
+                height: 58px;
+                width: 120px;
+                transition: 0.3s;
+                transition-timing-function: ease;
+                color: #cecece;
+                font-size: 18px;
+
+                font-family: 'jak';
+                font-size: 22px;
+                outline: none;
+                transition: 0.2s;
+                &:hover:enabled {
+                    cursor: pointer;
+                    color: #cccccc;
+                    border: 1px solid #575757;
+                    background: rgba(14, 14, 14, 0.8);
+                }
+            }
+        }
+    }
 }
 
 .team {
@@ -224,7 +264,7 @@
         flex-grow: 1;
         margin: 32px 10px;
         font-family: 'Roboto';
-        font-size: 22px;
+        font-size: 18px;
         color: #cccccc;
     }
 }

@@ -793,7 +793,7 @@ export class RunHandler {
 
         this.run?.teams.forEach(team => {
             team.resetForRun(false);
-            if (!team.everyoneOnSameVersion())
+            if (!this.run?.isMode(RunMode.Casual) && !team.everyoneOnSameVersion())
                 this.userService.sendNotification("OpenGOAL version mismatch found in \"" + team.name + "\" run for team marked invalid.", 10000);
 
                 if (mainLocalPlayer?.socketHandler.localTeam?.id === team.id && this.isHost() && team.players.find(x => x.user.id === mainLocalPlayer.user.id)?.gameState.gameVersion !== this.userService.user.gameVersion) {

@@ -13,7 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmComponent } from '../../dialogs/confirm/confirm.component';
 import { UserBase } from '../../common/user/user';
 import { TaskStatus } from '../../common/opengoal/task-status';
-import { AddPlayerComponent } from '../../dialogs/add-player/add-player.component';
+import { AddPlayerComponent, AddPlayerResponse } from '../../dialogs/add-player/add-player.component';
 import { OG } from '../../common/opengoal/og';
 import { LocalSave } from 'src/app/common/level/local-save';
 import { OgCommand } from 'src/app/common/socket/og-command';
@@ -58,14 +58,14 @@ export class RunCasualComponent implements OnDestroy {
   }
 
 
-  addLocalPlayer(teamId: number) {
+  addLocalPlayer() {
     const dialogRef = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run });
-    const dialogSubscription = dialogRef.afterClosed().subscribe((player: LocalPlayerData | undefined) => {
+    const dialogSubscription = dialogRef.afterClosed().subscribe((response: AddPlayerResponse | undefined) => {
       dialogSubscription.unsubscribe();
 
-      if (player && this.runHandler.run) {
-        this.runHandler.setupLocalSecondaryPlayer(player, teamId);
-        player.socketHandler.addCommand(OgCommand.StartRun);
+      if (response?.player && this.runHandler.run) {
+        this.runHandler.setupLocalSecondaryPlayer(response.player, response.teamId);
+        response.player.socketHandler.addCommand(OgCommand.StartRun);
       }
     });
   }
@@ -106,6 +106,10 @@ export class RunCasualComponent implements OnDestroy {
       }
     });
     this.hasLoadedFile = true;
+  }
+
+  openSavesFolder() {
+    (window as any).electron.send('save-open');
   }
 
 

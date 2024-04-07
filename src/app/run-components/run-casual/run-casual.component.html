@@ -6,7 +6,19 @@
       </div>
   
       <!-- SAVES -->
-      <app-save-loader *ngIf="runHandler.lobby?.host?.id === mainLocalPlayer?.user?.id" [hideFiles]="hasLoadedFile" (onLoadSave)="loadSave($event)"></app-save-loader>
+      <div class="run-sidenav">
+        <div class="run-sidenav-content">
+          <app-save-loader *ngIf="runHandler.lobby?.host?.id === mainLocalPlayer?.user?.id" [hideFiles]="hasLoadedFile" (onLoadSave)="loadSave($event)"></app-save-loader>
+        </div>
+        <div class="run-sidenav-menu-container" *ngIf="runHandler.connected && runHandler.run">
+          <div class="run-sidenav-menu">
+            <button (click)="openSavesFolder()">Saves Folder</button>
+          </div>
+          <div class="run-sidenav-menu">
+            <button (click)="addLocalPlayer()">Add Local Player</button>
+          </div>
+        </div>
+      </div>
     </mat-sidenav>
   
     <mat-sidenav-content class="run">
@@ -27,9 +39,6 @@
                     <span class="run-info-teams-cells-cont"><img class="run-info-teams-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>
                     <span *ngIf="runHandler.lobby?.host?.id === mainLocalPlayer.user.id && player.user.id !== mainLocalPlayer.user.id" class="run-info-teams-kick" (click)="kickPlayer(player.user)">X</span>
                   </p>
-                </div>
-                <div class="team-add-local">
-                  <button (click)="addLocalPlayer(team.id)">Add Local Player</button>
                 </div>
               </div>
             </div>
