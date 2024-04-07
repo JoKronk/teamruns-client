@@ -82,8 +82,7 @@ export class LocalPlayerData {
   }
 
   onDestroy(): void {
-    if (OG.mainPort !== this.socketHandler.socketPort)
-      (window as any).electron.send('og-close-game', this.socketHandler.socketPort);
+    (window as any).electron.send('og-close-game', this.socketHandler.socketPort);
     
     this.socketHandler.onDestroy();
   }
