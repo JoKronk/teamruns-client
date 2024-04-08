@@ -520,6 +520,13 @@ export class SocketHandler {
         }
         else
             this.shortTermInteractionMemory.push(new ShortMemoryInteraction(interaction, this.timer.totalMs));
+
+        //zoomer scoutfly pickup fix (so fast it doesn't have time to kill the box before it tries to kill the buzzer)
+        if (!isSelfInteraction && interaction.interType === InteractionType.buzzer && ((this.shortTermInteractionMemory.find(x => x.interaction.interName === interaction.interParent)?.reciveTimeMs ?? 0) + 150) > this.timer.totalMs) {
+            setTimeout(() => {
+                this.self.interactionBuffer.push(interaction);
+            }, 300);
+        }
         
         switch (positionData.interaction.interType) {
 
