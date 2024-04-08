@@ -100,7 +100,7 @@ export class RunStateHandler {
             entity ? entity.addOrbCollection(teamPlayers, selfId) : this.orbValidations.push(new OrbCollection(interaction.interName, selfId)); //add orb collection
         }
         //orb collection checks
-        else if ((interaction.interName === "money" || interaction.interName === "") || interaction.interParent !== undefined) {
+        else if (InteractionData.isFromOrbCollection(interaction)) {
             addToOrbCount = interaction.userId === selfId;
             if (interaction.interParent.startsWith("orb-cache-top-")) {
                 if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, this.getOrbCacheAmount(interaction.interParent) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))

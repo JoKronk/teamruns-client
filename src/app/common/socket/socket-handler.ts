@@ -30,6 +30,7 @@ import pkg from 'app/package.json';
 import { LocalSave } from "../level/local-save";
 import { CommandBuffer } from "./command-buffer";
 import { TimerPackage } from "./timer-package";
+import { ShortMemoryInteraction } from "./short-memory-interaction";
 
 export class SocketHandler {
 
@@ -49,6 +50,8 @@ export class SocketHandler {
     protected players: CurrentPlayerData[] = [];
     private drawPositions: boolean = false;
     private positionUpdateRateMs: number = 8;
+    
+    private shortTermInteractionMemory: ShortMemoryInteraction[] = [];
 
     private socketCommandBuffer: OgCommand[] = []; 
     private socketPackage: SocketPackage = new SocketPackage();
@@ -486,6 +489,21 @@ export class SocketHandler {
         this.sendSocketPackageToOpengoal();
     }
     
+    private cleanShortTermMemory() {
+        this.shortTermInteractionMemory = this.shortTermInteractionMemory.filter(x => (x.reciveTimeMs + 1000) > this.timer.totalMs);
+    }
+    
+    private hasInteractionInMemory(interaction: UserInteractionData): boolean {
+        this.cleanShortTermMemory();
+
+        if (InteractionData.isFromOrbCollection(interaction))
+            return false;
+
+        if (this.shortTermInteractionMemory.some(x => InteractionData.areIdentical(x.interaction, interaction)))
+            return true;
+
+        return false;
+    }
 
     private handlePlayerInteractions(positionData: CurrentPositionData) {
         if (!positionData.interaction || positionData.interaction.interType === InteractionType.none || positionData.interaction.interCleanup) return;
@@ -495,7 +513,14 @@ export class SocketHandler {
         if (!this.localTeam || !playerTeam) return;
         const isTeammate = isSelfInteraction || (playerTeam.id === this.localTeam.id && (this.run.teams.length !== 1 || !RunMod.singleTeamEqualsFFA(this.run.data.mode)));
         //interactions on game side is executed if the target the interaction belongs to is set to interactive, to avoid use positionData.resetCurrentInteraction();
-
+        
+        if (this.hasInteractionInMemory(interaction)) {
+            positionData.resetCurrentInteraction();
+            return;
+        }
+        else
+            this.shortTermInteractionMemory.push(new ShortMemoryInteraction(interaction, this.timer.totalMs));
+        
         switch (positionData.interaction.interType) {
 
             case InteractionType.gameTask:

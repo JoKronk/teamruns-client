@@ -43,6 +43,20 @@ export class InteractionData {
         }
     }
 
+    static isFromOrbCollection(interaction: InteractionData): boolean {
+        return interaction.interType === InteractionType.money && (interaction.interName === "money" || interaction.interName === "" || interaction.interParent !== undefined);
+    }
+
+    //orb collection interactions are never equal, thus areIdentical()
+    static areIdentical(interaction1: InteractionData, interaction2: InteractionData): boolean {
+        return interaction1.interType === interaction2.interType &&
+        interaction1.interName === interaction2.interName &&
+        interaction1.interAmount === interaction2.interAmount &&
+        interaction1.interStatus === interaction2.interStatus &&
+        interaction1.interParent === interaction2.interParent &&
+        interaction1.interLevel === interaction2.interLevel;
+    }
+
     public static isBuzzerCrate(interaction: InteractionData) {
         return interaction.interType === InteractionType.crate && interaction.interStatus === CrateType.crateIron;
     }
