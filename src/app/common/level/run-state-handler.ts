@@ -40,6 +40,9 @@ export class RunStateHandler {
     }
 
     private pushLevelCleanupInteraction(level: LevelInteractions, interaction: UserInteractionData) {
+        if (!InteractionData.isFromOrbCollection(interaction) && level.interactions.some(x => InteractionData.areIdentical(x, interaction)))
+            return;
+        
         const storedInteraction = new UserInteractionData(interaction, interaction.userId);
         storedInteraction.interCleanup = true;
         level.interactions.push(storedInteraction);
