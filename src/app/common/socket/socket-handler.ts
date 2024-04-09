@@ -650,7 +650,7 @@ export class SocketHandler {
             return;
         }
         
-        if (playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players, this.user.id, (this.isLocalMainPlayer || this.run.isFFA), interaction)) {
+        if (playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players, this.user.id, this.isLocalMainPlayer, this.run.isFFA, interaction)) {
             if (isSelfInteraction)
                 this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
             else if (!interaction.interCleanup)
