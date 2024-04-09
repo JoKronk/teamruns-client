@@ -527,7 +527,7 @@ export class SocketHandler {
                 this.self.interactionBuffer.push(interaction);
             }, 300);
         }
-        
+
         switch (positionData.interaction.interType) {
 
             case InteractionType.gameTask:
@@ -590,7 +590,7 @@ export class SocketHandler {
         const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction, isSelfInteraction ? this.user.displayName : playerTeam.players.find(x => x.user.id === interaction.userId)?.user.name ?? "Unknown");
 
         //check duped cell buy
-        if (isSelfInteraction && Task.isCellWithCost(task.name) && this.localTeam && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution)) {
+        if (isSelfInteraction && Task.isCellWithCost(task.name) && this.localTeam && !interaction.interCleanup && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution)) {
             this.addOrbAdjustmentToCurrentPlayer((Task.cellCost(interaction)), interaction.interLevel);
             return;
         }
