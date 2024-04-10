@@ -679,11 +679,11 @@ export class RunHandler {
             case EventType.Ready:
                 //repeat for locals
                 if (event.userId === userId) {
-                    this.userService.localUsers.forEach(localPlayer => {
-                        if (localPlayer.user.id === userId) return;
+                    for (let localPlayer of this.userService.localUsers) {
+                        if (localPlayer.user.id === userId) continue;
                         localPlayer.state = event.value;
                         this.sendEvent(EventType.Ready, localPlayer.user.id, event.value);
-                    });
+                    }
                     this.selfImportedRecordings.forEach(recPlayer => {
                         this.sendEvent(EventType.Ready, recPlayer.id, event.value);
                     })
@@ -719,11 +719,11 @@ export class RunHandler {
             case EventType.ToggleReset:
                 //repeat for locals
                 if (event.userId === userId) {
-                    this.userService.localUsers.forEach(localPlayer => {
-                        if (localPlayer.user.id === userId) return;
+                    for (let localPlayer of this.userService.localUsers) {
+                        if (localPlayer.user.id === userId) continue;
                         localPlayer.state = event.value;
                         this.sendEvent(EventType.ToggleReset, localPlayer.user.id, event.value);
-                    });
+                    }
                     this.selfImportedRecordings.forEach(recPlayer => {
                         this.sendEvent(EventType.ToggleReset, recPlayer.id, event.value);
                     })

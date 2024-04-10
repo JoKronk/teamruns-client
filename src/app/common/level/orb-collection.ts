@@ -18,12 +18,12 @@ export class OrbCollection {
 
         if (!this.collectedByIds) return; //already collected by everyone
         
-        players.forEach(player => {
+        for (let player of players) {
             if (player.user.id !== userId && !this.collectedByIds?.includes(player.user.id)) {
                 collectedByAll = false;
-                return;
+                break;
             }
-        });
+        }
 
         if (collectedByAll)
             this.collectedByIds = null;

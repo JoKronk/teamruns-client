@@ -222,16 +222,18 @@ export class Run {
 
     checkRunEndValid(teamId: number): string | undefined {
         let msg: string | undefined = undefined;
-        this.teams.forEach(team => {
+        for (let team of this.teams) {
             let isPlayerTeam = team.id === teamId;
             if (!team.runIsValid) { 
-                if (isPlayerTeam) msg = "Run invalid from earlier.";
-                return;
+                if (isPlayerTeam) 
+                    msg = "Run invalid from earlier.";
+                
+                continue;
             }
 
             if (team.players.some(x => x.state === PlayerState.Forfeit)) {
                 team.runIsValid = false;
-                return;
+                continue;
             }
 
             switch (this.data.category) {
@@ -279,24 +281,24 @@ export class Run {
                     msg = "Run invalid, category is not a registered speedrun category.";
                     break;
             }
-        });
+        }
         return msg;
     }
 
     getRemotePlayerInfo(userId: string): RemotePlayerInfo | undefined {
         let playerIndex = 0;
         let playerInfo: RemotePlayerInfo | undefined = undefined;
-        this.teams.forEach(team => {
-            team.players.forEach(player => {
+        for (let team of this.teams) {
+            for (let player of team.players) {
                 if (player.user.id === userId) {
                     playerInfo = new RemotePlayerInfo(team.id, playerIndex, player.cellsCollected);
-                    return;
+                    break;
                 }
                 playerIndex += 1;
-            });
+            }
             if (playerInfo)
-                return;
-        });
+                break;
+        }
         return playerInfo;
     }
 

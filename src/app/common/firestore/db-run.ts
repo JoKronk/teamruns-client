@@ -108,9 +108,9 @@ export class DbRun {
                     
             
                     //fill leaderboards with pbs (filtered by valid and signed in)
-                    this.teams.filter(x => x.endTimeMs !== 0 && x.runIsValid && x.players.every(player => signedInPlayerIds.includes(player.user.id))).forEach(team => {
+                    for (let team of this.teams.filter(x => x.endTimeMs !== 0 && x.runIsValid && x.players.every(player => signedInPlayerIds.includes(player.user.id)))) {
                         let leaderboard = leaderboards.find(x => x.players === team.players.length);
-                        if (!leaderboard) return;
+                        if (!leaderboard) continue;
                         const leaderboardIndex = leaderboards.indexOf(leaderboard);
                         leaderboard = Object.assign(new DbLeaderboard(leaderboard.category, leaderboard.sameLevel, leaderboard.players), leaderboard);
             
@@ -163,7 +163,7 @@ export class DbRun {
                             leaderboard.id = leaderboardId; //id gets removed at upload this is a "quick fix" as it's needed for other teams
                             leaderboards[leaderboardIndex] = leaderboard; //needed as reference is probably lost when object is created anew
                         }
-                    });
+                    }
                     return pbUsers;
                 })); 
     }

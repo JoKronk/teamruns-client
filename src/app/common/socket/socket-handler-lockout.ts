@@ -39,12 +39,12 @@ export class SocketHandlerLockout extends SocketHandler {
         const isNewTaskStatusForSelfTeam: boolean = this.localTeam?.runState.isNewTaskStatus(interaction) ?? false;
         
         let isNewTaskStatus: boolean = true;
-        this.run.teams.forEach(team => {
+        for (let team of this.run.teams) {
             if (!team.runState.isNewTaskStatus(interaction)) {
                 isNewTaskStatus = false;
-                return;
+                break;
             }
-        });
+        }
 
         if (isCell && (this.run.isFFA ? !this.run.hasSplit(task.name) : isNewTaskStatus)) { // end run split added in EndPlayerRun event
             this.zone.run(() => {
