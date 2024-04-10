@@ -24,7 +24,9 @@ export class RunCleanupHandler extends RunStateHandler {
 
         //import task statuses to game
         runStateHandler.tasksStatuses.forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler);
+            const modifiedInteraction = interaction;
+            modifiedInteraction.interCleanup = true;
+            this.resendCommonInteraction(modifiedInteraction, socketHandler);
         });
 
         //update collectables
