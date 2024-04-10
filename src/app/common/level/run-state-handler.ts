@@ -222,10 +222,10 @@ export class RunStateHandler {
         let level = this.levelStatuses.find(x => x.name === levelName);
         if (!level)
             return false;
-        return level.status === LevelStatus.Active || level.status === LevelStatus.Alive;
+        return level.status.startsWith(LevelStatus.DisplayedBase);
     }
 
     protected getLoadedLevels(): LevelStatus[] {
-        return this.levelStatuses.filter(x => x.status === LevelStatus.Active || x.status === LevelStatus.Alive);;
+        return this.levelStatuses.filter(x => x.status.startsWith(LevelStatus.DisplayedBase));
     }
 }

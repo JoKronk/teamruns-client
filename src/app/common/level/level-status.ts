@@ -7,8 +7,8 @@ export class LevelStatus {
         this.status = status;
     }
 
-    public static Active = "active";
-    public static Alive = "alive";
-    public static Loaded = "loaded";
-    public static Deactive = "deactive";
+    public static DisplayedBase = "display"; //!NOTE: There's serveral 'display-' types, might be good to check for starts with Displayed
+    public static SpecialVis = "special-vis";
+    public static Special = "special";
+    public static Deloaded = "#f";
 }
