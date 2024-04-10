@@ -49,12 +49,15 @@ export class InteractionData {
 
     //orb collection interactions are never equal, thus areIdentical()
     static areIdentical(interaction1: InteractionData, interaction2: InteractionData): boolean {
-        return interaction1.interType === interaction2.interType &&
-        interaction1.interName === interaction2.interName &&
-        interaction1.interAmount === interaction2.interAmount &&
-        interaction1.interStatus === interaction2.interStatus &&
-        interaction1.interParent === interaction2.interParent &&
-        interaction1.interLevel === interaction2.interLevel;
+        return interaction1.interType === interaction2.interType
+        && interaction1.interName === interaction2.interName
+        && interaction1.interAmount === interaction2.interAmount
+        && interaction1.interStatus === interaction2.interStatus
+        && interaction1.interParent === interaction2.interParent;
+        //&& interaction1.interLevel === interaction2.interLevel;
+
+        //level check removed as cleanup interaction will trigger for the cleanup player already in the level they are entering from, giving a false level origin in comparison to the original interaction once sent back to the client
+        //example: p1 kills pelican in beach, p2 on beach load will have the pelican killed while in village1, sending a pelican killed interaction for him from village1 instead of beach
     }
 
     public static isBuzzerCrate(interaction: InteractionData) {
