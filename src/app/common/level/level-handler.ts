@@ -70,7 +70,7 @@ export class LevelHandler {
                 });
             }, 500);
         });
-        
+
         const orbAdjustCount = runStateHandler.orbCount - gameState.orbCount;
         socketHandler.addOrbAdjustmentToCurrentPlayer(orbAdjustCount);
     }
@@ -145,12 +145,11 @@ export class LevelHandler {
                 socketHandler.addPlayerInteraction(interaction);
             });
 
-
+            const buzzerUpdates = level!.interactions.filter(x => x.interType == InteractionType.buzzer);
             setTimeout(() => { //give time for buzzer crate to get destoryed
-                const buzzerUpdates = level!.interactions.filter(x => x.interType == InteractionType.buzzer);
                 buzzerUpdates.forEach((interaction, index) => {
                     // cheap way of marking that this is the last buzzer and pickup should be ran on it.
-                    if (index + 1 === buzzerUpdates.length && interaction.interName == "buzzer") 
+                    if (index + 1 === buzzerUpdates.length && interaction.interName === "buzzer") 
                         interaction.interName = "buzzer-last"; //!TODO: does produce a cell spawn bug on enter if the last fly is a lpc minigame one
                         
                     socketHandler.addPlayerInteraction(interaction);
