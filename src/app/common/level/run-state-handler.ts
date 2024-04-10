@@ -103,24 +103,24 @@ export class RunStateHandler {
         //orb collection checks
         else if (InteractionData.isFromOrbCollection(interaction)) {
             if (interaction.interParent.startsWith("orb-cache-top-")) {
-                if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, this.getOrbCacheAmount(interaction.interParent) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, (this.getOrbCacheAmount(interaction.interParent) - 1) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
                     return true;    
             }
     
             else if (interaction.interParent.startsWith("crate-")) {
                 let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x) && x.interName === interaction.interParent);
-                if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, parentCrate !== undefined && parentCrate.interAmount <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, parentCrate !== undefined && (parentCrate.interAmount - 1) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
                     return true;
             }
     
             else if (interaction.interParent.startsWith("gnawer-")) {
                 let parentGnawer = level.interactions.find(x => x.interType === InteractionType.enemyDeath && x.interName === interaction.interParent);
-                if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, parentGnawer !== undefined && parentGnawer.interAmount <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, parentGnawer !== undefined && (parentGnawer.interAmount - 1) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
                     return true;
             }
     
             else if (interaction.interParent.startsWith("plant-boss-")) {
-                if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, 5 <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, (5 - 1) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
                     return true;
             }
         }
