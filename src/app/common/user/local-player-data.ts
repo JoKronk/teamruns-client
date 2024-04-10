@@ -5,10 +5,9 @@ import { Run } from "../run/run";
 import { Team } from "../run/team";
 import { User } from "./user";
 import { SocketHandler } from "../socket/socket-handler";
-import { LevelHandler } from "../level/level-handler";
+import { RunCleanupHandler } from "../level/run-cleanup-handler";
 import { NgZone } from "@angular/core";
 import { RunStateHandler } from "../level/run-state-handler";
-import { OG } from "../opengoal/og";
 import { SocketHandlerLockout } from "../socket/socket-handler-lockout";
 
 export class LocalPlayerData {
@@ -18,7 +17,7 @@ export class LocalPlayerData {
   state: PlayerState = PlayerState.Neutral;
 
   socketHandler: SocketHandler;
-  levelHandler: LevelHandler = new LevelHandler();
+  cleanupHandler: RunCleanupHandler = new RunCleanupHandler();
 
   constructor(user: User, port: number, run: Run, zone: NgZone) {
     this.user = user;
@@ -26,16 +25,16 @@ export class LocalPlayerData {
 
     switch (run.data.mode) {
       case RunMode.Lockout:
-        this.socketHandler = new SocketHandlerLockout(port, user, run, this.levelHandler, zone);
+        this.socketHandler = new SocketHandlerLockout(port, user, run, this.cleanupHandler, zone);
         break;
       default:
-        this.socketHandler = new SocketHandler(port, user, run, this.levelHandler, zone);
+        this.socketHandler = new SocketHandler(port, user, run, this.cleanupHandler, zone);
         break;
     }
   }
 
   importRunStateHandler(runStateHandler: RunStateHandler, hardReset: boolean = false) {
-    this.levelHandler.importRunStateHandler(runStateHandler, this.socketHandler, this.gameState, hardReset);
+    this.cleanupHandler.importRunState(runStateHandler, this.socketHandler, this.gameState, hardReset);
 
     setTimeout(() => {
       if (this.socketHandler.inMidRunRestartPenaltyWait === 0)

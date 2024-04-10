@@ -144,7 +144,7 @@ export class RunHandler {
                 this.handleStateChange(localPlayer, target.state);
 
             if (target.levels)
-                localPlayer.levelHandler.onLevelsUpdate(target.levels, localPlayer.socketHandler);
+                localPlayer.cleanupHandler.onLevelsUpdate(target.levels, localPlayer.socketHandler);
             
             // check for run end
             if (Task.isRunEnd(positionData) && this.run) {
@@ -778,7 +778,7 @@ export class RunHandler {
     setupRunStart() {
         this.userService.localUsers.forEach(localPlayer => {
             localPlayer.socketHandler.resetOngoingRecordings();
-            localPlayer.levelHandler.uncollectedLevelItems = new RunStateHandler();
+            localPlayer.cleanupHandler.resetHandler();
             localPlayer.socketHandler.updateGameSettings(new GameSettings(this.run?.data));
             localPlayer.socketHandler.setAllRealPlayersMultiplayerState();
         });
@@ -845,7 +845,7 @@ export class RunHandler {
         if (playerTeam)
             localPlayer.updateTeam(playerTeam);
 
-        localPlayer.levelHandler.uncollectedLevelItems = new RunStateHandler();
+        localPlayer.cleanupHandler.resetHandler();
     }
 
 

@@ -1,5 +1,5 @@
 import { NgZone } from "@angular/core";
-import { LevelHandler } from "../level/level-handler";
+import { RunCleanupHandler } from "../level/run-cleanup-handler";
 import { Team } from "../run/team";
 import { User } from "../user/user";
 import { SocketHandler } from "./socket-handler";
@@ -15,8 +15,8 @@ import { Run } from "../run/run";
 export class SocketHandlerLockout extends SocketHandler {
 
     
-    constructor(socketPort: number, user: User, run: Run, levelHandler: LevelHandler, zone: NgZone) {
-        super(socketPort, user, run, levelHandler, zone);
+    constructor(socketPort: number, user: User, run: Run, cleanupHandler: RunCleanupHandler, zone: NgZone) {
+        super(socketPort, user, run, cleanupHandler, zone);
     }
 
     override onTask(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
@@ -58,7 +58,7 @@ export class SocketHandlerLockout extends SocketHandler {
 
             //task updates
             if (isNewTaskStatusForSelfTeam)
-                this.levelHandler.onInteraction(interaction);
+                this.cleanupHandler.onInteraction(interaction);
 
             //cell cost check
             if (isCell && isTeammate && !interaction.interCleanup && Task.cellCost(interaction) !== 0)
@@ -207,7 +207,7 @@ export class SocketHandlerLockout extends SocketHandler {
         }
         
         if (!isSelfInteraction)
-            this.levelHandler.onInteraction(interaction);
+            this.cleanupHandler.onInteraction(interaction);
     }
 
 }

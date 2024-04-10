@@ -9,18 +9,15 @@ import { TaskStatus } from "../opengoal/task-status";
 import { OgCommand } from "../socket/og-command";
 import { GameState } from "../opengoal/game-state";
 
-export class LevelHandler {
-
-    uncollectedLevelItems: RunStateHandler = new RunStateHandler();
-    levels: LevelStatus[] = [];
+export class RunCleanupHandler extends RunStateHandler {
 
     constructor() {
-
+        super();
     }
 
-    importRunStateHandler(runStateHandler: RunStateHandler, socketHandler: SocketHandler, gameState: GameState, hardReset: boolean) {
+    importRunState(runStateHandler: RunStateHandler, socketHandler: SocketHandler, gameState: GameState, hardReset: boolean) {
         
-        this.uncollectedLevelItems = new RunStateHandler();
+        this.resetHandler();
 
         //reset game
         if (hardReset) socketHandler.addCommand(OgCommand.ResetGame);
@@ -70,7 +67,7 @@ export class LevelHandler {
                 });
             }, 500);
         });
-
+        
         const orbAdjustCount = runStateHandler.orbCount - gameState.orbCount;
         socketHandler.addOrbAdjustmentToCurrentPlayer(orbAdjustCount);
     }
@@ -83,30 +80,22 @@ export class LevelHandler {
 
     // ----- update handlers -----
 
-    onLevelsUpdate(levels: LevelStatus[], socketHandler: SocketHandler) {
-        this.levels = levels;
-        this.levels.forEach(level => {
-            if (level.status === LevelStatus.Active || level.status === LevelStatus.Alive)
-                this.onLevelActive(level.name, socketHandler);
-        });
-    }
-
 
     onInteraction(interaction: UserInteractionData) {
         
-        if (!this.levelIsActive(interaction.interLevel))
+        if (!this.levelIsLoaded(interaction.interLevel))
         {
             switch (interaction.interType)
             {
                 case InteractionType.gameTask:
-                    this.uncollectedLevelItems.addTaskInteraction(interaction);
+                    this.addTaskInteraction(interaction);
                     break;
                 case InteractionType.crate:
                     if ((InteractionData.isBuzzerCrate(interaction) || InteractionData.isOrbsCrate(interaction)))
-                        this.uncollectedLevelItems.addInteraction(interaction);
+                        this.addInteraction(interaction);
                     break;
                 default:
-                    this.uncollectedLevelItems.addInteraction(interaction);
+                    this.addInteraction(interaction);
                     break;
 
             }
@@ -114,25 +103,22 @@ export class LevelHandler {
     }
 
     onLpcChamberStop(interaction: UserInteractionData) {
-        if (!this.levelIsActive(Level.hub2) && !this.levelIsActive(Level.lpcBottomPart))
-            this.uncollectedLevelItems.addLpcInteraction(interaction);
+        if (!this.levelIsLoaded(Level.hub2) && !this.levelIsLoaded(Level.lpcBottomPart))
+            this.addLpcInteraction(interaction);
     }
 
 
-
-    // ----- internal methods -----
-
-    public levelIsActive(levelName: string): boolean {
-        let level = this.levels.find(x => x.name === levelName);
-        if (!level)
-            return false;
-        return level.status === LevelStatus.Active || level.status === LevelStatus.Alive;
+    override onLevelsUpdate(levels: LevelStatus[], socketHandler: SocketHandler): void {
+        super.onLevelsUpdate(levels, socketHandler);
+        this.getLoadedLevels().forEach(level => {
+            this.onLevelActive(level.name, socketHandler);
+        });
     }
 
     private onLevelActive(levelName: string, socketHandler: SocketHandler) {
 
         setTimeout(() => {
-            let level = this.uncollectedLevelItems.levels.find(x => x.levelName === levelName);
+            let level = this.levels.find(x => x.levelName === levelName);
             if (!level || level.interactions.length === 0 ) 
                 return;
 
@@ -153,13 +139,13 @@ export class LevelHandler {
                         interaction.interName = "buzzer-last"; //!TODO: does produce a cell spawn bug on enter if the last fly is a lpc minigame one
                         
                     socketHandler.addPlayerInteraction(interaction);
-                    this.uncollectedLevelItems.buzzerCount -= 1;
+                    this.buzzerCount -= 1;
                 });
             }, 500);
 
             level.interactions.filter(x => x.interType == InteractionType.money).forEach(interaction => {
                 socketHandler.addPlayerInteraction(interaction);
-                this.uncollectedLevelItems.orbCount -= 1;
+                this.orbCount -= 1;
             });
 
             level.interactions.filter(x => x.interType == InteractionType.periscope).forEach(interaction => {
@@ -181,7 +167,7 @@ export class LevelHandler {
             level.interactions.filter(x => x.interType == InteractionType.gameTask).forEach(interaction => {
                 socketHandler.addPlayerInteraction(interaction);
                 if (Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus)))
-                    this.uncollectedLevelItems.cellCount -= 1; 
+                    this.cellCount -= 1; 
             });
     
             level.interactions = [];

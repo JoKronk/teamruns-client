@@ -17,7 +17,7 @@ import { PlayerState } from "../player/player-state";
 import { TaskStatus } from "../opengoal/task-status";
 import { RunMod, RunMode } from "../run/run-mode";
 import { Run } from "../run/run";
-import { LevelHandler } from "../level/level-handler";
+import { RunCleanupHandler } from "../level/run-cleanup-handler";
 import { RunState } from "../run/run-state";
 import { NgZone } from "@angular/core";
 import { RemotePlayerInfo } from "./remote-player-info";
@@ -62,7 +62,7 @@ export class SocketHandler {
     private connectionAttempts: number;
 
 
-    constructor(public socketPort: number, public user: User, run: Run, public levelHandler: LevelHandler, public zone: NgZone) {
+    constructor(public socketPort: number, public user: User, run: Run, public cleanupHandler: RunCleanupHandler, public zone: NgZone) {
         this.ogSocket = webSocket('ws://localhost:' + socketPort);
 
         this.run = run;
@@ -167,11 +167,14 @@ export class SocketHandler {
             /*
             if (target.state) {
               console.log(target.state)
-            }
+            }*/
+
+            if (target.levels)
+                this.localTeam?.runState.onLevelsUpdate(target.levels, this);
       
             if (target.levels) {
               console.log(target.levels)
-            }*/
+            }
         },
         error => {
             if (this.connectionAttempts < 4) {
@@ -621,7 +624,7 @@ export class SocketHandler {
 
             //task updates
             if (isNewTaskStatus)
-                this.levelHandler.onInteraction(interaction);
+                this.cleanupHandler.onInteraction(interaction);
 
             //cell cost check
             if (isCell && isTeammate && !interaction.interCleanup && Task.cellCost(interaction) !== 0)
@@ -637,7 +640,7 @@ export class SocketHandler {
     
     protected onBuzzer(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isSelfInteraction && isTeammate)
-            this.levelHandler.onInteraction(interaction);
+            this.cleanupHandler.onInteraction(interaction);
 
         if (this.isLocalMainPlayer || this.run.isFFA)
             playerTeam.runState.addBuzzerInteraction(interaction);
@@ -660,7 +663,7 @@ export class SocketHandler {
         }
         
         if (!isSelfInteraction && isTeammate)
-            this.levelHandler.onInteraction(interaction);
+            this.cleanupHandler.onInteraction(interaction);
     }
 
     protected onEco(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
@@ -679,7 +682,7 @@ export class SocketHandler {
         if (!this.localTeam) return;
         if ((InteractionData.isBuzzerCrate(interaction) || InteractionData.isOrbsCrate(interaction))) {
             if (!isSelfInteraction && isTeammate)
-                this.levelHandler.onInteraction(interaction);
+                this.cleanupHandler.onInteraction(interaction);
     
             if (this.isLocalMainPlayer || this.run.isFFA)
                 playerTeam.runState.addInteraction(interaction);
@@ -705,7 +708,7 @@ export class SocketHandler {
     protected onLpcChamber(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!this.localTeam) return;
         if (!isSelfInteraction && isTeammate)
-            this.levelHandler.onLpcChamberStop(interaction);
+            this.cleanupHandler.onLpcChamberStop(interaction);
 
         if (this.isLocalMainPlayer || this.run.isFFA)
             playerTeam.runState.addLpcInteraction(interaction);
@@ -714,7 +717,7 @@ export class SocketHandler {
     protected onGeneralSecondaryInteraction(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!this.localTeam) return;
         if (!isSelfInteraction && isTeammate)
-            this.levelHandler.onInteraction(interaction);
+            this.cleanupHandler.onInteraction(interaction);
 
         if (this.isLocalMainPlayer || this.run.isFFA)
             playerTeam.runState.addInteraction(interaction);

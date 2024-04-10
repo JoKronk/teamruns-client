@@ -3,13 +3,19 @@ import { Task } from "../opengoal/task";
 import { TaskStatus } from "../opengoal/task-status";
 import { Player } from "../player/player";
 import { InteractionData, UserInteractionData } from "../socket/interaction-data";
+import { SocketHandler } from "../socket/socket-handler";
 import { LevelInteractions } from "./level-interactions";
+import { LevelStatus } from "./level-status";
 import { OrbCollection } from "./orb-collection";
 
 export class RunStateHandler {
+    //individual properties (between players)
+    levelStatuses: LevelStatus[] = [];
+
+    //shared properties (between players)
     levels: LevelInteractions[] = [];
 
-    ////unused in LevelHandler (only used for team instance)
+    ////shared but unused in cleanupHandler (only used for team instance)
     tasksStatuses: UserInteractionData[];
     cellCount: number;
     buzzerCount: number;
@@ -20,7 +26,12 @@ export class RunStateHandler {
     //orb vents and such: if we just check by orb count and p1 picks up the last orb the orb count will be completed but p2 won't now know if the orb he's getting is a duped orb or the last one for him
 
     constructor() {
+        this.resetHandler();
+    }
+
+    resetHandler() {
         this.levels = [];
+        this.levelStatuses = [];
         this.tasksStatuses = [];
         this.cellCount = 0;
         this.buzzerCount = 0;
@@ -40,7 +51,18 @@ export class RunStateHandler {
     }
 
     private pushLevelCleanupInteraction(level: LevelInteractions, interaction: UserInteractionData) {
-        if (!InteractionData.isFromOrbCollection(interaction) && level.interactions.some(x => InteractionData.areIdentical(x, interaction)))
+        let isNewInteraction: boolean = true;
+
+        //need to check all loaded levels since cleanup interactions will have a fake origin from being executed in the level the origin level was loaded from. (See InteractionData.AreIdentical() for more info)
+        for (let statusLevel of this.getLoadedLevels()) {
+            let levelToCheck = level.levelName === statusLevel.name ? level : this.getCreateLevel(statusLevel.name);
+            if (!InteractionData.isFromOrbCollection(interaction) && levelToCheck.interactions.some(x => InteractionData.areIdentical(x, interaction))) {
+                isNewInteraction = false;
+                break;
+            }
+        }
+
+        if (!isNewInteraction)
             return;
 
         const storedInteraction = new UserInteractionData(interaction, interaction.userId);
@@ -187,5 +209,23 @@ export class RunStateHandler {
             default:
                 return 15;
         }
+    }
+
+
+    // ----- level update logic -----
+    
+    onLevelsUpdate(levels: LevelStatus[], socketHandler: SocketHandler) {
+        this.levelStatuses = levels;
+    }
+
+    protected levelIsLoaded(levelName: string): boolean {
+        let level = this.levelStatuses.find(x => x.name === levelName);
+        if (!level)
+            return false;
+        return level.status === LevelStatus.Active || level.status === LevelStatus.Alive;
+    }
+
+    protected getLoadedLevels(): LevelStatus[] {
+        return this.levelStatuses.filter(x => x.status === LevelStatus.Active || x.status === LevelStatus.Alive);;
     }
 }
