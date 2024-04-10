@@ -31,6 +31,7 @@ import { LocalSave } from "../level/local-save";
 import { CommandBuffer } from "./command-buffer";
 import { TimerPackage } from "./timer-package";
 import { ShortMemoryInteraction } from "./short-memory-interaction";
+import { RunData } from "../run/run-data";
 
 export class SocketHandler {
 
@@ -141,7 +142,7 @@ export class SocketHandler {
                             this.zone.run(() => {
                                 this.socketConnected = true;
                             });
-                            this.updateGameSettings(new GameSettings(this.run.data));
+                            this.updateGameSettings(new GameSettings(this.timer.isPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version)));
                             this.run.getAllPlayers().forEach(player => { // set the team for any users already connected
                                 this.updatePlayerInfo(player.user.id, this.run.getRemotePlayerInfo(player.user.id));
                             });
@@ -401,7 +402,7 @@ export class SocketHandler {
         if (!this.drawPositions) return;
 
         //handle recordings
-        if (this.timer.totalMs > 0 && this.timer.runState === RunState.Started) {
+        if (this.timer.isPastCountdown()) {
             this.recordings.forEach(recording => {
                 const positionData = recording.getNextPositionData(this.timer.totalMs);
                 if (positionData) {
@@ -470,7 +471,7 @@ export class SocketHandler {
         if (this.socketCommandBuffer.length !== 0)
             this.socketPackage.command = this.socketCommandBuffer.shift();
 
-        if (this.timer.totalMs > 0 && this.timer.runState === RunState.Started && !this.run.isMode(RunMode.Casual)) {
+        if (this.timer.isPastCountdown() && !this.run.isMode(RunMode.Casual)) {
             if (!this.socketPackage.timer) this.socketPackage.timer = new TimerPackage();
             this.socketPackage.timer.updateTime(this.timer.totalMs);
         }
@@ -530,7 +531,7 @@ export class SocketHandler {
                 this.self.interactionBuffer.push(interaction);
             }, 300);
         }
-
+        
         switch (positionData.interaction.interType) {
 
             case InteractionType.gameTask:
@@ -724,7 +725,7 @@ export class SocketHandler {
     }
 
     onDestroy(): void {
-        this.updateGameSettings(new GameSettings(undefined));
+        this.updateGameSettings(new GameSettings(RunData.getFreeroamSettings(pkg.version)));
         this.timer.reset();
         this.stopDrawPlayers();
         this.timer.onDestroy();

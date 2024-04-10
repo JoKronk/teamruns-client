@@ -95,7 +95,7 @@ export class RunHandler {
             }
             //local lobby
             else {
-                this.lobby = new Lobby(this.userService.offlineSettings ?? RunData.getFreeroamSettings(pkg.version), userId, null);
+                this.lobby = new Lobby(this.userService.offlineSettings ?? RunData.getFreeroamSettings(pkg.version, false), userId, null);
                 this.userService.offlineSettings = undefined;
                 this.checkSetupRun();
             }
@@ -734,7 +734,7 @@ export class RunHandler {
                         this.userService.localUsers.forEach(localPlayer => {
                             localPlayer.socketHandler.addCommand(OgCommand.Trip);
                             localPlayer.socketHandler.addCommand(OgCommand.EnableDebugMode);
-                            localPlayer.socketHandler.updateGameSettings(new GameSettings(undefined));
+                            localPlayer.socketHandler.updateGameSettings(new GameSettings(RunData.getFreeroamSettings(pkg.version)));
                             localPlayer.state = PlayerState.Neutral;
                         });
                     }

@@ -91,6 +91,10 @@ export class Timer {
     return this.runState === RunState.Countdown || this.runState === RunState.Started;
   }
 
+  isPastCountdown() {
+    return this.totalMs > 0 && this.runState === RunState.Started;
+  }
+
   shiftTimerByMs(ms: number) {
     if (this.startDateMs)
       this.startDateMs += ms;

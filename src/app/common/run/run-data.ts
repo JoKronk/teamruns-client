@@ -53,13 +53,14 @@ export class RunData {
         this.citadelSkip = CitadelOption.Normal;
     }
 
-    public static getFreeroamSettings(version: string): RunData {
+    public static getFreeroamSettings(version: string, withPvp: boolean | undefined = undefined): RunData {
         const rundata = new RunData(version);
         rundata.category = CategoryOption.Custom;
         rundata.allowSoloHubZoomers = true;
         rundata.noLTS = false;
         rundata.submitPbs = false;
         rundata.citadelSkip = CitadelOption.Normal;
+        rundata.enablePvp = withPvp !== undefined ? withPvp : true;
         return rundata;
     }
 }
