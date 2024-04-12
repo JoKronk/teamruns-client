@@ -16,14 +16,16 @@ import { CategoryOption } from "./category";
 
 export class Run {
     data: RunData;
+    forPracticeTool: boolean;
     teams: Team[] = [];
     spectators: Player[] = [];
     timer: Timer = new Timer();
 
     isFFA: boolean = false;
 
-    constructor(runData: RunData) {
+    constructor(runData: RunData, isPracticeTool: boolean | undefined = undefined) {
         this.data = runData;
+        this.forPracticeTool = isPracticeTool === undefined ? false : isPracticeTool;
         this.timer.setStartConditions(this.data.countdownSeconds);
 
         if (this.data.teams > 1) {

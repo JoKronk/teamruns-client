@@ -1,3 +1,4 @@
+import { GameTaskLevelTime } from "../opengoal/game-task";
 import { Timer } from "../run/timer";
 import { DbPb } from "./db-pb";
 import { DbRunUserContent } from "./db-run-user-content";
@@ -74,6 +75,14 @@ export class DbLeaderboardPb {
         this.endTimeFrontend = undefined;
         this.userDisplayContent = undefined;
         this.hasLocalUser = undefined;
+    }
+
+    getSplitComparison(split: GameTaskLevelTime): string | undefined {
+        let pbTask = this.tasks.find(x => x.gameTask === split.name);
+        if (!pbTask) return undefined;
+
+        //!TODO: Add logic for getting pb time once db obtainedAt been made ms number instead of text
+        return undefined;
     }
 }
 

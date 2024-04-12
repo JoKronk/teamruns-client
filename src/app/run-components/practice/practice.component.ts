@@ -77,8 +77,9 @@ export class PracticeComponent implements OnDestroy {
       
 
       //timer end listener
-      this.timerEndSubscription = this.mainLocalPlayer.socketHandler.timer.timerEndSubject.subscribe(ended => {
-        this.stopPlaybackIfIsRunning();
+      this.timerEndSubscription = this.mainLocalPlayer.socketHandler.timer.timerSubject.subscribe(state => {
+        if (state === RunState.Ended)
+          this.stopPlaybackIfIsRunning();
       });
     });
 
@@ -107,7 +108,7 @@ export class PracticeComponent implements OnDestroy {
     this.currentRecording = this.usePlayback === "true" ? "all" : "none";
 
     if (this.usePlayback === "true")
-      this.playAllRecordings(false);
+      this.playAllRecordings(false, false);
 
     this.replay = false;
 
@@ -124,7 +125,7 @@ export class PracticeComponent implements OnDestroy {
     }
 
     this.runHandler.setupRunStart();
-    this.mainLocalPlayer.socketHandler.timer.startTimer(null, null, false, !this.inFreecam);
+    this.mainLocalPlayer.socketHandler.timer.startTimer(null, null);
   }
 
   stopRecording() {
@@ -207,15 +208,15 @@ export class PracticeComponent implements OnDestroy {
     if (!rec) return;
 
     this.stopPlaybackIfIsRunning();
-    this.startPlayback([rec], true);
+    this.startPlayback([rec], true, true);
   }
 
-  playAllRecordings(selfStop: boolean = true) {
+  playAllRecordings(selfStop: boolean = true, startTimerFromPlayback: boolean = true) {
     if (this.stopPlaybackIfIsRunning()) return;
-    this.startPlayback(this.recordings.filter(x => x.selected), selfStop);
+    this.startPlayback(this.recordings.filter(x => x.selected), selfStop, startTimerFromPlayback);
   }
 
-  startPlayback(giveRecordings: Recording[], selfStop: boolean) {
+  startPlayback(giveRecordings: Recording[], selfStop: boolean, startTimer: boolean) {
     if (!this.mainLocalPlayer) return;
     this.replay = true;
 
@@ -231,7 +232,9 @@ export class PracticeComponent implements OnDestroy {
       this.mainLocalPlayer.socketHandler.addCommand(OgCommand.ResetGame);
 
     this.runHandler.setupRunStart();
-    this.mainLocalPlayer.socketHandler.timer.startTimer(undefined, selfStop && giveRecordings.length !== 0 ? this.recordingsEndtime : null, false, !this.inFreecam);
+    if (startTimer)
+      this.mainLocalPlayer.socketHandler.timer.startTimer(undefined, selfStop && giveRecordings.length !== 0 ? this.recordingsEndtime : null);
+
     this.mainLocalPlayer.socketHandler.startDrawPlayers();
   }
 

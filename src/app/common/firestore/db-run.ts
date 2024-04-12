@@ -115,7 +115,7 @@ export class DbRun {
                         leaderboard = Object.assign(new DbLeaderboard(leaderboard.category, leaderboard.sameLevel, leaderboard.players), leaderboard);
             
                         const runnerIds = team.players.flatMap(x => x.user.id);
-                        let previousPb = leaderboard.pbs.find(x => this.arraysEqual(runnerIds, x.userIds));
+                        let previousPb = leaderboard.pbs.find(x => DbRun.arraysEqual(runnerIds, x.userIds));
                         
                         //if new pb
                         if (!previousPb || previousPb.endTimeMs > team.endTimeMs) {
@@ -168,7 +168,8 @@ export class DbRun {
                 })); 
     }
 
-    arraysEqual(array1: string[], array2: string[]): boolean {
+    //!TODO: Could be placed somewhere better
+    static arraysEqual(array1: string[], array2: string[]): boolean {
         if (array1.length === array2.length)
             return array1.every(element => array2.includes(element));
 

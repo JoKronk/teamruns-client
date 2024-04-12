@@ -28,10 +28,11 @@ import { Team } from "../run/team";
 import { OG } from "../opengoal/og";
 import pkg from 'app/package.json';
 import { LocalSave } from "../level/local-save";
-import { CommandBuffer } from "./command-buffer";
 import { TimerPackage } from "./timer-package";
 import { ShortMemoryInteraction } from "./short-memory-interaction";
 import { RunData } from "../run/run-data";
+import { Subscription } from "rxjs";
+import { DbLeaderboardPb } from "../firestore/db-leaderboard-pb";
 
 export class SocketHandler {
 
@@ -41,6 +42,7 @@ export class SocketHandler {
     timer: Timer;
     run: Run;
     localTeam: Team | undefined;
+    previousPb: DbLeaderboardPb | undefined = undefined;
 
     protected isLocalMainPlayer: boolean = true;
 
@@ -61,6 +63,7 @@ export class SocketHandler {
     private launchListener: any;
     private shutdownListener: any;
     private connectionAttempts: number;
+    private timerSubscription: Subscription;
 
 
     constructor(public socketPort: number, public user: User, run: Run, public cleanupHandler: RunCleanupHandler, public zone: NgZone) {
@@ -80,7 +83,6 @@ export class SocketHandler {
         this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
             if (port == this.socketPort) {
                 this.connectionAttempts = 0;
-                this.timer.linkSocketCommandBuffer(new CommandBuffer(this.user.id, this.socketCommandBuffer));
                 this.user.gameLaunched = true;
                 this.connectToOpengoal();
                 this.changeController(this.user.controllerPort ?? 0);
@@ -93,7 +95,6 @@ export class SocketHandler {
                 this.inMidRunRestartPenaltyWait = 0;
                 this.isSyncing = false
                 this.socketConnected = false;
-                this.timer.removeSocketCommandBuffer(this.user.id);
                 this.socketCommandBuffer = [];
                 this.socketPackage.timer = undefined;
                 this.self.interactionBuffer = [];
@@ -105,6 +106,35 @@ export class SocketHandler {
             }
 
         });
+        
+      this.timerSubscription = this.timer.timerSubject.subscribe(state => {
+        switch(state) {
+            case RunState.Countdown:
+                if (!this.run.forPracticeTool)
+                    this.addCommand(OgCommand.SetupRun);
+
+                if (this.timer.countdownSeconds > 1)
+                    this.addCommand(OgCommand.TargetGrab);
+
+                this.resetOngoingRecordings();
+                this.cleanupHandler.resetHandler();
+                this.updateGameSettings(new GameSettings(this.run?.data));
+                this.setAllRealPlayersMultiplayerState();
+                break;
+
+            case RunState.CountdownSpawning:
+                if (!this.run.forPracticeTool)
+                    this.addCommand(OgCommand.StartRun);
+                break;
+
+            case RunState.Started:
+                this.addCommand(OgCommand.TargetRelease);
+                break;
+
+            default:
+                break;
+        }
+      });
     }
 
     private connectToOpengoal() {
@@ -150,9 +180,9 @@ export class SocketHandler {
                             this.addCommand(OgCommand.None); //send empty message to update username, version & controller
                         }, 300);
                     }
-                    
-                    if (this.socketPort === OG.mainPort)
-                        this.timer.onPlayerLoad();
+
+                    if (this.timer.runState === RunState.Countdown)
+                        this.addCommand(OgCommand.TargetGrab);
                 }
                 //local save logic
                 if (target.state.justSaved && this.run.data.mode === RunMode.Casual && this.timer.totalMs > 5000) {
@@ -172,10 +202,6 @@ export class SocketHandler {
 
             if (target.levels)
                 this.localTeam?.runState.onLevelsUpdate(target.levels, this);
-      
-            if (target.levels) {
-              console.log(target.levels)
-            }
         },
         error => {
             if (this.connectionAttempts < 4) {
@@ -208,6 +234,10 @@ export class SocketHandler {
         this.socketPackage.controllerPort = controllerPort;
         this.user.controllerPort = controllerPort;
         this.addCommand(OgCommand.None);
+    }
+
+    setPreviousPb(pb: DbLeaderboardPb) {
+        this.previousPb = Object.assign(new DbLeaderboardPb(), pb);
     }
 
     addCommand(command: OgCommand) {
@@ -726,6 +756,7 @@ export class SocketHandler {
 
     onDestroy(): void {
         this.updateGameSettings(new GameSettings(RunData.getFreeroamSettings(pkg.version)));
+        this.timerSubscription.unsubscribe();
         this.timer.reset();
         this.stopDrawPlayers();
         this.timer.onDestroy();

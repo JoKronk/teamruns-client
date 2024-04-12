@@ -2,7 +2,6 @@
 import { Subject } from 'rxjs';
 import { OgCommand } from '../socket/og-command';
 import { RunState } from './run-state';
-import { CommandBuffer } from '../socket/command-buffer';
 
 export class Timer {
 
@@ -17,27 +16,13 @@ export class Timer {
 
   private timerUpdateRateMs: number = 10;
 
-  hasSpawnedPlayer: boolean = false;
-  sendTargetReleaseCommand: boolean = true;
-
-  timerEndSubject: Subject<boolean> = new Subject();
-  private socketCommandBuffers: CommandBuffer[] = []; //one command array for each local player
-
-  freezePlayerInCountdown: boolean = true;
   runState: RunState;
+  timerSubject: Subject<RunState> = new Subject();
 
   private resetEverything: boolean = false; //used to flag a reset to the update cycle
 
   constructor() {
     this.resetTimer();
-  }
-
-  linkSocketCommandBuffer(socketCommandBuffer: CommandBuffer) {
-    this.socketCommandBuffers.push(socketCommandBuffer);
-  }
-
-  removeSocketCommandBuffer(userId: string) {
-    this.socketCommandBuffers = this.socketCommandBuffers.filter(x => x.userId !== userId);
   }
   
   importTimer(timer: Timer) {
@@ -50,8 +35,7 @@ export class Timer {
     this.resetEverything = timer.resetEverything;
   }
 
-  setStartConditions(countdownSeconds: number, freezeWhileInCountdown: boolean = true) {
-    this.freezePlayerInCountdown = freezeWhileInCountdown;
+  setStartConditions(countdownSeconds: number) {
     this.countdownSeconds = countdownSeconds;
     this.resetTimer();
   }
@@ -75,12 +59,9 @@ export class Timer {
     }
   }
 
-  onPlayerLoad() {
-    if (this.runState === RunState.Countdown && this.freezePlayerInCountdown) {
-      this.socketCommandBuffers.forEach(buffer => {
-        buffer.commandBuffer.push(OgCommand.TargetGrab);
-      });
-    }
+  updateRunState(state: RunState) {
+    this.runState = state;
+    this.timerSubject.next(this.runState);
   }
 
   isPaused() {
@@ -88,7 +69,11 @@ export class Timer {
   }
 
   runIsOngoing() {
-    return this.runState === RunState.Countdown || this.runState === RunState.Started;
+    return this.runState === RunState.Countdown || this.runState === RunState.CountdownSpawning || this.runState === RunState.Started;
+  }
+
+  inCountdown() {
+    return this.runState === RunState.Countdown || this.runState === RunState.CountdownSpawning;
   }
 
   isPastCountdown() {
@@ -102,16 +87,14 @@ export class Timer {
 
   private resetTimer() {
     this.startDateMs = null;
-    this.hasSpawnedPlayer = false;
-    this.sendTargetReleaseCommand = true;
     this.pauseDateMs = null;
-    this.runState = RunState.Waiting;
+    this.updateRunState(RunState.Waiting);
     this.timeString = "-0:00:" + ("0" + this.countdownSeconds).slice(-2);
     this.timeStringMs = ".0";
     this.totalMs = 0;
   }
 
-  startTimer(startDateMs: number | null = null, endTimeMs: number | null = null, sendStartCommand: boolean = true, sendReleaseCommand: boolean = true) {
+  startTimer(startDateMs: number | null = null, endTimeMs: number | null = null) {
     this.resetEverything = false;
 
     if (!startDateMs) {
@@ -121,10 +104,7 @@ export class Timer {
     }
     this.startDateMs = startDateMs;
     this.endTimeMs = endTimeMs;
-    this.runState = RunState.Countdown;
-
-    this.hasSpawnedPlayer = !sendStartCommand;
-    this.sendTargetReleaseCommand = sendReleaseCommand;
+    this.updateRunState(RunState.Countdown);
     
     this.updateTimer();
   }
@@ -138,23 +118,13 @@ export class Timer {
     var currentTimeMs = new Date().getTime();
 
 
-    //start run check
-    if (this.runState === RunState.Countdown) {
-      if (!this.hasSpawnedPlayer && this.startDateMs! <= currentTimeMs + 1400) {
-        this.socketCommandBuffers.forEach(buffer => {
-          buffer.commandBuffer.push(OgCommand.StartRun);
-        });
-        this.hasSpawnedPlayer = true;
-      }
-      else if (this.sendTargetReleaseCommand && this.startDateMs! <= currentTimeMs + 10) {
-        this.socketCommandBuffers.forEach(buffer => {
-          buffer.commandBuffer.push(OgCommand.TargetRelease);
-        });
-      }
+    //spawn check
+    if (this.runState === RunState.Countdown && this.startDateMs! <= currentTimeMs + 1400)
+    this.updateRunState(RunState.CountdownSpawning);
       
-      if (this.startDateMs! <= currentTimeMs)
-        this.runState = RunState.Started;
-    }
+    //start run check
+    if (this.runState === RunState.CountdownSpawning && this.startDateMs! <= currentTimeMs)
+      this.updateRunState(RunState.Started);
 
     const newTotalTimeMs = currentTimeMs - this.startDateMs!
     const updateText: boolean = Math.floor(newTotalTimeMs / 100) !== Math.floor(this.totalMs / 100);
@@ -173,7 +143,7 @@ export class Timer {
     if (!this.endTimeMs || this.endTimeMs >= this.totalMs)
       await new Promise(r => setTimeout(r, this.timerUpdateRateMs));
     else {
-      this.timerEndSubject.next(true);
+      this.updateRunState(RunState.Ended);
       this.resetEverything = true;
     }
 

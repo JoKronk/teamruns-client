@@ -287,7 +287,7 @@ export class RunHandler {
         if (!this.lobby) return;
 
         console.log("Creating Run!");
-        this.run = new Run(this.lobby.runData);
+        this.run = new Run(this.lobby.runData, this.isPracticeTool);
 
         this.runSetupCompleteSubject.next(this.run.data);
 
@@ -708,9 +708,6 @@ export class RunHandler {
             case EventType.StartRun:
                 this.zone.run(() => {
                     this.run!.start(new Date());
-                    this.userService.localUsers.forEach(localPlayer => {
-                        localPlayer.socketHandler.addCommand(OgCommand.SetupRun);
-                    });
                 });
                 this.setupRunStart();
                 break;
@@ -776,18 +773,13 @@ export class RunHandler {
 
     //used by both run component and practice/recording tool
     setupRunStart() {
-        this.userService.localUsers.forEach(localPlayer => {
-            localPlayer.socketHandler.resetOngoingRecordings();
-            localPlayer.cleanupHandler.resetHandler();
-            localPlayer.socketHandler.updateGameSettings(new GameSettings(this.run?.data));
-            localPlayer.socketHandler.setAllRealPlayersMultiplayerState();
-        });
+        if (!this.run) return;
 
         this.updateAllPlayerInfo();
 
         const mainLocalPlayer = this.getMainLocalPlayer();
 
-        this.run?.teams.forEach(team => {
+        this.run.teams.forEach(team => {
             team.resetForRun(false);
             if (!this.run?.isMode(RunMode.Casual)) {
                 if (!team.everyoneOnSameVersion())
@@ -800,8 +792,23 @@ export class RunHandler {
             }
 
         });
-        this.userService.localUsers.forEach(localPlayer => {
-            localPlayer.updateTeam(this.run?.getPlayerTeam(localPlayer.user.id, localPlayer.user.id !== this.userService.getMainUserId())); //give new team to none main FFA users
+
+        //set previous pb if any and update team
+        let playerCounts: number[] = this.run?.teams.flatMap(x => x.players.length).filter((value, index, array) => array.indexOf(value) === index);
+        let lbSubscription = this.firestoreService.getLeaderboards(this.run.data.category, this.run.data.requireSameLevel, playerCounts).subscribe(leaderboards => {
+            lbSubscription.unsubscribe();
+
+            this.userService.localUsers.forEach(localPlayer => {
+                const playerTeam = this.run?.getPlayerTeam(localPlayer.user.id);
+                const runnerIds = playerTeam?.players.flatMap(x => x.user.id);
+                if (runnerIds) {
+                    const previousPb = leaderboards.find(x => x.players === playerTeam?.players.length)?.pbs.find(x => DbRun.arraysEqual(runnerIds, x.userIds))
+                    if (previousPb)
+                        localPlayer.socketHandler.setPreviousPb(previousPb);
+                }
+
+                localPlayer.updateTeam(this.run?.getPlayerTeam(localPlayer.user.id, localPlayer.user.id !== this.userService.getMainUserId())); //give new team to none main FFA users
+            });
         });
     }
 
