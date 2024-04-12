@@ -38,6 +38,7 @@ export class SocketPackage {
         this.forceContinue = undefined;
         this.controllerPort = undefined;
         this.version = undefined;
+        this.username = undefined;
         this.timer?.resetSplitData();
     }
 }
