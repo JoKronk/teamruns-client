@@ -2,11 +2,11 @@
     <p id="title">Menu</p>
 
     <div class="list-container">
-        <div class="list-item" (click)="startGame(undefined)">
+        <div class="list-item" [class.list-item-disabled]="_user.downloadHandler.isDownloading" (click)="startGame(undefined)">
             <p>Launch OpenGOAL</p>
         </div>
         <div *ngFor="let localUser of _user.localUsers">
-            <div *ngIf="localUser.user.id !== _user.user.id" class="list-item" (click)="startGame(localUser.user)">
+            <div *ngIf="localUser.user.id !== _user.user.id" class="list-item" [class.list-item-disabled]="_user.downloadHandler.isDownloading" (click)="startGame(localUser.user)">
                 <p>Launch for {{ localUser.user.name }}</p>
             </div>
         </div>
