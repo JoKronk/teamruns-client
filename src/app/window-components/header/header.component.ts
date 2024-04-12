@@ -41,8 +41,7 @@ export class HeaderComponent {
       return;
     }
 
-    const dialogRef = this.dialog.open(ConfirmComponent, { data: "Are you sure you want to leave the game?" });
-    const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
+    const dialogSubscription = this.dialog.open(ConfirmComponent, { data: { message: "Are you sure you want to leave the game?" } }).afterClosed().subscribe(confirmed => {
       dialogSubscription.unsubscribe();
       if (confirmed)
         this.router.navigate(['/lobby' ]);

@@ -78,8 +78,7 @@ export class RunComponent implements OnDestroy {
   forfeit() {
     if (!this.runHandler.run) return;
 
-    const dialogRef = this.dialog.open(ConfirmComponent, { data: "Are you sure you want to forfeit the run?" });
-    const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
+    const dialogSubscription = this.dialog.open(ConfirmComponent, { data: { message: "Are you sure you want to forfeit the run?" } }).afterClosed().subscribe(confirmed => {
       dialogSubscription.unsubscribe();
       if (confirmed) {
 
@@ -145,8 +144,7 @@ export class RunComponent implements OnDestroy {
 
   kickPlayer(user: UserBase) {
     if (this.runHandler.run?.timer.runIsOngoing()) {
-      const dialogRef = this.dialog.open(ConfirmComponent, { data: "Are you sure you want to kick " + user.name + "?" });
-      const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
+      const dialogSubscription = this.dialog.open(ConfirmComponent, { data: { message: "Are you sure you want to kick " + user.name + "?" } }).afterClosed().subscribe(confirmed => {
         dialogSubscription.unsubscribe();
         if (confirmed)
           this.runHandler.sendEventAsMain(EventType.Kick, user);

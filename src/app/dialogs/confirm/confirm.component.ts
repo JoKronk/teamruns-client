@@ -8,11 +8,16 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 })
 export class ConfirmComponent {
 
-  constructor(@Inject(MAT_DIALOG_DATA) public message: string, public dialogRef: MatDialogRef<ConfirmComponent>) {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: ConfirmComponentPackage, public dialogRef: MatDialogRef<ConfirmComponent>) {
 
   }
 
   close(confirmed: boolean) {
     this.dialogRef.close(confirmed);
   }
+}
+
+export class ConfirmComponentPackage {
+  message: string = "";
+  yesNo: boolean = false;
 }

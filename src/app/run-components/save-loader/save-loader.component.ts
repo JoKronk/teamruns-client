@@ -32,7 +32,7 @@ export class SaveLoaderComponent implements OnDestroy {
   }
 
   loadSave(save: LocalSave) {
-    const dialogSubscription = this.dialog.open(ConfirmComponent, { data: "Are you sure you want to load " + save.name + "?" }).afterClosed().subscribe(confirmed => {
+    const dialogSubscription = this.dialog.open(ConfirmComponent, { data: { message: "Are you sure you want to load " + save.name + "?" } }).afterClosed().subscribe(confirmed => {
       dialogSubscription.unsubscribe();
       if (confirmed) {
         save = Object.assign(new LocalSave(), save);

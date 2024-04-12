@@ -35,6 +35,7 @@ export class LobbyComponent implements OnDestroy {
   columns: string[] = ["name", "mode", "category", "teams", "players"];
 
   lobbiesSubscription: Subscription;
+  userSubscription: Subscription;
 
   constructor(public _user: UserService, private _firestore: FireStoreService, private router: Router, private dialog: MatDialog) {
     
@@ -64,6 +65,20 @@ export class LobbyComponent implements OnDestroy {
       this.dataSourceUnavailable = new MatTableDataSource(this.unavaliableLobbies);
       this.selectedLobby = this.avaliableLobbies[0];
       this.loaded = true;
+    });
+
+    
+    this.userSubscription = this._user.userSetupSubject.subscribe(user => {
+      if (!user) return;
+
+      //this should technically be ran on user setup subject
+      if (_user.user.saveRecordingsLocally === undefined) {
+        const dialogSubscription = this.dialog.open(ConfirmComponent, { data: { message: "Do you want to save recordings of runs locally?", yesNo: true } }).afterClosed().subscribe(confirmed => {
+          dialogSubscription.unsubscribe();
+          this._user.user.saveRecordingsLocally = confirmed === undefined ? false : confirmed;
+          _user.writeSettings();
+        });
+      }
     });
   }
 
@@ -101,8 +116,7 @@ export class LobbyComponent implements OnDestroy {
 
   deleteLobby(event: Event, lobby: Lobby) {
     event.stopPropagation();
-    const dialogRef = this.dialog.open(ConfirmComponent, { data: "Delete " + lobby.runData.name + "?" });
-    const dialogSubscription = dialogRef.afterClosed().subscribe(confirmed => {
+    const dialogSubscription = this.dialog.open(ConfirmComponent, { data: { message: "Delete " + lobby.runData.name + "?" } }).afterClosed().subscribe(confirmed => {
       dialogSubscription.unsubscribe();
       if (confirmed)
         this._firestore.deleteLobby(lobby.id);
@@ -111,6 +125,7 @@ export class LobbyComponent implements OnDestroy {
 
   ngOnDestroy() {
     this.lobbiesSubscription.unsubscribe();
+    this.userSubscription.unsubscribe();
   }
 
 }
