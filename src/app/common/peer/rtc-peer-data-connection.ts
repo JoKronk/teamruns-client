@@ -119,7 +119,8 @@ export class RTCPeerDataConnection {
 
     sendEvent(event: DataChannelEvent) {
         if (this.dataChannelToPeer?.readyState !== "open") return;
-            this.dataChannelToPeer.send(JSON.stringify(event));
+
+        this.dataChannelToPeer.send(JSON.stringify(event, (key, value) => { return key === "timerSubject" ? undefined : value; }));
     }
 
     sendPosition(target: UserPositionData) {
