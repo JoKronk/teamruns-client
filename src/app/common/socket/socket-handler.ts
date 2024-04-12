@@ -443,7 +443,7 @@ export class SocketHandler {
                         if (currentPlayer.positionData.currentLevel !== positionData.currentLevel)
                             this.addCommand(OgCommand.OnRemoteLevelUpdate);
 
-                        const previousRecordingdataIndex = currentPlayer.recordingDataIndex;
+                        const previousRecordingdataIndex = currentPlayer.recordingDataIndex ?? recording.playback.length;
                         const newRecordingdataIndex = recording.currentRecordingDataIndex;
                         if (currentPlayer.updateCurrentPosition(positionData, recording.username, false, this.socketConnected, newRecordingdataIndex)) {
 
