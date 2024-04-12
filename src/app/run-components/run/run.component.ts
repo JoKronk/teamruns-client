@@ -120,6 +120,8 @@ export class RunComponent implements OnDestroy {
     if (this.runHandler.run?.timer.runState !== RunState.Waiting && this.runHandler.isSpectatorOrNull(userId)) return;
     this.runHandler.sendEvent(EventType.ChangeTeam, userId, teamId);
     localPlayer.updateTeam(this.runHandler.run?.getTeam(teamId) ?? undefined);
+    let player = this.runHandler.run!.getPlayer(userId);
+    if (player) player.currentLevel = this.mainLocalPlayer.socketHandler.getSelfUserPositionData(0)?.currentLevel ?? "";
   }
 
   editTeamName(teamId: number) {
