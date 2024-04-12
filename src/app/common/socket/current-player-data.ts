@@ -25,7 +25,7 @@ export class CurrentPlayerData {
     }
 
     // returns if has updated
-    updateCurrentPosition(positionData: PositionData, username: string, isLocalUser: boolean, socketConnected: boolean, recordingDataIndex: number | undefined = undefined) : boolean {
+    updateCurrentPosition(positionData: PositionData, username: string, isLocalUser: boolean, recordingDataIndex: number | undefined = undefined) : boolean {
         if (recordingDataIndex) {
             if (recordingDataIndex === this.recordingDataIndex)
                 return false;
@@ -52,7 +52,7 @@ export class CurrentPlayerData {
         this.positionData.transY = positionData.transY;
         this.positionData.transZ = positionData.transZ;
         
-        if (socketConnected) this.checkUpdateUsername(username);
+        this.checkUpdateUsername(username);
 
         return true;
     }

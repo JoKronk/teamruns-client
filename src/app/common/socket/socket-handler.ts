@@ -176,6 +176,7 @@ export class SocketHandler {
                             this.run.getAllPlayers().forEach(player => { // set the team for any users already connected
                                 this.updatePlayerInfo(player.user.id, this.run.getRemotePlayerInfo(player.user.id));
                             });
+                            this.repeatPlayerUsernames();
 
                             this.addCommand(OgCommand.None); //send empty message to update username, version & controller
                         }, 300);
@@ -278,6 +279,11 @@ export class SocketHandler {
             this.addCommand(OgCommand.None);
     }
 
+    repeatPlayerUsernames() {
+        for (let player of this.players)
+            player.positionData.updateUsername(player.currentUsername);
+    }
+
     updateGameSettings(settings: GameSettings) {
         this.socketPackage.gameSettings = settings;
         if (!this.drawPositions)
@@ -308,6 +314,7 @@ export class SocketHandler {
         this.sendSocketPackageToOpengoal();
 
         this.players = this.players.filter(x => x.positionData.userId !== userId);
+        this.repeatPlayerUsernames();
 
     }
 
@@ -317,6 +324,7 @@ export class SocketHandler {
         if (user.id !== this.user.id) {
             this.players.push(new CurrentPlayerData(user, state));
             this.updatePlayerInfo(user.id, this.run.getRemotePlayerInfo(user.id));
+            this.repeatPlayerUsernames();
         }
         else
             this.self = new CurrentPlayerData(user, MultiplayerState.interactive);
@@ -387,7 +395,7 @@ export class SocketHandler {
                 if (runPlayer) runPlayer.currentLevel = positionData.currentLevel;
             }
             
-            player.updateCurrentPosition(positionData, positionData.username, isLocalUser, this.socketConnected);
+            player.updateCurrentPosition(positionData, positionData.username, isLocalUser);
 
 
             if (isLocalUser) { //handled in draw update cycle for remote players
@@ -445,7 +453,7 @@ export class SocketHandler {
 
                         const previousRecordingdataIndex = currentPlayer.recordingDataIndex ?? recording.playback.length;
                         const newRecordingdataIndex = recording.currentRecordingDataIndex;
-                        if (currentPlayer.updateCurrentPosition(positionData, recording.username, false, this.socketConnected, newRecordingdataIndex)) {
+                        if (currentPlayer.updateCurrentPosition(positionData, recording.username, false, newRecordingdataIndex)) {
 
                             //handle missed pickups
                             if (previousRecordingdataIndex && (previousRecordingdataIndex - 1) > newRecordingdataIndex) {
