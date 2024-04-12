@@ -172,7 +172,7 @@ export class SocketHandler {
                             this.zone.run(() => {
                                 this.socketConnected = true;
                             });
-                            this.updateGameSettings(new GameSettings(this.timer.isPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version)));
+                            this.updateGameSettings(new GameSettings(this.timer.isPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version, !this.run.forPracticeTool)));
                             this.run.getAllPlayers().forEach(player => { // set the team for any users already connected
                                 this.updatePlayerInfo(player.user.id, this.run.getRemotePlayerInfo(player.user.id));
                             });
