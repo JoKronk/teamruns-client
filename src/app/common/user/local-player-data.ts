@@ -9,6 +9,7 @@ import { RunCleanupHandler } from "../level/run-cleanup-handler";
 import { NgZone } from "@angular/core";
 import { RunStateHandler } from "../level/run-state-handler";
 import { SocketHandlerLockout } from "../socket/socket-handler-lockout";
+import { SyncType } from "../level/sync-type";
 
 export class LocalPlayerData {
   user: User;
@@ -33,8 +34,8 @@ export class LocalPlayerData {
     }
   }
 
-  importRunStateHandler(runStateHandler: RunStateHandler, hardReset: boolean = false) {
-    this.cleanupHandler.importRunState(runStateHandler, this.socketHandler, this.gameState, hardReset);
+  importRunStateHandler(runStateHandler: RunStateHandler, syncType: SyncType) {
+    this.cleanupHandler.importRunState(runStateHandler, this.socketHandler, this.gameState, syncType);
 
     setTimeout(() => {
       if (this.socketHandler.inMidRunRestartPenaltyWait === 0)
@@ -50,34 +51,37 @@ export class LocalPlayerData {
 
   checkDesync(run: Run) {
     if (!this.socketHandler.localTeam) this.socketHandler.localTeam = run.getPlayerTeam(this.user.id, true);
-    if (!this.socketHandler.localTeam || this.isInSync(run) || this.socketHandler.isSyncing) return;
+    let syncType = this.isInSync();
+    if (!this.socketHandler.localTeam || syncType === SyncType.None || this.socketHandler.isSyncing) return;
 
 
     this.socketHandler.isSyncing = true;
     setTimeout(() => {  //give the player some time to catch up if false positive
-      if (this.isInSync(run)) {
+      syncType = this.isInSync();
+      if (syncType === SyncType.None) {
         this.socketHandler.isSyncing = false;
         return;
       }
       
-      this.importRunStateHandler(this.socketHandler.localTeam!.runState);
+      this.importRunStateHandler(this.socketHandler.localTeam!.runState, syncType);
 
     }, 1000);
     }
 
-  private isInSync(run: Run): boolean {
-    if (!this.socketHandler.localTeam) return true;
+  private isInSync(): SyncType {
+    let syncType: SyncType = SyncType.None;
+    if (!this.socketHandler.localTeam) return syncType;
     
-    if (this.socketHandler.localTeam.runState.cellCount > this.gameState.cellCount)
-    return false;
+    if (this.socketHandler.localTeam.runState.orbCount > this.gameState.orbCount)
+      syncType = SyncType.Soft;
     
     if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount)
-    return false;
+      syncType = SyncType.Hard;
 
-    if (this.socketHandler.localTeam.runState.orbCount > this.gameState.orbCount)
-    return false;
-
-    return true;
+    if (this.socketHandler.localTeam.runState.cellCount > this.gameState.cellCount)
+      syncType = SyncType.Hard;
+    
+    return syncType;
   }
 
   onDestroy(): void {

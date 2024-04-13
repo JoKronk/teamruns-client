@@ -8,6 +8,7 @@ import { InteractionType } from "../opengoal/interaction-type";
 import { TaskStatus } from "../opengoal/task-status";
 import { OgCommand } from "../socket/og-command";
 import { GameState } from "../opengoal/game-state";
+import { SyncType } from "./sync-type";
 
 export class RunCleanupHandler extends RunStateHandler {
 
@@ -15,12 +16,12 @@ export class RunCleanupHandler extends RunStateHandler {
         super();
     }
 
-    importRunState(runStateHandler: RunStateHandler, socketHandler: SocketHandler, gameState: GameState, hardReset: boolean) {
+    importRunState(runStateHandler: RunStateHandler, socketHandler: SocketHandler, gameState: GameState, syncType: SyncType) {
         
         this.resetHandler();
 
         //reset game
-        if (hardReset) socketHandler.addCommand(OgCommand.ResetGame);
+        if (syncType === SyncType.Full) socketHandler.addCommand(OgCommand.ResetGame);
 
         //import task statuses to game
         runStateHandler.tasksStatuses.forEach(interaction => {
@@ -29,46 +30,48 @@ export class RunCleanupHandler extends RunStateHandler {
             this.resendCommonInteraction(modifiedInteraction, socketHandler);
         });
 
-        //update collectables
-        runStateHandler.levels.forEach(level => {
-
-            level.interactions.filter(x => x.interType == InteractionType.crate).forEach(interaction => {
-                this.resendCommonInteraction(interaction, socketHandler);
-            });
-
-            level.interactions.filter(x => x.interType == InteractionType.money).forEach(interaction => {
-                this.resendCommonInteraction(interaction, socketHandler);
-            });
-
-            level.interactions.filter(x => x.interType == InteractionType.enemyDeath).forEach(interaction => {
-                this.resendCommonInteraction(interaction, socketHandler);
-            });
-
-            level.interactions.filter(x => x.interType == InteractionType.periscope).forEach(interaction => {
-                this.resendCommonInteraction(interaction, socketHandler);
-            });
-
-            level.interactions.filter(x => x.interType == InteractionType.snowBumper).forEach(interaction => {
-                this.resendCommonInteraction(interaction, socketHandler);
-            });
-
-            level.interactions.filter(x => x.interType == InteractionType.darkCrystal).forEach(interaction => {
-                this.resendCommonInteraction(interaction, socketHandler);
-            });
-            
-            level.interactions.filter(x => x.interType == InteractionType.lpcChamber).forEach(interaction => {
-                socketHandler.addPlayerInteraction(interaction);
-                this.onLpcChamberStop(interaction);
-            });
-
-            setTimeout(() => { //give time for buzzer crate to get destoryed
-                level.interactions.filter(x => x.interType == InteractionType.buzzer).forEach(interaction => {
-                    if (gameState.buzzerCount === 0) //re give all scoutflies if restart
-                        interaction.interCleanup = false;
+        if (syncType >= SyncType.Hard) {
+            //update collectables
+            runStateHandler.levels.forEach(level => {
+    
+                level.interactions.filter(x => x.interType == InteractionType.crate).forEach(interaction => {
                     this.resendCommonInteraction(interaction, socketHandler);
                 });
-            }, 500);
-        });
+    
+                level.interactions.filter(x => x.interType == InteractionType.money).forEach(interaction => {
+                    this.resendCommonInteraction(interaction, socketHandler);
+                });
+    
+                level.interactions.filter(x => x.interType == InteractionType.enemyDeath).forEach(interaction => {
+                    this.resendCommonInteraction(interaction, socketHandler);
+                });
+    
+                level.interactions.filter(x => x.interType == InteractionType.periscope).forEach(interaction => {
+                    this.resendCommonInteraction(interaction, socketHandler);
+                });
+    
+                level.interactions.filter(x => x.interType == InteractionType.snowBumper).forEach(interaction => {
+                    this.resendCommonInteraction(interaction, socketHandler);
+                });
+    
+                level.interactions.filter(x => x.interType == InteractionType.darkCrystal).forEach(interaction => {
+                    this.resendCommonInteraction(interaction, socketHandler);
+                });
+                
+                level.interactions.filter(x => x.interType == InteractionType.lpcChamber).forEach(interaction => {
+                    socketHandler.addPlayerInteraction(interaction);
+                    this.onLpcChamberStop(interaction);
+                });
+    
+                setTimeout(() => { //give time for buzzer crate to get destoryed
+                    level.interactions.filter(x => x.interType == InteractionType.buzzer).forEach(interaction => {
+                        if (gameState.buzzerCount === 0) //re give all scoutflies if restart
+                            interaction.interCleanup = false;
+                        this.resendCommonInteraction(interaction, socketHandler);
+                    });
+                }, 500);
+            });
+        }
         
         const orbAdjustCount = runStateHandler.orbCount - gameState.orbCount;
         socketHandler.addOrbAdjustmentToCurrentPlayer(orbAdjustCount);

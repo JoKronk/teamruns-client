@@ -18,6 +18,7 @@ import { OG } from '../../common/opengoal/og';
 import { LocalSave } from 'src/app/common/level/local-save';
 import { OgCommand } from 'src/app/common/socket/og-command';
 import { Subscription } from 'rxjs';
+import { SyncType } from 'src/app/common/level/sync-type';
 
 @Component({
   selector: 'app-run-casual',
@@ -103,7 +104,7 @@ export class RunCasualComponent implements OnDestroy {
     this._user.localUsers.forEach(player => {
       if (this.runHandler.run) {
         this.runHandler.runSyncLocalPlayer(player, this.runHandler.run, false);
-        player.importRunStateHandler(save, false);
+        player.importRunStateHandler(save, SyncType.Full);
         let teamPlayer = team?.players.find(x => x.user.id === player.user.id);
         if (teamPlayer) teamPlayer.cellsCollected = save.tasksStatuses.filter(x => x.userId === teamPlayer?.user.id && Task.isCellCollect(x.interName, TaskStatus.nameFromEnum(x.interStatus))).length;
       }
