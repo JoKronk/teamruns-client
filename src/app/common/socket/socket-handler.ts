@@ -56,6 +56,7 @@ export class SocketHandler {
     
     private shortTermInteractionMemory: ShortMemoryInteraction[] = [];
 
+    private sendingCommands: boolean;
     private socketCommandBuffer: OgCommand[] = []; 
     private socketPackage: SocketPackage = new SocketPackage();
     public socketConnected: boolean;
@@ -242,8 +243,23 @@ export class SocketHandler {
 
     addCommand(command: OgCommand) {
         this.socketCommandBuffer.push(command);
-        while (this.socketCommandBuffer.length != 0 && !this.drawPositions && this.socketConnected)
-            this.sendSocketPackageToOpengoal(false);
+        this.sendCommandsFromBuffer();
+    }
+
+    private async sendCommandsFromBuffer(initStart: boolean = true) {
+        if (initStart && this.sendingCommands) //prevent commands from being sent to quickly
+            return;
+
+        if (this.socketCommandBuffer.length === 0 || this.drawPositions && !this.socketConnected) {
+            this.sendingCommands = false;
+            return;
+        }
+        
+        this.sendingCommands = true;
+
+        this.sendSocketPackageToOpengoal(false);
+        await new Promise(r => setTimeout(r, (this.positionUpdateRateMs * 2)));
+        this.sendCommandsFromBuffer(false);
     }
 
     forceCheckpointSpawn(checkpoint: string) {
