@@ -223,7 +223,6 @@ export class SocketHandler {
 
         this.resetOngoingRecordings();
         this.recordings = [];
-        this.players = [];
         return recordings;
     }
 
@@ -313,9 +312,12 @@ export class SocketHandler {
         player.positionData.mpState = MultiplayerState.disconnected;
         this.sendSocketPackageToOpengoal();
 
-        this.players = this.players.filter(x => x.positionData.userId !== userId);
-        this.repeatPlayerUsernames();
+        if (!this.players.some(x => x.positionData.mpState !== MultiplayerState.disconnected))
+            this.players = [];
+        else
+            player.positionData.onDisconnectCleanup();
 
+        this.repeatPlayerUsernames();
     }
 
     private checkRegisterPlayer(user: UserBase | undefined, state: MultiplayerState) {
@@ -360,16 +362,16 @@ export class SocketHandler {
             return undefined;
 
         return {
-            transX: this.self.positionData.transX, 
-            transY: this.self.positionData.transY, 
-            transZ: this.self.positionData.transZ, 
-            quatX: this.self.positionData.quatX, 
-            quatY: this.self.positionData.quatY, 
-            quatZ: this.self.positionData.quatZ, 
-            quatW: this.self.positionData.quatW, 
-            rotY: this.self.positionData.rotY, 
-            tgtState: this.self.positionData.tgtState, 
-            currentLevel: this.self.positionData.currentLevel, 
+            transX: this.self.positionData.transX ?? 0,
+            transY: this.self.positionData.transY ?? 0,
+            transZ: this.self.positionData.transZ ?? 0,
+            quatX: this.self.positionData.quatX ?? 0,
+            quatY: this.self.positionData.quatY ?? 0,
+            quatZ: this.self.positionData.quatZ ?? 0,
+            quatW: this.self.positionData.quatW ?? 0,
+            rotY: this.self.positionData.rotY ?? 0,
+            tgtState: this.self.positionData.tgtState,
+            currentLevel: this.self.positionData.currentLevel ?? "",
             interType: 0,
             interAmount: 0,
             interStatus: 0,
@@ -529,6 +531,7 @@ export class SocketHandler {
         });
 
         this.sendSocketPackageToOpengoal();
+        this.players = [];
     }
     
     private cleanShortTermMemory() {

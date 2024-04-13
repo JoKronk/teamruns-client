@@ -5,16 +5,16 @@ import { InteractionData } from "./interaction-data";
 import { RemotePlayerInfo } from "./remote-player-info";
 
 export class CurrentPositionData {
-    transX: number;
-    transY: number;
-    transZ: number;
-    quatX: number;
-    quatY: number;
-    quatZ: number;
-    quatW: number;
-    rotY: number;
-    tgtState: any;
-    currentLevel: string;
+    transX: number | undefined;
+    transY: number | undefined;
+    transZ: number | undefined;
+    quatX: number | undefined;
+    quatY: number | undefined;
+    quatZ: number | undefined;
+    quatW: number | undefined;
+    rotY: number | undefined;
+    tgtState: any | undefined;
+    currentLevel: string | undefined;
     
     interaction: InteractionData | undefined;
     playerInfo: RemotePlayerInfo | undefined;
@@ -37,6 +37,20 @@ export class CurrentPositionData {
 
     updateUsername(username: string) {
         this.username = username;
+    }
+
+    onDisconnectCleanup() {
+        this.cleanupOneTimeData();
+        this.transX = undefined;
+        this.transY = undefined;
+        this.transZ = undefined;
+        this.quatX = undefined;
+        this.quatY = undefined;
+        this.quatZ = undefined;
+        this.quatW = undefined;
+        this.rotY = undefined;
+        this.tgtState = undefined;
+        this.currentLevel = undefined;
     }
 
     cleanupOneTimeData() {
