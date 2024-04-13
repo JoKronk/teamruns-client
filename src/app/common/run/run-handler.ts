@@ -869,8 +869,9 @@ export class RunHandler {
 
             this.sendEvent(EventType.NewPlayerState, localPlayer.user.id, state);
 
+            const previousCheckpoint = localPlayer.gameState.currentCheckpoint;
             localPlayer.gameState = state;
-            if (state.justSpawned || localPlayer.gameState.currentCheckpoint !== state.currentCheckpoint)
+            if (state.justSpawned || state.justSaved || state.justLoaded || previousCheckpoint !== state.currentCheckpoint)
                 localPlayer.checkDesync(this.run!);
         })
     }
