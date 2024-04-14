@@ -9,12 +9,11 @@
     "ng:serve": "ng serve -c development",
     "electron:serve": "wait-on tcp:4200 && electron . --serve",
     "electron": "ng build && electron .",
-    "pack": "ng build && electron-builder --dir",
-    "dist": "ng build && electron-builder build --win --publish never",
-    "deploy": "ng build && electron-builder build --win --publish always",
     "test": "ng test",
     "build": "ng build",
-    "watch": "ng build --watch --configuration development"
+    "watch": "ng build --watch --configuration development",
+    "dist": "ng build && electron-builder build --win --publish never",
+    "dist:linux": "ng build && electron-builder build --linux --publish never"
   },
   "build": {
     "appId": "teamruns-client",
