@@ -3,6 +3,7 @@ const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
+const tar = require('tar');
 const child_process = require('child_process');
 const axios = require('axios');
 const yauzl = require('yauzl');
@@ -269,6 +270,18 @@ function onUserSettingsRead(data) {
   }, 1000);
 }
 
+function isWindows() {
+  return process.platform === "win32";
+}
+
+function isLinux() {
+  return process.platform === "linux";
+}
+
+function isSupportedPlatform() {
+  return isWindows() || isLinux();
+}
+
 
 // --- RECORDINGS ---
 function getRecordingsPath() {
@@ -384,13 +397,23 @@ function selectIsoPath() {
 }
 
 async function checkGameIsInstalled() {
+  if (!isSupportedPlatform())
+    return;
+
   const folderPath = getInstallPath();
-  if (!fs.existsSync(folderPath) || !fs.existsSync(path.join(folderPath, "extractor.exe")) || !fs.existsSync(path.join(folderPath, "gk.exe")) || !fs.existsSync(path.join(folderPath, "goalc.exe")))
+  
+  if (!fs.existsSync(folderPath))
     return false;
+
+  if (isWindows() && (!fs.existsSync(path.join(folderPath, "extractor.exe")) || !fs.existsSync(path.join(folderPath, "gk.exe")) || !fs.existsSync(path.join(folderPath, "goalc.exe"))))
+    return false;
+  else if (isLinux() && (!fs.existsSync(path.join(folderPath, "extractor")) || !fs.existsSync(path.join(folderPath, "gk")) || !fs.existsSync(path.join(folderPath, "goalc"))))
+    return false;
+
 
   const isoPath = path.join(folderPath, "data", "iso_data", "jak1");
   if (!fs.existsSync(isoPath))
-    return !app.isPackaged && fs.existsSync(path.join(folderPath, "goalc-simple.exe"));
+    return !app.isPackaged && fs.existsSync(path.join(folderPath, (isWindows()? "goalc-simple.exe" : "goalc-simple")));
 
   const files = await fs.promises.readdir(isoPath);
   return files.length > 1 && userSettings.gameVersion;
@@ -463,16 +486,21 @@ async function cleanGameInstallLocation() {
 
 //runs update if isoPath is null
 async function installGame(isoPath) { //downloads and unzips project, then calls extractISO
+  if (!isSupportedPlatform())
+    return;
   
   await cleanGameInstallLocation();
-
   sendInstallProgress(1, "Fetching game version");
   const version = await getLatestGameReleaseVersion();
   sendInstallProgress(3, "Downloading release");
-  const response = await axios.get("https://github.com/JoKronk/teamruns-jak-project/releases/latest/download/opengoal-windows-v" + version + ".zip", { responseType: 'arraybuffer' });
+  const response = await (isWindows() 
+    ? axios.get("https://github.com/JoKronk/teamruns-jak-project/releases/latest/download/opengoal-windows-v" + version + ".zip", { responseType: 'arraybuffer' })
+    : axios.get("https://github.com/JoKronk/teamruns-jak-project/releases/latest/download/opengoal-linux-v" + version + ".tar.gz", { responseType: 'arraybuffer' }));
   
   sendInstallProgress(5, "Unzipping");
   let folderPath = getInstallPath();
+
+  if (isWindows()) {
     yauzl.fromBuffer(response.data, { lazyEntries: true }, function(err, zipFile) {
       if (err) throw err;
   
@@ -514,6 +542,20 @@ async function installGame(isoPath) { //downloads and unzips project, then calls
         extractISO(version, isoPath);
       });
     });
+  }
+  else {
+    let tarPath = path.join(folderPath, "OpenGOAL.tar.gz");
+    await fs.promises.writeFile(tarPath, response.data, () => {});
+    tar.extract(
+      {
+        file: tarPath,
+        cwd: getInstallPath()
+      }
+    ).then(_=> { 
+      fs.promises.unlink(tarPath);
+      extractISO(version, isoPath)
+    });
+  }
 }
 
 function extractISO(version, isoPath) {
@@ -523,6 +565,7 @@ function extractISO(version, isoPath) {
   let decompProgress = 0;
   const decompTotal = 24; //counted from decompiling
   let compiling = false;
+  let currentProgress = 0;
 
   let extractor = isoPath ? child_process.spawn(path.join(folderPath, "extractor"), ['-e', '-d', '-c', isoPath])
   : child_process.spawn(path.join(folderPath, "extractor"), ['-d', '-c', '-f', path.join(folderPath, "data", "iso_data", "jak1")]);
@@ -541,21 +584,35 @@ function extractISO(version, isoPath) {
       if (!compiling) {
         if (msg.includes("0%] [copy"))
           compiling = true;
-          else if (msg.startsWith("[info] Extracting")) {
-            msg = msg.slice(7);
-            extractProgress += 1;
-            sendInstallProgress((extractProgress / extractTotal * 15 + 20), msg);
-          }
-          else if (msg.startsWith("[info] stats for")) {
-            decompProgress += 1;
-            sendInstallProgress((decompProgress / decompTotal * 15 + (isoPath ? 35 : 20)), "Decompiling");
+        else if (msg.includes("[info] Extracting")) {
+          msg = msg.slice((msg.indexOf("[info] Extracting") + 7));
+          extractProgress += 1;
+          // 20 from before + 15 (= 35) at end
+          let progress = (extractProgress > extractTotal ? extractTotal : extractProgress) / extractTotal * 15 + 20;
+          if (currentProgress < progress) {
+            currentProgress = progress;
+            sendInstallProgress(progress, msg); 
           }
         }
-        else {
-          let progress = msg.match(/\d+% ?/g);
-          if (progress) {
-            sendInstallProgress((progress[0].slice(0, -1) / 100 * (isoPath ? 50 : 65) + (isoPath ? 50 : 35)), "Compiling");
+        else if (msg.includes("[info] stats for")) {
+          decompProgress += 1;
+          // 35 or 20(no extract) from before + 15 (= 50 or 35) at end
+          let progress = (decompProgress > decompTotal ? decompTotal : decompProgress) / decompTotal * 15 + (isoPath ? 35 : 20);
+          if (currentProgress < progress) {
+            currentProgress = progress;
+            sendInstallProgress(currentProgress, "Decompiling"); 
           }
+        }
+      }
+      else {
+        let progress = msg.match(/\d+% ?/g);
+        if (progress) { //50 or 35 from before, goes up to 99
+          progress = progress[0].slice(0, -1) / 100 * (isoPath ? 49 : 64) + (isoPath ? 50 : 35);
+          if (!isNaN(progress) && currentProgress < progress) {
+            currentProgress = progress;
+            sendInstallProgress(currentProgress, "Compiling"); 
+          }
+        }
       }
   });
 

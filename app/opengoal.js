@@ -41,7 +41,7 @@ class OpenGoal {
         }
 
         //start REPL
-        replInstance = spawn(ogPath + "\\goalc.exe", [], {detached: true, shell: true});
+        replInstance = spawn(path.join(ogPath, "goalc"), [], {detached: true, shell: true});
 
         //On kill
         replInstance.stdout.on('end', () => {
@@ -124,7 +124,7 @@ class OpenGoal {
     }
 
     startGK(ogPath, port) {
-        let openGoalClient = spawn(ogPath + "\\gk.exe", ["--socketport", port, "--game", "jak1", "--", "-boot", "-fakeiso", "-debug"]);
+        let openGoalClient = spawn(path.join(ogPath, "gk"), ["--socketport", port, "--game", "jak1", "--", "-boot", "-fakeiso", "-debug"]);
         let newInstance = {port: port, client: openGoalClient};
         openGoalInstances.push(newInstance);
         
@@ -162,7 +162,7 @@ class OpenGoal {
 
     killREPL() {
         if (!replInstance) return;
-        spawn("taskkill", ["/pid", replInstance.pid, '/f', '/t']);
+        replInstance.kill();
 
         replInstance = null;
         replIsRunning = false;
@@ -171,7 +171,7 @@ class OpenGoal {
     killGK(port) {
         let instance = openGoalInstances.find(x => x.port === port);
         if (instance)
-            spawn("taskkill", ["/pid", instance.client.pid, '/f', '/t']);
+            instance.client.kill();
     }
 
 
