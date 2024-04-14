@@ -294,8 +294,8 @@ function writeRecordings(recordings) {
 function openFolder(path) {
   if (!fs.existsSync(path))
     fs.mkdirSync(path, { recursive: true });
-    
-  child_process.exec('start "" ' + path);
+  
+    shell.openPath(path);
 }
 
 function readFile(filepath) {
@@ -469,47 +469,47 @@ async function installGame(isoPath) { //downloads and unzips project, then calls
   
   sendInstallProgress(5, "Unzipping");
   let folderPath = getInstallPath();
-  yauzl.fromBuffer(response.data, { lazyEntries: true }, function(err, zipFile) {
-    if (err) throw err;
-
-    const entryTotalCount = zipFile.entryCount;
-    let entryProgress = 0;
-
-    zipFile.readEntry();
-    zipFile.on("entry", function(entry) {
-
-      if (/\/$/.test(entry.fileName)) {
-        // Directory
-        mkdirp.sync(path.join(folderPath, entry.fileName));
-        zipFile.readEntry();
-      } 
-      else {
-        // File
-        zipFile.openReadStream(entry, function(err, readStream) {
-          if (err) throw err;
-          const file = fs.createWriteStream(path.join(folderPath, entry.fileName));
-          readStream.pipe(file);
-
-          file.on('finish', () => {
-            // Wait until the file is finished writing, then read the next entry.
-            file.close(() => {
-              entryProgress += 1;
-              // progress / total count * part of 100% this step count as + already
-              sendInstallProgress((entryProgress / entryTotalCount * 15 + 5), "Unzipping");
-              zipFile.readEntry();
+    yauzl.fromBuffer(response.data, { lazyEntries: true }, function(err, zipFile) {
+      if (err) throw err;
+  
+      const entryTotalCount = zipFile.entryCount;
+      let entryProgress = 0;
+  
+      zipFile.readEntry();
+      zipFile.on("entry", function(entry) {
+  
+        if (/\/$/.test(entry.fileName)) {
+          // Directory
+          mkdirp.sync(path.join(folderPath, entry.fileName));
+          zipFile.readEntry();
+        } 
+        else {
+          // File
+          zipFile.openReadStream(entry, function(err, readStream) {
+            if (err) throw err;
+            const file = fs.createWriteStream(path.join(folderPath, entry.fileName));
+            readStream.pipe(file);
+  
+            file.on('finish', () => {
+              // Wait until the file is finished writing, then read the next entry.
+              file.close(() => {
+                entryProgress += 1;
+                // progress / total count * part of 100% this step count as + already
+                sendInstallProgress((entryProgress / entryTotalCount * 15 + 5), "Unzipping");
+                zipFile.readEntry();
+              });
+  
+              file.on('error', (err) => { zipFile.close(); });
             });
-
-            file.on('error', (err) => { zipFile.close(); });
           });
-        });
-      }
+        }
+      });
+  
+      
+      zipFile.on("end", function () {
+        extractISO(version, isoPath);
+      });
     });
-
-    
-    zipFile.on("end", function () {
-      extractISO(version, isoPath);
-    });
-  });
 }
 
 function extractISO(version, isoPath) {
@@ -537,21 +537,21 @@ function extractISO(version, isoPath) {
       if (!compiling) {
         if (msg.includes("0%] [copy"))
           compiling = true;
-        else if (msg.startsWith("[info] Extracting")) {
-          msg = msg.slice(7);
-          extractProgress += 1;
-          sendInstallProgress((extractProgress / extractTotal * 15 + 20), msg);
+          else if (msg.startsWith("[info] Extracting")) {
+            msg = msg.slice(7);
+            extractProgress += 1;
+            sendInstallProgress((extractProgress / extractTotal * 15 + 20), msg);
+          }
+          else if (msg.startsWith("[info] stats for")) {
+            decompProgress += 1;
+            sendInstallProgress((decompProgress / decompTotal * 15 + (isoPath ? 35 : 20)), "Decompiling");
+          }
         }
-        else if (msg.startsWith("[info] stats for")) {
-          decompProgress += 1;
-          sendInstallProgress((decompProgress / decompTotal * 15 + (isoPath ? 35 : 20)), "Decompiling");
-        }
-      }
-      else {
-        let progress = msg.match(/\d+% ?/g);
-        if (progress) {
-          sendInstallProgress((progress[0].slice(0, -1) / 100 * (isoPath ? 50 : 65) + (isoPath ? 50 : 35)), "Compiling");
-        }
+        else {
+          let progress = msg.match(/\d+% ?/g);
+          if (progress) {
+            sendInstallProgress((progress[0].slice(0, -1) / 100 * (isoPath ? 50 : 65) + (isoPath ? 50 : 35)), "Compiling");
+          }
       }
   });
 
