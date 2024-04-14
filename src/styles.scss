@@ -102,7 +102,7 @@ $teamruns-client-theme: mat.define-light-theme((
 
 html, body { height: 100%; }
 html::-webkit-scrollbar { display: none; }
-body { margin: 0 !important; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body { margin: 0 !important; font-family: 'Segoe UI', 'OpenSans', Roboto; }
 
 .mdc-snackbar__label {
   padding: 0 !important;
@@ -179,4 +179,9 @@ background-color: #a56d06 !important;
 @font-face {
   font-family: precursor;
   src: url(assets/fonts/PRECURSOR.TTF) format("truetype");
+}
+
+@font-face {
+  font-family: OpenSans;
+  src: url(assets/fonts/OpenSans.ttf) format("truetype");
 }
