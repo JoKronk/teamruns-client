@@ -358,7 +358,11 @@ async function readSaveFiles() {
 
 // --- OPENGOAL INSTALLATION ---
 function getInstallPath() {
-  return userSettings.ogFolderpath ?? path.join(app.getPath('documents'), "Teamruns", "jak-project");
+  const installPath = userSettings.ogFolderpath ?? path.join(app.getPath('documents'), "Teamruns", "jak-project");
+  if (!fs.existsSync(installPath))
+    fs.mkdirSync(installPath, { recursive: true });
+
+  return installPath;
 }
 
 function selectFolderPath() {
