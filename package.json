@@ -1,8 +1,12 @@
 {
   "name": "teamruns-client",
+  "productName": "Teamruns",
   "version": "0.0.0",
   "description": "OpenGOAL Teamruns client.",
   "main": "app/main.js",
+  "author": {
+      "name": "Dexz"
+  },
   "scripts": {
     "ng": "ng",
     "start": "npm-run-all -p electron:serve ng:serve",
@@ -37,6 +41,13 @@
         "portable"
       ],
       "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Game"
     }
   },
   "repository": {
