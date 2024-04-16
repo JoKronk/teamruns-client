@@ -1,6 +1,5 @@
 {
   "name": "teamruns-client",
-  "productName": "Teamruns",
   "version": "0.0.0",
   "description": "OpenGOAL Teamruns client.",
   "main": "app/main.js",
@@ -22,9 +21,6 @@
   "build": {
     "appId": "teamruns-client",
     "productName": "Teamruns",
-    "extraResources": [
-      "./tracker/*"
-    ],
     "nsis": {
       "artifactName": "${name}-${version}-installer.${ext}",
       "allowToChangeInstallationDirectory": true,
@@ -46,6 +42,7 @@
       "target": [
         "AppImage"
       ],
+      "artifactName": "${name}-${version}-linux.${ext}",
       "icon": "build/icon.png",
       "category": "Game"
     }
