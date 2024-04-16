@@ -295,7 +295,7 @@ function getRecordingsPath() {
 function writeRecordings(recordings) {
   if (!recordings) return;
   const folderPath = getRecordingsPath();
-  const fileName = new Date().toISOString().split(".")[0].replace(/[T:]/g, '-').slice(0, -3);
+  const fileName = new Date().toISOString().replace("T", "_").split(".")[0].replace(/[:]/g, '-').slice(0, -3);
 
   recordings.forEach((recording, index) => {
     fs.writeFile(path.join(folderPath, (recordings.length === 1 ? fileName : (fileName + "_" + (index + 1))) + ".json"), JSON.stringify(recording), (err) => {
