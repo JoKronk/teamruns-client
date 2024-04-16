@@ -1,0 +1,48 @@
+name: Linux Build Electron
+
+on:
+  workflow_call:
+    inputs:
+      uploadArtifacts:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: Electron
+    runs-on: ubuntu-latest
+    # Set some sort of timeout in the event of run-away builds.  We are limited on concurrent jobs so, get rid of them.
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Add Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+
+      - name: Install Backend Dependencies
+        run: |
+          cd app
+          npm install
+
+      - name: Install Frontend Dependencies
+        run: |
+          npm install
+
+      - name: Create environment file
+        run: echo "${{ secrets.ENV_CONFIG_FILE }}" > src/environments/environment.ts
+
+      - name: Build
+        run: npm run dist:linux
+
+      - name: Upload Release Binaries
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_PAT }}
+        run: |
+          TAG_VAL=$(echo ${{ github.REF }} | awk -F'refs/tags/' '{print $2}')
+          gh release upload "${TAG_VAL}" dist/teamruns-client-*.AppImage --repo JoKronk/teamruns-client --clobber
+

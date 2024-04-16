@@ -1,0 +1,37 @@
+name: 🏭 Release Pipeline
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  # Windows
+  build_windows:
+    name: "🖥️ Windows"
+    uses: ./.github/workflows/windows-build.yaml
+    with:
+      uploadArtifacts: true
+    secrets: inherit
+
+  # Linux
+  build_linux:
+    name: "🐧 Linux"
+    uses: ./.github/workflows/linux-build.yaml
+    with:
+      uploadArtifacts: true
+    secrets: inherit
+
+  # Publish the Release
+  publish_release:
+    if: github.repository == 'JoKronk/teamruns-client'
+    needs:
+      - build_windows
+      - build_linux
+    name: "Publish Release"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_PAT }}
+        run: gh release edit ${GITHUB_REF_NAME} --draft=false --repo JoKronk/teamruns-client

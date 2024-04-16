@@ -1,0 +1,56 @@
+name: 🏭 Draft Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Semver Bump Type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  cut-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Get App Version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
+        with:
+          path: app
+
+      - name: Get Next Tag
+        id: tag_version_check
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.BOT_PAT }}
+          tag_prefix: v
+          default_bump: ${{ github.event.inputs.bump }}
+          dry_run: true
+
+      - name: Echo Versions
+        run: echo "Comparing local version match ${{ steps.package-version.outputs.current-version }} against new ${{ steps.tag_version_check.outputs.new_tag }}"
+
+      # Docs - https://github.com/mathieudutour/github-tag-action
+      # Workflows cannot trigger other workflows implicitly
+      # - https://github.community/t/github-actions-workflow-not-triggering-with-tag-push/17053/7
+      - name: Bump Version and Push Tag
+        if: ${{ format('{0}{1}', 'v', steps.package-version.outputs.current-version) == steps.tag_version_check.outputs.new_tag }}
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.BOT_PAT }}
+          tag_prefix: v
+          default_bump: ${{ github.event.inputs.bump }}
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_PAT }}
+        run: gh release create ${{ steps.tag_version.outputs.new_tag }} --generate-notes --draft --repo JoKronk/teamruns-client
