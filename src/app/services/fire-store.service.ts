@@ -25,6 +25,7 @@ export class FireStoreService {
 
   private globalData: AngularFirestoreCollection<DbUsersCollection>;
   private leaderboards: AngularFirestoreCollection<DbLeaderboard>;
+  private logs: AngularFireStorageReference;
   private lobbies: AngularFirestoreCollection<Lobby>;
   private personalBests: AngularFirestoreCollection<DbPb>;
   private recordings: AngularFireStorageReference;
@@ -37,6 +38,7 @@ export class FireStoreService {
 
     this.globalData = firestore.collection<DbUsersCollection>(CollectionName.globalData);
     this.leaderboards = firestore.collection<DbLeaderboard>(CollectionName.leaderboards);
+    this.logs = storage.ref(CollectionName.logs);
     this.lobbies = firestore.collection<Lobby>(CollectionName.lobbies);
     this.personalBests = firestore.collection<DbPb>(CollectionName.personalBests);
     this.recordings = storage.ref(CollectionName.recordings);
@@ -242,6 +244,11 @@ export class FireStoreService {
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
     
     await this.recordings.child(recording.pdId).put(new Blob([JSON.stringify(recording)], {type: "application/json"}));
+  }
+
+  async uploadCrashLog(username: string, log: string) {
+    await this.checkAuthenticated();
+    await this.logs.child(username + "-" + new Date().toISOString().replace("T", "_").split(".")[0].replace(/[:]/g, '-').slice(0, -3)).put(new Blob([log], {type: "text/plain"}));
   }
 
 
