@@ -142,7 +142,7 @@ export class SocketHandler {
     private connectToOpengoal() {
         this.ogSocket.subscribe(target => {
 
-            if (target.connected) {
+            if (target.connected && !this.socketConnected) {
                 this.socketPackage.version = "v" + pkg.version;
                 this.socketPackage.username = this.user.displayName;
 
@@ -160,6 +160,20 @@ export class SocketHandler {
                         this.addCommand(OgCommand.TargetRelease);
                     }, (this.inMidRunRestartPenaltyWait * 1000));
                 }
+
+                setTimeout(() => { //give the game a bit of time to actually start
+                    console.log("Socket Connected!");
+                    this.zone.run(() => {
+                        this.socketConnected = true;
+                    });
+                    this.updateGameSettings(new GameSettings(this.timer.isPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version, !this.run.forPracticeTool)));
+                    this.run.getAllPlayers().forEach(player => { // set the team for any users already connected
+                        this.updatePlayerInfo(player.user.id, this.run.getRemotePlayerInfo(player.user.id));
+                    });
+                    this.repeatPlayerUsernames();
+
+                    this.addCommand(OgCommand.None); //send empty message to update username, version & controller
+                }, 300);
             }
 
             if (target.position)
@@ -167,23 +181,6 @@ export class SocketHandler {
 
             if (target.state) {
                 if (target.state.justSpawned) {
-                    if (!this.socketConnected) {
-
-                        setTimeout(() => { //give the game a bit of time to actually start
-                            console.log("Socket Connected!");
-                            this.zone.run(() => {
-                                this.socketConnected = true;
-                            });
-                            this.updateGameSettings(new GameSettings(this.timer.isPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version, !this.run.forPracticeTool)));
-                            this.run.getAllPlayers().forEach(player => { // set the team for any users already connected
-                                this.updatePlayerInfo(player.user.id, this.run.getRemotePlayerInfo(player.user.id));
-                            });
-                            this.repeatPlayerUsernames();
-
-                            this.addCommand(OgCommand.None); //send empty message to update username, version & controller
-                        }, 300);
-                    }
-
                     if (this.timer.runState === RunState.Countdown)
                         this.addCommand(OgCommand.TargetGrab);
                 }

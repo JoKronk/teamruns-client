@@ -126,12 +126,25 @@ export class RunHandler {
         this.onLobbyChange();
     }
 
-    public setupSocketListener(port: number) {
+    public setupSocketListener(port: number, tries: number = 0) {
         const localPlayer = this.userService.localUsers.find(x => x.socketHandler.socketPort === port);
         if (!localPlayer) {
             this.userService.sendNotification("Game startup detected with no user tied to it!");
             return;
         }
+
+        if (tries > 20) {
+            this.userService.sendNotification("Run handler failed to obtain socket connection!");
+            return;
+        }
+
+        if (!localPlayer.socketHandler.socketConnected) {
+            setTimeout(() => {
+                this.setupSocketListener(port, (tries + 1));
+            }, 500);
+            return;
+        }
+
 
         localPlayer.socketHandler.ogSocket.pipe(finalize(() => { 
             this.sendEvent(EventType.GameClosed, localPlayer.user.id);
