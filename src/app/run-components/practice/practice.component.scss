@@ -33,7 +33,7 @@
             margin-right: 8px;
             text-align: center;
     
-            & span {
+            & div {
                 -webkit-user-select: none;
                 border: 3px solid #a8a8a8;
                 width: 26px;
@@ -49,19 +49,35 @@
                 }
             }
 
-            &-stop span {
+            &-play div {
+                line-height: 22px !important;
+
+                & span {
+                    padding-left: 3px;
+                    font-size: 20px;
+                }
+            }
+
+            &-pause div {
+                font-size: 16px;
+                & span {
+                    padding-top: 10px;
+                }
+            }
+
+            &-stop div {
                 line-height: 21px !important;
                 color: #380000;
                 border: 3px solid #380000;
             }
 
-            &-record span {
+            &-record div {
                 line-height: 22px;
                 color: #920000 !important;
                 border: 3px solid #920000 !important;
             }
 
-            &-cancel span {
+            &-cancel div {
                 line-height: 27px;
                 color: #380000;
                 border: 3px solid #380000;
@@ -157,7 +173,7 @@ hr {
         margin-right: 8px;
         text-align: center;
 
-        & span {
+        & div {
             -webkit-user-select: none;
             display: inline-block;
             width: 21px;

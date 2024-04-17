@@ -31,7 +31,7 @@
         <div class="category-container">
           <div class="category category-select">
             <span>Countdown:</span>
-            <input [disabled]="runHandler.run.timer.runState !== runState.Waiting" type="number" min="0" [(ngModel)]="runHandler.run.timer.countdownSeconds" (change)="runHandler.run.timer.reset()">
+            <input [disabled]="!timerInWait" type="number" min="0" [(ngModel)]="runHandler.run.timer.countdownSeconds" (change)="runHandler.run.timer.reset()">
           </div>
           <div class="category category-select">
             <span>Load on Record:</span>
@@ -71,8 +71,8 @@
             <th mat-header-cell *matHeaderCellDef> Playback </th>
             <td mat-cell *matCellDef="let recording">
               <div class="playback">
-                <div class="playback-button">
-                  <span (click)="playRecording(recording.id)">&#x23F5;</span>
+                <div class="playback-button playback-button-play">
+                  <div (click)="playRecording(recording.id)"><span>&#9658;</span></div>
                 </div>
                 <mat-slider *ngIf="recording.playback.length !== 0" disabled min="0"
                   [max]="currentRecording === 'all' || currentRecording === recording.id ? recording.playback[0].time : 0">
@@ -115,14 +115,14 @@
       
       <div class="page-player">
         <div class="playback">
-          <div class="playback-button" [class.playback-button-stop]="runHandler.run.timer.runState !== runState.Waiting && replay" [class.playback-button-cancel]="runHandler.run.timer.runState !== runState.Waiting && !replay">
-            <span (click)="playAllRecordings()">{{ runHandler.run.timer.runState !== runState.Waiting ? replay ? "&#x25A0;" : "&#x2716;" : "&#x23F5;" }}</span>
+          <div class="playback-button" [class.playback-button-play]="timerInWait && !replay" [class.playback-button-stop]="!timerInWait && replay" [class.playback-button-cancel]="!timerInWait && !replay">
+            <div (click)="playAllRecordings()"><span>{{ !timerInWait ? replay ? "&#x25A0;" : "&#x2716;" : "&#x25BA;" }}</span></div>
           </div>
-          <div class="playback-button" [class.playback-button-record]="!replay" [class.playback-button-stop]="runHandler.run.timer.runState !== runState.Waiting && !replay">
-            <span (click)="runHandler.run.timer.runState !== runState.Waiting ? replay ? pause() : stopRecording() : startRecording()">{{ runHandler.run.timer.runState !== runState.Waiting ? replay ? recordingPaused ? "&#x23F5;" : "&#x23F8;" : "&#x25A0;" : "&#x25CF;" }}</span>
+          <div class="playback-button" [class.playback-button-record]="timerInWait && !replay && !recordingPaused" [class.playback-button-stop]="!timerInWait && !replay && !recordingPaused" [class.playback-button-pause]="!timerInWait && replay && !recordingPaused" [class.playback-button-play]="!timerInWait && replay && recordingPaused">
+            <div (click)="!timerInWait ? replay ? pause() : stopRecording() : startRecording()"><span>{{ !timerInWait ? replay ? recordingPaused ? "&#x25BA;" : "||" : "&#x25A0;" : "&#x25CF;" }}</span></div>
           </div>
           <mat-slider min="0" [max]="recordingsEndtime">
-            <input matSliderThumb [(ngModel)]="runHandler.run.timer.totalMs" [disabled]="!replay && runHandler.run.timer.runState !== runState.Waiting" (dragStart)="shiftPlaybackStart()" (dragEnd)="shiftPlaybackEnd()">
+            <input matSliderThumb [(ngModel)]="runHandler.run.timer.totalMs" [disabled]="!replay && !timerInWait" (dragStart)="shiftPlaybackStart()" (dragEnd)="shiftPlaybackEnd()">
           </mat-slider>
         </div>
       </div>

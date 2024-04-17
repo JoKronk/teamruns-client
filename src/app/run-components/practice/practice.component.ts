@@ -58,10 +58,11 @@ export class PracticeComponent implements OnDestroy {
   runHandler: RunHandler;
 
   mainLocalPlayer: LocalPlayerData | undefined;
+  timerInWait: boolean = true;
 
   //listeners
   fileListener: any;
-  timerEndSubscription: Subscription;
+  timerStateSubscription: Subscription;
   runSetupSubscription: Subscription;
 
 
@@ -77,7 +78,9 @@ export class PracticeComponent implements OnDestroy {
       
 
       //timer end listener
-      this.timerEndSubscription = this.mainLocalPlayer.socketHandler.timer.timerSubject.subscribe(state => {
+      this.timerStateSubscription = this.mainLocalPlayer.socketHandler.timer.timerSubject.subscribe(state => {
+        this.timerInWait = state === RunState.Waiting;
+        
         if (state === RunState.Ended)
           this.stopPlaybackIfIsRunning();
       });
@@ -296,7 +299,7 @@ export class PracticeComponent implements OnDestroy {
 
     this.fileListener();
     if (this.runSetupSubscription) this.runSetupSubscription.unsubscribe();
-    if (this.timerEndSubscription) this.timerEndSubscription.unsubscribe();
+    if (this.timerStateSubscription) this.timerStateSubscription.unsubscribe();
     this.runHandler.destroy();
   }
 
