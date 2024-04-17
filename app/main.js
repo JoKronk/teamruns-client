@@ -411,13 +411,13 @@ async function checkGameIsInstalled() {
 
   if (isWindows() && (!fs.existsSync(path.join(folderPath, "extractor.exe")) || !fs.existsSync(path.join(folderPath, "gk.exe")) || !fs.existsSync(path.join(folderPath, "goalc.exe"))))
     return false;
-  else if (isLinux() && (!fs.existsSync(path.join(folderPath, "extractor")) || !fs.existsSync(path.join(folderPath, "gk")) || !fs.existsSync(path.join(folderPath, "goalc"))))
+  else if (isLinux() && app.isPackaged && (!fs.existsSync(path.join(folderPath, "extractor")) || !fs.existsSync(path.join(folderPath, "gk")) || !fs.existsSync(path.join(folderPath, "goalc"))))
     return false;
 
 
   const isoPath = path.join(folderPath, "data", "iso_data", "jak1");
   if (!fs.existsSync(isoPath))
-    return !app.isPackaged && fs.existsSync(path.join(folderPath, (isWindows()? "goalc-simple.exe" : "goalc-simple")));
+    return !app.isPackaged && fs.existsSync(path.join(folderPath, (isWindows()? "goalc-simple.exe" : "gk")));
 
   const files = await fs.promises.readdir(isoPath);
   return files.length > 1 && userSettings.gameVersion;
