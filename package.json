@@ -43,7 +43,6 @@
         "AppImage"
       ],
       "artifactName": "${name}-${version}-linux.${ext}",
-      "icon": "build/icon.png",
       "category": "Game"
     }
   },

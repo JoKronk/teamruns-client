@@ -43,7 +43,8 @@ function createWindow() {
     resizable: true,
     fullscreenable: false,
     transparent: true,
-    frame: false
+    frame: false,
+    icon: "./../src/assets/icon.png"
   });
 
 
