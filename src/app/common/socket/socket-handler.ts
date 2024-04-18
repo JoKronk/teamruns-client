@@ -78,9 +78,6 @@ export class SocketHandler {
         if (this.user.name) //if client is fully reloaded in a place where position service is started at same time as use we pick up user on movement instead
             this.checkRegisterPlayer(this.user.getUserBaseWithDisplayName(), MultiplayerState.interactive);
 
-        if (this.user.gameLaunched)
-            this.connectToOpengoal();
-
         this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
             if (port == this.socketPort) {
                 this.connectionAttempts = 0;
