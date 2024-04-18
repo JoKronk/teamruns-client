@@ -75,7 +75,7 @@
                   <div (click)="playRecording(recording.id)"><span>&#9658;</span></div>
                 </div>
                 <mat-slider *ngIf="recording.playback.length !== 0" disabled min="0"
-                  [max]="currentRecording === 'all' || currentRecording === recording.id ? recording.playback[0].time : 0">
+                  [max]="currentRecording === 'all' || currentRecording === recording.id ? recording.playback[0].t : 0">
                   <input matSliderThumb [(ngModel)]="runHandler.run.timer.totalMs">
                 </mat-slider>
               </div>
