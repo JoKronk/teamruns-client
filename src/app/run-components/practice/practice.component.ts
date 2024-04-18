@@ -30,7 +30,7 @@ export class PracticeComponent implements OnDestroy {
 
   //checks
   recordingsState: MultiplayerState = MultiplayerState.interactive;
-  loadOnRecord: string = "true";
+  loadOnRecord: string = "false";
   usePlayback: string = "true";
   resetWorld: string = "true";
   inFreecam: boolean = false;
