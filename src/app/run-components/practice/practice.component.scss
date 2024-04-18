@@ -59,16 +59,17 @@
             }
 
             &-pause div {
-                font-size: 16px;
+                font-size: 14px;
                 & span {
                     padding-top: 10px;
                 }
             }
 
             &-stop div {
-                line-height: 21px !important;
+                line-height: 23px !important;
                 color: #380000;
                 border: 3px solid #380000;
+                font-size: 20px;
             }
 
             &-record div {
@@ -78,11 +79,20 @@
             }
 
             &-cancel div {
-                line-height: 27px;
+                font-size: 21px;
+                line-height: 24px;
                 color: #380000;
                 border: 3px solid #380000;
             }
         }
+    }
+    
+}
+.playback-button-play-small div {
+    line-height: 18px !important;
+    & span {
+        padding-left: 2px;
+        font-size: 20px !important;
     }
 }
 
