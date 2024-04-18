@@ -16,7 +16,7 @@ export class Recording extends RecordingBase {
     state: MultiplayerState = MultiplayerState.active;
     prevPosIn: PositionData | undefined;
     posOut: PositionData = new PositionData();
-    currentRecordingDataIndex: number;
+    currentRecordingDataIndex: number | undefined = undefined;
 
     timeFrontend?: string;
 

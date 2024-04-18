@@ -440,6 +440,9 @@ export class SocketHandler {
     startDrawPlayers() {
         if (this.drawPositions) return;
         this.drawPositions = true;
+        this.recordings.forEach(recording => {
+            recording.currentRecordingDataIndex = undefined;
+        });
         this.drawPlayers();
         this.players.forEach(player => {
             if (player.positionData.mpState === MultiplayerState.disconnected)
@@ -469,7 +472,7 @@ export class SocketHandler {
 
                         const previousRecordingdataIndex = currentPlayer.recordingDataIndex ?? recording.playback.length;
                         const newRecordingdataIndex = recording.currentRecordingDataIndex;
-                        if (currentPlayer.updateCurrentPosition(positionData, recording.username, false, newRecordingdataIndex)) {
+                        if (newRecordingdataIndex && currentPlayer.updateCurrentPosition(positionData, recording.username, false, newRecordingdataIndex)) {
 
                             //handle missed pickups
                             if (previousRecordingdataIndex && (previousRecordingdataIndex - 1) > newRecordingdataIndex) {
@@ -541,6 +544,7 @@ export class SocketHandler {
 
         this.players.forEach(player => {
             player.checkUpdateUsername("");
+            player.recordingDataIndex = undefined;
             player.positionData.mpState = MultiplayerState.disconnected;
         });
 
