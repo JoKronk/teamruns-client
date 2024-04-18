@@ -34,7 +34,7 @@
 
       <mat-sidenav-container class="page-table">
         <mat-sidenav mode="side" position="end" class="sidenav" [opened]="selectedTeam !== null">
-          <app-run-splits *ngIf="selectedTeam !== null" [team]="selectedTeam"></app-run-splits>
+          <app-run-splits *ngIf="selectedTeam !== null" [team]="selectedTeam" [showOrbCount]="false"></app-run-splits>
         </mat-sidenav>
 
         <mat-sidenav-content class="page-table-content">

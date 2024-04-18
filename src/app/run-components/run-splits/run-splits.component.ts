@@ -19,5 +19,7 @@ export class RunSplitsComponent {
     if (!this.teamSplits)
       this.teamSplits = Team.fromDbTeam(dbTeam);
   }
+
+  @Input() showOrbCount: boolean = true;
   
 }

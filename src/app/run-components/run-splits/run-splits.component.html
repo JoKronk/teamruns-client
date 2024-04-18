@@ -7,7 +7,7 @@
       <img src="./assets/icons/cell_counter.png">
       <span>{{ teamSplits.runState.cellCount }}</span>
     </div>
-    <div class="team-orbs">
+    <div *ngIf="showOrbCount" class="team-orbs">
       <img src="./assets/icons/orb_counter.png">
       <span>{{ teamSplits.runState.orbCount }}</span>
     </div>
