@@ -124,7 +124,7 @@ class OpenGoal {
     }
 
     startGK(ogPath, port) {
-        let openGoalClient = spawn(path.join(ogPath, "gk"), ["--socketport", port, "--game", "jak1", "--", "-boot", "-fakeiso", "-debug"]);
+        let openGoalClient = spawn(path.join(ogPath, "gk"), ["--socketport", port, "--game", "jak1", "--", "-boot", "-fakeiso", "-debug"], { detached: true, shell: true });
         let newInstance = {port: port, client: openGoalClient};
         openGoalInstances.push(newInstance);
         
@@ -151,7 +151,10 @@ class OpenGoal {
     killAllOgInstances() {
         openGoalInstances.forEach(instance => {
             instance.client.stdin.pause();
-            instance.client.kill();
+            if (isWindows())
+                spawn("taskkill", ["/pid", instance.client.pid, '/f', '/t']);
+            else
+                instance.client.kill();
         });
     }
 
@@ -162,7 +165,10 @@ class OpenGoal {
 
     killREPL() {
         if (!replInstance) return;
-        replInstance.kill();
+        if (isWindows())
+            spawn("taskkill", ["/pid", replInstance.pid, '/f', '/t']);
+        else
+            replInstance.kill();
 
         replInstance = null;
         replIsRunning = false;
@@ -170,8 +176,12 @@ class OpenGoal {
 
     killGK(port) {
         let instance = openGoalInstances.find(x => x.port === port);
-        if (instance)
-            instance.client.kill();
+        if (instance) {
+            if (isWindows())
+                spawn("taskkill", ["/pid", instance.client.pid, '/f', '/t']);
+            else
+                instance.client.kill();
+        }
     }
 
 
@@ -191,6 +201,10 @@ class OpenGoal {
         win.webContents.send("backend-message", msg);
     }
 }
+
+function isWindows() {
+    return process.platform === "win32";
+  }
 
 function sleep(ms) {
     return new Promise(
