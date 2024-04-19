@@ -39,6 +39,23 @@
                     flex-shrink: 1;
                 }
             }
+            &-join {
+                border: 1px solid rgba(24, 24, 24, 0.8);
+                background: rgba(24, 24, 24, 0.7);
+                border-radius: 3px;
+                transition-timing-function: ease;
+                color: #cecece;
+                font-family: 'jak';
+                font-size: 16px;
+                outline: none;
+                transition: 0.2s;
+                &:hover:enabled {
+                    cursor: pointer;
+                    color: #cccccc;
+                    border: 1px solid #380000;
+                    background: rgba(14, 14, 14, 0.8);
+                }
+            }
             &-zoomer {
                 float: left;
                 height: 17px;
@@ -155,11 +172,8 @@
                 border-radius: 4px;
                 height: 58px;
                 width: 120px;
-                transition: 0.3s;
                 transition-timing-function: ease;
                 color: #cecece;
-                font-size: 18px;
-
                 font-family: 'jak';
                 font-size: 22px;
                 outline: none;

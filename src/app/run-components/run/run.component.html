@@ -39,7 +39,7 @@
               <input *ngIf="this.editingTeamId === team.id" (focusout)="updateTeamName()" (keyup.enter)="updateTeamName()" [(ngModel)]="team.name" maxlength="16">
             </div>
             
-            <button *ngIf="team.id !== mainLocalPlayer.socketHandler.localTeam?.id && runHandler.run.timer.runState === runState.Waiting" (click)="switchTeam(team.id)">Join</button>
+            <button class="run-info-teams-join" *ngIf="team.id !== mainLocalPlayer.socketHandler.localTeam?.id && runHandler.run.timer.runState === runState.Waiting" (click)="switchTeam(team.id)">Join</button>
             
             <div class="team-players">
               <div *ngFor="let player of team.players">
