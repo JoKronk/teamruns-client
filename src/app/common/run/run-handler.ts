@@ -37,6 +37,7 @@ import { GameTaskLevelTime } from "../opengoal/game-task";
 import { RecordingPackage } from "../recording/recording-package";
 import { Recording } from "../recording/recording";
 import { MultiplayerState } from "../opengoal/multiplayer-state";
+import { Team } from "./team";
 
 export class RunHandler {
 
@@ -576,29 +577,19 @@ export class RunHandler {
                     this.run.endPlayerRun(event.userId, endTask.name === Task.forfeit);
                     RunMod.endRunOnSigleTeamFinish(this.run.data.mode) ? this.run.endAllTeamsRun(endTask) : this.run?.endTeamRun(endTask);
                     
-                    //!TODO: Add support for saving secondary locals recordings if on different team?
-                    const players: Player[] = this.run.getAllPlayers();
-                    let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings();
                     let playerTeam = this.run.getPlayerTeam(userId);
-                    if (playerTeam && playerTeam.everyoneHasFinished()) {
-                        let userTeamPlayerIds: string[] = playerTeam.players.flatMap(x => x.user.id) ?? [];
-    
-                        if (!recordings)
-                            this.userService.sendNotification("Failed to fetch run recordings!");
-                        else if (this.userService.user.saveRecordingsLocally && recordings) { 
-    
-                            let userTeamRecordings = recordings.filter(x => userTeamPlayerIds.includes(x.userId));
-                            if (userTeamRecordings.length === 0)
-                                this.userService.sendNotification("Failed to fetch users team run recordings!");
-    
-                            (window as any).electron.send('recordings-write', [new RecordingFile(pkg.version, userTeamRecordings)]);
-                        }
-                        
-                        const invalidRunMessage = this.run.checkRunEndValid(playerTeam.id);
-                        if (invalidRunMessage) this.userService.sendNotification(invalidRunMessage, 10000);
-                    }
+                    if (!playerTeam || !playerTeam.everyoneHasFinished())
+                        return;
+
+                    let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings();
+                    this.checkSaveRecordingsLocally(recordings, playerTeam);
+                    
+                    this.checkTeamGameVersions(playerTeam); //!TODO: Should be check earlier than run end.
+                    this.run.checkRunEndValid(playerTeam.id);
+                    if (!playerTeam.runIsValid && playerTeam.runInvalidReason) this.userService.sendNotification(playerTeam.runInvalidReason.startsWith("Run invalid") ? playerTeam.runInvalidReason : ("Run Invalid: " + playerTeam.runInvalidReason), 10000);
 
                     if (isMaster && this.run.isMode(RunMode.Speedrun) && !this.isPracticeTool && this.run.everyoneHasFinished() && this.run.teams.some(x => x.runIsValid)) {
+                        const players: Player[] = this.run.getAllPlayers();
                         this.firestoreService.getUsers().then(collection => {
                             if (!collection || !players || !this.run) return;
                             
@@ -793,26 +784,39 @@ export class RunHandler {
         });
     }
 
+    checkSaveRecordingsLocally(recordings: UserRecording[] | undefined, playerTeam: Team) {
+        //!TODO: Add support for saving secondary locals recordings if on different team?
+        if (!recordings)
+            this.userService.sendNotification("Failed to fetch run recordings!");
+        else if (this.userService.user.saveRecordingsLocally && recordings) { 
+            let userTeamPlayerIds: string[] = playerTeam.players.flatMap(x => x.user.id) ?? [];
+            let userTeamRecordings = recordings.filter(x => userTeamPlayerIds.includes(x.userId));
+            if (userTeamRecordings.length === 0)
+                this.userService.sendNotification("Failed to fetch users team run recordings!");
+            else
+                (window as any).electron.send('recordings-write', [new RecordingFile(pkg.version, userTeamRecordings)]);
+        }
+    }
+
+    checkTeamGameVersions(playerTeam: Team) {
+        if (!this.run?.isMode(RunMode.Casual)) {
+            if (!playerTeam.everyoneOnSameVersion())
+                playerTeam.checkMarkRunInvalid(false, "OpenGOAL version mismatch.");
+
+            let mainLocalPlayer = this.getMainLocalPlayer();
+            if (mainLocalPlayer && mainLocalPlayer.socketHandler.localTeam?.id === playerTeam.id && this.isHost() && playerTeam.players.find(x => x.user.id === mainLocalPlayer?.user.id)?.gameState.gameVersion !== ("v" + this.userService.user.gameVersion))
+                playerTeam.checkMarkRunInvalid(false, "OpenGOAL version mismatch.");
+        }
+    }
+
     //used by both run component and practice/recording tool
     setupRunStart() {
         if (!this.run) return;
 
         this.updateAllPlayerInfo();
-
-        const mainLocalPlayer = this.getMainLocalPlayer();
-
+        
         this.run.teams.forEach(team => {
             team.resetForRun(false);
-            if (!this.run?.isMode(RunMode.Casual)) {
-                if (!team.everyoneOnSameVersion())
-                    this.userService.sendNotification("OpenGOAL version mismatch found in \"" + team.name + "\" run for team marked invalid.", 10000);
-    
-                if (mainLocalPlayer?.socketHandler.localTeam?.id === team.id && this.isHost() && team.players.find(x => x.user.id === mainLocalPlayer.user.id)?.gameState.gameVersion !== this.userService.user.gameVersion) {
-                    team.runIsValid = false;
-                    this.userService.sendNotification("OpenGOAL version mismatch for host, run for team marked invalid.", 10000);
-                }
-            }
-
         });
 
         //set previous pb if any and update team

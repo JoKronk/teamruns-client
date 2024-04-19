@@ -26,6 +26,19 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
+            &-title {
+                display: flex;
+                p {
+                    display: inline-block;
+                    flex-grow: 1;
+                }
+                & img {
+                    margin-top: 3px;
+                    margin-right: 3px;
+                    height: 17px;
+                    flex-shrink: 1;
+                }
+            }
             &-zoomer {
                 float: left;
                 height: 17px;

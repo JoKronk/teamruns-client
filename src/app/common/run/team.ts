@@ -16,6 +16,7 @@ export class Team {
     runState: RunStateHandler;
 
     runIsValid: boolean = true;
+    runInvalidReason: string = "";
 
     constructor(id: number, name: string) {
         this.id = id;
@@ -40,7 +41,7 @@ export class Team {
     resetForRun(resetPlayers: boolean = true) {
         this.splits = [];
         this.runState = new RunStateHandler();
-        this.runIsValid = this.everyoneOnSameVersion();
+        this.runIsValid = true;
 
 
         if (!resetPlayers) return;
@@ -61,6 +62,13 @@ export class Team {
 
         const gameVersion = this.players[0].gameState.gameVersion;
         return this.players.every(x => x.gameState.gameVersion === gameVersion);
+    }
+
+    checkMarkRunInvalid(valid: boolean, reason: string) {
+        if (valid) return;
+
+        this.runIsValid = valid;
+        this.runInvalidReason = reason;
     }
     
     addSplit(split: Task) {

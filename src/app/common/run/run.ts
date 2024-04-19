@@ -50,7 +50,7 @@ export class Run {
             if (!runplayer) return;
             if (team) {
                 runplayer.state = PlayerState.Disconnected;
-                team.runIsValid = false;
+                team.checkMarkRunInvalid(false, "Lobby disconnect mid run.");
             }
             else
                 this.spectators = this.spectators.filter(x => x.user.id !== playerId);
@@ -112,14 +112,14 @@ export class Run {
         let player = this.getPlayer(playerId);
         if (!player) return;
 
-        if (!player.gameState.debugModeActive && state.debugModeActive && this.timer.runState !== RunState.Waiting)
+        if (!player.gameState.debugModeActive && state.debugModeActive && this.timer.isPastCountdown())
             userService.sendNotification(player.user.name + " just activated debug mode!");
 
         player.gameState = state;
 
-        if (state.debugModeActive && this.timer.runState !== RunState.Waiting) {
+        if (state.debugModeActive && this.timer.isPastCountdown()) {
             const team = this.getPlayerTeam(playerId);
-            if (team) team.runIsValid = false;
+            if (team) team.checkMarkRunInvalid(false, "Debug mode used.");
         }
     }
 
@@ -157,7 +157,7 @@ export class Run {
         if (newTeam === oldTeam) return;
 
         if (this.timer.runIsOngoing()) 
-            newTeam.runIsValid = false;
+            newTeam.checkMarkRunInvalid(false, "Team change mid run.");
         
         let player = oldTeam ? oldTeam.players.find(x => x.user.id === user.id) : new Player(user);
         newTeam.players.push(player!);
@@ -222,69 +222,48 @@ export class Run {
         return this.data.mode === mode;
     }
 
-    checkRunEndValid(teamId: number): string | undefined {
-        let msg: string | undefined = undefined;
+    checkRunEndValid(teamId: number): undefined {
         for (let team of this.teams) {
             let isPlayerTeam = team.id === teamId;
-            if (!team.runIsValid) { 
-                if (isPlayerTeam) 
-                    msg = "Run invalid from earlier.";
-                
+            if (!team.runIsValid)
                 continue;
-            }
 
             if (team.players.some(x => x.state === PlayerState.Forfeit)) {
-                team.runIsValid = false;
+                team.checkMarkRunInvalid(false, "Forfeit.");
                 continue;
             }
 
             switch (this.data.category) {
                 case CategoryOption.NoLts:
-                    team.runIsValid = team.runState.cellCount >= 72;
-                    if (!team.runIsValid && isPlayerTeam)
-                        msg = "Run invalid, only " + team.runState.cellCount + " cells registered.";
+                    team.checkMarkRunInvalid(team.runState.cellCount >= 72, "Run invalid, only " + team.runState.cellCount + " cells registered.");
                     break;
                 case CategoryOption.AllCells:
-                    team.runIsValid = team.runState.cellCount === 101;
-                    if (!team.runIsValid && isPlayerTeam)
-                        msg = "Run invalid, only " + team.runState.cellCount + " cells registered.";
+                    team.checkMarkRunInvalid(team.runState.cellCount === 101, "Run invalid, only " + team.runState.cellCount + " cells registered.");
                     break;
                 case CategoryOption.Hundo:
-                    team.runIsValid = team.runState.cellCount === 101 && team.runState.totalOrbCount === 2000;
-                    if (!team.runIsValid && isPlayerTeam) {
-                        if (team.runState.totalOrbCount !== 2000)
-                            msg = "Run invalid, only " + team.runState.totalOrbCount + " orbs registered.";
-                        else
-                            msg = "Run invalid, only " + team.runState.cellCount + " cells registered.";
-                    }
+                    team.checkMarkRunInvalid(team.runState.cellCount === 101 && team.runState.totalOrbCount === 2000, team.runState.totalOrbCount !== 2000 ? 
+                        "Run invalid, only " + team.runState.totalOrbCount + " orbs registered." : 
+                        "Run invalid, only " + team.runState.cellCount + " cells registered."
+                    );
                     break;
                 case CategoryOption.NoFcs:
-                    team.runIsValid = team.runState.cellCount >= 22;
-                    if (!team.runIsValid && isPlayerTeam)
-                        msg = "Run invalid, only " + team.runState.cellCount + " cells registered.";
+                    team.checkMarkRunInvalid(team.runState.cellCount >= 22, "Run invalid, only " + team.runState.cellCount + " cells registered.");
                     break;
                 case CategoryOption.Orbless:
-                    team.runIsValid = team.runState.totalOrbCount === 0;
-                    if (!team.runIsValid && isPlayerTeam)
-                        msg = "Run invalid " + team.runState.totalOrbCount + "orbs registered.";
+                    team.checkMarkRunInvalid(team.runState.totalOrbCount === 0, "Run invalid " + team.runState.totalOrbCount + "orbs registered.");
                     break;
                 case CategoryOption.AllFlies:
-                    team.runIsValid = team.runState.buzzerCount === 112;
-                    if (!team.runIsValid && isPlayerTeam)
-                        msg = "Run invalid, only " + team.runState.buzzerCount + " scoutflies registered.";
+                    team.checkMarkRunInvalid(team.runState.buzzerCount === 112, "Run invalid, only " + team.runState.buzzerCount + " scoutflies registered.");
                     break;
                 case CategoryOption.AllOrbs:
-                    team.runIsValid = team.runState.totalOrbCount === 2000;
-                    if (!team.runIsValid && isPlayerTeam)
-                        msg = "Run invalid, only " + team.runState.totalOrbCount + " orbs registered.";
+                    team.checkMarkRunInvalid(team.runState.totalOrbCount === 2000, "Run invalid, only " + team.runState.totalOrbCount + " orbs registered.");
                     break;
                 default:
-                    team.runIsValid = false;
-                    msg = "Run invalid, category is not a registered speedrun category.";
+                    team.checkMarkRunInvalid(false, "Run invalid, category is not a registered speedrun category.");
                     break;
             }
         }
-        return msg;
+        return;
     }
 
     getRemotePlayerInfo(userId: string): RemotePlayerInfo | undefined {
