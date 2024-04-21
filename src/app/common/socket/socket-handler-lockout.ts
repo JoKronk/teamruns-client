@@ -3,7 +3,6 @@ import { RunCleanupHandler } from "../level/run-cleanup-handler";
 import { Team } from "../run/team";
 import { User } from "../user/user";
 import { SocketHandler } from "./socket-handler";
-import { Timer } from "../run/timer";
 import { CurrentPositionData } from "./current-position-data";
 import { InteractionData, UserInteractionData } from "./interaction-data";
 import { GameTaskLevelTime } from "../opengoal/game-task";
@@ -20,11 +19,11 @@ export class SocketHandlerLockout extends SocketHandler {
     }
 
     override onTask(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-
-        const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction, isSelfInteraction ? this.user.displayName : playerTeam.players.find(x => x.user.id === interaction.userId)?.user.name ?? "Unknown");
         
+        const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction, isSelfInteraction ? this.user.displayName : playerTeam.players.find(x => x.user.id === interaction.userId)?.user.name ?? "Unknown");
+
         //check duped cell buy
-        if (isSelfInteraction && Task.isCellWithCost(task.name) && this.localTeam && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution)) {
+        if (isSelfInteraction && Task.isCellWithCost(task.name) && this.localTeam && !interaction.interCleanup && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution)) {
             this.addOrbAdjustmentToCurrentPlayer((Task.cellCost(interaction)), interaction.interLevel);
             return;
         }
@@ -37,7 +36,7 @@ export class SocketHandlerLockout extends SocketHandler {
 
         const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus));
         const isNewTaskStatusForSelfTeam: boolean = this.localTeam?.runState.isNewTaskStatus(interaction) ?? false;
-        
+
         let isNewTaskStatus: boolean = true;
         for (let team of this.run.teams) {
             if (!team.runState.isNewTaskStatus(interaction)) {
@@ -51,6 +50,9 @@ export class SocketHandlerLockout extends SocketHandler {
                 this.run.addSplit(new Task(task));
             });
         }
+        if (isCell && isTeammate)
+            this.socketPackage.timer?.updateSplit(task, undefined);
+
         this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
 
         //handle none current user things
@@ -66,7 +68,7 @@ export class SocketHandlerLockout extends SocketHandler {
         }
 
         if (!isNewTaskStatusForSelfTeam) return;
-
+        
         if (!isTeammate && positionData.interaction) { //to not increase cell counter on add
             positionData.interaction.interCleanup = true;
             interaction.interCleanup = true;
@@ -98,19 +100,13 @@ export class SocketHandlerLockout extends SocketHandler {
         if (!isTeammate) {
             if (this.run.teams.length !== 1) { //2+ teams, player interaction from enemy team
                 super.onOrb(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
-
-                if (positionData.interaction) {
-                    positionData.interaction.interCleanup = true;
-                    interaction.interCleanup = true;
-                }
-
                 this.removeOrbWithoutOrbCounter(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
             } 
             else { //1 team (FFA), not self
-                if (positionData.interaction) {
+                if (positionData.interaction)
                     positionData.interaction.interCleanup = true;
-                    interaction.interCleanup = true;
-                }
+                interaction.interCleanup = true;
+
                 super.onOrb(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 this.removeOrbWithoutOrbCounter(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
             }
@@ -196,10 +192,9 @@ export class SocketHandlerLockout extends SocketHandler {
 
 
     private removeOrbWithoutOrbCounter(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-        if (positionData.interaction) {
+        if (positionData.interaction)
             positionData.interaction.interCleanup = true;
-            interaction.interCleanup = true;
-        }
+        interaction.interCleanup = true;
 
         if (this.localTeam?.runState.checkDupeAddOrbInteraction(this.localTeam.players.flatMap(x => x.user.id), this.user.id, interaction)) {
             if (isSelfInteraction)

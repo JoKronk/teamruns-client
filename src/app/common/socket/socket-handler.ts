@@ -58,7 +58,7 @@ export class SocketHandler {
 
     private sendingCommands: boolean;
     private socketCommandBuffer: OgCommand[] = []; 
-    private socketPackage: SocketPackage = new SocketPackage();
+    protected socketPackage: SocketPackage = new SocketPackage();
     public socketConnected: boolean;
     ogSocket: WebSocketSubject<any> = webSocket('ws://localhost:8111');
     private launchListener: any;
