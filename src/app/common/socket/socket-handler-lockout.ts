@@ -201,7 +201,7 @@ export class SocketHandlerLockout extends SocketHandler {
             interaction.interCleanup = true;
         }
 
-        if (this.localTeam?.runState.checkDupeAddOrbInteraction(this.localTeam.players, this.user.id, this.isLocalMainPlayer, this.run.isFFA, interaction)) {
+        if (this.localTeam?.runState.checkDupeAddOrbInteraction(this.localTeam.players.flatMap(x => x.user.id), this.user.id, interaction)) {
             if (isSelfInteraction)
                 this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
         }

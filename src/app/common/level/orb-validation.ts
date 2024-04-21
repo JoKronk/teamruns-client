@@ -1,6 +1,5 @@
-import { Player } from "../player/player";
 
-export class OrbCollection {
+export class OrbValidation {
     entityName: string;
     collectedByIds: string[] | null; //null = collected by all
 
@@ -13,13 +12,13 @@ export class OrbCollection {
         return this.collectedByIds === null || this.collectedByIds.includes(userId);
     }
 
-    addOrbCollection(players: Player[], userId: string) {
+    addOrbCollection(playerIds: string[], userId: string) {
         let collectedByAll: boolean = true;
 
         if (!this.collectedByIds) return; //already collected by everyone
         
-        for (let player of players) {
-            if (player.user.id !== userId && !this.collectedByIds?.includes(player.user.id)) {
+        for (let playerId of playerIds) {
+            if (playerId !== userId && !this.collectedByIds?.includes(playerId)) {
                 collectedByAll = false;
                 break;
             }

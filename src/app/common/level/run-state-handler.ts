@@ -6,7 +6,7 @@ import { InteractionData, UserInteractionData } from "../socket/interaction-data
 import { SocketHandler } from "../socket/socket-handler";
 import { LevelInteractions } from "./level-interactions";
 import { LevelStatus } from "./level-status";
-import { OrbCollection } from "./orb-collection";
+import { OrbValidation } from "./orb-validation";
 
 export class RunStateHandler {
     //individual properties (between players)
@@ -21,7 +21,8 @@ export class RunStateHandler {
     buzzerCount: number;
     orbCount: number;
     totalOrbCount: number;
-    orbValidations: OrbCollection[]; //handles orb validation orb collection for all/each player of the team
+    
+    orbValidations: OrbValidation[]; //handles orb validation for all/each player of the team
     //single orbs: could otherwise more easily be duped by picking up the same one at the same time and such
     //orb vents and such: if we just check by orb count and p1 picks up the last orb the orb count will be completed but p2 won't now know if the orb he's getting is a duped orb or the last one for him
 
@@ -50,7 +51,7 @@ export class RunStateHandler {
         return this.tasksStatuses.some(x => x.interName === taskName) && this.tasksStatuses.find(x => x.interName === taskName)!.interStatus >= TaskStatus.getEnumValue(status);
     }
 
-    private pushLevelCleanupInteraction(level: LevelInteractions, interaction: UserInteractionData) {
+    private pushLevelCleanupInteraction(level: LevelInteractions, interaction: UserInteractionData): boolean {
         let isNewInteraction: boolean = true;
 
         //need to check all loaded levels since cleanup interactions will have a fake origin from being executed in the level the origin level was loaded from. (See InteractionData.AreIdentical() for more info)
@@ -63,11 +64,12 @@ export class RunStateHandler {
         }
 
         if (!isNewInteraction)
-            return;
+            return isNewInteraction;
 
         const storedInteraction = new UserInteractionData(interaction, interaction.userId);
         storedInteraction.interCleanup = true;
         level.interactions.push(storedInteraction);
+        return isNewInteraction;
     }
 
     addTaskInteraction(interaction: UserInteractionData) {
@@ -90,11 +92,11 @@ export class RunStateHandler {
         }
     }
 
-    addInteraction(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined) {
+    addInteraction(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined): boolean {
         if (!level)
             level = this.getCreateLevel(interaction.interLevel);
 
-        this.pushLevelCleanupInteraction(level, interaction);
+        return this.pushLevelCleanupInteraction(level, interaction);
     }
 
     addLpcInteraction(interaction: UserInteractionData) {
@@ -110,8 +112,9 @@ export class RunStateHandler {
             this.buzzerCount += 1;
     }
 
-    checkDupeAddOrbInteraction(teamPlayers: Player[], selfId: string, isLocalMain: boolean, isFFA: boolean, interaction: UserInteractionData): boolean {
-        const level = this.getCreateLevel(interaction.interLevel);
+    checkDupeAddOrbInteraction(teamPlayerIds: string[], selfId: string, interaction: UserInteractionData, level: LevelInteractions | undefined = undefined): boolean {
+        if (!level)
+            level = this.getCreateLevel(interaction.interLevel);
     
         //single orb check
         if (interaction.interName.startsWith("money-")) {
@@ -120,55 +123,46 @@ export class RunStateHandler {
                 if (entity.isOrbDupe(selfId))
                     return true;
             }
-            entity ? entity.addOrbCollection(teamPlayers, selfId) : this.orbValidations.push(new OrbCollection(interaction.interName, selfId)); //add orb collection
+            entity ? entity.addOrbCollection(teamPlayerIds, selfId) : this.orbValidations.push(new OrbValidation(interaction.interName, selfId)); //add orb collection
         }
         //orb collection checks
         else if (InteractionData.isFromOrbCollection(interaction)) {
             if (interaction.interParent.startsWith("orb-cache-top-")) {
-                if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, (this.getOrbCacheAmount(interaction.interParent) - 1) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                if (this.checkDupeAddOrbGroupInteraction(teamPlayerIds, selfId, interaction.interParent, (this.getOrbCacheAmount(interaction.interParent) - 1) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
                     return true;    
             }
     
             else if (interaction.interParent.startsWith("crate-")) {
                 let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x) && x.interName === interaction.interParent);
-                if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, parentCrate !== undefined && (parentCrate.interAmount - 1) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                if (this.checkDupeAddOrbGroupInteraction(teamPlayerIds, selfId, interaction.interParent, parentCrate !== undefined && (parentCrate.interAmount - 1) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
                     return true;
             }
     
             else if (interaction.interParent.startsWith("gnawer-")) {
                 let parentGnawer = level.interactions.find(x => x.interType === InteractionType.enemyDeath && x.interName === interaction.interParent);
-                if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, parentGnawer !== undefined && (parentGnawer.interAmount - 1) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                if (this.checkDupeAddOrbGroupInteraction(teamPlayerIds, selfId, interaction.interParent, parentGnawer !== undefined && (parentGnawer.interAmount - 1) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
                     return true;
             }
     
             else if (interaction.interParent.startsWith("plant-boss-")) {
-                if (this.checkDupeAddOrbGroupInteraction(teamPlayers, selfId, interaction.interParent, (5 - 1) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
+                if (this.checkDupeAddOrbGroupInteraction(teamPlayerIds, selfId, interaction.interParent, (5 - 1) <= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length))
                     return true;
             }
         }
-        
-        if (isLocalMain || isFFA)
-            this.addInteraction(interaction, level);
-
-        if (isLocalMain && !interaction.interCleanup) {
-            this.orbCount += 1;
-            this.totalOrbCount += 1;
-        }
-
         return false;
     }
 
-    private getOrbCollection(entityName: string): OrbCollection | undefined {
+    private getOrbCollection(entityName: string): OrbValidation | undefined {
         return this.orbValidations.find(x => x.entityName === entityName);
     }
 
-    private checkDupeAddOrbGroupInteraction(players: Player[], userId: string, entityName: string, isLastOrb: boolean): boolean {
-        const entity: OrbCollection | undefined = this.getOrbCollection(entityName);
+    private checkDupeAddOrbGroupInteraction(playerIds: string[], userId: string, entityName: string, isLastOrb: boolean): boolean {
+        const entity: OrbValidation | undefined = this.getOrbCollection(entityName);
         if (entity && entity.isOrbDupe(userId))
             return true;
 
         if (isLastOrb) //add orb collection
-            entity ? entity.addOrbCollection(players, userId) : this.orbValidations.push(new OrbCollection(entityName, userId));
+            entity ? entity.addOrbCollection(playerIds, userId) : this.orbValidations.push(new OrbValidation(entityName, userId));
         
         return false;
     }

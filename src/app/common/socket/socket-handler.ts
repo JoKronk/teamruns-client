@@ -710,13 +710,21 @@ export class SocketHandler {
             return;
         }
         
-        if (playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players, this.user.id, this.isLocalMainPlayer, this.run.isFFA, interaction)) {
+        let level = playerTeam.runState.getCreateLevel(interaction.interLevel);
+        if (isTeammate && playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players.flatMap(x => x.user.id), this.user.id, interaction, level)) {
             if (isSelfInteraction)
                 this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
             else if (!interaction.interCleanup)
                 positionData.resetCurrentInteraction();
 
             return;
+        }
+        //if not orb dupe or if not part of team
+        else if ((this.isLocalMainPlayer || this.run.isFFA) && !interaction.interCleanup) {
+            if (playerTeam.runState.addInteraction(interaction, level)) {
+                playerTeam.runState.orbCount += 1;
+                playerTeam.runState.totalOrbCount += 1;
+            }
         }
         
         if (!isSelfInteraction && isTeammate)
