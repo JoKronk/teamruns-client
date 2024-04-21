@@ -40,9 +40,9 @@
                 }
             }
             &-join {
-                border: 1px solid rgba(24, 24, 24, 0.8);
-                background: rgba(24, 24, 24, 0.7);
-                border-radius: 3px;
+                border: 1px solid rgba(24, 24, 24, 0.7);
+                background: rgba(24, 24, 24, 0.9);
+                border-radius: 2px;
                 transition-timing-function: ease;
                 color: #cecece;
                 font-family: 'jak';
@@ -52,7 +52,7 @@
                 &:hover:enabled {
                     cursor: pointer;
                     color: #cccccc;
-                    border: 1px solid #380000;
+                    border: 1px solid rgba(14, 14, 14, 0.9);
                     background: rgba(14, 14, 14, 0.8);
                 }
             }
