@@ -144,7 +144,7 @@ export class SocketHandler {
                 this.socketPackage.username = this.user.displayName;
 
                 //handle mid game restarts
-                if (this.run?.timer.runState !== RunState.Waiting && RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode)) {
+                if (this.run?.timer.runState !== RunState.Waiting) {
                     this.inMidRunRestartPenaltyWait = 10;
                     this.isSyncing = false;
                     this.addCommand(OgCommand.DisableDebugMode);
@@ -154,7 +154,8 @@ export class SocketHandler {
                     setTimeout(() => {
                         this.inMidRunRestartPenaltyWait = 0;
                         this.isSyncing = false;
-                        this.addCommand(OgCommand.TargetRelease);
+                        if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode))
+                            this.addCommand(OgCommand.TargetRelease);
                     }, (this.inMidRunRestartPenaltyWait * 1000));
                 }
 
