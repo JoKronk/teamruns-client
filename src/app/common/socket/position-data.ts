@@ -1,5 +1,4 @@
 import { User } from "../user/user";
-import { CurrentPositionData } from "./current-position-data";
 import { InteractionData } from "./interaction-data";
 
 export class PositionData extends InteractionData {
@@ -11,8 +10,8 @@ export class PositionData extends InteractionData {
     quatZ: number;
     quatW: number;
     rotY: number;
-    tgtState: any;
-    currentLevel: string;
+    tgtState: number | undefined; //symbol number
+    currentLevel: number | undefined; //symbol number
 
     constructor() {
         super();

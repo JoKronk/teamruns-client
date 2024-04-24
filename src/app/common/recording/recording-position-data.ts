@@ -14,8 +14,8 @@ export class RecordingPositionData { //these names are shortened to reduce file 
     qZ: number | undefined; //quatZ
     qW: number | undefined; //quatW
     rY: number | undefined; //rotY
-    tS: any | undefined; //tgtState
-    cL: string | undefined; //currentLevel
+    tS: number | undefined; //tgtState
+    cL: number | undefined; //currentLevel
     t: number; //time
 
     constructor () {

@@ -19,6 +19,7 @@ import { OG } from '../../common/opengoal/og';
 import { Subscription } from 'rxjs';
 import { RunImportComponent } from 'src/app/dialogs/run-import/run-import.component';
 import { RecordingPackage } from 'src/app/common/recording/recording-package';
+import { LevelSymbol } from 'src/app/common/opengoal/levels';
 
 @Component({
   selector: 'app-run',
@@ -121,7 +122,7 @@ export class RunComponent implements OnDestroy {
     this.runHandler.sendEvent(EventType.ChangeTeam, userId, teamId);
     localPlayer.updateTeam(this.runHandler.run?.getTeam(teamId) ?? undefined);
     let player = this.runHandler.run!.getPlayer(userId);
-    if (player) player.currentLevel = this.mainLocalPlayer.socketHandler.getSelfUserPositionData(0)?.currentLevel ?? "";
+    if (player) player.currentLevel = LevelSymbol.toName(this.mainLocalPlayer.socketHandler.getSelfUserPositionData(0)?.currentLevel);
   }
 
   editTeamName(teamId: number) {

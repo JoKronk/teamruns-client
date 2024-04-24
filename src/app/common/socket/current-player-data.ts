@@ -6,16 +6,18 @@ import { InteractionData } from "./interaction-data";
 import { PositionData } from "./position-data";
 
 export class CurrentPlayerData {
-    positionData: CurrentPositionData;
+    private positionDataFull: CurrentPositionData; // this always has the last values
+    positionData: CurrentPositionData; // has the current values sent over socket, values are set to undefiend on repeat to not send duplicated data 
 
     userId: string;
-    currentUsername: string = ""; //username in positionData should only be set when we want to update it in game, use this to check username instead
     interactionBufferRateLimit: boolean = false;
     interactionBuffer: InteractionData[] = []; // updates gets pushed from top of list first
     recordingDataIndex: number | undefined; // only used by recordings
 
     constructor(user: UserBase, state: MultiplayerState) {
         this.positionData = new CurrentPositionData(user, state);
+        this.positionDataFull = new CurrentPositionData(user, state);
+        this.positionDataFull.username = undefined;
         this.userId = user.id;
         this.interactionBuffer = [];
     }
@@ -41,16 +43,55 @@ export class CurrentPlayerData {
                 this.positionData.updateCurrentInteraction(positionData);
         }
 
-        this.positionData.quatW = positionData.quatW;
-        this.positionData.quatX = positionData.quatX;
-        this.positionData.quatY = positionData.quatY;
-        this.positionData.quatZ = positionData.quatZ;
-        this.positionData.rotY = positionData.rotY;
-        this.positionData.tgtState = positionData.tgtState;
-        this.positionData.currentLevel = positionData.currentLevel;
-        this.positionData.transX = positionData.transX;
-        this.positionData.transY = positionData.transY;
-        this.positionData.transZ = positionData.transZ;
+        if (this.positionDataFull.quatW === undefined || this.positionDataFull.quatW !== positionData.quatW) {
+            this.positionData.quatW = positionData.quatW;
+            this.positionDataFull.quatW = positionData.quatW;
+        } else this.positionData.quatW = undefined;
+        
+        if (this.positionDataFull.quatX === undefined || this.positionDataFull.quatX !== positionData.quatX) {
+            this.positionData.quatX = positionData.quatX;
+            this.positionDataFull.quatX = positionData.quatX;
+        } else this.positionData.quatX = undefined;
+        
+        if (this.positionDataFull.quatY === undefined || this.positionDataFull.quatY !== positionData.quatY) {
+            this.positionData.quatY = positionData.quatY;
+            this.positionDataFull.quatY = positionData.quatY;
+        } else this.positionData.quatY = undefined;
+        
+        if (this.positionDataFull.quatZ === undefined || this.positionDataFull.quatZ !== positionData.quatZ) {
+            this.positionData.quatZ = positionData.quatZ;
+            this.positionDataFull.quatZ = positionData.quatZ;
+        } else this.positionData.quatZ = undefined;
+        
+        if (this.positionDataFull.transX === undefined || this.positionDataFull.transX !== positionData.transX) {
+            this.positionData.transX = positionData.transX;
+            this.positionDataFull.transX = positionData.transX;
+        } else this.positionData.transX = undefined;
+        
+        if (this.positionDataFull.transY === undefined || this.positionDataFull.transY !== positionData.transY) {
+            this.positionData.transY = positionData.transY;
+            this.positionDataFull.transY = positionData.transY;
+        } else this.positionData.transY = undefined;
+        
+        if (this.positionDataFull.transZ === undefined || this.positionDataFull.transZ !== positionData.transZ) {
+            this.positionData.transZ = positionData.transZ;
+            this.positionDataFull.transZ = positionData.transZ;
+        } else this.positionData.transZ = undefined;
+        
+        if (this.positionDataFull.rotY === undefined || this.positionDataFull.rotY !== positionData.rotY) {
+            this.positionData.rotY = positionData.rotY;
+            this.positionDataFull.rotY = positionData.rotY;
+        } else this.positionData.rotY = undefined;
+        
+        if (this.positionDataFull.tgtState === undefined || this.positionDataFull.tgtState !== positionData.tgtState) {
+            this.positionData.tgtState = positionData.tgtState;
+            this.positionDataFull.tgtState = positionData.tgtState;
+        } else this.positionData.tgtState = undefined;
+        
+        if (this.positionDataFull.currentLevel === undefined || this.positionDataFull.currentLevel !== positionData.currentLevel) {
+            this.positionData.currentLevel = positionData.currentLevel;
+            this.positionDataFull.currentLevel = positionData.currentLevel;
+        } else this.positionData.currentLevel = undefined;
         
         this.checkUpdateUsername(username);
 
@@ -58,10 +99,25 @@ export class CurrentPlayerData {
     }
 
     checkUpdateUsername(username: string) {
-        if (this.currentUsername === username) return;
+        if (this.positionDataFull.username === undefined || this.positionDataFull.username !== username) {
+            this.positionData.username = username;
+            this.positionDataFull.username = username;
+        } else this.positionData.username = undefined;
+    }
 
-        this.positionData.updateUsername(username);
-        this.currentUsername = username;
+    getCurrentUsername(): string {
+        return this.positionDataFull.username ?? "";
+    }
+
+    resetLastPlayerInfo() {
+        this.positionDataFull.currentLevel = undefined;
+        this.positionDataFull.username = undefined;
+    }
+
+    isInLevel(levelSymbol: number | undefined): boolean {
+        if (levelSymbol) {
+        }
+        return levelSymbol !== undefined && this.positionDataFull.currentLevel === levelSymbol || this.positionData.currentLevel === levelSymbol; 
     }
 
     checkUpdateInteractionFromBuffer() {

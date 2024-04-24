@@ -33,6 +33,7 @@ import { ShortMemoryInteraction } from "./short-memory-interaction";
 import { RunData } from "../run/run-data";
 import { Subscription } from "rxjs";
 import { DbLeaderboardPb } from "../firestore/db-leaderboard-pb";
+import { LevelSymbol } from "../opengoal/levels";
 
 export class SocketHandler {
 
@@ -165,10 +166,10 @@ export class SocketHandler {
                         this.socketConnected = true;
                     });
                     this.updateGameSettings(new GameSettings(this.timer.isPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version, !this.run.forPracticeTool)));
+                    this.resetAllPlayerPositionInfo();
                     this.run.getAllPlayers().forEach(player => { // set the team for any users already connected
                         this.updatePlayerInfo(player.user.id, this.run.getRemotePlayerInfo(player.user.id));
                     });
-                    this.repeatPlayerUsernames();
 
                     this.addCommand(OgCommand.None); //send empty message to update username, version & controller
                 }, 300);
@@ -290,9 +291,9 @@ export class SocketHandler {
             this.addCommand(OgCommand.None);
     }
 
-    repeatPlayerUsernames() {
+    resetAllPlayerPositionInfo() {
         for (let player of this.players)
-            player.positionData.updateUsername(player.currentUsername);
+            player.resetLastPlayerInfo();
     }
 
     updateGameSettings(settings: GameSettings) {
@@ -328,8 +329,6 @@ export class SocketHandler {
             this.players = [];
         else
             player.positionData.onDisconnectCleanup();
-
-        this.repeatPlayerUsernames();
     }
 
     private checkRegisterPlayer(user: UserBase | undefined, state: MultiplayerState) {
@@ -338,7 +337,6 @@ export class SocketHandler {
         if (user.id !== this.user.id) {
             this.players.push(new CurrentPlayerData(user, state));
             this.updatePlayerInfo(user.id, this.run.getRemotePlayerInfo(user.id));
-            this.repeatPlayerUsernames();
         }
         else
             this.self = new CurrentPlayerData(user, MultiplayerState.interactive);
@@ -383,7 +381,7 @@ export class SocketHandler {
             quatW: this.self.positionData.quatW ?? 0,
             rotY: this.self.positionData.rotY ?? 0,
             tgtState: this.self.positionData.tgtState,
-            currentLevel: this.self.positionData.currentLevel ?? "",
+            currentLevel: this.self.positionData.currentLevel,
             interType: 0,
             interAmount: 0,
             interStatus: 0,
@@ -392,7 +390,7 @@ export class SocketHandler {
             interLevel: "",
             interCleanup: false,
             userId: this.self.positionData.userId,
-            username: this.self.currentUsername,
+            username: this.self.getCurrentUsername(),
             time: time
         }
     }
@@ -403,10 +401,10 @@ export class SocketHandler {
         const isLocalUser = positionData.userId === this.user.id;
         let player = !isLocalUser ? this.players.find(x => x.positionData.userId === positionData.userId) : this.self;
         if (player) {
-            if (player.positionData.currentLevel !== positionData.currentLevel) {
+            if (!player.isInLevel(positionData.currentLevel)) {
                 this.addCommand(OgCommand.OnRemoteLevelUpdate);
                 const runPlayer = this.run.getPlayer(player.positionData.userId);
-                if (runPlayer) runPlayer.currentLevel = positionData.currentLevel;
+                if (runPlayer) runPlayer.currentLevel = LevelSymbol.toName(positionData.currentLevel);
             }
             
             player.updateCurrentPosition(positionData, positionData.username, isLocalUser);
@@ -465,7 +463,7 @@ export class SocketHandler {
                     if (!currentPlayer)
                         this.checkRegisterPlayer(Recording.getUserBase(recording), recording.state);
                     else {
-                        if (currentPlayer.positionData.currentLevel !== positionData.currentLevel)
+                        if (!currentPlayer.isInLevel(positionData.currentLevel))
                             this.addCommand(OgCommand.OnRemoteLevelUpdate);
 
                         const previousRecordingdataIndex = currentPlayer.recordingDataIndex ?? recording.playback.length;

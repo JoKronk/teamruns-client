@@ -13,14 +13,14 @@ export class CurrentPositionData {
     quatZ: number | undefined;
     quatW: number | undefined;
     rotY: number | undefined;
-    tgtState: any | undefined;
-    currentLevel: string | undefined;
+    tgtState: number | undefined; //symbol number
+    currentLevel: number | undefined; //symbol number
     
     interaction: InteractionData | undefined;
     playerInfo: RemotePlayerInfo | undefined;
 
     userId: string;
-    private username: string | undefined;
+    username: string | undefined;
     color: Color;
     mpState: MultiplayerState;
 
@@ -35,10 +35,6 @@ export class CurrentPositionData {
         this.interaction = InteractionData.getInteractionValues(interactionData);
     }
 
-    updateUsername(username: string) {
-        this.username = username;
-    }
-
     onDisconnectCleanup() {
         this.cleanupOneTimeData();
         this.transX = undefined;
@@ -51,16 +47,12 @@ export class CurrentPositionData {
         this.rotY = undefined;
         this.tgtState = undefined;
         this.currentLevel = undefined;
+        this.username = "";
     }
 
     cleanupOneTimeData() {
-        this.resetPositionDataUsername();
         this.resetCurrentInteraction();
         this.resetCurrentInfo();
-    }
-    
-    resetPositionDataUsername() {
-        this.username = undefined;
     }
 
     resetCurrentInteraction() {

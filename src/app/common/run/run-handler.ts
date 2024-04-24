@@ -770,7 +770,6 @@ export class RunHandler {
                 if (localPlayer.socketHandler.socketConnected && !this.isSpectatorOrNull(localPlayer.user.id) && (!onlyMain || localPlayer.user.id === mainId)) {
                     const userPos = localPlayer.socketHandler.getSelfUserPositionData(this.run?.timer.totalMs ?? 0);
                     if (userPos) this.sendPosition(userPos);
-                    localPlayer.socketHandler.repeatPlayerUsernames();
                 }
             });
         }
