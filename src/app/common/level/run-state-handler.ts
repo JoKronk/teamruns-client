@@ -1,7 +1,7 @@
 import { InteractionType } from "../opengoal/interaction-type";
+import { Level } from "../opengoal/levels";
 import { Task } from "../opengoal/task";
 import { TaskStatus } from "../opengoal/task-status";
-import { Player } from "../player/player";
 import { InteractionData, UserInteractionData } from "../socket/interaction-data";
 import { SocketHandler } from "../socket/socket-handler";
 import { LevelInteractions } from "./level-interactions";
@@ -52,24 +52,67 @@ export class RunStateHandler {
     }
 
     private pushLevelCleanupInteraction(level: LevelInteractions, interaction: UserInteractionData): boolean {
-        let isNewInteraction: boolean = true;
-
-        //need to check all loaded levels since cleanup interactions will have a fake origin from being executed in the level the origin level was loaded from. (See InteractionData.AreIdentical() for more info)
-        for (let statusLevel of this.getLoadedLevels()) {
-            let levelToCheck = level.levelName === statusLevel.name ? level : this.getCreateLevel(statusLevel.name);
-            if (!InteractionData.isFromOrbCollection(interaction) && levelToCheck.interactions.some(x => InteractionData.areIdentical(x, interaction))) {
-                isNewInteraction = false;
-                break;
-            }
-        }
-
-        if (!isNewInteraction)
-            return isNewInteraction;
+        if (!this.isNewInteraction(level, interaction))
+            return false;
 
         const storedInteraction = new UserInteractionData(interaction, interaction.userId);
         storedInteraction.interCleanup = true;
         level.interactions.push(storedInteraction);
-        return isNewInteraction;
+        return true;
+    }
+
+    private isNewInteraction(level: LevelInteractions, interaction: UserInteractionData): boolean {
+        if (!InteractionData.isFromOrbCollection(interaction)) {
+            let isNewInteraction: boolean = true;
+            if (level.interactions.some(x => InteractionData.areIdentical(x, interaction)))
+                isNewInteraction = false;
+    
+            if (isNewInteraction && interaction.interLevel !== level.levelName && this.getCreateLevel(interaction.interLevel).interactions.some(x => InteractionData.areIdentical(x, interaction)))
+                isNewInteraction = false;
+    
+            //need to check all loaded levels as well since cleanup interactions can have a fake origin from being executed in the level the origin level was loaded from. (See InteractionData.AreIdentical() for more info)
+            if (isNewInteraction) {
+                for (let statusLevel of this.getLoadedLevels()) {
+                    if (level.levelName !== statusLevel.name && this.getCreateLevel(statusLevel.name).interactions.some(x => InteractionData.areIdentical(x, interaction))) {
+                        isNewInteraction = false;
+                        break;
+                    }
+                }
+            }
+            return isNewInteraction;
+        }
+        else {
+            if (interaction.interParent.startsWith("orb-cache-top-")) {
+                if (interaction.interLevel === level.levelName)
+                    return (this.getOrbCacheAmount(interaction.interParent) - 1) >= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length;
+                else 
+                    return (this.getOrbCacheAmount(interaction.interParent) - 1) >= this.getCreateLevel(interaction.interLevel).interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length
+                        && (this.getOrbCacheAmount(interaction.interParent) - 1) >= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length;
+            }
+            else if (interaction.interParent.startsWith("crate-")) {
+                let parentCrate = level.interactions.find(x => InteractionData.isOrbsCrate(x) && x.interName === interaction.interParent);
+
+                if (!parentCrate && interaction.interLevel !== level.levelName)
+                    parentCrate = this.getCreateLevel(interaction.interLevel).interactions.find(x => InteractionData.isOrbsCrate(x) && x.interName === interaction.interParent);
+        
+                return parentCrate !== undefined && (parentCrate.interAmount - 1) >= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length;
+            }
+            else if (interaction.interParent.startsWith("gnawer-")) {
+                if (level.levelName !== Level.spiderCave)
+                    return false;
+
+                let parentGnawer = level.interactions.find(x => x.interType === InteractionType.enemyDeath && x.interName === interaction.interParent);
+                return parentGnawer !== undefined && (parentGnawer.interAmount - 1) >= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length;
+            }
+            else if (interaction.interParent.startsWith("plant-boss-")) {
+                if (level.levelName !== Level.plantBoss)
+                    return false;
+
+                return (5 - 1) >= level.interactions.filter(x => x.interType === InteractionType.money && x.interParent === interaction.interParent).length;
+            }
+            else
+                return true;
+        }
     }
 
     addTaskInteraction(interaction: UserInteractionData) {
