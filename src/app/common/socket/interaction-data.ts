@@ -44,7 +44,7 @@ export class InteractionData {
     }
 
     static isFromOrbCollection(interaction: InteractionData): boolean {
-        return interaction.interType === InteractionType.money && (interaction.interName === "money" || interaction.interName === "" || interaction.interParent !== undefined);
+        return interaction.interType === InteractionType.money && ((interaction.interName === "money" || interaction.interName === "") && interaction.interParent !== undefined);
     }
 
     //orb collection interactions are never equal, thus areIdentical()
