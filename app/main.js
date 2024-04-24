@@ -153,10 +153,6 @@ function createWindow() {
   ipcMain.on('save-open', () => {
     openFolder(getSaveFilesPath());
   });
-
-  ipcMain.on('logs-fetch', () => {
-    checkGetCrashLog();
-  });
     
   ipcMain.on('window-minimize', () => {
     win.minimize();
@@ -632,30 +628,6 @@ function extractISO(version, isoPath) {
     sendInstallProgress(100, ".done");
     writeInstallVersionToSetting(version);
   });
-}
-
-async function checkGetCrashLog() {
-  let logPath = path.join(getInstallPath(), "data", "logs");
-  if (!fs.existsSync(logPath))
-    return;
-  
-    const logClearedPath = path.join(logPath, "logged");
-    if (!fs.existsSync(logClearedPath))
-      fs.mkdirSync(logClearedPath);
-  
-  let logFiles = [];
-  for(const file of (await fs.promises.readdir(logPath))) {
-    const entryPath = path.join(savesPath, file);
-    const stat = await fs.promises.stat( entryPath );
-
-    if (stat.isFile() && entryPath.endsWith(".log")) {
-      logFiles.push(JSON.parse(await fs.promises.readFile(entryPath, 'utf8')));
-      await fs.promises.rename(entryPath, path.join(logClearedPath, file));
-    }
-  }
-  if (logFiles.length !== 0)
-    win.webContents.send("logs-get", logFiles);
-
 }
 
 // --- FRONTEND COMMUNICATION ---

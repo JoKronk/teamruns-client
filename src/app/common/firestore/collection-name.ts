@@ -1,7 +1,6 @@
 export class CollectionName {
     static globalData = "globalData";
     static leaderboards = "leaderboards";
-    static logs = "logs";
     static lobbies = "lobbies";
     static peerConnections = "peerConnections";
     static personalBests = "personalBests";

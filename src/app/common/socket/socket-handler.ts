@@ -91,7 +91,6 @@ export class SocketHandler {
 
         this.shutdownListener = (window as any).electron.receive("og-closed", (port: number) => {
             if (port == this.socketPort) {
-                (window as any).electron.send('logs-fetch');
                 this.inMidRunRestartPenaltyWait = 0;
                 this.isSyncing = false
                 this.socketConnected = false;

@@ -61,7 +61,6 @@ export class RunHandler {
     userSetupSubscription: Subscription;
     pbSubscription: Subscription;
     private launchListener: any;
-    private logsListener: any;
 
     runSetupCompleteSubject: BehaviorSubject<RunData | null> = new BehaviorSubject<RunData | null>(null);
 
@@ -110,12 +109,6 @@ export class RunHandler {
             
             this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
                 this.setupSocketListener(port);
-            });
-
-            //crash logs listener
-            this.logsListener = (window as any).electron.receive("logs-get", (logs: string[]) => {
-                if (this.isOnlineInstant && logs.length !== 0) //other logs would be overwritten with how the name is generated at the moment
-                    this.firestoreService.uploadCrashLog(this.userService.user.name ?? this.userService.user.displayName, logs[0]);
             });
 
         });
@@ -938,7 +931,6 @@ export class RunHandler {
         this.userSetupSubscription?.unsubscribe();
         this.pbSubscription?.unsubscribe();
         this.launchListener();
-        this.logsListener();
 
         //remove demote if host
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself
