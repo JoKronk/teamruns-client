@@ -564,7 +564,7 @@ export class SocketHandler {
     }
 
     private handlePlayerInteractions(positionData: CurrentPositionData) {
-        if (!positionData.interaction || positionData.interaction.interType === InteractionType.none || positionData.interaction.interCleanup) return;
+        if (!positionData.interaction || positionData.interaction.interType === undefined || positionData.interaction.interType === InteractionType.none || positionData.interaction.interCleanup) return;
         const interaction = UserInteractionData.fromInteractionData(positionData.interaction, positionData.userId);
         const isSelfInteraction: boolean = positionData.userId === this.user.id;
         const playerTeam: Team | undefined = isSelfInteraction ? this.localTeam : this.run.getPlayerTeam(positionData.userId, true);
