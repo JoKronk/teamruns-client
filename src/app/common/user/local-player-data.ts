@@ -35,6 +35,7 @@ export class LocalPlayerData {
   }
 
   importRunStateHandler(runStateHandler: RunStateHandler, syncType: SyncType) {
+    this.socketHandler.isSyncing = true;
     this.cleanupHandler.importRunState(runStateHandler, this.socketHandler, this.gameState, syncType);
 
     setTimeout(() => {
@@ -75,12 +76,11 @@ export class LocalPlayerData {
     if (this.socketHandler.localTeam.runState.orbCount > this.gameState.orbCount)
       syncType = SyncType.Soft;
     
-    if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount)
-      syncType = SyncType.Hard;
+    //if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount)
+    //  syncType = SyncType.Hard;
 
     if (this.socketHandler.localTeam.runState.cellCount > this.gameState.cellCount)
       syncType = SyncType.Hard;
-    
     return syncType;
   }
 
