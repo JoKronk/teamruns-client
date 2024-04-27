@@ -150,8 +150,7 @@ export class RunStateHandler {
 
     addBuzzerInteraction(interaction: UserInteractionData) {
         const level = this.getCreateLevel(interaction.interLevel);
-        this.pushLevelCleanupInteraction(level, interaction);
-        if (!interaction.interCleanup)
+        if (this.pushLevelCleanupInteraction(level, interaction) && !interaction.interCleanup)
             this.buzzerCount += 1;
     }
 
