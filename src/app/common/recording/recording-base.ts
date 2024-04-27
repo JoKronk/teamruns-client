@@ -14,9 +14,16 @@ export class RecordingBase {
     }
 
     optimizePlaybackSize() {
+        let playbackUpdateRateMs = 16;
         let prevData: RecordingPositionData = new RecordingPositionData();
         for (let i = this.playback.length - 1; i >= 0; i--)
         {
+            if (!this.playback[i].tS && !this.playback[i].cL && (!this.playback[i].iT || this.playback[i].iT === 0) && prevData.t !== undefined && this.playback[i].t !== undefined && playbackUpdateRateMs > this.playback[i].t - prevData.t) {
+                this.playback.splice(i, 1);
+                continue;
+            }
+
+
             if (this.playback[i].tX) this.playback[i].tX = Math.round((this.playback[i].tX! + Number.EPSILON) * 10) / 10;
             if (this.playback[i].tY) this.playback[i].tY = Math.round((this.playback[i].tY! + Number.EPSILON) * 10) / 10;
             if (this.playback[i].tZ) this.playback[i].tZ = Math.round((this.playback[i].tZ! + Number.EPSILON) * 10) / 10;
@@ -43,6 +50,7 @@ export class RecordingBase {
             if (this.playback[i].qZ) prevData.qZ = this.playback[i].qZ;
             if (this.playback[i].qW) prevData.qW = this.playback[i].qW;
             if (this.playback[i].qW) prevData.rY = this.playback[i].rY;
+            if (this.playback[i].t) prevData.t = this.playback[i].t;
         }
     }
 }
