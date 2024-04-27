@@ -43,52 +43,52 @@ export class CurrentPlayerData {
                 this.positionData.updateCurrentInteraction(positionData);
         }
 
-        if (this.positionDataFull.quatW === undefined || this.positionDataFull.quatW !== positionData.quatW) {
+        if (positionData.quatW !== undefined && (this.positionDataFull.quatW === undefined || this.positionDataFull.quatW !== positionData.quatW)) {
             this.positionData.quatW = positionData.quatW;
             this.positionDataFull.quatW = positionData.quatW;
         } else this.positionData.quatW = undefined;
         
-        if (this.positionDataFull.quatX === undefined || this.positionDataFull.quatX !== positionData.quatX) {
+        if (positionData.quatX !== undefined && (this.positionDataFull.quatX === undefined || this.positionDataFull.quatX !== positionData.quatX)) {
             this.positionData.quatX = positionData.quatX;
             this.positionDataFull.quatX = positionData.quatX;
         } else this.positionData.quatX = undefined;
         
-        if (this.positionDataFull.quatY === undefined || this.positionDataFull.quatY !== positionData.quatY) {
+        if (positionData.quatY !== undefined && (this.positionDataFull.quatY === undefined || this.positionDataFull.quatY !== positionData.quatY)) {
             this.positionData.quatY = positionData.quatY;
             this.positionDataFull.quatY = positionData.quatY;
         } else this.positionData.quatY = undefined;
         
-        if (this.positionDataFull.quatZ === undefined || this.positionDataFull.quatZ !== positionData.quatZ) {
+        if (positionData.quatZ !== undefined && (this.positionDataFull.quatZ === undefined || this.positionDataFull.quatZ !== positionData.quatZ)) {
             this.positionData.quatZ = positionData.quatZ;
             this.positionDataFull.quatZ = positionData.quatZ;
         } else this.positionData.quatZ = undefined;
         
-        if (this.positionDataFull.transX === undefined || this.positionDataFull.transX !== positionData.transX) {
+        if (positionData.transX !== undefined && (this.positionDataFull.transX === undefined || this.positionDataFull.transX !== positionData.transX)) {
             this.positionData.transX = positionData.transX;
             this.positionDataFull.transX = positionData.transX;
         } else this.positionData.transX = undefined;
         
-        if (this.positionDataFull.transY === undefined || this.positionDataFull.transY !== positionData.transY) {
+        if (positionData.transY !== undefined && (this.positionDataFull.transY === undefined || this.positionDataFull.transY !== positionData.transY)) {
             this.positionData.transY = positionData.transY;
             this.positionDataFull.transY = positionData.transY;
         } else this.positionData.transY = undefined;
         
-        if (this.positionDataFull.transZ === undefined || this.positionDataFull.transZ !== positionData.transZ) {
+        if (positionData.transZ !== undefined && (this.positionDataFull.transZ === undefined || this.positionDataFull.transZ !== positionData.transZ)) {
             this.positionData.transZ = positionData.transZ;
             this.positionDataFull.transZ = positionData.transZ;
         } else this.positionData.transZ = undefined;
         
-        if (this.positionDataFull.rotY === undefined || this.positionDataFull.rotY !== positionData.rotY) {
+        if (positionData.rotY !== undefined && (this.positionDataFull.rotY === undefined || this.positionDataFull.rotY !== positionData.rotY)) {
             this.positionData.rotY = positionData.rotY;
             this.positionDataFull.rotY = positionData.rotY;
         } else this.positionData.rotY = undefined;
         
-        if (this.positionDataFull.tgtState === undefined || this.positionDataFull.tgtState !== positionData.tgtState) {
+        if (positionData.tgtState !== undefined && (this.positionDataFull.tgtState === undefined || this.positionDataFull.tgtState !== positionData.tgtState)) {
             this.positionData.tgtState = positionData.tgtState;
             this.positionDataFull.tgtState = positionData.tgtState;
         } else this.positionData.tgtState = undefined;
         
-        if (this.positionDataFull.currentLevel === undefined || this.positionDataFull.currentLevel !== positionData.currentLevel) {
+        if (positionData.currentLevel !== undefined && (this.positionDataFull.currentLevel === undefined || this.positionDataFull.currentLevel !== positionData.currentLevel)) {
             this.positionData.currentLevel = positionData.currentLevel;
             this.positionDataFull.currentLevel = positionData.currentLevel;
         } else this.positionData.currentLevel = undefined;
