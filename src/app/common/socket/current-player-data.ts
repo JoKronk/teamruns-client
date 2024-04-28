@@ -10,7 +10,7 @@ export class CurrentPlayerData {
     positionData: CurrentPositionData; // has the current values sent over socket, values are set to undefiend on repeat to not send duplicated data 
 
     userId: string;
-    interactionBufferRateLimit: boolean = false;
+    interactionBufferRateLimit: number = 0;
     interactionBuffer: InteractionData[] = []; // updates gets pushed from top of list first
     recordingDataIndex: number | undefined; // only used by recordings
 
@@ -124,11 +124,15 @@ export class CurrentPlayerData {
         if (this.hasInteractionUpdate() || this.interactionBuffer.length == 0)
             return;
 
-        if (this.interactionBuffer.length >= 3) {
-            this.interactionBufferRateLimit = !this.interactionBufferRateLimit;
-            if (this.interactionBufferRateLimit)
+        if (this.interactionBufferRateLimit > 0) {
+            this.interactionBufferRateLimit -= 1;
+            
+            if (this.interactionBufferRateLimit === 1)
                 return;
         }
+
+        if (this.interactionBuffer.length >= 10 && this.interactionBufferRateLimit <= 0)
+            this.interactionBufferRateLimit = 3;
 
         const interactionData: InteractionData | undefined = this.interactionBuffer.shift();
         if (interactionData)
