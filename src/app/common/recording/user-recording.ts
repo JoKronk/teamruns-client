@@ -28,7 +28,7 @@ export class UserRecording extends Recording {
     //used to optimize format for file size
     addPositionData(newPos: PositionData) {
         let newRecordingPos: RecordingPositionData = new RecordingPositionData();
-        const noInteraction: boolean = newPos.interType === InteractionType.none;
+        const noInteraction: boolean = newPos.interType === undefined || newPos.interType === InteractionType.none;
         newRecordingPos.iT = noInteraction ? undefined : newPos.interType;
         newRecordingPos.iA = noInteraction ? undefined : newPos.interAmount;
         newRecordingPos.iS = noInteraction ? undefined : newPos.interStatus;

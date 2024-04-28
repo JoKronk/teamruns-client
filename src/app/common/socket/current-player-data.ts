@@ -36,7 +36,7 @@ export class CurrentPlayerData {
         }
 
         //handle interaction data
-        if (positionData.interType !== InteractionType.none) {
+        if (positionData.interType !== undefined && positionData.interType !== InteractionType.none) {
             if (this.hasInteractionUpdate() && !isLocalUser)
                 this.interactionBuffer.push(InteractionData.getInteractionValues(positionData));
             else
