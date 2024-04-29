@@ -275,15 +275,21 @@ export class PracticeComponent implements OnDestroy {
 
 
   //--- IMPORT HANDLING ---
+  importRecordings(event: any) {
+    this.onFilesDrop(event.target.files);
+  }
+
   onFilesDrop(files: FileList) {
+    let hasRenderedImportBar: boolean = false;
     for (let i = 0; i < files.length; i++) {
+      if (!hasRenderedImportBar && (files.item(i)?.size ?? 0) > 2000000) { //if over 2mb
+        this._user.drawImportNotif();
+        hasRenderedImportBar = true;
+      }
+
       this.imports.push(new RecordingImport(files.item(i)));
     }
     this.checkAddImport();
-  }
-
-  importRecordings(event: any) {
-    this.onFilesDrop(event.target.files);
   }
 
   checkAddImport() {

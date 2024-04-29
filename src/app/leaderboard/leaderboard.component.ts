@@ -14,7 +14,6 @@ import 'chartjs-adapter-date-fns';
 import { Timer } from '../common/run/timer';
 import { Team } from '../common/run/team';
 import { Task } from '../common/opengoal/task';
-import { DbRun } from '../common/firestore/db-run';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { PbCommentDialogComponent } from '../dialogs/pb-comment-dialog/pb-comment-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -276,6 +275,7 @@ export class LeaderboardComponent implements OnDestroy {
   }
 
   downloadRecording(pbId: string) {
+    this._user.drawImportNotif();
     const downloadSubscription = this.firestoreService.downloadRecording(pbId).subscribe(found => {
       downloadSubscription.unsubscribe();
       if (!found)

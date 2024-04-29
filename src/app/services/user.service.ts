@@ -1,12 +1,13 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { SnackbarComponent } from '../snackbars/snackbar/snackbar.component';
 import { User } from '../common/user/user';
 import { Router } from '@angular/router';
 import { OG } from '../common/opengoal/og';
 import { LocalPlayerData } from '../common/user/local-player-data';
 import { RunData } from '../common/run/run-data';
+import { SnackbarComponent } from '../snackbars/snackbar/snackbar.component';
 import { SnackbarInstallComponent } from '../snackbars/snackbar-install/snackbar-install.component';
+import { SnackbarImportComponent } from '../snackbars/snackbar-import/snackbar-import.component';
 import { DownloadHandler } from '../common/user/download-handler';
 import { BehaviorSubject } from 'rxjs';
 import { Run } from '../common/run/run';
@@ -106,11 +107,22 @@ export class UserService implements OnDestroy {
 
     this.downloadHandler.isDownloading = true; //blocks other snackbars while installing as only one can be open at a time
     this.zone.run(() => {
-      const snackSubcription = this._snackbar.openFromComponent(SnackbarInstallComponent, {
+      this._snackbar.openFromComponent(SnackbarInstallComponent, {
         verticalPosition: 'bottom',
         horizontalPosition: 'center'
       }).afterDismissed().subscribe(() => {
         this.downloadHandler.isDownloading = false;
+      });
+    });
+  }
+
+  public drawImportNotif() {
+    if (this.isBrowser || this.downloadHandler.isDownloading) return;
+
+    this.zone.run(() => {
+      this._snackbar.openFromComponent(SnackbarImportComponent, {
+        verticalPosition: 'bottom',
+        horizontalPosition: 'right'
       });
     });
   }
