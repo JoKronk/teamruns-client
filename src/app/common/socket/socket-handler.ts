@@ -425,7 +425,7 @@ export class SocketHandler {
 
         //registner new if missing
         if (!userRecording) {
-            userRecording = new UserRecording(positionData.username, positionData.userId);
+            userRecording = new UserRecording(positionData.username, positionData.userId, this.user.gameVersion);
             this.userPositionRecordings.push(userRecording);
         }
 

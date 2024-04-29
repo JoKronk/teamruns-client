@@ -4,12 +4,14 @@ import { RecordingPositionData } from "./recording-position-data";
 
 export class RecordingFile {
     version: string;
+    gameVersion: string;
     runData: RunData | undefined;
     recordings: RecordingBase[] = [];
 
-    constructor(version: string, recordings: RecordingBase[], runData: RunData | undefined = undefined) {
+    constructor(version: string, gameVersion: string, recordings: RecordingBase[], runData: RunData | undefined = undefined) {
         this.version = version;
         this.runData = runData;
+        this.gameVersion = gameVersion;
 
         recordings.forEach((recording, i) => {
             if (!(recording instanceof RecordingBase))

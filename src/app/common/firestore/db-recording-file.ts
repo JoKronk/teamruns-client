@@ -7,8 +7,8 @@ export class DbRecordingFile extends RecordingFile {
     override recordings: UserRecordingBase[] = [];
 
 
-    constructor(version: string, recordings: UserRecordingBase[], pbId: string, runData: RunData) {
-        super(version, [], runData);
+    constructor(version: string, gameVersion: string, recordings: UserRecordingBase[], pbId: string, runData: RunData) {
+        super(version, gameVersion, [], runData);
         this.pdId = pbId;
 
         recordings.forEach(recording => {

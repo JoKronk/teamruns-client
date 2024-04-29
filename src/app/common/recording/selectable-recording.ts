@@ -7,12 +7,12 @@ import { RecordingFile } from "./recording-file";
 export class SelectableRecording extends Recording {
     selected: boolean = true;
 
-    constructor(displayName: string) {
-        super(displayName);
+    constructor(displayName: string, gameVersion: string) {
+        super(displayName, gameVersion);
     }
 
-    static fromRecordingBase(baseRecording: RecordingBase): SelectableRecording {
-        let recording = new SelectableRecording(baseRecording.username);
+    static fromRecordingBase(baseRecording: Recording): SelectableRecording {
+        let recording = new SelectableRecording(baseRecording.username, baseRecording.gameVersion);
         recording.playback = baseRecording.playback;
         recording.username = baseRecording.username;
         return recording;
@@ -22,7 +22,7 @@ export class SelectableRecording extends Recording {
         let recordings: SelectableRecording[] = [];
 
         recFile.recordings.forEach(rec => {
-            const recording = new SelectableRecording(rec.username);
+            const recording = new SelectableRecording(rec.username, recFile.gameVersion);
             recording.playback = rec.playback;
             recording.fillFrontendValues();
             recordings.push(recording);
@@ -35,7 +35,7 @@ export class SelectableRecording extends Recording {
         let recordings: SelectableRecording[] = [];
 
         recFile.recordings.forEach(rec => {
-            const recording = new SelectableRecording(userCollection?.users.find(x => x.id === rec.userId)?.name ?? rec.username);
+            const recording = new SelectableRecording(userCollection?.users.find(x => x.id === rec.userId)?.name ?? rec.username, recFile.gameVersion);
             recording.playback = rec.playback;
             recording.fillFrontendValues();
             recordings.push(recording);

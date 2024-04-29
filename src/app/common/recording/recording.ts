@@ -12,6 +12,7 @@ import { MultiplayerState } from "../opengoal/multiplayer-state";
 
 export class Recording extends RecordingBase {
     id: string = crypto.randomUUID();
+    gameVersion: string;
 
     state: MultiplayerState = MultiplayerState.active;
     prevPosIn: PositionData | undefined;
@@ -20,8 +21,9 @@ export class Recording extends RecordingBase {
 
     timeFrontend?: string;
 
-    constructor(displayName: string) {
+    constructor(displayName: string, gameVersion: string) {
         super(displayName);
+        this.gameVersion = gameVersion;
     }
 
     static getUserBase(recording: Recording) { //static because in most use cases the recording won't have class functions
@@ -32,7 +34,7 @@ export class Recording extends RecordingBase {
         let recordings: Recording[] = [];
 
         recFile.recordings.forEach(rec => {
-            const recording = new Recording(rec.username);
+            const recording = new Recording(rec.username, recFile.gameVersion);
             recording.playback = rec.playback;
             recording.fillFrontendValues();
             recordings.push(recording);
@@ -45,7 +47,7 @@ export class Recording extends RecordingBase {
         let recordings: Recording[] = [];
 
         recFile.recordings.forEach(rec => {
-            const recording = new Recording(userCollection?.users.find(x => x.id === rec.userId)?.name ?? rec.username);
+            const recording = new Recording(userCollection?.users.find(x => x.id === rec.userId)?.name ?? rec.username, recFile.gameVersion);
             recording.playback = rec.playback;
             recording.fillFrontendValues();
             recordings.push(recording);
@@ -98,7 +100,7 @@ export class Recording extends RecordingBase {
     }
 
     exportRecording() {
-        const blob = new Blob([JSON.stringify(new RecordingFile(pkg.version, [this]))], { type: "text/plain" });
+        const blob = new Blob([JSON.stringify(new RecordingFile(pkg.version, this.gameVersion, [this]))], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.download = this.username + '.json';
@@ -113,7 +115,7 @@ export class Recording extends RecordingBase {
             });
         }
         
-        const blob = new Blob([JSON.stringify(new RecordingFile(recording.version, recording.recordings, recording.runData))], { type: "text/plain" });
+        const blob = new Blob([JSON.stringify(new RecordingFile(recording.version, recording.gameVersion, recording.recordings, recording.runData))], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.download = CategoryOption[recording.runData?.category ?? 0] + 'Pb.json';

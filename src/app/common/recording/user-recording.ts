@@ -20,8 +20,8 @@ export class UserRecordingBase extends RecordingBase {
 export class UserRecording extends Recording {
     userId: string;
 
-    constructor(username: string, userId: string) {
-        super(username);
+    constructor(username: string, userId: string, gameVersion: string) {
+        super(username, gameVersion);
         this.userId = userId;
     }
 
