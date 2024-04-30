@@ -119,6 +119,10 @@ export class SocketHandler {
                 this.cleanupHandler.resetHandler();
                 this.updateGameSettings(new GameSettings(this.run?.data));
                 this.setAllRealPlayersMultiplayerState();
+
+                
+                if (!this.run.forPracticeTool && this.run.hasSpectator(this.user.id))
+                    this.addCommand(OgCommand.EnableSpectatorMode);
                 break;
 
             case RunState.CountdownSpawning:

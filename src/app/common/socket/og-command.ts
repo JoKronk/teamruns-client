@@ -14,5 +14,7 @@ export enum OgCommand {
     FreeCamExit,
     OnRemoteLevelUpdate,
     EnableDebugMode,
-    DisableDebugMode
+    DisableDebugMode,
+    EnableSpectatorMode,
+    DisableSpectatorMode
 }

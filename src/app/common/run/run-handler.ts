@@ -738,6 +738,9 @@ export class RunHandler {
                 this.zone.run(() => {
                     if (this.run!.toggleVoteReset(event.userId, event.value)) {
                         this.userService.localUsers.forEach(localPlayer => {
+                            if (this.run?.hasSpectator(localPlayer.user.id))
+                                localPlayer.socketHandler.addCommand(OgCommand.DisableSpectatorMode);
+
                             localPlayer.socketHandler.addCommand(OgCommand.Trip);
                             localPlayer.socketHandler.addCommand(OgCommand.EnableDebugMode);
                             localPlayer.socketHandler.updateGameSettings(new GameSettings(RunData.getFreeroamSettings(pkg.version)));
