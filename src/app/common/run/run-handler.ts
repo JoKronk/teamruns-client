@@ -39,6 +39,7 @@ import { Recording } from "../recording/recording";
 import { MultiplayerState } from "../opengoal/multiplayer-state";
 import { Team } from "./team";
 import { SyncType } from "../level/sync-type";
+import { RunState } from "./run-state";
 
 export class RunHandler {
 
@@ -712,10 +713,12 @@ export class RunHandler {
 
 
             case EventType.StartRun:
-                this.zone.run(() => {
-                    this.run!.start(new Date());
-                });
-                this.setupRunStart();
+                if (this.run.timer.runState === RunState.Waiting) { //locals players and recordings will also ready up and repeat run start
+                    this.zone.run(() => {
+                        this.run!.start(new Date());
+                    });
+                    this.setupRunStart();
+                }
                 break;
 
 
