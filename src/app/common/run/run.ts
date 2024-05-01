@@ -222,9 +222,8 @@ export class Run {
         return this.data.mode === mode;
     }
 
-    checkRunEndValid(teamId: number): undefined {
+    checkRunEndValid(): undefined {
         for (let team of this.teams) {
-            let isPlayerTeam = team.id === teamId;
             if (!team.runIsValid)
                 continue;
 

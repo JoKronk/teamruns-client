@@ -11,6 +11,7 @@ import { DbPb } from "./db-pb";
 import { DbRecordingFile } from "./db-recording-file";
 import { UserRecording } from "../recording/user-recording";
 import { Observable, map } from "rxjs";
+import { PbTeamPlayers } from "../peer/pb-team-players";
 
 export class DbRun {
     data: RunData;
@@ -79,7 +80,7 @@ export class DbRun {
     }
 
 
-    checkUploadPbs(firestoreService: FireStoreService, signedInPlayerIds: string[], recordings: UserRecording[] | undefined): Observable<Map<string, string[]>> | undefined {
+    checkUploadPbs(firestoreService: FireStoreService, signedInPlayerIds: string[], recordings: UserRecording[] | undefined): Observable<PbTeamPlayers[]> | undefined {
         if (this.data.category === CategoryOption.Custom) return;
 
         let leaderboards: DbLeaderboard[] = [];
@@ -94,7 +95,7 @@ export class DbRun {
         
         return firestoreService.getLeaderboards(this.data.category, this.data.requireSameLevel, playerCounts).pipe(
                 map(dbLeaderboards => {
-                    let pbUsers: Map<string, string[]> = new Map();
+                    let pbUsers: PbTeamPlayers[] = [];
                     
                     if (!dbLeaderboards) return pbUsers;
                     leaderboards = dbLeaderboards;
@@ -131,7 +132,7 @@ export class DbRun {
                             
                             //add users to new pbs map
                             let teamUserIds = team.players.flatMap(x => x.user.id);
-                            pbUsers.set(newPb.id, teamUserIds);
+                            pbUsers.push(new PbTeamPlayers(newPb.id, teamUserIds));
                             
         
                             //delete old recording if any

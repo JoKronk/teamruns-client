@@ -40,6 +40,7 @@ import { MultiplayerState } from "../opengoal/multiplayer-state";
 import { Team } from "./team";
 import { SyncType } from "../level/sync-type";
 import { RunState } from "./run-state";
+import { PbTeamPlayers } from "../peer/pb-team-players";
 
 export class RunHandler {
 
@@ -580,7 +581,7 @@ export class RunHandler {
                     this.checkSaveRecordingsLocally(recordings, playerTeam);
                     
                     this.checkTeamGameVersions(playerTeam); //!TODO: Should be check earlier than run end.
-                    this.run.checkRunEndValid(playerTeam.id);
+                    this.run.checkRunEndValid();
                     if (!playerTeam.runIsValid && playerTeam.runInvalidReason) this.userService.sendNotification(playerTeam.runInvalidReason.startsWith("Run invalid") ? playerTeam.runInvalidReason : ("Run Invalid: " + playerTeam.runInvalidReason), 10000);
 
                     if (isMaster && this.run.isMode(RunMode.Speedrun) && !this.isPracticeTool && this.run.everyoneHasFinished() && this.run.teams.some(x => x.runIsValid)) {
@@ -599,7 +600,7 @@ export class RunHandler {
                             if (this.run?.data.submitPbs) {
                                 const pbUploadSubscription = dbRun.checkUploadPbs(this.firestoreService, signedInPlayers, recordings)?.subscribe(pbUsers => {
                                     pbUploadSubscription?.unsubscribe();
-                                    if (pbUsers.size !== 0) {
+                                    if (pbUsers.length !== 0) {
                                         setTimeout(() => { //give some time for pb to upload !TODO: replace with proper pipe
                                             this.sendEventAsMain(EventType.NewPb, pbUsers);
                                         }, 1000);
@@ -612,12 +613,12 @@ export class RunHandler {
                 break;
             
             case EventType.NewPb:
-                let pbUsers: Map<string, string[]> = event.value;
-                pbUsers.forEach((users, pbId) => {
-                    if (users.includes(userId)) {
+                let pbUsers: PbTeamPlayers[] = event.value;
+                for (let pbTeam of pbUsers) {
+                    if (pbTeam.playerIds.includes(userId)) {
                         if (this.pbSubscription) this.pbSubscription.unsubscribe();
                         let currentPbData: DbPb | undefined = undefined;
-                        this.pbSubscription = this.firestoreService.getPb(pbId).subscribe(pb => {
+                        this.pbSubscription = this.firestoreService.getPb(pbTeam.pbId).subscribe(pb => {
                             if (!pb?.category) return; //checking category specifically because the id is returned if none is found
                             if (currentPbData)
                                 currentPbData = pb; //incase it gets updated while writing a comment
@@ -637,7 +638,7 @@ export class RunHandler {
                             }
                         });
                     }
-                });
+                }
                 break;
             
             case EventType.ImportRecordings:

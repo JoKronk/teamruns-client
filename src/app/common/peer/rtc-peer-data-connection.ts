@@ -119,7 +119,7 @@ export class RTCPeerDataConnection {
 
     sendEvent(event: DataChannelEvent) {
         if (this.dataChannelToPeer?.readyState !== "open") return;
-
+        //the timerSubject thing ensures we avoid circular loops when parsing objects that include the timer (and timerSubject)
         this.dataChannelToPeer.send(JSON.stringify(event, (key, value) => { return key === "timerSubject" ? undefined : value; }));
     }
 
