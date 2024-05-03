@@ -118,10 +118,10 @@ export class SocketHandler {
                     this.addCommand(OgCommand.TargetGrab);
 
                 this.resetOngoingRecordings();
+                this.resetRecordingIndexes();
                 this.cleanupHandler.resetHandler();
                 this.updateGameSettings(new GameSettings(this.run?.data));
                 this.setAllRealPlayersMultiplayerState();
-
                 
                 if (!this.run.forPracticeTool && this.run.hasSpectator(this.user.id))
                     this.addCommand(OgCommand.EnableSpectatorMode);
@@ -231,6 +231,15 @@ export class SocketHandler {
 
     resetOngoingRecordings() {
         this.userPositionRecordings = [];
+    }
+
+    resetRecordingIndexes() {
+        this.recordings.forEach(recording => {
+            recording.currentRecordingDataIndex = undefined;
+        });
+        this.players.forEach(player => {
+            player.recordingDataIndex = undefined;
+        });
     }
 
     changeController(controllerPort: number) {
@@ -441,9 +450,6 @@ export class SocketHandler {
     startDrawPlayers() {
         if (this.drawPositions) return;
         this.drawPositions = true;
-        this.recordings.forEach(recording => {
-            recording.currentRecordingDataIndex = undefined;
-        });
         this.drawPlayers();
         this.players.forEach(player => {
             if (player.positionData.mpState === MultiplayerState.disconnected)
@@ -480,16 +486,14 @@ export class SocketHandler {
                                 console.log("skipped frames", previousRecordingdataIndex - newRecordingdataIndex - 1);
 
                                 let newDataIndexHasAnimationState = positionData.tgtState !== undefined;
-                                let newDataIndexHasLevelUpdate = positionData.currentLevel !== undefined;
                                 for (let i = previousRecordingdataIndex - 1; i > newRecordingdataIndex; i--) {
                                     this.addRecordingInteractionToBuffer(currentPlayer, recording.playback[i]);
                                     if (!newDataIndexHasAnimationState && recording.playback[i].tS !== undefined) { //make sure we don't skip any animation states
                                         currentPlayer.positionData.tgtState = recording.playback[i].tS;
                                         newDataIndexHasAnimationState = true;
                                     }
-                                    if (!newDataIndexHasLevelUpdate && recording.playback[i].cL !== undefined) { //make sure we don't skip any animation states
+                                    if (recording.playback[i].cL !== undefined) { //make sure we don't skip any animation states
                                         currentPlayer.positionData.currentLevel = recording.playback[i].cL;
-                                        newDataIndexHasLevelUpdate = true;
                                     }
                                 }
                             }
@@ -743,7 +747,7 @@ export class SocketHandler {
                 this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
             else if (!interaction.interCleanup)
                 positionData.resetCurrentInteraction();
-
+            
             return;
         }
         //if not orb dupe or if not part of team

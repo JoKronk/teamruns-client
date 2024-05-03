@@ -112,7 +112,8 @@ export class CurrentPlayerData {
     }
 
     addCurrentLevelUpdate() {
-        this.positionData.currentLevel = this.positionDataFull.currentLevel;
+        if (this.positionData.currentLevel === undefined)
+            this.positionData.currentLevel = this.positionDataFull.currentLevel;
     }
 
     fillPositionValues() {
