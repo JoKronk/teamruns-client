@@ -88,10 +88,11 @@ export class CurrentPlayerData {
             this.positionDataFull.tgtState = positionData.tgtState;
         } else this.positionData.tgtState = undefined;
         
+        //different type of check to ensure it's not overwritten
         if (positionData.currentLevel !== undefined && (this.positionDataFull.currentLevel === undefined || this.positionDataFull.currentLevel !== positionData.currentLevel)) {
             this.positionData.currentLevel = positionData.currentLevel;
             this.positionDataFull.currentLevel = positionData.currentLevel;
-        } else this.positionData.currentLevel = undefined;
+        }
         
         this.checkUpdateUsername(username);
 
@@ -102,7 +103,8 @@ export class CurrentPlayerData {
         if (this.positionDataFull.username === undefined || this.positionDataFull.username !== username) {
             this.positionData.username = username;
             this.positionDataFull.username = username;
-        } else this.positionData.username = undefined;
+            
+        }
     }
 
     getCurrentUsername(): string {
@@ -117,9 +119,14 @@ export class CurrentPlayerData {
         this.positionData.fillFromCopy(this.positionDataFull);
     }
 
-    resetLastPlayerInfo() {
+    resetNoneOverwritableValues() {
         this.positionDataFull.currentLevel = undefined;
         this.positionDataFull.username = undefined;
+    }
+
+    clearNoneOverwritableValues() {
+        this.positionData.currentLevel = undefined;
+        this.positionData.username = undefined;
     }
 
     isInLevel(levelSymbol: number | undefined): boolean {

@@ -171,7 +171,7 @@ export class SocketHandler {
                         this.socketConnected = true;
                     });
                     this.updateGameSettings(new GameSettings(this.timer.isPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version, !this.run.forPracticeTool)));
-                    this.resetAllPlayerPositionInfo();
+                    this.resetAllPlayersNoneOverwritableValues();
                     this.run.getAllPlayers().forEach(player => { // set the team for any users already connected
                         this.updatePlayerInfo(player.user.id, this.run.getRemotePlayerInfo(player.user.id));
                     });
@@ -296,9 +296,9 @@ export class SocketHandler {
             this.addCommand(OgCommand.None);
     }
 
-    resetAllPlayerPositionInfo() {
+    resetAllPlayersNoneOverwritableValues() {
         for (let player of this.players)
-            player.resetLastPlayerInfo();
+            player.resetNoneOverwritableValues();
     }
 
     updateGameSettings(settings: GameSettings) {
@@ -528,12 +528,14 @@ export class SocketHandler {
 
         //post cleanup and buffer check
         if (this.self) {
+            this.self.clearNoneOverwritableValues();
             this.self.positionData.cleanupOneTimeData();
 
             this.self.checkUpdateInteractionFromBuffer();
             this.socketPackage.selfInteraction = this.self.positionData.interaction; //should only be for handling orb dupes and syncing interaction
         }
         this.players.forEach(player => {
+            player.clearNoneOverwritableValues();
             player.positionData.cleanupOneTimeData();
 
             //fill interaction from buffer if possible
