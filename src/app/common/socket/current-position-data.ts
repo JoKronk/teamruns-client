@@ -50,6 +50,26 @@ export class CurrentPositionData {
         this.username = "";
     }
 
+    fillFromCopy(positionData: CurrentPositionData) {
+        if (this.transX === undefined) this.transX = positionData.transX;
+        if (this.transY === undefined) this.transY = positionData.transY;
+        if (this.transZ === undefined) this.transZ = positionData.transZ;
+        if (this.quatW === undefined) this.quatW = positionData.quatW;
+        if (this.quatX === undefined) this.quatX = positionData.quatX;
+        if (this.quatY === undefined) this.quatY = positionData.quatY;
+        if (this.quatZ === undefined) this.quatZ = positionData.quatZ;
+        if (this.rotY === undefined) this.rotY = positionData.rotY;
+        if (this.tgtState === undefined) this.tgtState = positionData.tgtState;
+        if (this.currentLevel === undefined) this.currentLevel = positionData.currentLevel;
+        if (this.userId === undefined) this.userId = positionData.userId;
+        if (this.username === undefined) this.username = positionData.username;
+        if (this.color === undefined) this.color = positionData.color;
+        if (this.mpState === undefined) this.mpState = positionData.mpState;
+
+        if (!this.interaction && positionData.interaction)
+            this.interaction = InteractionData.getInteractionValues(positionData.interaction);
+    }
+
     cleanupOneTimeData() {
         this.resetCurrentInteraction();
         this.resetCurrentInfo();

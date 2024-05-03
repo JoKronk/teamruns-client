@@ -109,6 +109,14 @@ export class CurrentPlayerData {
         return this.positionDataFull.username ?? "";
     }
 
+    addCurrentLevelUpdate() {
+        this.positionData.currentLevel = this.positionDataFull.currentLevel;
+    }
+
+    fillPositionValues() {
+        this.positionData.fillFromCopy(this.positionDataFull);
+    }
+
     resetLastPlayerInfo() {
         this.positionDataFull.currentLevel = undefined;
         this.positionDataFull.username = undefined;

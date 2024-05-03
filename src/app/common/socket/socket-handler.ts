@@ -53,6 +53,8 @@ export class SocketHandler {
     protected self: CurrentPlayerData;
     protected players: CurrentPlayerData[] = [];
     private drawPositions: boolean = false;
+    private levelNextUpdateMs: number = 0;
+    private levelUpdateRateMs: number = 1000;
     private positionUpdateRateMs: number = 8;
     
     private shortTermInteractionMemory: ShortMemoryInteraction[] = [];
@@ -504,6 +506,22 @@ export class SocketHandler {
             if (this.run.timer.runState === RunState.Started && runPlayer && runPlayer.state !== PlayerState.Finished && runPlayer.state !== PlayerState.Forfeit)
             this.handlePlayerInteractions(player.positionData);
         });
+
+        //ping current level periodically in case it's missed
+        if (this.timer.totalMs > this.levelNextUpdateMs) {
+            this.levelNextUpdateMs = this.timer.totalMs + this.levelUpdateRateMs;
+
+            //send level data only
+            if (this.timer.runIsOngoing()) {
+                for (let player of this.players)
+                    player.addCurrentLevelUpdate();
+            }
+            //send full data
+            else {
+                for (let player of this.players)
+                    player.fillPositionValues();
+            }
+        }
 
         //send data
         this.sendSocketPackageToOpengoal();

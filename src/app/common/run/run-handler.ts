@@ -12,7 +12,7 @@ import { PlayerState } from "../player/player-state";
 import { NgZone } from "@angular/core";
 import { Task } from "../opengoal/task";
 import { LobbyUser } from "../firestore/lobby-user";
-import { User, UserBase } from "../user/user";
+import { UserBase } from "../user/user";
 import { FireStoreService } from "src/app/services/fire-store.service";
 import { CitadelOption, RunData } from "./run-data";
 import { Player } from "../player/player";
@@ -21,7 +21,6 @@ import { DbRun } from "../firestore/db-run";
 import { UserPositionData } from "../socket/position-data";
 import { GameState } from "../opengoal/game-state";
 import pkg from 'app/package.json';
-import { RunStateHandler } from "../level/run-state-handler";
 import { OgCommand } from "../socket/og-command";
 import { GameSettings } from "../socket/game-settings";
 import { SyncRequest, SyncRequestReason } from "./sync-request";
@@ -251,8 +250,6 @@ export class RunHandler {
 
         localPlayer.socketHandler.run = this.run;
         localPlayer.socketHandler.startDrawPlayers();
-
-        this.repeatAllLocalPlayerPosition();
     }
 
     resetUser() {
@@ -671,7 +668,6 @@ export class RunHandler {
                 if (!this.lobby!.runnerIds.includes(user.id))
                     this.lobby!.runnerIds.push(user.id);
                 this.updateFirestoreLobby();
-                this.repeatAllLocalPlayerPosition(true);
                 break;
 
 
