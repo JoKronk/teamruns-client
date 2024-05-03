@@ -33,7 +33,7 @@ export class PracticeComponent implements OnDestroy {
   loadOnRecord: string = "false";
   usePlayback: string = "true";
   resetWorld: string = "true";
-  inFreecam: boolean = false;
+  inSpectatorMode: boolean = false;
   hasStoredCheckpoint: boolean = false;
 
   //replay
@@ -119,12 +119,12 @@ export class PracticeComponent implements OnDestroy {
       this.mainLocalPlayer.socketHandler.addCommand(OgCommand.ResetGame);
       
 
-    if (this.inFreecam && this.loadOnRecord !== "true")
+    if (this.inSpectatorMode && this.loadOnRecord !== "true")
       this.toggleFreecam();
 
     if (this.loadOnRecord === "true") {
       this.loadCheckpoint();
-      this.inFreecam = false;
+      this.inSpectatorMode = false;
     }
 
     this.runHandler.setupRunStart();
@@ -161,17 +161,17 @@ export class PracticeComponent implements OnDestroy {
 
   toggleFreecam() {
     if (!this.mainLocalPlayer) return;
-    if (!this.inFreecam) {
+    if (!this.inSpectatorMode) {
       if (!this.hasStoredCheckpoint)
         this.storeCheckpoint();
 
-      this.mainLocalPlayer.socketHandler.addCommand(OgCommand.FreeCamEnter);
+      this.mainLocalPlayer.socketHandler.addCommand(OgCommand.EnableSpectatorMode);
     }
     else {
+      this.mainLocalPlayer.socketHandler.addCommand(OgCommand.DisableSpectatorMode);
       this.loadCheckpoint();
-      this.mainLocalPlayer.socketHandler.addCommand(OgCommand.FreeCamExit);
     }
-    this.inFreecam = !this.inFreecam;
+    this.inSpectatorMode = !this.inSpectatorMode;
   }
 
   deleteRecording(id: string) {
@@ -300,7 +300,7 @@ export class PracticeComponent implements OnDestroy {
 
 
   ngOnDestroy(): void {
-    if (this.inFreecam)
+    if (this.inSpectatorMode)
       this.toggleFreecam();
 
     this.fileListener();

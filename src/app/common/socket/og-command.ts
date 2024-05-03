@@ -10,11 +10,9 @@ export enum OgCommand {
     TargetRelease,
     TempCheckpointStore,
     TempCheckpointLoad,
-    FreeCamEnter,
-    FreeCamExit,
+    EnableSpectatorMode,
+    DisableSpectatorMode,
     OnRemoteLevelUpdate,
     EnableDebugMode,
     DisableDebugMode,
-    EnableSpectatorMode,
-    DisableSpectatorMode
 }

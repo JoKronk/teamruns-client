@@ -154,15 +154,20 @@ export class SocketHandler {
                     this.inMidRunRestartPenaltyWait = 10;
                     this.isSyncing = false;
                     this.addCommand(OgCommand.DisableDebugMode);
-                    const lastCheckpoint = this.run?.getPlayer(this.user.id)?.gameState.currentCheckpoint;
-                    if (lastCheckpoint) this.forceCheckpointSpawn(lastCheckpoint);
-
-                    setTimeout(() => {
-                        this.inMidRunRestartPenaltyWait = 0;
-                        this.isSyncing = false;
-                        if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode))
-                            this.addCommand(OgCommand.TargetRelease);
-                    }, (this.inMidRunRestartPenaltyWait * 1000));
+                    if (!this.run.hasSpectator(this.user.id)) {
+                        const lastCheckpoint = this.run?.getPlayer(this.user.id)?.gameState.currentCheckpoint;
+                        if (lastCheckpoint) this.forceCheckpointSpawn(lastCheckpoint);
+    
+                        setTimeout(() => {
+                            this.inMidRunRestartPenaltyWait = 0;
+                            this.isSyncing = false;
+                            if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode))
+                                this.addCommand(OgCommand.TargetRelease);
+                        }, (this.inMidRunRestartPenaltyWait * 1000));
+                    }
+                    else
+                        this.addCommand(OgCommand.EnableSpectatorMode);
+                        
                 }
 
                 setTimeout(() => { //give the game a bit of time to actually start

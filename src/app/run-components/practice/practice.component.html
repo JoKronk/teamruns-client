@@ -19,7 +19,7 @@
             <div class="category-button" (click)="storeCheckpoint()">Set Checkpoint</div>
           </div>
           <div class="category">
-            <div class="category-button" (click)="toggleFreecam()">{{ inFreecam ? "Normal" : "Freecam"}}</div>
+            <div class="category-button" (click)="toggleFreecam()">{{ inSpectatorMode ? "Play" : "Spectate"}}</div>
           </div>
           <div class="category">
             <input type="file" id="import" multiple [accept]="['.json']" (change)="importRecordings($event)" />
@@ -92,7 +92,7 @@
           </ng-container>
           <ng-container matColumnDef="time">
             <th mat-header-cell *matHeaderCellDef> Time </th>
-            <td mat-cell *matCellDef="let recording"> {{ recording.timeFrontend }} </td>
+            <td mat-cell *matCellDef="let recording"> {{ recording.timeFrontend }} - {{ recording.animFrames }} / {{ recording.animFramesTotal }}</td>
           </ng-container>
           <ng-container matColumnDef="options">
             <th mat-header-cell *matHeaderCellDef> Options </th>
