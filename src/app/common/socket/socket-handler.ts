@@ -349,15 +349,21 @@ export class SocketHandler {
         if (!user || this.players.find(x => x.positionData.userId === user.id)) return;
 
         if (user.id !== this.user.id) {
-            this.players.push(new CurrentPlayerData(user, state));
+            let player = new CurrentPlayerData(user, state)
+            this.players.push(player);
             this.updatePlayerInfo(user.id, this.run.getRemotePlayerInfo(user.id));
+            
+            if (this.timer.runIsOngoing() && !this.recordings.some(x => x.id === user.id && x.isForcedState))
+                this.setPlayerMultiplayerState(player);
+
         }
         else
             this.self = new CurrentPlayerData(user, MultiplayerState.interactive);
     }
 
-    addRecording(recording: Recording, state: MultiplayerState) {
+    addRecording(recording: Recording, state: MultiplayerState, forceState: boolean) {
         recording.state = state; //set here because rec state on import is determined by player depending on team relation which isn't known for everyone at import
+        recording.isForcedState = forceState;
         this.recordings.push(recording);
     }
 
@@ -371,10 +377,14 @@ export class SocketHandler {
         return false;
     }
 
+    setPlayerMultiplayerState(player: CurrentPlayerData) {
+        player.positionData.mpState = this.run.isMode(RunMode.Lockout) || this.run.hasSpectator(this.user.id) || this.localTeam?.players.some(x => x.user.id === player.positionData.userId) ? MultiplayerState.interactive : MultiplayerState.active;
+    }
+
     setAllRealPlayersMultiplayerState() {
         this.players.forEach(player => {
-            if (!this.recordings.some(x => x.id === player.positionData.userId))
-                player.positionData.mpState = this.run.isMode(RunMode.Lockout) || this.localTeam?.players.some(x => x.user.id === player.positionData.userId) ? MultiplayerState.interactive : MultiplayerState.active;
+            if (!this.recordings.some(x => x.id === player.positionData.userId && x.isForcedState))
+                this.setPlayerMultiplayerState(player);
         });
     }
 

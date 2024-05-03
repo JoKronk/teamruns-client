@@ -18,6 +18,7 @@ export class Recording extends RecordingBase {
     prevPosIn: PositionData | undefined;
     posOut: PositionData = new PositionData();
     currentRecordingDataIndex: number | undefined = undefined;
+    isForcedState: boolean = false;
 
     timeFrontend?: string;
 
