@@ -235,8 +235,10 @@ export class RunHandler {
 
         if (!this.isOnlineInstant) {
           this.onLobbyChange();
-          this.sendEvent(EventType.ChangeTeam, localMain.user.id, 0);
-          localMain.updateTeam(this.run.getPlayerTeam(localMain.user.id));
+          if (this.isPracticeTool) {
+            this.sendEvent(EventType.ChangeTeam, localMain.user.id, 0);
+            localMain.updateTeam(this.run.getPlayerTeam(localMain.user.id));
+          }
         }
     }
 
