@@ -408,38 +408,6 @@ export class SocketHandler {
             player.fillPositionValues();
     }
 
-    getSelfUserPositionData(time: number): UserPositionData | undefined {
-        if (!this.self)
-            this.checkRegisterPlayer(this.user.getUserBaseWithDisplayName(), MultiplayerState.interactive);
-        
-        if (!this.self.positionData)
-            return undefined;
-
-        return {
-            transX: this.self.positionData.transX ?? 0,
-            transY: this.self.positionData.transY ?? 0,
-            transZ: this.self.positionData.transZ ?? 0,
-            quatX: this.self.positionData.quatX ?? 0,
-            quatY: this.self.positionData.quatY ?? 0,
-            quatZ: this.self.positionData.quatZ ?? 0,
-            quatW: this.self.positionData.quatW ?? 0,
-            rotY: this.self.positionData.rotY ?? 0,
-            tgtState: this.self.positionData.tgtState,
-            currentLevel: this.self.positionData.currentLevel,
-            interType: 0,
-            interAmount: 0,
-            interStatus: 0,
-            interName: "",
-            interParent: "",
-            interLevel: "",
-            interCleanup: false,
-            userId: this.self.positionData.userId,
-            username: this.self.getCurrentUsername(),
-            time: time
-        }
-    }
-
-
     updatePlayerPosition(positionData: UserPositionData) {
         
         const isLocalUser = positionData.userId === this.user.id;

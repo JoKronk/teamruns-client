@@ -86,12 +86,7 @@ export class RunHandler {
                     let lobby = snapshot.payload.data();
                     if (!lobby) return;
 
-                    
-                    const wasSpectator = this.isSpectatorOrNull(userId);
                     this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
-                    
-                    if (wasSpectator && !this.isSpectatorOrNull(userId))
-                        this.repeatAllLocalPlayerPosition(true);
                     
                     this.checkSetupRun();
                 });
@@ -435,8 +430,7 @@ export class RunHandler {
                 }
                 else if (!this.run.hasSpectator(newUser.id) && !this.userService.localUsers.some(x => x.user.id === newUser.id))
                     this.run!.spectators.push(new Player(newUser));
-                
-                this.repeatAllLocalPlayerPosition();
+
                 break;
 
 
@@ -760,20 +754,6 @@ export class RunHandler {
 
     getMainLocalPlayer(): LocalPlayerData | undefined {
         return this.userService.localUsers.find(x => x.user.id === this.userService.getMainUserId() || x.socketHandler.socketPort === OG.mainPort) ?? this.userService.localUsers[0]; 
-    }
-
-    repeatAllLocalPlayerPosition(onlyMain: boolean = false) {
-        if (!this.run) return;
-        const mainId = this.userService.getMainUserId();
-        if (!mainId) return;
-        for (let i = 0; i < 2; i++) { //!TODO: This currently need to run twice for new remote jaks that don't move to not spawn at 0,0,0, should be properly fixed and reduced to one call
-            this.userService.localUsers.forEach(localPlayer => {
-                if (localPlayer.socketHandler.socketConnected && !this.isSpectatorOrNull(localPlayer.user.id) && (!onlyMain || localPlayer.user.id === mainId)) {
-                    const userPos = localPlayer.socketHandler.getSelfUserPositionData(this.run?.timer.totalMs ?? 0);
-                    if (userPos) this.sendPosition(userPos);
-                }
-            });
-        }
     }
 
     updateAllPlayerInfo() {

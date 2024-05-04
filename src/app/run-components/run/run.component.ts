@@ -122,7 +122,7 @@ export class RunComponent implements OnDestroy {
     this.runHandler.sendEvent(EventType.ChangeTeam, userId, teamId);
     localPlayer.updateTeam(this.runHandler.run?.getTeam(teamId) ?? undefined);
     let player = this.runHandler.run!.getPlayer(userId);
-    if (player) player.currentLevel = LevelSymbol.toName(this.mainLocalPlayer.socketHandler.getSelfUserPositionData(0)?.currentLevel);
+    if (player) player.currentLevel = LevelSymbol.toName(this.mainLocalPlayer.socketHandler.getCurrentLevel() ?? 0);
   }
 
   editTeamName(teamId: number) {
