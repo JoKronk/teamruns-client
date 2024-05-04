@@ -121,7 +121,7 @@ export class SocketHandler {
                 this.resetRecordingIndexes();
                 this.cleanupHandler.resetHandler();
                 this.updateGameSettings(new GameSettings(this.run?.data));
-                this.setAllRealPlayersMultiplayerState();
+                this.resetAllPlayerDataValues();
                 
                 if (!this.run.forPracticeTool && this.run.hasSpectator(this.user.id))
                     this.addCommand(OgCommand.EnableSpectatorMode);
@@ -148,6 +148,9 @@ export class SocketHandler {
             if (target.connected && !this.socketConnected) {
                 this.socketPackage.version = "v" + pkg.version;
                 this.socketPackage.username = this.user.displayName;
+
+                this.resetAllPlayerMpStates(); //so players aleady connected are given interactive/active state in game
+                this.fillAllPlayerDataValues();
 
                 //handle mid game restarts
                 if (this.run?.timer.runState !== RunState.Waiting) {
@@ -341,13 +344,13 @@ export class SocketHandler {
         if (!player) return;
         
         player.checkUpdateUsername("");
-        player.positionData.mpState = MultiplayerState.disconnected;
+        player.sideLoadNewMpState(MultiplayerState.disconnected);
         this.sendSocketPackageToOpengoal();
 
         if (!this.players.some(x => x.positionData.mpState !== MultiplayerState.disconnected))
             this.players = [];
         else
-            player.positionData.onDisconnectCleanup();
+            player.positionData.resetData();
     }
 
     private checkRegisterPlayer(user: UserBase | undefined, state: MultiplayerState) {
@@ -386,11 +389,23 @@ export class SocketHandler {
         player.positionData.mpState = this.run.isMode(RunMode.Lockout) || this.run.hasSpectator(this.user.id) || this.localTeam?.players.some(x => x.user.id === player.positionData.userId) ? MultiplayerState.interactive : MultiplayerState.active;
     }
 
-    setAllRealPlayersMultiplayerState() {
-        this.players.forEach(player => {
-            if (!this.recordings.some(x => x.id === player.positionData.userId && x.isForcedState))
-                this.setPlayerMultiplayerState(player);
-        });
+    getCurrentLevel() {
+        return this.self.getCurrentLevel();
+    }
+
+    resetAllPlayerMpStates() {
+        for (let player of this.players)
+            player.resetStoredMpState();
+    }
+
+    resetAllPlayerDataValues() {
+        for (let player of this.players)
+            player.resetStoredValues();
+    }
+
+    fillAllPlayerDataValues() {
+        for (let player of this.players)
+            player.fillPositionValues();
     }
 
     getSelfUserPositionData(time: number): UserPositionData | undefined {
@@ -430,6 +445,9 @@ export class SocketHandler {
         const isLocalUser = positionData.userId === this.user.id;
         let player = !isLocalUser ? this.players.find(x => x.positionData.userId === positionData.userId) : this.self;
         if (player) {
+            if (player.isDisconnected())
+                this.setPlayerMultiplayerState(player);
+
             if (!player.isInLevel(positionData.currentLevel)) {
                 this.addCommand(OgCommand.OnRemoteLevelUpdate);
                 const runPlayer = this.run.getPlayer(player.positionData.userId);
@@ -547,15 +565,15 @@ export class SocketHandler {
 
         //post cleanup and buffer check
         if (this.self) {
-            this.self.clearNoneOverwritableValues();
-            this.self.positionData.cleanupOneTimeData();
+            this.self.transferInternallySetValuesToPositionDataFull();
+            this.self.positionData.resetData();
 
             this.self.checkUpdateInteractionFromBuffer();
             this.socketPackage.selfInteraction = this.self.positionData.interaction; //should only be for handling orb dupes and syncing interaction
         }
         this.players.forEach(player => {
-            player.clearNoneOverwritableValues();
-            player.positionData.cleanupOneTimeData();
+            player.transferInternallySetValuesToPositionDataFull();
+            player.positionData.resetData();
 
             //fill interaction from buffer if possible
             player.checkUpdateInteractionFromBuffer();
@@ -588,7 +606,7 @@ export class SocketHandler {
         this.players.forEach(player => {
             player.checkUpdateUsername("");
             player.recordingDataIndex = undefined;
-            player.positionData.mpState = MultiplayerState.disconnected;
+            player.sideLoadNewMpState(MultiplayerState.disconnected);
         });
 
         this.sendSocketPackageToOpengoal();

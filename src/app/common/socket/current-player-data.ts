@@ -18,7 +18,7 @@ export class CurrentPlayerData {
 
     constructor(user: UserBase, state: MultiplayerState, isRecording: boolean) {
         this.positionData = new CurrentPositionData(user, state);
-        this.positionDataFull = new CurrentPositionData(user, state);
+        this.positionDataFull = new CurrentPositionData(user, undefined);
         this.positionDataFull.username = undefined;
         this.userId = user.id;
         this.interactionBuffer = [];
@@ -49,49 +49,48 @@ export class CurrentPlayerData {
         if (positionData.quatW !== undefined && (this.positionDataFull.quatW === undefined || this.positionDataFull.quatW !== positionData.quatW)) {
             this.positionData.quatW = positionData.quatW;
             this.positionDataFull.quatW = positionData.quatW;
-        } else this.positionData.quatW = undefined;
+        }
         
         if (positionData.quatX !== undefined && (this.positionDataFull.quatX === undefined || this.positionDataFull.quatX !== positionData.quatX)) {
             this.positionData.quatX = positionData.quatX;
             this.positionDataFull.quatX = positionData.quatX;
-        } else this.positionData.quatX = undefined;
+        }
         
         if (positionData.quatY !== undefined && (this.positionDataFull.quatY === undefined || this.positionDataFull.quatY !== positionData.quatY)) {
             this.positionData.quatY = positionData.quatY;
             this.positionDataFull.quatY = positionData.quatY;
-        } else this.positionData.quatY = undefined;
+        }
         
         if (positionData.quatZ !== undefined && (this.positionDataFull.quatZ === undefined || this.positionDataFull.quatZ !== positionData.quatZ)) {
             this.positionData.quatZ = positionData.quatZ;
             this.positionDataFull.quatZ = positionData.quatZ;
-        } else this.positionData.quatZ = undefined;
+        }
         
         if (positionData.transX !== undefined && (this.positionDataFull.transX === undefined || this.positionDataFull.transX !== positionData.transX)) {
             this.positionData.transX = positionData.transX;
             this.positionDataFull.transX = positionData.transX;
-        } else this.positionData.transX = undefined;
+        }
         
         if (positionData.transY !== undefined && (this.positionDataFull.transY === undefined || this.positionDataFull.transY !== positionData.transY)) {
             this.positionData.transY = positionData.transY;
             this.positionDataFull.transY = positionData.transY;
-        } else this.positionData.transY = undefined;
+        }
         
         if (positionData.transZ !== undefined && (this.positionDataFull.transZ === undefined || this.positionDataFull.transZ !== positionData.transZ)) {
             this.positionData.transZ = positionData.transZ;
             this.positionDataFull.transZ = positionData.transZ;
-        } else this.positionData.transZ = undefined;
+        }
         
         if (positionData.rotY !== undefined && (this.positionDataFull.rotY === undefined || this.positionDataFull.rotY !== positionData.rotY)) {
             this.positionData.rotY = positionData.rotY;
             this.positionDataFull.rotY = positionData.rotY;
-        } else this.positionData.rotY = undefined;
+        }
         
         if (positionData.tgtState !== undefined && (this.positionDataFull.tgtState === undefined || this.positionDataFull.tgtState !== positionData.tgtState)) {
             this.positionData.tgtState = positionData.tgtState;
             this.positionDataFull.tgtState = positionData.tgtState;
-        } else this.positionData.tgtState = undefined;
+        }
         
-        //different type of check to ensure it's not overwritten
         if (positionData.currentLevel !== undefined && (this.positionDataFull.currentLevel === undefined || this.positionDataFull.currentLevel !== positionData.currentLevel)) {
             this.positionData.currentLevel = positionData.currentLevel;
             this.positionDataFull.currentLevel = positionData.currentLevel;
@@ -114,13 +113,13 @@ export class CurrentPlayerData {
         return this.positionDataFull.username ?? "";
     }
 
+    getCurrentLevel(): number | undefined {
+        return this.positionDataFull.currentLevel ?? this.positionData.currentLevel;
+    }
+
     addCurrentLevelUpdate() {
         if (this.positionData.currentLevel === undefined)
             this.positionData.currentLevel = this.positionDataFull.currentLevel;
-    }
-
-    fillPositionValues() {
-        this.positionData.fillFromCopy(this.positionDataFull);
     }
 
     resetNoneOverwritableValues() {
@@ -128,15 +127,43 @@ export class CurrentPlayerData {
         this.positionDataFull.username = undefined;
     }
 
-    clearNoneOverwritableValues() {
-        this.positionData.currentLevel = undefined;
-        this.positionData.username = undefined;
+    //if potentially set from outside main draw loop use this
+    sideLoadNewMpState(newMpState: MultiplayerState) {
+        this.positionData.mpState = newMpState;
+        this.positionDataFull.mpState = newMpState;
+    }
+
+    resetStoredMpState() {
+        this.positionDataFull.mpState = undefined;
+    }
+
+    resetStoredValues() {
+        this.positionDataFull.resetData();
+    }
+
+    fillPositionValues() {
+        this.positionData.fillFromCopy(this.positionDataFull);
+    }
+
+    transferInternallySetValuesToPositionDataFull() {
+        if (this.positionData.mpState !== undefined && this.positionDataFull.mpState !== this.positionData.mpState)
+            this.positionDataFull.mpState = this.positionData.mpState;
+
+        if (this.positionData.color !== undefined && this.positionDataFull.color !== this.positionData.color)
+            this.positionDataFull.color = this.positionData.color;
     }
 
     isInLevel(levelSymbol: number | undefined): boolean {
         if (levelSymbol) {
         }
         return levelSymbol !== undefined && this.positionDataFull.currentLevel === levelSymbol || this.positionData.currentLevel === levelSymbol; 
+    }
+
+    isDisconnected(): boolean {
+        if (this.positionData.mpState !== undefined && this.positionData.mpState !== MultiplayerState.disconnected)
+            return false;
+
+        return this.positionDataFull.mpState === undefined || this.positionDataFull.mpState === MultiplayerState.disconnected;
     }
 
     checkUpdateInteractionFromBuffer() {

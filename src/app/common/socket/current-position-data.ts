@@ -21,10 +21,10 @@ export class CurrentPositionData {
 
     userId: string;
     username: string | undefined;
-    color: Color;
-    mpState: MultiplayerState;
+    color: Color | undefined;
+    mpState: MultiplayerState | undefined;
 
-    constructor(user: UserBase, state: MultiplayerState) {
+    constructor(user: UserBase, state: MultiplayerState | undefined) {
         this.username = user.name;
         this.userId = user.id;
         this.mpState = state;
@@ -35,8 +35,7 @@ export class CurrentPositionData {
         this.interaction = InteractionData.getInteractionValues(interactionData);
     }
 
-    onDisconnectCleanup() {
-        this.cleanupOneTimeData();
+    resetData() {
         this.transX = undefined;
         this.transY = undefined;
         this.transZ = undefined;
@@ -47,7 +46,10 @@ export class CurrentPositionData {
         this.rotY = undefined;
         this.tgtState = undefined;
         this.currentLevel = undefined;
-        this.username = "";
+        this.username = undefined;
+        this.color = undefined;
+        this.mpState = undefined;
+        this.cleanupOneTimeData();
     }
 
     fillFromCopy(positionData: CurrentPositionData) {
