@@ -354,7 +354,7 @@ export class SocketHandler {
         if (!user || this.players.find(x => x.positionData.userId === user.id)) return;
 
         if (user.id !== this.user.id) {
-            let player = new CurrentPlayerData(user, state)
+            let player = new CurrentPlayerData(user, state, this.recordings.some(x => x.id === user.id))
             this.players.push(player);
             this.updatePlayerInfo(user.id, this.run.getRemotePlayerInfo(user.id));
             
@@ -363,7 +363,7 @@ export class SocketHandler {
 
         }
         else
-            this.self = new CurrentPlayerData(user, MultiplayerState.interactive);
+            this.self = new CurrentPlayerData(user, MultiplayerState.interactive, false);
     }
 
     addRecording(recording: Recording, state: MultiplayerState, forceState: boolean) {
@@ -448,7 +448,7 @@ export class SocketHandler {
         else
             this.checkRegisterPlayer(new UserBase(positionData.userId, positionData.username), MultiplayerState.interactive);
 
-        if (this.timer.totalMs === 0 || !this.isLocalMainPlayer) return;
+        if (this.timer.totalMs === 0 || !this.isLocalMainPlayer || player === undefined ||player.isRecording) return;
 
         //handle user position recording
         let userRecording = this.userPositionRecordings.find(x => x.userId === positionData.userId);

@@ -12,14 +12,17 @@ export class CurrentPlayerData {
     userId: string;
     interactionBufferRateLimit: number = 0;
     interactionBuffer: InteractionData[] = []; // updates gets pushed from top of list first
+
+    isRecording: boolean = false;
     recordingDataIndex: number | undefined; // only used by recordings
 
-    constructor(user: UserBase, state: MultiplayerState) {
+    constructor(user: UserBase, state: MultiplayerState, isRecording: boolean) {
         this.positionData = new CurrentPositionData(user, state);
         this.positionDataFull = new CurrentPositionData(user, state);
         this.positionDataFull.username = undefined;
         this.userId = user.id;
         this.interactionBuffer = [];
+        this.isRecording = isRecording;
     }
 
     hasInteractionUpdate(): boolean {
