@@ -375,7 +375,7 @@ export class SocketHandler {
     checkRemoveRecording(recordingId: string): boolean {
         let recording = this.recordings.find(x => x.id === recordingId);
         if (recording) {
-            this.recordings = this.recordings.filter(x => x.id !== x.id);
+            this.recordings = this.recordings.filter(x => x.id !== recordingId);
             this.stopDrawPlayer(recordingId);
             return true;
         }
