@@ -120,6 +120,7 @@ export class SocketHandler {
                 this.cleanupHandler.resetHandler();
                 this.updateGameSettings(new GameSettings(this.run?.data));
                 this.resetAllPlayerDataValues();
+                this.shortTermInteractionMemory = [];
                 
                 if (!this.run.forPracticeTool && this.run.hasSpectator(this.user.id))
                     this.addCommand(OgCommand.EnableSpectatorMode);
@@ -674,7 +675,7 @@ export class SocketHandler {
 
     
     protected onTask(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-
+        
         const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction, isSelfInteraction ? this.user.displayName : playerTeam.players.find(x => x.user.id === interaction.userId)?.user.name ?? "Unknown");
 
         //check duped cell buy
