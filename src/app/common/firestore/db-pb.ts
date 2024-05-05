@@ -1,4 +1,5 @@
 import { CategoryOption } from "../run/category";
+import { RunData } from "../run/run-data";
 import { DbLeaderboardPb } from "./db-leaderboard-pb";
 import { DbPlayer } from "./db-player";
 import { DbRun } from "./db-run";
@@ -14,6 +15,7 @@ export class DbPb extends DbLeaderboardPb {
     players: DbPlayer[] = [];
     wasRace: boolean;
     wasWr: boolean;
+    isCurrentPb: boolean;
 
 
     static convertToFromRun(run: DbRun, team: DbTeam, isWr: boolean): DbPb {
@@ -29,9 +31,7 @@ export class DbPb extends DbLeaderboardPb {
         pb.runId = run.id ?? "";
         pb.category = run.data.category;
         pb.sameLevel = run.data.requireSameLevel;
-        team.players.forEach(x => {
-            pb.userIds.set(x.user.id, true);
-        });
+        pb.userIds = DbPb.convertUserIds(team.players.flatMap(x => x.user.id));
         pb.playerCount = team.players.length;
         pb.cellCount = team.cellCount;
         pb.players = team.players;
@@ -46,6 +46,20 @@ export class DbPb extends DbLeaderboardPb {
         this.endTimeFrontend = undefined;
         this.userDisplayContent = undefined;
         this.hasLocalUser = undefined;
+    }
+
+    static convertUserIds(userIds: string[]): Map<string, boolean> {
+        let userIdsConverted: Map<string, boolean> = new Map();
+        for (let id of userIds)
+            userIdsConverted.set(id, true);
+        return userIdsConverted;
+    }
+
+    static belongsToRunners(pb: DbPb | undefined, runData: RunData, playerIds: string[]): boolean {
+        if (pb === undefined)
+            return false;
+
+        return pb.category === runData.category && pb.sameLevel === runData.requireSameLevel && DbRun.arraysEqual(playerIds, (pb instanceof Map) ? Array.from(pb.userIds.keys()) : Array.from(new Map(Object.entries(pb.userIds)).keys()));
     }
 
 }

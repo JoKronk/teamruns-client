@@ -16,7 +16,7 @@ import { UserBase } from "../user/user";
 import { FireStoreService } from "src/app/services/fire-store.service";
 import { CitadelOption, RunData } from "./run-data";
 import { Player } from "../player/player";
-import { Category } from "./category";
+import { Category, CategoryOption } from "./category";
 import { DbRun } from "../firestore/db-run";
 import { UserPositionData } from "../socket/position-data";
 import { GameState } from "../opengoal/game-state";
@@ -800,23 +800,43 @@ export class RunHandler {
             team.resetForRun(false);
         });
 
-        //set previous pb if any and update team
-        let playerCounts: number[] = this.run?.teams.flatMap(x => x.players.length).filter((value, index, array) => array.indexOf(value) === index);
-        let lbSubscription = this.firestoreService.getLeaderboards(this.run.data.category, this.run.data.requireSameLevel, playerCounts).subscribe(leaderboards => {
-            lbSubscription.unsubscribe();
+        let fetchedPbs: DbPb[] = [];
 
-            this.userService.localUsers.forEach(localPlayer => {
-                const playerTeam = this.run?.getPlayerTeam(localPlayer.user.id);
-                const runnerIds = playerTeam?.players.flatMap(x => x.user.id);
-                if (runnerIds) {
-                    const previousPb = leaderboards.find(x => x.players === playerTeam?.players.length)?.pbs.find(x => DbRun.arraysEqual(runnerIds, x.userIds))
-                    if (previousPb)
-                        localPlayer.socketHandler.setPreviousPb(previousPb);
+        for (let localPlayer of this.userService.localUsers) {
+            let playerTeam = this.run.getPlayerTeam(localPlayer.user.id);
+            if (!playerTeam) continue;
+
+            const playerIds = playerTeam.players.flatMap(x => x.user.id);
+            if (localPlayer.user.hasSignedIn && !this.isPracticeTool && this.run.isMode(RunMode.Speedrun) && this.run.data.category !== CategoryOption.Custom && !this.run.hasSpectator(localPlayer.user.id)) {
+                if (DbPb.belongsToRunners(localPlayer.socketHandler.currentPb, this.run.data, playerIds))
+                    continue;
+                else
+                    localPlayer.socketHandler.setCurrentPb(undefined);
+                
+                //set current pb if any
+                let pbAlreadyFetched = false;
+
+                for (let pb of fetchedPbs) {
+                    if (DbPb.belongsToRunners(pb, this.run.data, playerIds)) {
+                        localPlayer.socketHandler.setCurrentPb(pb);
+                        pbAlreadyFetched = true;
+                        break;
+                    }
                 }
 
-                localPlayer.updateTeam(this.run?.getPlayerTeam(localPlayer.user.id, localPlayer.user.id !== this.userService.getMainUserId())); //give new team to none main FFA users
-            });
-        });
+                if (!pbAlreadyFetched) {
+                    const pbSubscription = this.firestoreService.getUsersCurrentPb(this.run.data.category, playerIds.length === 1 ? false : this.run.data.requireSameLevel, playerIds).subscribe(pbs => {
+                        pbSubscription.unsubscribe();
+                        if (pbs && pbs.length !== 0) { 
+                            localPlayer.socketHandler.setCurrentPb(pbs[0]);
+                            fetchedPbs.push(pbs[0]);
+                        }
+                    });
+                }
+            }
+
+            localPlayer.updateTeam(this.run?.getPlayerTeam(localPlayer.user.id, localPlayer.user.id !== this.userService.getMainUserId())); //last param gives new team to none main FFA users
+        }
     }
 
     async updateFirestoreLobby() {

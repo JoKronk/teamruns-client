@@ -131,7 +131,7 @@ export class Timer {
 
     if (!this.pauseDateMs)
       this.totalMs = newTotalTimeMs;
-      
+
 
     //only update text if timer has increased by .1
     if (updateText) {
@@ -201,6 +201,21 @@ export class Timer {
     
     for (let i = 0; i < 3 && (time.charAt(0) === "0" || time.charAt(0) === "h" || time.charAt(0) === "m"); i++)
       time = time.substring(1);
+
+    return time;
+  }
+
+  public static msToTimesaveFormat(ms: number): string {
+    let msAbs = Math.abs(ms);
+    let time: string = Timer.getHour(msAbs) + ":" + Timer.getMinutes(msAbs) + ":" + Timer.getSecond(msAbs) + "." + Math.trunc(Math.floor((msAbs % 1000)) / 100);
+    
+    for (let i = 0; i < 6 && (time.charAt(0) === "0" || time.charAt(0) === ":"); i++)
+      time = time.substring(1);
+
+    if (ms > 0)
+      time = "+" + time;
+    else
+      time = "-" + time;
 
     return time;
   }

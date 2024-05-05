@@ -123,6 +123,7 @@ export class DbRun {
                             leaderboard.pbs = leaderboard.pbs.sort((a, b) => a.endTimeMs - b.endTimeMs);
                             
                             let newPb = DbPb.convertToFromRun(this, team, leaderboard.pbs.length === 0 || leaderboard.pbs[0].endTimeMs > team.endTimeMs);
+                            newPb.isCurrentPb = true;
                             leaderboard.pbs.push(DbLeaderboardPb.convertToFromPb(newPb)); //needs to come before pb being added since it removes id
                             
                             if (!newPb.id) { //this should always be true
@@ -141,6 +142,7 @@ export class DbRun {
                                     oldPbSubscription.unsubscribe();
                                     if (oldDbPb) {
                                         oldDbPb.playbackAvailable = false;
+                                        oldDbPb.isCurrentPb = false;
                                         firestoreService.deleteRecording(oldDbPb.id);
                                         firestoreService.updatePb(oldDbPb);
                                     }

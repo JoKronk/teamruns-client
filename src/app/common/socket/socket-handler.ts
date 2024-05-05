@@ -32,7 +32,7 @@ import { TimerPackage } from "./timer-package";
 import { ShortMemoryInteraction } from "./short-memory-interaction";
 import { RunData } from "../run/run-data";
 import { Subscription } from "rxjs";
-import { DbLeaderboardPb } from "../firestore/db-leaderboard-pb";
+import { DbPb } from "../firestore/db-pb";
 import { LevelSymbol } from "../opengoal/levels";
 
 export class SocketHandler {
@@ -43,7 +43,7 @@ export class SocketHandler {
     timer: Timer;
     run: Run;
     localTeam: Team | undefined;
-    previousPb: DbLeaderboardPb | undefined = undefined;
+    currentPb: DbPb | undefined = undefined;
 
     protected isLocalMainPlayer: boolean = true;
 
@@ -254,8 +254,11 @@ export class SocketHandler {
         this.addCommand(OgCommand.None);
     }
 
-    setPreviousPb(pb: DbLeaderboardPb) {
-        this.previousPb = Object.assign(new DbLeaderboardPb(), pb);
+    setCurrentPb(pb: DbPb | undefined) {
+        if (pb === undefined)
+            this.currentPb = undefined;
+        else
+            this.currentPb = Object.assign(new DbPb(), pb);
     }
 
     addCommand(command: OgCommand) {
@@ -407,7 +410,7 @@ export class SocketHandler {
     }
 
     updatePlayerPosition(positionData: UserPositionData) {
-        
+
         const isLocalUser = positionData.userId === this.user.id;
         let player = !isLocalUser ? this.players.find(x => x.positionData.userId === positionData.userId) : this.self;
         if (player) {
@@ -562,6 +565,17 @@ export class SocketHandler {
         this.sendSocketPackageToOpengoal();
         this.players = [];
     }
+
+    private getTimeSave(task: GameTaskLevelTime): string | undefined {
+        if (!this.currentPb)
+            return undefined;
+
+        const pbTask = this.currentPb.tasks.find(x => x.gameTask === task.name);
+        if (!pbTask) return undefined;
+
+        const timesave = Timer.timeToMs(task.timerTime) - Timer.timeToMs(pbTask.obtainedAt);
+        return Timer.msToTimesaveFormat(timesave);
+    }
     
     private cleanShortTermMemory() {
         this.shortTermInteractionMemory = this.shortTermInteractionMemory.filter(x => (x.reciveTimeMs + 1000) > this.timer.totalMs);
@@ -680,7 +694,7 @@ export class SocketHandler {
 
         if (isCell && isNewTaskStatus) { // end run split added in EndPlayerRun event
             if (!this.run.isMode(RunMode.Casual))
-                this.socketPackage.timer?.updateSplit(task, undefined);
+                this.socketPackage.timer?.updateSplit(task, this.getTimeSave(task));
             
             if (this,this.isLocalMainPlayer) {
                 this.zone.run(() => {
