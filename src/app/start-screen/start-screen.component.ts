@@ -100,6 +100,7 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
         this._user.sendNotification(response.message);
 
       this._user.user.hasSignedIn = response.success;
+      this._user.writeUserDataChangesToLocal();
     });
   }
 
