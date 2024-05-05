@@ -679,7 +679,7 @@ export class SocketHandler {
 
     
     protected onTask(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-        
+
         const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction, isSelfInteraction ? this.user.displayName : playerTeam.players.find(x => x.user.id === interaction.userId)?.user.name ?? "Unknown");
 
         //check duped cell buy
@@ -697,11 +697,11 @@ export class SocketHandler {
         const isCell: boolean = Task.isCellCollect(interaction.interName, TaskStatus.nameFromEnum(interaction.interStatus));
         const isNewTaskStatus: boolean = playerTeam.runState.isNewTaskStatus(interaction);
 
-        if (isCell && isNewTaskStatus) { // end run split added in EndPlayerRun event
+        if (isCell) { // end run split added in EndPlayerRun event
             if (!this.run.isMode(RunMode.Casual))
                 this.socketPackage.timer?.updateSplit(task, this.getTimeSave(task));
             
-            if (this,this.isLocalMainPlayer) {
+            if (this.isLocalMainPlayer && isNewTaskStatus) {
                 this.zone.run(() => {
                     this.run.addSplit(new Task(task));
                 });
