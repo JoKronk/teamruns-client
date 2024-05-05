@@ -33,4 +33,14 @@ export class RunMod {
                 return true;
         }
     }
+
+    public static isAddedToRunHistory(mode: RunMode) {
+        switch (mode) {
+            case RunMode.Speedrun:
+            case RunMode.Lockout:
+                return true;
+            default:
+                return false;
+        }
+    }
 }

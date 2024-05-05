@@ -572,17 +572,23 @@ export class RunHandler {
 
                     let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings();
                     this.checkSaveRecordingsLocally(recordings, playerTeam);
-                    
-                    this.checkTeamGameVersions(playerTeam); //!TODO: Should be check earlier than run end.
-                    this.run.checkRunEndValid();
-                    if (!playerTeam.runIsValid && playerTeam.runInvalidReason) this.userService.sendNotification(playerTeam.runInvalidReason.startsWith("Run invalid") ? playerTeam.runInvalidReason : ("Run Invalid: " + playerTeam.runInvalidReason), 10000);
 
-                    if (isMaster && this.run.isMode(RunMode.Speedrun) && !this.isPracticeTool && this.run.everyoneHasFinished() && this.run.teams.some(x => x.runIsValid)) {
-                        const players: Player[] = this.run.getAllPlayers();
-                        this.firestoreService.getUsers().then(collection => {
-                            if (!collection || !players || !this.run) return;
-                            
-                            let signedInPlayers: string[] = players.filter(player => collection.users.some(user => user.id === player.user.id)).flatMap(x => x.user.id);
+                    
+                    const players: Player[] = this.run.getAllPlayers();
+                    this.firestoreService.getUsers().then(collection => {
+                        if (!collection || !players || !playerTeam || !this.run) return;
+                        let signedInPlayers: string[] = players.filter(player => collection.users.some(user => user.id === player.user.id)).flatMap(x => x.user.id);
+                    
+                        //run validation
+                        this.checkTeamGameVersions(playerTeam); //!TODO: Should be check earlier than run end.
+                        this.run.checkRunEndValid();
+                        if (playerTeam.runIsValid && !playerTeam.players.every(x => signedInPlayers.includes(x.user.id)))
+                            playerTeam.checkMarkRunInvalid(false, "Run invalid for leaderboard, includes Guest User(s).");
+                        if (!playerTeam.runIsValid && playerTeam.runInvalidReason) 
+                            this.userService.sendNotification(playerTeam.runInvalidReason.startsWith("Run invalid") ? playerTeam.runInvalidReason : ("Run Invalid: " + playerTeam.runInvalidReason), 10000);
+
+                        //pb upload
+                        if (isMaster && RunMod.isAddedToRunHistory(this.run.data.mode) && !this.isPracticeTool && this.run.everyoneHasFinished()) {
                             let dbRun: DbRun = DbRun.convertToFromRun(this.run);
                         
                             // add run to history if any player is signed in
@@ -590,7 +596,7 @@ export class RunHandler {
                                 this.firestoreService.addRun(dbRun);
                             
                             // add pb
-                            if (this.run?.data.submitPbs) {
+                            if (this.run?.data.submitPbs && this.run.isMode(RunMode.Speedrun) && this.run.teams.some(x => x.runIsValid)) {
                                 const pbUploadSubscription = dbRun.checkUploadPbs(this.firestoreService, signedInPlayers, recordings)?.subscribe(pbUsers => {
                                     pbUploadSubscription?.unsubscribe();
                                     if (pbUsers.length !== 0) {
@@ -600,8 +606,8 @@ export class RunHandler {
                                     }
                                 });
                             }
-                        });
-                    }
+                        }
+                    });
                 });
                 break;
             
