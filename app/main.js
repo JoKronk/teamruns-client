@@ -47,7 +47,7 @@ function createWindow() {
     icon: "./../src/assets/icon.png"
   });
 
-
+  getLatestGameReleaseVersion()
   if (!app.isPackaged) {
     const debug = require('electron-debug');
     debug();
@@ -423,11 +423,8 @@ async function checkGameIsInstalled() {
 async function getLatestGameReleaseVersion() {
   const response = await axios.get("https://api.github.com/repos/JoKronk/teamruns-jak-project/releases", { headers: { 'User-Agent': 'Teamruns' } });
 
-  if (response.data.length !== 0) {
-    return response.data.sort(function (a, b) {
-      return ('' + b.name).localeCompare(a.name);
-      })[0].name.substring(1);
-  }
+  if (response.data.length !== 0)
+    return response.data[0].name.substring(1);
   return "";
 }
 
