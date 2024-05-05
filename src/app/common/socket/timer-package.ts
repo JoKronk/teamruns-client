@@ -26,7 +26,17 @@ export class TimerPackage {
         this.splitName = split.name;
         this.splitTime = split.timerTime;
         this.splitPlayer = split.user.name;
-        this.splitTimesave = timeSave;
+        this.splitTimesave = timeSave ?? "";
+    }
+
+    sendResetPackage() {
+        this.hours = 0;
+        this.minutes = 0;
+        this.seconds = 0;
+        this.milliseconds = 0;
+        this.splitName = "";
+        this.splitTime = "";
+        this.splitTimesave = "";
     }
 
     resetSplitData() {

@@ -734,12 +734,13 @@ export class RunHandler {
                         this.userService.localUsers.forEach(localPlayer => {
                             if (this.run?.hasSpectator(localPlayer.user.id)) {
                                 localPlayer.socketHandler.addCommand(OgCommand.DisableSpectatorMode);
-                                localPlayer.socketHandler.forceCheckpointSpawn("village1-hut")
+                                localPlayer.socketHandler.forceCheckpointSpawn("village1-hut");
                             }
 
                             localPlayer.socketHandler.addCommand(OgCommand.Trip);
                             localPlayer.socketHandler.addCommand(OgCommand.EnableDebugMode);
                             localPlayer.socketHandler.updateGameSettings(new GameSettings(RunData.getFreeroamSettings(pkg.version)));
+                            localPlayer.socketHandler.resetTimer();
                             localPlayer.state = PlayerState.Neutral;
                         });
                     }

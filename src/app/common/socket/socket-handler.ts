@@ -326,6 +326,10 @@ export class SocketHandler {
             this.addCommand(OgCommand.None);
     }
 
+    resetTimer() {
+        this.socketPackage.timer?.sendResetPackage();
+    }
+
     addOrbAdjustmentToCurrentPlayer(adjustmentAmount: number, level: string | undefined = undefined) {
         const orbReductionInteraction: UserInteractionData = {
             interType: InteractionType.money,
