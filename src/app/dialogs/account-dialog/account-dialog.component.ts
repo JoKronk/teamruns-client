@@ -94,12 +94,14 @@ export class AccountDialogComponent {
                   this._firestore.updateUsers(collection).then(() => {
                     this._user.user.importDbUser(newProfile, !this._user.user.displayName ? newProfile.name : this._user.user.displayName);
                     this._user.user.hasSignedIn = true;
+                    this._user.writeUserDataChangesToLocal();
                     this.dialogRef.close(new AccountReply(newProfile.id, true, "User created successfully."));
                   });
                 }
                 else { // returning user
                   this._user.user.importDbUser(newProfile, !this._user.user.displayName ? newProfile.name : this._user.user.displayName);
                   this._user.user.hasSignedIn = true;
+                  this._user.writeUserDataChangesToLocal();
                   this.dialogRef.close(new AccountReply(newProfile.id, true, "User created successfully."));
                 }
               }

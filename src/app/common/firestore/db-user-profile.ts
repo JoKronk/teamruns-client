@@ -5,7 +5,7 @@ export class DbUserProfile {
     name: string;
 
     constructor(user: UserBase) {
-        this.id =  user.id;
+        this.id =  user.id ?? crypto.randomUUID();
         this.name = user.name;
     }
 }

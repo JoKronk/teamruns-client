@@ -97,7 +97,7 @@ export class UserService implements OnDestroy {
     return checkBaseOnly ? this.user.isEqualToDataCopyBase(this.UserCopy) : !this.user.isEqualToDataCopy(this.UserCopy);
   }
 
-  public writeUserDataChangeToLocal() {
+  public writeUserDataChangesToLocal() {
     this.writeSettings();
     this.UserCopy = this.user.getCopy();
   }

@@ -70,7 +70,7 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
       this._user.user.id = crypto.randomUUID();
     
     if (this._user.userHasChanged())
-      this._user.writeUserDataChangeToLocal();
+      this._user.writeUserDataChangesToLocal();
 
     this.blackscreen.nativeElement.classList.remove('blackscreen-fade');
     setTimeout(() => {
@@ -83,7 +83,7 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     this._user.user.hasSignedIn = false;
     
     if (this._user.userHasChanged())
-      this._user.writeUserDataChangeToLocal();
+      this._user.writeUserDataChangesToLocal();
   }
 
   login(checkAlreadyLoggedIn: boolean) {

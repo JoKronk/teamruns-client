@@ -69,7 +69,7 @@ export class InstallComponent implements OnDestroy {
           this.installGame(path);
         else {
           this._user.user.ogFolderpath = path;
-          this._user.writeUserDataChangeToLocal();
+          this._user.writeUserDataChangesToLocal();
         }
       });
     });
