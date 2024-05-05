@@ -27,8 +27,8 @@ export class AccountDialogComponent {
     this.dialogRef.close(false);
   }
 
-  oldUserConfirm(isOldUser: boolean) {
-    if (!isOldUser) {
+  returningUserConfirm(isReturningUser: boolean) {
+    if (!isReturningUser) {
       this._user.sendNotification("Username is already taken.");
       this.close();
     }
@@ -37,7 +37,7 @@ export class AccountDialogComponent {
     }
   }
 
-  async confirm(isOldUser: boolean = false) {
+  async confirm(isReturningUser: boolean = false) {
     this.username = this.username.trim();
     if (!this.username || this.username.length === 0) {
       this._user.sendNotification("Please enter a valid username!");
@@ -74,7 +74,7 @@ export class AccountDialogComponent {
           
           
         else { // handle user registration
-          if (profile && !isOldUser) {
+          if (profile && !isReturningUser) { // user already taken
             this._firestore.checkUserExists(profile.name).then(exists => {
               if (exists)
                 this._user.sendNotification("Username is already taken.");
@@ -84,16 +84,24 @@ export class AccountDialogComponent {
             });
             return;
           }
-          else {
+          else { // user creation
             this._firestore.createUser(this.username, this.pw).then(result => {
               if (result.success) {
                 const newProfile = new DbUserProfile(new UserBase(profile ? profile.id : !collection.users.find(x => x.id === this._user.getMainUserId()) ? this._user.user.id : crypto.randomUUID(), this.username));
-                collection.users.push(newProfile);
-                this._firestore.updateUsers(collection).then(() => {
+                
+                if (!isReturningUser) { // completely new user
+                  collection.users.push(newProfile);
+                  this._firestore.updateUsers(collection).then(() => {
+                    this._user.user.importDbUser(newProfile, !this._user.user.displayName ? newProfile.name : this._user.user.displayName);
+                    this._user.user.hasSignedIn = true;
+                    this.dialogRef.close(new AccountReply(newProfile.id, true, "User created successfully."));
+                  });
+                }
+                else { // returning user
                   this._user.user.importDbUser(newProfile, !this._user.user.displayName ? newProfile.name : this._user.user.displayName);
                   this._user.user.hasSignedIn = true;
                   this.dialogRef.close(new AccountReply(newProfile.id, true, "User created successfully."));
-                });
+                }
               }
               else {
                 this._user.sendNotification(this.translateErrorMessage(result.message) ?? "User creation failed.");
