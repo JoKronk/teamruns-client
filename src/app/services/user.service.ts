@@ -1,6 +1,6 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { User } from '../common/user/user';
+import { User, UserBase } from '../common/user/user';
 import { Router } from '@angular/router';
 import { OG } from '../common/opengoal/og';
 import { LocalPlayerData } from '../common/user/local-player-data';
@@ -12,6 +12,7 @@ import { DownloadHandler } from '../common/user/download-handler';
 import { BehaviorSubject } from 'rxjs';
 import { Run } from '../common/run/run';
 import pkg from 'app/package.json';
+import { DbUserProfile } from '../common/firestore/db-user-profile';
 
 @Injectable({
   providedIn: 'root'
@@ -154,6 +155,15 @@ export class UserService implements OnDestroy {
     document.body.removeChild(selBox);
 
     this.sendNotification("Link Copied!");
+  }
+
+  logout() {
+    if (!this.user.hasSignedIn)
+      return;
+      
+    this.user.importDbUser(new DbUserProfile(new UserBase(crypto.randomUUID(), "")), this.user.displayName);
+    this.user.hasSignedIn = false;
+    this.writeUserDataChangesToLocal();
   }
 
   private setupReceiver(): void {

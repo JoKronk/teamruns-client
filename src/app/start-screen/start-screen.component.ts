@@ -1,10 +1,8 @@
 import { Component, ViewChild, ElementRef, OnDestroy, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { User, UserBase } from '../common/user/user';
 import { FireStoreService } from '../services/fire-store.service';
 import { UserService } from '../services/user.service';
-import { DbUserProfile } from '../common/firestore/db-user-profile';
 import { AccountDialogComponent, AccountReply } from '../dialogs/account-dialog/account-dialog.component';
 import { DbUsersCollection } from '../common/firestore/db-users-collection';
 import { Subscription } from 'rxjs';
@@ -76,14 +74,6 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
     setTimeout(() => {
       this.router.navigate(['/lobby']);
     }, 300);
-  }
-
-  logout() {
-    this._user.user.importDbUser(new DbUserProfile(new UserBase(crypto.randomUUID(), "")), this._user.user.displayName);
-    this._user.user.hasSignedIn = false;
-    
-    if (this._user.userHasChanged())
-      this._user.writeUserDataChangesToLocal();
   }
 
   login(checkAlreadyLoggedIn: boolean) {

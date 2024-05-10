@@ -49,4 +49,9 @@ export class NavBoardComponent {
     if (this._user.isBrowser) return;
     (window as any).electron.send('settings-reset-size');
   }
+
+  logout() {
+    this._user.logout();
+    this.navigate("/");
+  }
 }

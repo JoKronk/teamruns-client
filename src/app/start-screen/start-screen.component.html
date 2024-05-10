@@ -21,7 +21,7 @@
         </div>
         <div class="input-container">
             <br />
-            <span *ngIf="_user.user.hasSignedIn" class="login-text-option" (click)="logout()">Sign Out</span>
+            <span *ngIf="_user.user.hasSignedIn" class="login-text-option" (click)="_user.logout()">Sign Out</span>
             <span *ngIf="!_user.user.hasSignedIn" class="login-text-option" (click)="register()">Create User</span>
         </div>
     </div>

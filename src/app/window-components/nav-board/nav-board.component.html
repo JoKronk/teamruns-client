@@ -46,6 +46,9 @@
         <div class="list-item" (click)="resetWindowSize()">
             <p>Reset Window Size</p>
         </div>
+        <div *ngIf="_user.user.hasSignedIn" class="list-item" (click)="logout()">
+            <p>Sign Out</p>
+        </div>
     </div>
 
     <h1 class="backtext text-in-background" title="Sitenav">Sitenav</h1>
