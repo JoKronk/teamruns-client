@@ -1,52 +1,67 @@
-
 <div class="page-container">
     <div class="page-header">
-      <app-header  title="User Settings"></app-header>
+        <app-header title="User Settings"></app-header>
 
-      <div class="content-container">
-        <div class="content-side">
-            <h1 class="backtext text-in-background" title="Settings">Settings</h1>
+        <div class="content-container">
+            <div class="content-side">
+                <h1 class="backtext text-in-background" title="Settings">Settings</h1>
+
+                <div class="content">
+                    <p class="content-subtitle">Recordings</p>
+                    <mat-slide-toggle (change)="_user.writeSettings()" [(ngModel)]="_user.user.saveRecordingsLocally"><span class="pointer">Save finished runs locally</span></mat-slide-toggle>
+
+                    <br /><br /><br /><br />
+                    <p class="content-subtitle">Local recordings folder</p>
+                    <div class="content-option">
+                        <button id="select" (click)="openRecordings()">Open</button>
+                    </div>
+
+                    <br /><br />
+                    <span>You can reset the teamruns window with CTRL + SHIFT + B</span>
+                </div>
+            </div>
 
             <div class="content">
-                <p class="content-subtitle">Recordings</p>
-                <mat-slide-toggle (change)="_user.writeSettings()" [(ngModel)]="_user.user.saveRecordingsLocally"><span class="pointer">Save finished runs locally</span></mat-slide-toggle>
-                
-                <br /><br /><br /><br />
-                <p class="content-subtitle">Local recordings folder</p>
-                <div class="content-option">
-                    <button id="select" (click)="openRecordings()">Open</button>
+                <div *ngIf="_user.user.hasSignedIn">
+                    <p class="content-subtitle">Change Username / Leaderboard name</p>
+                    <div class="content-option">
+                        <p>New Userame</p>
+                        <input [(ngModel)]="newUsername" (keyup.enter)="updateUsername()" maxlength="20">
+                        <div>
+                            <button (click)="updateUsername()">Update</button>
+                        </div>
+                    </div>
+
+                    <br />
+                    <p class="content-subtitle">Update password</p>
+                    <div class="content-option">
+                        <p>New Password</p>
+                        <input [(ngModel)]="newPw" type="password" (keyup.enter)="updatePassword()" maxlength="32">
+                        <div>
+                            <button (click)="updatePassword()">Update</button>
+                        </div>
+                    </div>
                 </div>
-                
-                <br /><br />
-                <span>You can reset the teamruns window with CTRL + SHIFT + B</span>
+
             </div>
         </div>
 
-        <div class="content">
-            <div *ngIf="_user.user.hasSignedIn">
-                <p class="content-subtitle">Change Username / Leaderboard name</p>
-                <div class="content-option">
-                    <p>New Userame</p>
-                    <input [(ngModel)]="newUsername" (keyup.enter)="updateUsername()" maxlength="20">
-                    <div>
-                        <button (click)="updateUsername()">Update</button>
-                    </div>
+        <div class="content-splits-container">
+            <h2>Splits</h2>
+            <div class="content-splits-content">
+                <div *ngFor="let split of splits; let i = index" class="content-option content-option-small content-option-splits">
+                    <p>{{ splitsDefaultNames[i] }}</p>
+                    <mat-slide-toggle [(ngModel)]="split.enabled"></mat-slide-toggle>
+                    <input [(ngModel)]="split.name" maxlength="40">
                 </div>
-                
-                <br />
-                <p class="content-subtitle">Update password</p>
-                <div class="content-option">
-                    <p>New Password</p>
-                    <input [(ngModel)]="newPw" type="password" (keyup.enter)="updatePassword()" maxlength="32">
-                    <div>
-                        <button (click)="updatePassword()">Update</button>
-                    </div>
+                <div class="content content-option-splits-button">
+                    <button (click)="saveSplits()">Save</button>
+                    <button class="content-option-negative" (click)="resetSplits()">Reset</button>
                 </div>
             </div>
-            
         </div>
-      </div>
+
     </div>
 
     <app-footer></app-footer>
-  </div>
+</div>

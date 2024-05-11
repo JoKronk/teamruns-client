@@ -34,6 +34,7 @@ import { RunData } from "../run/run-data";
 import { Subscription } from "rxjs";
 import { DbPb } from "../firestore/db-pb";
 import { LevelSymbol } from "../opengoal/levels";
+import { TaskSplit } from "../opengoal/task-split";
 
 export class SocketHandler {
 
@@ -44,6 +45,7 @@ export class SocketHandler {
     run: Run;
     localTeam: Team | undefined;
     currentPb: DbPb | undefined = undefined;
+    splits: TaskSplit[] = [];
 
     protected isLocalMainPlayer: boolean = true;
 
@@ -64,6 +66,7 @@ export class SocketHandler {
     ogSocket: WebSocketSubject<any> = webSocket('ws://localhost:8111');
     private launchListener: any;
     private shutdownListener: any;
+    private splitsListener: any;
     private connectionAttempts: number;
     private timerSubscription: Subscription;
 
@@ -139,6 +142,12 @@ export class SocketHandler {
                 break;
         }
       });
+        
+      this.splitsListener = (window as any).electron.receive("splits-get", (splits: TaskSplit[] | null) => {
+          this.splits = splits !== null ? splits : TaskSplit.generateDefaultSplitList();
+      });
+      
+    (window as any).electron.send('splits-fetch');
     }
 
     private connectToOpengoal() {
@@ -571,15 +580,22 @@ export class SocketHandler {
         this.players = [];
     }
 
-    private getTimeSave(task: GameTaskLevelTime): string | undefined {
-        if (!this.currentPb)
-            return undefined;
+    protected checkUpdateSplit(task: GameTaskLevelTime) {
+        if (this.run.isMode(RunMode.Casual))
+            return;
 
-        const pbTask = this.currentPb.tasks.find(x => x.gameTask === task.name);
-        if (!pbTask) return undefined;
+        const split = this.splits.find(x => x.gameTask === task.name);
+        if (split && !split.enabled)
+            return;
+
+        const pbTask = this.currentPb?.tasks.find(x => x.gameTask === task.name);
+        if (!pbTask) {
+            this.socketPackage.timer?.updateSplit(split, task, undefined);
+            return;
+        }
 
         const timesave = Timer.timeToMs(task.timerTime) - Timer.timeToMs(pbTask.obtainedAt);
-        return Timer.msToTimesaveFormat(timesave);
+        this.socketPackage.timer?.updateSplit(split, task, Timer.msToTimesaveFormat(timesave));
     }
     
     private cleanShortTermMemory() {
@@ -698,8 +714,7 @@ export class SocketHandler {
         const isNewTaskStatus: boolean = playerTeam.runState.isNewTaskStatus(interaction);
 
         if (isCell) { // end run split added in EndPlayerRun event
-            if (!this.run.isMode(RunMode.Casual))
-                this.socketPackage.timer?.updateSplit(task, this.getTimeSave(task));
+            this.checkUpdateSplit(task);
             
             if (this.isLocalMainPlayer && isNewTaskStatus) {
                 this.zone.run(() => {
@@ -829,6 +844,7 @@ export class SocketHandler {
         this.timer.onDestroy();
         this.launchListener();
         this.shutdownListener();
+        this.splitsListener();
         this.ogSocket.complete();
     }
 }

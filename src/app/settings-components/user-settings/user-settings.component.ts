@@ -1,22 +1,30 @@
-import { Component, NgZone } from '@angular/core';
+import { Component, NgZone, OnDestroy } from '@angular/core';
 import { FireStoreService } from '../../services/fire-store.service';
 import { UserService } from '../../services/user.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AccountDialogComponent, AccountReply } from '../../dialogs/account-dialog/account-dialog.component';
 import { DbUserProfile } from '../../common/firestore/db-user-profile';
+import { TaskSplit } from 'src/app/common/opengoal/task-split';
+import { Task } from 'src/app/common/opengoal/task';
 
 @Component({
   selector: 'app-user-settings',
   templateUrl: './user-settings.component.html',
   styleUrls: ['./user-settings.component.scss']
 })
-export class UserSettingsComponent {
+export class UserSettingsComponent implements OnDestroy {
 
   newUsername: string = "";
   newPw: string = "";
 
-  constructor(public _user: UserService, private dialog: MatDialog, private zone: NgZone) {
+  splitBeingEdited: string | null = null;
+  splits: TaskSplit[] = [];
+  splitsDefaultNames: string[] = [];
+  private splitsListener: any;
 
+  constructor(public _user: UserService, private dialog: MatDialog, private zone: NgZone) {
+    this.setupSplitsListener();
+    (window as any).electron.send('splits-fetch');
   }
 
   openRecordings() {
@@ -56,6 +64,33 @@ export class UserSettingsComponent {
     });
   }
 
+  setSplits(splits: TaskSplit[]) {
+    this.splits = splits;
+    this.splitsDefaultNames = [];
+    for (let split of splits)
+      this.splitsDefaultNames.push(Task.defaultSplitName(split.gameTask) ?? "Unknown");
+  }
 
+  resetSplits() {
+    this.setSplits(TaskSplit.generateDefaultSplitList());
+    this.saveSplits();
+  }
+
+  saveSplits() {
+    (window as any).electron.send('splits-write', this.splits);
+    this._user.sendNotification("Splits saved!");
+  }
+
+  setupSplitsListener() {
+    this.splitsListener = (window as any).electron.receive("splits-get", (splits: TaskSplit[] | null) => {
+      this.zone.run(() => {
+        this.setSplits(splits !== null ? splits : TaskSplit.generateDefaultSplitList());
+      });
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.splitsListener();
+  }
 
 }

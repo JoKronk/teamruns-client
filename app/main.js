@@ -142,6 +142,14 @@ function createWindow() {
     openFolder(getRecordingsPath());
   });
 
+  ipcMain.on('splits-fetch', () => {
+    readSplitsFile();
+  });
+
+  ipcMain.on('splits-write', (event, splits) => {
+    writeSplits(splits);
+  });
+
   ipcMain.on('save-fetch', () => {
     readSaveFiles();
   });
@@ -332,6 +340,31 @@ async function downloadRecording(url) {
   catch (error) {
     sendClientMessage("Failed to fetch recording.");
   }
+}
+
+
+// --- SPLITS ---
+function getSplitsPath() {
+  const splitsPath = path.join(app.getPath('documents'), "Teamruns");
+  if (!fs.existsSync(splitsPath))
+    fs.mkdirSync(splitsPath, { recursive: true });
+  
+  return splitsPath;
+}
+
+function writeSplits(splits) {
+  if (!splits) return;
+  const folderPath = getSplitsPath();
+  fs.writeFile(path.join(folderPath, "splits.json"), JSON.stringify(splits), (err) => {
+    if (err) sendClientMessage(err.message);
+  });
+}
+
+function readSplitsFile() {
+  fs.readFile(path.join(getSplitsPath(), "splits.json"), 'utf8', function (err, data) {
+    if (err) win.webContents.send("splits-get", null)
+    else if (data) win.webContents.send("splits-get", JSON.parse(data));
+  });
 }
 
 // --- SAVE FILES ---

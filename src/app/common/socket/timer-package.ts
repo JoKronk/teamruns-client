@@ -1,4 +1,6 @@
 import { GameTaskLevelTime } from "../opengoal/game-task";
+import { Task } from "../opengoal/task";
+import { TaskSplit } from "../opengoal/task-split";
 import { Timer } from "../run/timer";
 
 export class TimerPackage {
@@ -22,10 +24,13 @@ export class TimerPackage {
         this.milliseconds = Timer.getMsSimple(totalMs);
     }
 
-    updateSplit(split: GameTaskLevelTime, timeSave: string | undefined) {
-        this.splitName = split.name;
-        this.splitTime = split.timerTime;
-        this.splitPlayer = split.user.name;
+    updateSplit(split: TaskSplit | undefined, task: GameTaskLevelTime, timeSave: string | undefined) {
+        if (split && !split.enabled)
+            return;
+
+        this.splitName = split?.name ?? Task.defaultSplitName(task.name) ?? task.name;
+        this.splitTime = task.timerTime;
+        this.splitPlayer = task.user.name;
         this.splitTimesave = timeSave ?? "";
     }
 

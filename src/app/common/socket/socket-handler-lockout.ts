@@ -51,7 +51,7 @@ export class SocketHandlerLockout extends SocketHandler {
             });
         }
         if (isCell && isTeammate)
-            this.socketPackage.timer?.updateSplit(task, undefined);
+            this.checkUpdateSplit(task);
 
         this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
 

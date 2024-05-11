@@ -22,6 +22,27 @@
     
     &-container {
         display: flex;
+        margin-bottom: 56px;
+    }
+    &-splits {
+        &-container {
+            margin-bottom: 32px;
+            margin-right: 24px;
+            & h2 {
+                border-top: 2px solid #636363;
+                text-align: center;
+                padding: 8px 0;
+                color: #636363;
+                font-size: 25px;
+                font-family: OpenSans;
+            }
+        }
+        &-content {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+        }
     }
     &-side {
         position: relative;
@@ -67,6 +88,29 @@
         & textarea:focus, input:focus{
             border: 2px solid rgba(7, 7, 7, 0.8);
             background: rgba(14, 14, 14, 0.8);
+        }
+        &-small {
+            margin-bottom: 12px;
+            & input, select {
+                margin-left: 8px;
+                height: 32px;
+                width: 220px;
+                font-size: 18px;
+            }
+        }
+        &-splits {
+            flex-shrink: 1;
+            &-button {
+                flex-grow: 1;
+                display: flex;
+                justify-content: space-evenly;
+                & button {
+                    flex-shrink: 1;
+                }
+            }
+        }
+        &-negative:hover:enabled {
+            background-color: #380000 !important;
         }
     }
 

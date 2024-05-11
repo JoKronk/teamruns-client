@@ -308,4 +308,215 @@ export class Task {
         "assistant-village3",
         "max"][task]);
     }
+
+    public static defaultSplitName(taskName: string): string | undefined {
+            switch (taskName) {
+                case "jungle-eggtop":
+                    return "Blue Eco Vent";
+                case "jungle-lurkerm":
+                    return "Mirrors";
+                case "jungle-tower":
+                    return "Top of Tower";
+                case "jungle-fishgame":
+                    return "Fish";
+                case "jungle-plant":
+                    return "Plant Boss";
+                case "jungle-buzzer":
+                    return "FJ Flies";
+                case "jungle-canyon-end":
+                    return "Jungle Island";
+                case "jungle-temple-door":
+                    return "Jungle Locked Door";
+                case "village1-yakow":
+                    return "Yakows";
+                case "village1-mayor-money":
+                    return "Mayor Orbs";
+                case "village1-uncle-money":
+                    return "Uncle Orbs";
+                case "village1-oracle-money1":
+                    return "SV Oracle 1";
+                case "village1-oracle-money2":
+                    return "SV Oracle 2";
+                case "beach-ecorocks":
+                    return "Eco Cloggers";
+                case "beach-pelican":
+                    return "Pelican";
+                case "beach-flutflut":
+                    return "Birdlady";
+                case "beach-seagull":
+                    return "Seagulls";
+                case "beach-cannon":
+                    return "Beach Cannon";
+                case "beach-buzzer":
+                    return "Beach Flies";
+                case "beach-gimmie":
+                    return "Explore Beach";
+                case "beach-sentinel":
+                    return "Sentinel";
+                case "misty-muse":
+                    return "Muse";
+                case "misty-boat":
+                    return "Lurker Ship";
+                case "misty-warehouse":
+                    return "Misty Ambush";
+                case "misty-cannon":
+                    return "Misty Cannon";
+                case "misty-bike":
+                    return "Zepplins";
+                case "misty-buzzer":
+                    return "Misty Flies";
+                case "misty-bike-jump":
+                    return "Misty Ramp Jump";
+                case "misty-eco-challenge":
+                    return "Misty Boosted";
+                case "village2-gambler-money":
+                    return "Gambler Orbs";
+                case "village2-geologist-money":
+                    return "Geologist Orbs";
+                case "village2-warrior-money":
+                    return "Warrior Orbs";
+                case "village2-oracle-money1":
+                    return "RV Oracle 1";
+                case "village2-oracle-money2":
+                    return "RV Oracle 2";
+                case "swamp-billy":
+                    return "Rats";
+                case "swamp-flutflut":
+                    return "Boggy Flut Flut Cell";
+                case "swamp-battle":
+                    return "Boggy Ambush";
+                case "swamp-tether-1":
+                    return "Tether 2";
+                case "swamp-tether-2":
+                    return "Tether 3";
+                case "swamp-tether-3":
+                    return "Tether 4";
+                case "swamp-tether-4":
+                    return "Tether 1";
+                case "swamp-buzzer":
+                    return "Swamp Flies";
+                case "sunken-platforms":
+                    return "Puzzle Cell";
+                case "sunken-pipe":
+                    return "Pipe Cell";
+                case "sunken-slide":
+                    return "Bottom of LPC";
+                case "sunken-room":
+                    return "LPC Chamber";
+                case "sunken-sharks":
+                    return "LPC Boosted";
+                case "sunken-buzzer":
+                    return "LPC Flies";
+                case "sunken-top-of-helix":
+                    return "Piggyback";
+                case "sunken-spinning-room":
+                    return "LPC Dark Eco Pool";
+                case "rolling-race":
+                    return "DMG Race";
+                case "rolling-robbers":
+                    return "Purple Lurkers";
+                case "rolling-moles":
+                    return "Moles";
+                case "rolling-plants":
+                    return "Plants";
+                case "rolling-lake":
+                    return "Cell Over Lake";
+                case "rolling-buzzer":
+                    return "Basin Flies";
+                case "rolling-ring-chase-1":
+                    return "Purple Rings";
+                case "rolling-ring-chase-2":
+                    return "Blue Rings";
+                case "snow-eggtop":
+                    return "Yellow Eco Vent";
+                case "snow-ram":
+                    return "Snowy Shield Lurkers";
+                case "snow-fort":
+                    return "Fortress Cell";
+                case "snow-ball":
+                    return "Fortress Door";
+                case "snow-bunnies":
+                    return "Snowy Lurker Cave";
+                case "snow-buzzer":
+                    return "Snowy Flies";
+                case "snow-bumpers":
+                    return "Snowy Blockers";
+                case "snow-cage":
+                    return "Snowy Box";
+                case "firecanyon-buzzer":
+                    return "FC Flies";
+                case "firecanyon-end":
+                    return "Fire Canyon";
+                case "citadel-sage-green":
+                    return "Green Sage";
+                case "citadel-sage-blue":
+                    return "Blue Sage";
+                case "citadel-sage-red":
+                    return "Red Sage";
+                case "citadel-sage-yellow":
+                    return "Yellow Sage";
+                case "village3-extra1":
+                    return "VC Box";
+                case "village1-buzzer":
+                    return "SV Flies";
+                case "village2-buzzer":
+                    return "RV Flies";
+                case "village3-buzzer":
+                    return "VC Flies";
+                case "cave-gnawers":
+                    return "Gnawing Lurkers";
+                case "cave-dark-crystals":
+                    return "Dark Eco Crystals";
+                case "cave-dark-climb":
+                    return "Dark Cave";
+                case "cave-robot-climb":
+                    return "Top of Robot";
+                case "cave-swing-poles":
+                    return "Spider Poles";
+                case "cave-spider-tunnel":
+                    return "Spider Tunnel";
+                case "cave-platforms":
+                    return "Top of Spider Cave";
+                case "cave-buzzer":
+                    return "Spider Cave Flies";
+                case "ogre-boss":
+                    return "Klaww";
+                case "ogre-end":
+                    return "Mountain Pass";
+                case "ogre-buzzer":
+                    return "MP Flies";
+                case "lavatube-end":
+                    return "Lava Tube";
+                case "lavatube-buzzer":
+                    return "LT Flies";
+                case "citadel-buzzer":
+                    return "Citadel Flies";
+                case "training-gimmie":
+                    return "Geyser Path";
+                case "training-door":
+                    return "Geyser Door";
+                case "training-climb":
+                    return "Geyser Top";
+                case "training-buzzer":
+                    return "Geyser Flies";
+                case "village3-miner-money1":
+                    return "Miner Orbs 1";
+                case "village3-miner-money2":
+                    return "Miner Orbs 2";
+                case "village3-miner-money3":
+                    return "Miner Orbs 3";
+                case "village3-miner-money4":
+                    return "Miner Orbs 4";
+                case "village3-oracle-money1":
+                    return "VC Oracle 1";
+                case "village3-oracle-money2":
+                    return "VC Oracle 2";
+                case "ogre-secret":
+                    return "MP Secret Cell";
+                case "finalboss-movies":
+                    return "Final Boss";
+                default:
+                    return undefined;
+            }
+    }
 }
