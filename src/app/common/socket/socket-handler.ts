@@ -607,13 +607,13 @@ export class SocketHandler {
         this.shortTermInteractionMemory = this.shortTermInteractionMemory.filter(x => (x.reciveTimeMs + 1000) > this.timer.totalMs);
     }
     
-    private hasInteractionInMemory(interaction: UserInteractionData): boolean {
+    private hasInteractionInMemory(interaction: UserInteractionData, teamId: number): boolean {
         this.cleanShortTermMemory();
 
         if (InteractionData.isFromOrbCollection(interaction))
             return false;
 
-        if (this.shortTermInteractionMemory.some(x => InteractionData.areIdentical(x.interaction, interaction)))
+        if (this.shortTermInteractionMemory.some(x => x.teamId === teamId && InteractionData.areIdentical(x.interaction, interaction)))
             return true;
 
         return false;
@@ -628,13 +628,13 @@ export class SocketHandler {
         const isTeammate = isSelfInteraction || (playerTeam.id === this.localTeam.id && (this.run.teams.length !== 1 || !RunMod.singleTeamEqualsFFA(this.run.data.mode)));
         //interactions on game side is executed if the target the interaction belongs to is set to interactive, to avoid use positionData.resetCurrentInteraction();
         
-        if (this.hasInteractionInMemory(interaction)) {
+        if (this.hasInteractionInMemory(interaction, playerTeam.id)) {
             positionData.resetCurrentInteraction();
             return;
         }
         else
-            this.shortTermInteractionMemory.push(new ShortMemoryInteraction(interaction, this.timer.totalMs));
-
+            this.shortTermInteractionMemory.push(new ShortMemoryInteraction(interaction, playerTeam.id, this.timer.totalMs));
+        
         //zoomer scoutfly pickup fix (so fast it doesn't have time to kill the box before it tries to kill the buzzer)
         if (!isSelfInteraction && interaction.interType === InteractionType.buzzer && ((this.shortTermInteractionMemory.find(x => x.interaction.interName === interaction.interParent)?.reciveTimeMs ?? 0) + 150) > this.timer.totalMs) {
             setTimeout(() => {
