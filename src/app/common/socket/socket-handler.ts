@@ -364,8 +364,10 @@ export class SocketHandler {
 
         if (!this.players.some(x => !x.isInState(MultiplayerState.disconnected)))
             this.players = [];
-        else
-        player.positionData.resetData();
+        else {
+            player.resetStoredValues();
+            player.positionData.resetData();
+        }
     }
 
     private checkRegisterPlayer(user: UserBase | undefined, state: MultiplayerState) {
