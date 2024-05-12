@@ -159,11 +159,11 @@ export class CurrentPlayerData {
         return levelSymbol !== undefined && this.positionDataFull.currentLevel === levelSymbol || this.positionData.currentLevel === levelSymbol; 
     }
 
-    isDisconnected(): boolean {
-        if (this.positionData.mpState !== undefined && this.positionData.mpState !== MultiplayerState.disconnected)
-            return false;
+    isInState(state: MultiplayerState, orUndefined: boolean = false) {
+        if (orUndefined && this.positionDataFull.mpState === undefined && this.positionData.mpState === undefined)
+            return true;
 
-        return this.positionDataFull.mpState === undefined || this.positionDataFull.mpState === MultiplayerState.disconnected;
+        return this.positionDataFull.mpState === state;
     }
 
     checkUpdateInteractionFromBuffer() {

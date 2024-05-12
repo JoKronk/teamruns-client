@@ -297,7 +297,7 @@ export class SocketHandler {
     }
 
     private addRecordingInteractionToBuffer(currentPlayer: CurrentPlayerData, positionData: RecordingPositionData) {
-        if (currentPlayer.positionData.mpState === MultiplayerState.interactive && positionData.iT && positionData.iT !== InteractionType.none)
+        if (currentPlayer.isInState(MultiplayerState.interactive) && positionData.iT && positionData.iT !== InteractionType.none)
             currentPlayer.interactionBuffer.push(InteractionData.getRecordingInteractionValues(positionData));
     }
 
@@ -362,10 +362,10 @@ export class SocketHandler {
         player.sideLoadNewMpState(MultiplayerState.disconnected);
         this.sendSocketPackageToOpengoal();
 
-        if (!this.players.some(x => x.positionData.mpState !== MultiplayerState.disconnected))
+        if (!this.players.some(x => !x.isInState(MultiplayerState.disconnected)))
             this.players = [];
         else
-            player.positionData.resetData();
+        player.positionData.resetData();
     }
 
     private checkRegisterPlayer(user: UserBase | undefined, state: MultiplayerState) {
@@ -428,7 +428,7 @@ export class SocketHandler {
         const isLocalUser = positionData.userId === this.user.id;
         let player = !isLocalUser ? this.players.find(x => x.positionData.userId === positionData.userId) : this.self;
         if (player) {
-            if (player.isDisconnected())
+            if (player.isInState(MultiplayerState.disconnected, true))
                 this.setPlayerMultiplayerState(player);
 
             if (!player.isInLevel(positionData.currentLevel)) {
@@ -468,7 +468,7 @@ export class SocketHandler {
         this.drawPositions = true;
         this.drawPlayers();
         this.players.forEach(player => {
-            if (player.positionData.mpState === MultiplayerState.disconnected)
+            if (player.isInState(MultiplayerState.disconnected, true))
                 player.positionData.mpState = MultiplayerState.interactive;
         });
     }
@@ -496,6 +496,9 @@ export class SocketHandler {
                         const previousRecordingdataIndex = currentPlayer.recordingDataIndex ?? recording.playback.length;
                         const newRecordingdataIndex = recording.currentRecordingDataIndex;
                         if (newRecordingdataIndex && currentPlayer.updateCurrentPosition(positionData, recording.username, false, newRecordingdataIndex)) {
+                            
+                            if (currentPlayer.isInState(MultiplayerState.disconnected, true))
+                                this.setPlayerMultiplayerState(currentPlayer);
 
                             //handle missed pickups
                             if (previousRecordingdataIndex && (previousRecordingdataIndex - 1) > newRecordingdataIndex) {
@@ -568,7 +571,7 @@ export class SocketHandler {
     }
 
     private cleanupPlayers() {
-        if (!this.players.some(x => x.positionData.mpState !== MultiplayerState.disconnected)) return;
+        if (!this.players.some(x => !x.isInState(MultiplayerState.disconnected))) return;
 
         this.players.forEach(player => {
             player.checkUpdateUsername("");
