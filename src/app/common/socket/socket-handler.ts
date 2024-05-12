@@ -157,9 +157,6 @@ export class SocketHandler {
                 this.socketPackage.version = "v" + pkg.version;
                 this.socketPackage.username = this.user.displayName;
 
-                this.resetAllPlayerMpStates(); //so players aleady connected are given interactive/active state in game
-                this.fillAllPlayerDataValues();
-
                 //handle mid game restarts
                 if (this.run?.timer.runState !== RunState.Waiting) {
                     this.inMidRunRestartPenaltyWait = 10;
@@ -186,8 +183,12 @@ export class SocketHandler {
                     this.zone.run(() => {
                         this.socketConnected = true;
                     });
-                    this.updateGameSettings(new GameSettings(this.timer.isPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version, !this.run.forPracticeTool)));
+
+                    this.resetAllPlayerMpStates(); //so players aleady connected are given interactive/active state in game
+                    this.fillAllPlayerDataValues();
                     this.resetAllPlayersNoneOverwritableValues();
+                    
+                    this.updateGameSettings(new GameSettings(this.timer.isPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version, !this.run.forPracticeTool)));
                     this.run.getAllPlayers().forEach(player => { // set the team for any users already connected
                         this.updatePlayerInfo(player.user.id, this.run.getRemotePlayerInfo(player.user.id));
                     });
@@ -501,7 +502,7 @@ export class SocketHandler {
                             
                             if (currentPlayer.isInState(MultiplayerState.disconnected, true))
                                 this.setPlayerMultiplayerState(currentPlayer);
-
+                            
                             //handle missed pickups
                             if (previousRecordingdataIndex && (previousRecordingdataIndex - 1) > newRecordingdataIndex) {
                                 console.log("skipped frames", previousRecordingdataIndex - newRecordingdataIndex - 1);
