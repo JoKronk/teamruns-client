@@ -141,9 +141,11 @@ export class DbRun {
                                 const oldPbSubscription = firestoreService.getPb(previousPb.id).subscribe(oldDbPb => {
                                     oldPbSubscription.unsubscribe();
                                     if (oldDbPb) {
-                                        oldDbPb.playbackAvailable = false;
                                         oldDbPb.isCurrentPb = false;
-                                        firestoreService.deleteRecording(oldDbPb.id);
+                                        if (!oldDbPb.wasWr) {
+                                            oldDbPb.playbackAvailable = false;
+                                            firestoreService.deleteRecording(oldDbPb.id);
+                                        }
                                         firestoreService.updatePb(oldDbPb);
                                     }
                                 });
