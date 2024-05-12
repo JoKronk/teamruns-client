@@ -227,7 +227,7 @@ export class PracticeComponent implements OnDestroy {
     this.runHandler.removeAllSelfRecordings();
     this.currentRecording = giveRecordings.length === 1 ? giveRecordings[0].id : "all";
 
-    this.runHandler.importRecordingsFromLocal(new RecordingPackage(0, giveRecordings, this.recordingsState));
+    this.runHandler.importRecordings(new RecordingPackage(0, giveRecordings, this.recordingsState));
 
     this.recordingsEndtime = this.getLongestRecordingTimeMs(giveRecordings);
 

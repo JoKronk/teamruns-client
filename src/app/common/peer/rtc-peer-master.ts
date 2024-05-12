@@ -27,8 +27,8 @@ export class RTCPeerMaster {
 
         //setup user handling
         this.peersSubscriptions = this.lobbyDoc.collection<RTCPeer>(CollectionName.peerConnections).valueChanges().subscribe(peers => {
-            peers.filter(x => x.user.id !== user.id).forEach(peer => {
-                let existingSlave = this.peers.find(x => x.user.id === peer.user.id);
+            peers.filter(x => x.player.user.id !== user.id).forEach(peer => {
+                let existingSlave = this.peers.find(x => x.player.user.id === peer.player.user.id);
                 if (!existingSlave) {
                     this.setupNewPeerConnection(peer);
                 }
@@ -49,13 +49,13 @@ export class RTCPeerMaster {
     
     async setupNewPeerConnection(peer: RTCPeer) {
 
-        console.log("master: GOT NEW USER, setting up!", peer.user.name);
+        console.log("master: GOT NEW USER, setting up!", peer.player.user.name);
         let slave = peer as RTCPeerSlaveConnection;
         this.peers.push(slave);
 
 
         //setup master connection to peer
-        slave.peer = new RTCPeerDataConnection(this.eventChannel, this.positionChannel, this.user, slave.user, this.lobbyDoc, true);
+        slave.peer = new RTCPeerDataConnection(this.eventChannel, this.positionChannel, this.user, slave.player, this.lobbyDoc, true);
         
         slave.peer.connection.onicecandidate = (event) => {
             if (event.candidate) {
@@ -81,13 +81,13 @@ export class RTCPeerMaster {
         //!TODO: should setup a better solution for this, check slave side equivalent for further comments on it
         setTimeout(() => {
             if (this.isBeingDestroyed) return;
-            console.log("master: Setting connection in db for: ", peer.user.name);
-            this.lobbyDoc.collection(CollectionName.peerConnections).doc(peer.user.id).set(JSON.parse(JSON.stringify(this.getPureRTCPeer(peer)))); //peer gets poluted by slave due to it being binded by reference
+            console.log("master: Setting connection in db for: ", peer.player.user.name);
+            this.lobbyDoc.collection(CollectionName.peerConnections).doc(peer.player.user.id).set(JSON.parse(JSON.stringify(this.getPureRTCPeer(peer)))); //peer gets poluted by slave due to it being binded by reference
         }, 500);
     }
 
     getPureRTCPeer(oldPeer: RTCPeer): RTCPeer {
-        let peer = new RTCPeer(oldPeer.user);
+        let peer = new RTCPeer(oldPeer.player);
         peer.masterDescription = oldPeer.masterDescription;
         peer.masterCandidates = oldPeer.masterCandidates;
         peer.slaveDescription = oldPeer.slaveDescription;
@@ -97,20 +97,20 @@ export class RTCPeerMaster {
 
     relayToSlaves(event: DataChannelEvent) {
         this.peers.forEach(slave => {
-            if (slave.user.id !== event.userId)
+            if (slave.player.user.id !== event.userId)
                 slave.peer.sendEvent(event);
         });
     }
 
     relayPositionToSlaves(target: UserPositionData) {
         this.peers.forEach(slave => {
-            if (slave.user.id !== target.userId)
+            if (slave.player.user.id !== target.userId)
                 slave.peer.sendPosition(target);
         });
     }
 
     respondToSlave(event: DataChannelEvent, userId: string) {
-        const peer = this.peers.find(x => x.user.id === userId);
+        const peer = this.peers.find(x => x.player.user.id === userId);
         if (!peer) return;
 
         peer.peer.sendEvent(event);

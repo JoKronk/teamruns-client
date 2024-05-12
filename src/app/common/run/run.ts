@@ -13,6 +13,7 @@ import { UserService } from "src/app/services/user.service";
 import { RunStateHandler } from "../level/run-state-handler";
 import { RemotePlayerInfo } from "../socket/remote-player-info";
 import { CategoryOption } from "./category";
+import { PlayerType } from "../player/player-type";
 
 export class Run {
     data: RunData;
@@ -159,7 +160,11 @@ export class Run {
         if (this.timer.runIsOngoing()) 
             newTeam.checkMarkRunInvalid(false, "Team change mid run.");
         
-        let player = oldTeam ? oldTeam.players.find(x => x.user.id === user.id) : new Player(user);
+        let player = (oldTeam ? oldTeam.players.find(x => x.user.id === user.id) : this.spectators.find(x => x.user.id === user.id));
+        if (player === undefined) {
+            player = new Player(user, PlayerType.GuestUser);
+            console.log("Found non existent user!");
+        }
         newTeam.players.push(player!);
         this.spectators = this.spectators.filter(x => x.user.id !== user.id);
 

@@ -7,6 +7,7 @@ import { DataChannelEvent } from "./data-channel-event";
 import { RTCPeer } from "./rtc-peer";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
 import { UserPositionData } from "../socket/position-data";
+import { PlayerBase } from "../player/player-base";
 
 export class RTCPeerSlave {
     private currentMasterSdp: string | undefined;
@@ -22,17 +23,17 @@ export class RTCPeerSlave {
     eventChannel: Subject<DataChannelEvent> = new Subject();
     positionChannel: Subject<UserPositionData> | null = null;
 
-    constructor(user: UserBase, doc: AngularFirestoreDocument<Lobby>, host: UserBase) {
-        this.peerDoc = doc.collection<RTCPeer>(CollectionName.peerConnections).doc(user.id);
-        this.peerData = new RTCPeer(user);
-        this.hostId = host.id;
+    constructor(player: PlayerBase, doc: AngularFirestoreDocument<Lobby>, host: PlayerBase) {
+        this.peerDoc = doc.collection<RTCPeer>(CollectionName.peerConnections).doc(player.user.id);
+        this.peerData = new RTCPeer(player);
+        this.hostId = host.user.id;
 
         this.positionChannel = new Subject();
 
-        this.preCreationCleanup(user, doc, host);
+        this.preCreationCleanup(player.user, doc, host);
     }
 
-    private async preCreationCleanup(user: UserBase, lobbyDoc: AngularFirestoreDocument<Lobby>, host: UserBase) {
+    private async preCreationCleanup(user: UserBase, lobbyDoc: AngularFirestoreDocument<Lobby>, host: PlayerBase) {
         
         //delete old peer connection if exists
         let peer = await this.peerDoc.ref.get();
@@ -46,7 +47,7 @@ export class RTCPeerSlave {
             this.createPeerConnection(lobbyDoc, user, host);
     }
 
-    private async createPeerConnection(lobbyDoc: AngularFirestoreDocument<Lobby>, user: UserBase, host: UserBase) {
+    private async createPeerConnection(lobbyDoc: AngularFirestoreDocument<Lobby>, user: UserBase, host: PlayerBase) {
         this.peer = new RTCPeerDataConnection(this.eventChannel, this.positionChannel, user, host, lobbyDoc, false, this.connectionLogs);
 
         //listen for slave candidates to be created, might need to be done before .createOffer() according to some unlisted documentation

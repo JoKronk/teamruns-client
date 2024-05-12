@@ -42,8 +42,8 @@ export class RunComponent implements OnDestroy {
   editingTeamId: number | null = null;
 
   constructor(public _user: UserService, private firestoreService: FireStoreService, private route: ActivatedRoute, private zone: NgZone, private dialog: MatDialog, private router: Router) {
-    
 
+    
     //on parameter get (was swapped from route as electon had issues getting routes containing more than one (/) path)
     this.route.queryParamMap.subscribe((params) => {
       let runId = params.get('id');
@@ -72,7 +72,7 @@ export class RunComponent implements OnDestroy {
       dialogSubscription.unsubscribe();
       if (!recordingPackage) return;
 
-      this.runHandler.importRecordingsFromLocal(recordingPackage);
+      this.runHandler.importRecordings(recordingPackage);
     });
   }
 

@@ -1,4 +1,6 @@
 import { DbUserProfile } from "../firestore/db-user-profile";
+import { PlayerBase } from "../player/player-base";
+import { PlayerType } from "../player/player-type";
 
 export class UserBase {
     id: string;
@@ -49,6 +51,14 @@ export class User extends UserBase {
 
     getUserBaseWithDisplayName(): UserBase {
         return new UserBase(this.id, this.displayName ?? this.name);
+    }
+
+    getPlayerType(): PlayerType {
+        return this.hasSignedIn ? PlayerType.User : PlayerType.GuestUser;
+    }
+
+    generatePlayerBase(): PlayerBase {
+        return new PlayerBase(this.getUserBaseWithDisplayName(), this.getPlayerType());
     }
 
     importDbUser(user: DbUserProfile, displayName: string) {

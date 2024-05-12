@@ -31,7 +31,7 @@ import { LocalSave } from "../level/local-save";
 import { TimerPackage } from "./timer-package";
 import { ShortMemoryInteraction } from "./short-memory-interaction";
 import { RunData } from "../run/run-data";
-import { Subscription } from "rxjs";
+import { Subject, Subscription } from "rxjs";
 import { DbPb } from "../firestore/db-pb";
 import { LevelSymbol } from "../opengoal/levels";
 import { TaskSplit } from "../opengoal/task-split";
@@ -48,6 +48,7 @@ export class SocketHandler {
     splits: TaskSplit[] = [];
 
     protected isLocalMainPlayer: boolean = true;
+    recordingPlaybackSubject: Subject<UserPositionData> = new Subject();
 
     inMidRunRestartPenaltyWait: number = 0;
     isSyncing: boolean = false;
@@ -198,7 +199,7 @@ export class SocketHandler {
             }
 
             if (target.position)
-                this.updatePlayerPosition(new UserPositionData(target.position, this.timer.totalMs, this.user));
+                this.updatePlayerPosition(new UserPositionData(target.position, this.timer.totalMs, this.user.id, this.user.displayName ?? this.user.name));
 
             if (target.state) {
                 if (target.state.justSpawned) {
@@ -503,6 +504,9 @@ export class SocketHandler {
                             
                             if (currentPlayer.isInState(MultiplayerState.disconnected, true))
                                 this.setPlayerMultiplayerState(currentPlayer);
+
+                            if (this.isLocalMainPlayer && !this.run.forPracticeTool)
+                                this.recordingPlaybackSubject.next(new UserPositionData(positionData, this.timer.totalMs ?? 0, recording.id, recording.username));
                             
                             //handle missed pickups
                             if (previousRecordingdataIndex && (previousRecordingdataIndex - 1) > newRecordingdataIndex) {

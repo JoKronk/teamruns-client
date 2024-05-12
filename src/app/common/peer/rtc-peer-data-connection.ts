@@ -7,6 +7,7 @@ import { EventType } from "./event-type";
 import { RTCPeer } from "./rtc-peer";
 import { UserBase } from "../user/user";
 import { UserPositionData } from "../socket/position-data";
+import { PlayerBase } from "../player/player-base";
 
 export class RTCPeerDataConnection {
 
@@ -21,10 +22,10 @@ export class RTCPeerDataConnection {
     private lobbyDoc: AngularFirestoreDocument<Lobby>;
 
 
-    constructor(eventChannel: Subject<DataChannelEvent>, positionChannel: Subject<UserPositionData> | null, self: UserBase, peer: UserBase, lobbyDoc: AngularFirestoreDocument<Lobby>, creatorIsMaster: boolean, connectionLog: string[] | null = null) {
+    constructor(eventChannel: Subject<DataChannelEvent>, positionChannel: Subject<UserPositionData> | null, self: UserBase, peer: PlayerBase, lobbyDoc: AngularFirestoreDocument<Lobby>, creatorIsMaster: boolean, connectionLog: string[] | null = null) {
         this.connection = new RTCPeerConnection({
             iceServers: [
-              { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
+              { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
             ],
             iceCandidatePoolSize: 10,
         });
@@ -32,14 +33,14 @@ export class RTCPeerDataConnection {
         this.self = self;
         this.isMaster = creatorIsMaster;
 
-        const dataChannelId = "dc-" + (this.isMaster ? peer.id : self.id);
-        const positionChannelId = "pos-" + (this.isMaster ? peer.id : self.id);
+        const dataChannelId = "dc-" + (this.isMaster ? peer.user.id : self.id);
+        const positionChannelId = "pos-" + (this.isMaster ? peer.user.id : self.id);
         this.dataChannelToPeer = this.connection.createDataChannel(dataChannelId);
         
         if (positionChannel)
             this.positionChannelToPeer = this.connection.createDataChannel(positionChannelId, {ordered: false});
         
-        console.log("Created data channels for id: ", this.isMaster ? peer.id : self.id);
+        console.log("Created data channels for id: ", this.isMaster ? peer.user.id : self.id);
         if (connectionLog)
             connectionLog.push("Created peer data channel");
 
@@ -54,7 +55,10 @@ export class RTCPeerDataConnection {
         }
         this.dataChannelToPeer.onclose = () => {
             console.log("data channel closed");
-            eventChannel.next(new DataChannelEvent(self.id, EventType.Disconnect, peer));
+            eventChannel.next(new DataChannelEvent(self.id, EventType.Disconnect, peer.user));
+        }
+        this.dataChannelToPeer.onerror = (error) => {
+            console.log(error);
         }
 
         if (positionChannel) {
@@ -84,7 +88,7 @@ export class RTCPeerDataConnection {
                 //!TODO: seems safe to delete instantly but I'm not taking any chances before I know for certain
                 setTimeout(() => {
                     if (this.isBeingDestroyed) return;
-                    lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(peer.id).delete();
+                    lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(peer.user.id).delete();
                 }, 1000);
             }
             
@@ -111,7 +115,7 @@ export class RTCPeerDataConnection {
                         connectionLog.push("Unable to establish connection...");
                     console.log("kicking: ", self.name);
                     eventChannel.next(new DataChannelEvent(self.id, EventType.Kick, self.id));
-                    lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(peer.id).delete();
+                    lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(peer.user.id).delete();
                 }
             }, 8000);
         }

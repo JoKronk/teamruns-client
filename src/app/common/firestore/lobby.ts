@@ -1,10 +1,11 @@
+import { PlayerBase } from "../player/player-base";
 import { RunData } from "../run/run-data";
 import { UserBase } from "../user/user";
 import { LobbyUser } from "./lobby-user";
 
 export class Lobby {
     id: string;
-    host: UserBase | null = null;
+    host: PlayerBase | null = null;
     backupHost: UserBase | null = null;
     runData: RunData;
     password: string | null;

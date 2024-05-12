@@ -22,7 +22,7 @@ export class UserPositionData extends PositionData {
     userId: string;
     username: string;
 
-    constructor(positionData: PositionData, time: number, user: User) {
+    constructor(positionData: PositionData, time: number, userId: string, username: string) {
         super();
         this.quatW = positionData.quatW;
         this.quatX = positionData.quatX;
@@ -42,8 +42,8 @@ export class UserPositionData extends PositionData {
         this.transY = positionData.transY;
         this.transZ = positionData.transZ;
         this.time = time;
-        this.userId = user.id;
-        this.username = user.displayName ?? user.name;
+        this.userId = userId;
+        this.username = username;
     }
 }
 
