@@ -298,7 +298,8 @@ export class SocketHandler {
     }
 
     private addRecordingInteractionToBuffer(currentPlayer: CurrentPlayerData, positionData: RecordingPositionData) {
-        if (currentPlayer.isInState(MultiplayerState.interactive) && positionData.iT && positionData.iT !== InteractionType.none)
+        //interactions from active players are filtered on game side
+        if (!currentPlayer.isInState(MultiplayerState.disconnected, true) && positionData.iT && positionData.iT !== InteractionType.none)
             currentPlayer.interactionBuffer.push(InteractionData.getRecordingInteractionValues(positionData));
     }
 
