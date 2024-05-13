@@ -136,10 +136,10 @@ export class RunHandler {
 
             this.userService.localUsers.forEach(localPlayer => {
                 if (this.lobby && !this.lobby.hasUser(userId))
-                    this.lobby.addUser(new LobbyUser(localPlayer.user.getUserBaseWithDisplayName(), false));
+                    this.lobby.addUser(new LobbyUser(localPlayer.user.generatePlayerBase(), false));
             });
 
-            this.lobby.users = this.lobby.users.filter(x => x.isRunner || this.run?.hasSpectator(x.id));
+            this.lobby.users = this.lobby.users.filter(x => x.isRunner || this.run?.hasSpectator(x.user.id));
 
             if (this.connectionHandler.isOnlineInstant) {
                 await this.updateFirestoreLobby();
@@ -264,7 +264,7 @@ export class RunHandler {
 
                     //handle lobby
                     if (!this.lobby?.hasUser(newUser.user.id)) {
-                        this.lobby?.addUser(new LobbyUser(newUser.user, isRunner));
+                        this.lobby?.addUser(new LobbyUser(newUser, isRunner));
                         this.updateFirestoreLobby();
                     }
                     else if ((this.lobby.hasRunner(newUser.user.id) && !isRunner) || (this.lobby.hasSpectator(newUser.user.id) && isRunner)) {
@@ -497,8 +497,8 @@ export class RunHandler {
                 if (!user || user.isRunner) break;
 
                 user.isRunner = true;
-                if (!this.lobby!.runnerIds.includes(user.id))
-                    this.lobby!.runnerIds.push(user.id);
+                if (!this.lobby!.runnerIds.includes(user.user.id))
+                    this.lobby!.runnerIds.push(user.user.id);
                 this.updateFirestoreLobby();
                 break;
 

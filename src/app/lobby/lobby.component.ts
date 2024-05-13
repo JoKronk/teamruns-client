@@ -49,7 +49,8 @@ export class LobbyComponent implements OnDestroy {
       
       lobbies = lobbies.filter(x => new Date(x.creationDate) >= expireDate);
       
-      lobbies.filter(x => x.users.some(user => user.id === _user.user.id) || x.host?.user.id === _user.user.id).forEach(lobby => {
+      //(The question marks in user for filtering here is only for backwards compability)
+      lobbies.filter(x => x.users.some(user => user?.user?.id === _user.user.id) || x.host?.user.id === _user.user.id).forEach(lobby => {
         lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
         if (lobby.host?.user.id === _user.user.id)
           lobby.host = null;

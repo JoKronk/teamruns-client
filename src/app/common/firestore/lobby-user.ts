@@ -1,10 +1,10 @@
-import { UserBase } from "../user/user";
+import { PlayerBase } from "../player/player-base";
 
-export class LobbyUser extends UserBase {
+export class LobbyUser extends PlayerBase {
     isRunner: boolean;
 
-    constructor(user: UserBase, runner: boolean = false) {
-        super(user.id, user.name);
+    constructor(player: PlayerBase, runner: boolean = false) {
+        super(player.user, player.type);
         this.isRunner = runner;
     }
 }

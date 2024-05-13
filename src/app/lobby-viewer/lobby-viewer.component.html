@@ -23,14 +23,14 @@
     <div class="viewer-group">
         <p>Runners:</p>
         <div *ngFor="let user of lobby.users">
-            <span *ngIf="user.isRunner">{{ user.name }}</span>
+            <span *ngIf="user.isRunner">{{ user.user.name }} <span *ngIf="user.type === playerType.Recording" class="filler-text">(Recording)</span></span>
         </div>
     </div>
     
     <div class="viewer-group">
         <p>Spectators:</p>
         <div *ngFor="let user of lobby.users">
-            <span *ngIf="!user.isRunner">{{ user.name }}</span>
+            <span *ngIf="!user.isRunner">{{ user.user.name }} <span *ngIf="user.type === playerType.Recording" class="filler-text">(Recording)</span></span>
         </div>
     </div>
 

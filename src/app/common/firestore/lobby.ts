@@ -24,28 +24,28 @@ export class Lobby {
     }
 
     hasUser(id: string) {
-        return this.users.some(x => x.id === id);
+        return this.users.some(x => x.user.id === id);
     }
 
     hasRunner(id: string) {
-        return this.users.some(x => x.id === id && x.isRunner);
+        return this.users.some(x => x.user.id === id && x.isRunner);
     }
 
     hasSpectator(id: string) {
-        return this.users.some(x => x.id === id && !x.isRunner);
+        return this.users.some(x => x.user.id === id && !x.isRunner);
     }
 
     getUser(id: string) {
-        return this.users.find(x => x.id === id);
+        return this.users.find(x => x.user.id === id);
     }
 
     addUser(user: LobbyUser) {
         this.users.push(user);
         if (user.isRunner)
-            this.runnerIds.push(user.id);
+            this.runnerIds.push(user.user.id);
     }
     removeUser(id: string) {
-        this.users = this.users.filter(user => user.id !== id);
+        this.users = this.users.filter(user => user.user.id !== id);
         this.runnerIds = this.runnerIds.filter(x => x !== id);
     }
 }
