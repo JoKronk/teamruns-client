@@ -273,8 +273,15 @@ export class SocketHandler {
                 if (!state.currentCheckpoint)
                     this.gameState.currentCheckpoint = previousCheckpoint;
                 
-                if (state.justSpawned || state.justSaved || state.justLoaded || previousCheckpoint !== state.currentCheckpoint)
-                    this.checkDesync(this.run!);
+                if (state.justSpawned || state.justSaved || state.justLoaded || previousCheckpoint !== this.gameState.currentCheckpoint) {
+                    if (state.justSpawned || this.inMidRunRestartPenaltyWait) {
+                        setTimeout(() => {
+                            this.checkDesync(this.run!);
+                        }, 1000);
+                    }
+                    else
+                        this.checkDesync(this.run!);
+                }
             }
         }
 
