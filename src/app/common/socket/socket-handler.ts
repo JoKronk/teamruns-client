@@ -262,12 +262,16 @@ export class SocketHandler {
                     else if (this.localTeam)
                         this.importRunStateHandler(this.localTeam.runState, SyncType.Full);
                 }
-                this.zone.run(() => {
-                    this.connectionHandler.sendEvent(EventType.NewPlayerState, this.user.id, state);
-                });
+                if (!this.inMidRunRestartPenaltyWait) {
+                    this.zone.run(() => {
+                        this.connectionHandler.sendEvent(EventType.NewPlayerState, this.user.id, state);
+                    });
+                }
     
                 const previousCheckpoint = this.gameState.currentCheckpoint;
                 this.gameState = state;
+                if (!state.currentCheckpoint)
+                    this.gameState.currentCheckpoint = previousCheckpoint;
                 
                 if (state.justSpawned || state.justSaved || state.justLoaded || previousCheckpoint !== state.currentCheckpoint)
                     this.checkDesync(this.run!);
@@ -325,15 +329,15 @@ export class SocketHandler {
     if (!this.localTeam) return syncType;
     
     if (this.localTeam.runState.orbCount > this.gameState.orbCount)
-      syncType = SyncType.Soft;
-    /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
-      syncType = SyncType.Hard;
-    }*/
-    if (this.localTeam.runState.cellCount > this.gameState.cellCount)
-      syncType = SyncType.Hard;
-
-    return syncType;
-  }
+        syncType = SyncType.Soft;
+      /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
+        syncType = SyncType.Hard;
+      }*/
+      if (this.localTeam.runState.cellCount > this.gameState.cellCount)
+        syncType = SyncType.Hard;
+  
+      return syncType;
+    }
 
     resetGetRecordings(): UserRecording[] {
         const recordings = this.userPositionRecordings;

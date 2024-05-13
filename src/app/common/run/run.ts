@@ -119,7 +119,10 @@ export class Run {
         if (!player.gameState.debugModeActive && state.debugModeActive && this.timer.isPastCountdown())
             userService.sendNotification(player.user.name + " just activated debug mode!");
 
+        const oldCheckpoint = player.gameState.currentCheckpoint;
         player.gameState = state;
+        if (!state.currentCheckpoint)
+            player.gameState.currentCheckpoint = oldCheckpoint;
 
         if (state.debugModeActive && this.timer.isPastCountdown()) {
             const team = this.getPlayerTeam(playerId);
