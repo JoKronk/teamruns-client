@@ -86,12 +86,12 @@ export class RunComponent implements OnDestroy {
         this._user.localUsers.forEach(localPlayer => {
           localPlayer.state = PlayerState.Forfeit;
           const task = new GameTaskLevelTime(Task.forfeit, localPlayer.user.getUserBaseWithDisplayName(), this.runHandler.run?.getPlayer(localPlayer.user.id)?.currentLevel ?? "", this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
-          this.runHandler.sendEvent(EventType.EndPlayerRun, localPlayer.user.id, task);
+          this.runHandler.connectionHandler.sendEvent(EventType.EndPlayerRun, localPlayer.user.id, task);
         });
 
         this.runHandler.selfImportedRecordings.forEach(recPlayer => {
           const task = new GameTaskLevelTime(Task.forfeit, recPlayer, this.runHandler.run?.getPlayer(recPlayer.id)?.currentLevel ?? "", this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
-          this.runHandler.sendEvent(EventType.EndPlayerRun, recPlayer.id, task);
+          this.runHandler.connectionHandler.sendEvent(EventType.EndPlayerRun, recPlayer.id, task);
         });
       }
     });
@@ -101,14 +101,14 @@ export class RunComponent implements OnDestroy {
     if (!this.mainLocalPlayer) return;
       
     this.mainLocalPlayer.state = this.mainLocalPlayer.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
-    this.runHandler.sendEventAsMain(EventType.Ready, this.mainLocalPlayer.state);
+    this.runHandler.connectionHandler.sendEventAsMain(EventType.Ready, this.mainLocalPlayer.state);
   }
 
   toggleReset() {
     if (!this.mainLocalPlayer) return;
 
     this.mainLocalPlayer.state = this.mainLocalPlayer.state === PlayerState.WantsToReset ? this.mainLocalPlayer.socketHandler.localTeam?.splits.some(x => x.obtainedById === this.mainLocalPlayer?.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
-    this.runHandler.sendEventAsMain(EventType.ToggleReset, this.mainLocalPlayer.state);
+    this.runHandler.connectionHandler.sendEventAsMain(EventType.ToggleReset, this.mainLocalPlayer.state);
   }
 
   switchTeam(teamId: number) {
@@ -119,7 +119,7 @@ export class RunComponent implements OnDestroy {
     if (!localPlayer) return;
 
     if (this.runHandler.run?.timer.runState !== RunState.Waiting && this.runHandler.isSpectatorOrNull(userId)) return;
-    this.runHandler.sendEvent(EventType.ChangeTeam, userId, teamId);
+    this.runHandler.connectionHandler.sendEvent(EventType.ChangeTeam, userId, teamId);
     localPlayer.updateTeam(this.runHandler.run?.getTeam(teamId) ?? undefined);
     let player = this.runHandler.run!.getPlayer(userId);
     if (player) player.currentLevel = LevelSymbol.toName(this.mainLocalPlayer.socketHandler.getCurrentLevel() ?? 0);
@@ -141,7 +141,7 @@ export class RunComponent implements OnDestroy {
     if (!team.name.replace(/\s/g, ''))
       team.name = "Team " + (team.id + 1);
 
-    this.runHandler.sendEvent(EventType.ChangeTeamName, this.mainLocalPlayer.user.id, team);
+    this.runHandler.connectionHandler.sendEvent(EventType.ChangeTeamName, this.mainLocalPlayer.user.id, team);
     this.editingTeamId = null;
   }
 
@@ -150,11 +150,11 @@ export class RunComponent implements OnDestroy {
       const dialogSubscription = this.dialog.open(ConfirmComponent, { data: { message: "Are you sure you want to kick " + user.name + "?" } }).afterClosed().subscribe(confirmed => {
         dialogSubscription.unsubscribe();
         if (confirmed)
-          this.runHandler.sendEventAsMain(EventType.Kick, user);
+          this.runHandler.connectionHandler.sendEventAsMain(EventType.Kick, user);
       });
     }
     else
-      this.runHandler.sendEventAsMain(EventType.Kick, user);
+      this.runHandler.connectionHandler.sendEventAsMain(EventType.Kick, user);
   }
 
 

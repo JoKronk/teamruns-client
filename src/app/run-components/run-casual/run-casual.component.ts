@@ -78,14 +78,14 @@ export class RunCasualComponent implements OnDestroy {
     if (!this.mainLocalPlayer) return;
       
     this.mainLocalPlayer.state = this.mainLocalPlayer.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
-    this.runHandler.sendEventAsMain(EventType.Ready, this.mainLocalPlayer.state);
+    this.runHandler.connectionHandler.sendEventAsMain(EventType.Ready, this.mainLocalPlayer.state);
   }
 
   toggleReset() {
     if (!this.mainLocalPlayer) return;
 
     this.mainLocalPlayer.state = this.mainLocalPlayer.state === PlayerState.WantsToReset ? this.mainLocalPlayer.socketHandler.localTeam?.splits.some(x => x.obtainedById === this.mainLocalPlayer?.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
-    this.runHandler.sendEventAsMain(EventType.ToggleReset, this.mainLocalPlayer.state);
+    this.runHandler.connectionHandler.sendEventAsMain(EventType.ToggleReset, this.mainLocalPlayer.state);
   }
 
   loadSave(save: LocalSave) {
@@ -119,7 +119,7 @@ export class RunCasualComponent implements OnDestroy {
 
   switchTeam(teamId: number) {
     if (!this.mainLocalPlayer) return;
-    this.runHandler.sendEvent(EventType.ChangeTeam, this.mainLocalPlayer.user.id, teamId);
+    this.runHandler.connectionHandler.sendEvent(EventType.ChangeTeam, this.mainLocalPlayer.user.id, teamId);
     this.mainLocalPlayer.updateTeam(this.runHandler.run?.getTeam(teamId) ?? undefined);
   }
 
@@ -128,11 +128,11 @@ export class RunCasualComponent implements OnDestroy {
       const dialogSubscription = this.dialog.open(ConfirmComponent, { data: { message: "Are you sure you want to kick " + user.name + "?" } }).afterClosed().subscribe(confirmed => {
         dialogSubscription.unsubscribe();
         if (confirmed)
-          this.runHandler.sendEventAsMain(EventType.Kick, user);
+          this.runHandler.connectionHandler.sendEventAsMain(EventType.Kick, user);
       });
     }
     else
-      this.runHandler.sendEventAsMain(EventType.Kick, user);
+      this.runHandler.connectionHandler.sendEventAsMain(EventType.Kick, user);
   }
 
 

@@ -1,8 +1,8 @@
 <mat-sidenav-container fullscreen>
   <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true" class="sidenav">
 
-    <div *ngIf="(!runHandler.connected || !this.mainLocalPlayer) && runHandler.localSlave" class="logs">
-      <p *ngFor="let log of runHandler.localSlave.connectionLogs">{{ log }}</p>
+    <div *ngIf="(!runHandler.connected || !this.mainLocalPlayer) && runHandler.connectionHandler.localSlave" class="logs">
+      <p *ngFor="let log of runHandler.connectionHandler.localSlave?.connectionLogs">{{ log }}</p>
     </div>
 
     <!-- TIMER -->

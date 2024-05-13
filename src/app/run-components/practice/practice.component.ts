@@ -74,6 +74,7 @@ export class PracticeComponent implements OnDestroy {
       
       this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.run, this.zone);
       this._user.resetLocalPlayersToNewMain(this.mainLocalPlayer);
+      this.runHandler.connectionHandler.reLinkLocalPeers(this._user.localUsers);
       this.runHandler.run.timer.setStartConditions(1);
       
 
@@ -248,7 +249,7 @@ export class PracticeComponent implements OnDestroy {
       this.mainLocalPlayer.socketHandler.timer.reset();
 
       this.mainLocalPlayer.socketHandler.recordings.forEach(rec => {
-        this.runHandler.sendEvent(EventType.Disconnect, rec.id, new UserBase(rec.id, rec.username ?? ""));
+        this.runHandler.connectionHandler.sendEvent(EventType.Disconnect, rec.id, new UserBase(rec.id, rec.username ?? ""));
       });
 
       this.mainLocalPlayer.socketHandler.stopDrawPlayers();

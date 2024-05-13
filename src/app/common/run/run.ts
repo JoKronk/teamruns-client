@@ -39,7 +39,10 @@ export class Run {
         this.isFFA = this.data.teams === 1 && RunMod.singleTeamEqualsFFA(this.data.mode);
     }
 
-    removePlayer(playerId: string): void {
+    removePlayer(playerId: string | undefined): void {
+        if (playerId === undefined)
+            return;
+        
         let team = this.getPlayerTeam(playerId);
         if (!this.timer.runIsOngoing()) {
             this.spectators = this.spectators.filter(x => x.user.id !== playerId);
