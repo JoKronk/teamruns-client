@@ -55,15 +55,13 @@ export class RunHandler {
 
     connectionHandler: ConnectionHandler;
 
-    recordingPlaybackSubscription: Subscription;
     lobbySubscription: Subscription;
     userSetupSubscription: Subscription;
     dataChannelSubscription: Subscription;
     pbSubscription: Subscription;
-    private launchListener: any;
-
     runSetupCompleteSubject: BehaviorSubject<RunData | null> = new BehaviorSubject<RunData | null>(null);
 
+    
     constructor(lobbyId: string | undefined,
         public firestoreService: FireStoreService,
         public userService: UserService,
@@ -99,16 +97,6 @@ export class RunHandler {
                 this.connectionHandler.onLobbyUpdate(this.lobby);
                 this.checkSetupRun();
             }
-
-
-            //socket listener
-            if (this.userService.user.gameLaunched) //currently this should never be true but issues surrounding it might be fixed in the future
-                this.setupSocketListener(OG.mainPort);
-            
-            this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
-                this.setupSocketListener(port);
-            });
-
         });
 
         this.dataChannelSubscription = this.connectionHandler.dataChannelEventSubject.subscribe(event => {
@@ -122,64 +110,6 @@ export class RunHandler {
 
         this.onLobbyChange();
     }
-
-    public setupSocketListener(port: number, tries: number = 0) {
-        const localPlayer = this.userService.localUsers.find(x => x.socketHandler.socketPort === port);
-        if (!localPlayer) {
-            this.userService.sendNotification("Game startup detected with no user tied to it!");
-            return;
-        }
-
-        if (tries > 20) {
-            this.userService.sendNotification("Run handler failed to obtain socket connection!");
-            return;
-        }
-
-        if (!localPlayer.socketHandler.socketConnected) {
-            setTimeout(() => {
-                this.setupSocketListener(port, (tries + 1));
-            }, 500);
-            return;
-        }
-
-        if (localPlayer.user.id === this.userService.getMainUserId() && this.recordingPlaybackSubscription === undefined) {
-            this.recordingPlaybackSubscription = localPlayer.socketHandler.recordingPlaybackSubject.subscribe((positionData => {
-                this.connectionHandler.sendPosition(positionData);
-            }));
-        }
-
-        localPlayer.socketHandler.ogSocket.pipe(finalize(() => { 
-            this.connectionHandler.sendEvent(EventType.GameClosed, localPlayer.user.id);
-        })).subscribe(target => {
-            if (!localPlayer) {
-                console.log("Missing local player!")
-                return;
-            }
-
-            const positionData = new UserPositionData(target.position, localPlayer.socketHandler.timer.totalMs ?? 0, localPlayer.user.id, localPlayer.user.displayName ?? localPlayer.user.name);
-
-            //handle position
-            if (localPlayer.socketHandler.localTeam !== undefined)
-                this.connectionHandler.sendPosition(positionData);
-
-            //handle game state changes for current player
-            if (target.state)
-                this.handleStateChange(localPlayer, target.state);
-
-            if (target.levels)
-                localPlayer.cleanupHandler.onLevelsUpdate(target.levels, localPlayer.socketHandler);
-            
-            // check for run end
-            if (Task.isRunEnd(positionData) && this.run) {
-                const task: GameTaskLevelTime = GameTaskLevelTime.fromPositionData(positionData);
-                this.zone.run(() => {
-                    localPlayer!.state = PlayerState.Finished;
-                    this.connectionHandler.sendEvent(EventType.EndPlayerRun, localPlayer!.user.id, task);
-                });
-            }
-        });
-    }
-
 
     async onLobbyChange() {
         const userId = this.userService.getMainUserId();
@@ -788,31 +718,7 @@ export class RunHandler {
         if (playerTeam)
             localPlayer.updateTeam(playerTeam);
 
-        localPlayer.cleanupHandler.resetHandler();
-    }
-
-
-    handleStateChange(localPlayer: LocalPlayerData, state: GameState) {
-        this.zone.run(() => {
-            if (!this.run || this.isSpectatorOrNull(localPlayer.user.id) || localPlayer.state === PlayerState.Finished) return;
-            
-            if (state.justSpawned && localPlayer.socketHandler.inMidRunRestartPenaltyWait !== 0) {
-                if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode)) {
-                    state.debugModeActive = false;
-                    localPlayer.socketHandler.addCommand(OgCommand.TargetGrab);
-                    this.userService.sendNotification("Mid run restart penalty applied, you will be released in " + localPlayer.socketHandler.inMidRunRestartPenaltyWait + " seconds.", 10000);
-                }
-                else if (localPlayer.socketHandler.localTeam)
-                    localPlayer.importRunStateHandler(localPlayer.socketHandler.localTeam.runState, SyncType.Full);
-            }
-
-            this.connectionHandler.sendEvent(EventType.NewPlayerState, localPlayer.user.id, state);
-
-            const previousCheckpoint = localPlayer.gameState.currentCheckpoint;
-            localPlayer.gameState = state;
-            if (state.justSpawned || state.justSaved || state.justLoaded || previousCheckpoint !== state.currentCheckpoint)
-                localPlayer.checkDesync(this.run!);
-        })
+        localPlayer.socketHandler.cleanupHandler.resetHandler();
     }
 
     isHost(): boolean {
@@ -847,9 +753,7 @@ export class RunHandler {
         this.lobbySubscription?.unsubscribe();
         this.userSetupSubscription?.unsubscribe();
         this.dataChannelSubscription?.unsubscribe();
-        this.recordingPlaybackSubscription?.unsubscribe();
         this.pbSubscription?.unsubscribe();
-        this.launchListener();
 
         //remove demote if host
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself

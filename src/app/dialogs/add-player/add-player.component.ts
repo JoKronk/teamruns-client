@@ -1,5 +1,6 @@
 import { Component, Inject, NgZone, OnDestroy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { ConnectionHandler } from 'src/app/common/peer/connection-handler';
 import { Run } from 'src/app/common/run/run';
 import { LocalPlayerData } from 'src/app/common/user/local-player-data';
 import { User } from 'src/app/common/user/user';
@@ -23,7 +24,7 @@ export class AddPlayerComponent implements OnDestroy {
   response: AddPlayerResponse | undefined = undefined;
   localPlayerCompleted: boolean = false;
 
-  constructor(@Inject(MAT_DIALOG_DATA) public run: Run, private _user: UserService, private _firestore: FireStoreService, private zone: NgZone, public dialogRef: MatDialogRef<AddPlayerComponent>) {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: AddPlayerPackage, private _user: UserService, private _firestore: FireStoreService, private zone: NgZone, public dialogRef: MatDialogRef<AddPlayerComponent>) {
   
   }
 
@@ -82,7 +83,7 @@ export class AddPlayerComponent implements OnDestroy {
 
   startNewLocalGame() {
     this.phase = 3;
-    this.response = new AddPlayerResponse(this._user.startGame(this.user, this.run), this.teamId);
+    this.response = new AddPlayerResponse(this._user.startGame(this.user, this.data.connectionHandler, this.data.run), this.teamId);
 
     if (!this.response.player) {
       this._user.sendNotification("Unable to contact backend");
@@ -105,6 +106,16 @@ export class AddPlayerComponent implements OnDestroy {
     this._user.removeLocalPlayer(this.response.player.user.id);
   }
 
+}
+
+export class AddPlayerPackage {
+  run: Run;
+  connectionHandler: ConnectionHandler;
+
+  constructor(run: Run, connectionHandler: ConnectionHandler) {
+    this.run = run;
+    this.connectionHandler = connectionHandler;
+  }
 }
 
 export class AddPlayerResponse {

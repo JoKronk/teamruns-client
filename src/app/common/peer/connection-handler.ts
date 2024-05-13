@@ -16,7 +16,7 @@ export class ConnectionHandler {
 
     private localPeers: LocalPlayerData[];
     private mainLocalUser: User;
-    private lobby: Lobby | undefined;
+    lobby: Lobby | undefined;
     isOnlineInstant: boolean;
     
     private dataSubscription: Subscription;

@@ -1,5 +1,4 @@
 import { NgZone } from "@angular/core";
-import { RunCleanupHandler } from "../level/run-cleanup-handler";
 import { Team } from "../run/team";
 import { User } from "../user/user";
 import { SocketHandler } from "./socket-handler";
@@ -10,12 +9,14 @@ import { Task } from "../opengoal/task";
 import { MultiplayerState } from "../opengoal/multiplayer-state";
 import { TaskStatus } from "../opengoal/task-status";
 import { Run } from "../run/run";
+import { ConnectionHandler } from "../peer/connection-handler";
+import { PlayerState } from "../player/player-state";
 
 export class SocketHandlerLockout extends SocketHandler {
 
     
-    constructor(socketPort: number, user: User, run: Run, cleanupHandler: RunCleanupHandler, zone: NgZone) {
-        super(socketPort, user, run, cleanupHandler, zone);
+    constructor(socketPort: number, user: User, connectionHandler: ConnectionHandler, run: Run, state: PlayerState, zone: NgZone) {
+        super(socketPort, user, connectionHandler, run, state, zone);
     }
 
     override onTask(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {

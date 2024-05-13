@@ -13,7 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmComponent } from '../../dialogs/confirm/confirm.component';
 import { UserBase } from '../../common/user/user';
 import { TaskStatus } from '../../common/opengoal/task-status';
-import { AddPlayerComponent, AddPlayerResponse } from '../../dialogs/add-player/add-player.component';
+import { AddPlayerComponent, AddPlayerPackage, AddPlayerResponse } from '../../dialogs/add-player/add-player.component';
 import { OG } from '../../common/opengoal/og';
 import { LocalSave } from 'src/app/common/level/local-save';
 import { OgCommand } from 'src/app/common/socket/og-command';
@@ -50,7 +50,7 @@ export class RunCasualComponent implements OnDestroy {
       this.runSetupSubscription = this.runHandler.runSetupCompleteSubject.subscribe(runData => {
         if (!runData || !this.runHandler.run || this.mainLocalPlayer) return;
         
-        this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.run, this.zone);
+        this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.connectionHandler, this.runHandler.run, this.zone);
         this.runHandler.setupLocalMainPlayer(this.mainLocalPlayer);
         setTimeout(() => {
           this.switchTeam(0);
@@ -59,11 +59,13 @@ export class RunCasualComponent implements OnDestroy {
         
       });
     });
+
   }
 
 
   addLocalPlayer() {
-    const dialogRef = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run });
+    if (!this.runHandler.run) return;
+    const dialogRef = this.dialog.open(AddPlayerComponent, { data: new AddPlayerPackage(this.runHandler.run, this.runHandler.connectionHandler) });
     const dialogSubscription = dialogRef.afterClosed().subscribe((response: AddPlayerResponse | undefined) => {
       dialogSubscription.unsubscribe();
 
@@ -104,7 +106,7 @@ export class RunCasualComponent implements OnDestroy {
     this._user.localUsers.forEach(player => {
       if (this.runHandler.run) {
         this.runHandler.runSyncLocalPlayer(player, this.runHandler.run, false);
-        player.importRunStateHandler(save, SyncType.Full);
+        player.socketHandler.importRunStateHandler(save, SyncType.Full);
         let teamPlayer = team?.players.find(x => x.user.id === player.user.id);
         if (teamPlayer) teamPlayer.cellsCollected = save.tasksStatuses.filter(x => x.userId === teamPlayer?.user.id && Task.isCellCollect(x.interName, TaskStatus.nameFromEnum(x.interStatus))).length;
       }

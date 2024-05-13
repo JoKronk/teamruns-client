@@ -6,7 +6,7 @@
 
         <div class="option-teams">
           <select [(ngModel)]="teamId">
-            <option *ngFor="let team of run.teams" [ngValue]="team.id">{{ team.name }}</option>
+            <option *ngFor="let team of data.run.teams" [ngValue]="team.id">{{ team.name }}</option>
           </select>
         </div>
 

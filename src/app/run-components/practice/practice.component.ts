@@ -72,7 +72,7 @@ export class PracticeComponent implements OnDestroy {
     this.runSetupSubscription = this.runHandler.runSetupCompleteSubject.subscribe(runData => {
       if (!runData || !this.runHandler.run || this.mainLocalPlayer) return;
       
-      this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.run, this.zone);
+      this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.connectionHandler, this.runHandler.run, this.zone);
       this._user.resetLocalPlayersToNewMain(this.mainLocalPlayer);
       this.runHandler.connectionHandler.reLinkLocalPeers(this._user.localUsers);
       this.runHandler.run.timer.setStartConditions(1);

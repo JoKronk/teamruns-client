@@ -20,7 +20,7 @@ export class NavBoardComponent {
   startGame(user: User | undefined) {
     if (this._user.downloadHandler.isDownloading) return;
     
-    this._user.startGame(user ?? this._user.user, undefined);
+    this._user.startGame(user ?? this._user.user, undefined, undefined);
     this._user.viewSettings = false;
   }
 

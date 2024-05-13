@@ -13,6 +13,7 @@ import { BehaviorSubject } from 'rxjs';
 import { Run } from '../common/run/run';
 import pkg from 'app/package.json';
 import { DbUserProfile } from '../common/firestore/db-user-profile';
+import { ConnectionHandler } from '../common/peer/connection-handler';
 
 @Injectable({
   providedIn: 'root'
@@ -49,7 +50,7 @@ export class UserService implements OnDestroy {
     return this.user.id;
   }
 
-  public startGame(user: User, run: Run | undefined): LocalPlayerData | undefined {
+  public startGame(user: User, connenctionHandler: ConnectionHandler | undefined, run: Run | undefined): LocalPlayerData | undefined {
     if (!(window as any).electron || this.isBrowser || this.downloadHandler.isDownloading) return undefined;
 
     let localUser = this.localUsers.find(x => x.user.id === user.id);
@@ -61,7 +62,7 @@ export class UserService implements OnDestroy {
     if (!localUser) {
       if (!user.controllerPort)
         user.controllerPort = this.localUsers.length;
-      localUser = new LocalPlayerData(user, port, run ?? new Run(RunData.getFreeroamSettings(pkg.version)), this.zone);
+      localUser = new LocalPlayerData(user, port, connenctionHandler ?? new ConnectionHandler(this.localUsers, this.user, false), run ?? new Run(RunData.getFreeroamSettings(pkg.version)), this.zone);
       this.localUsers.push(localUser);
     }
 

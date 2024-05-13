@@ -14,7 +14,7 @@ import { ConfirmComponent } from '../../dialogs/confirm/confirm.component';
 import { UserBase } from '../../common/user/user';
 import { GameTaskLevelTime } from '../../common/opengoal/game-task';
 import { TaskStatus } from '../../common/opengoal/task-status';
-import { AddPlayerComponent, AddPlayerResponse } from '../../dialogs/add-player/add-player.component';
+import { AddPlayerComponent, AddPlayerPackage, AddPlayerResponse } from '../../dialogs/add-player/add-player.component';
 import { OG } from '../../common/opengoal/og';
 import { Subscription } from 'rxjs';
 import { RunImportComponent } from 'src/app/dialogs/run-import/run-import.component';
@@ -52,14 +52,15 @@ export class RunComponent implements OnDestroy {
       this.runSetupSubscription = this.runHandler.runSetupCompleteSubject.subscribe(runData => {
         if (!runData || !this.runHandler.run || this.mainLocalPlayer) return;
         
-        this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.run, this.zone);
+        this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.connectionHandler, this.runHandler.run, this.zone);
         this.runHandler.setupLocalMainPlayer(this.mainLocalPlayer);
       });
     });
   }
 
   addLocalPlayer() {
-    const dialogSubscription = this.dialog.open(AddPlayerComponent, { data: this.runHandler.run }).afterClosed().subscribe((response: AddPlayerResponse | undefined) => {
+    if (!this.runHandler.run) return;
+    const dialogSubscription = this.dialog.open(AddPlayerComponent, { data: new AddPlayerPackage(this.runHandler.run, this.runHandler.connectionHandler) }).afterClosed().subscribe((response: AddPlayerResponse | undefined) => {
       dialogSubscription.unsubscribe();
 
       if (response?.player && this.runHandler.run)

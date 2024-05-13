@@ -31,10 +31,15 @@ import { LocalSave } from "../level/local-save";
 import { TimerPackage } from "./timer-package";
 import { ShortMemoryInteraction } from "./short-memory-interaction";
 import { RunData } from "../run/run-data";
-import { Subject, Subscription } from "rxjs";
+import { Subscription } from "rxjs";
 import { DbPb } from "../firestore/db-pb";
 import { LevelSymbol } from "../opengoal/levels";
 import { TaskSplit } from "../opengoal/task-split";
+import { ConnectionHandler } from "../peer/connection-handler";
+import { EventType } from "../peer/event-type";
+import { GameState } from "../opengoal/game-state";
+import { SyncType } from "../level/sync-type";
+import { RunStateHandler } from "../level/run-state-handler";
 
 export class SocketHandler {
 
@@ -43,12 +48,14 @@ export class SocketHandler {
 
     timer: Timer;
     run: Run;
-    localTeam: Team | undefined;
     currentPb: DbPb | undefined = undefined;
-    splits: TaskSplit[] = [];
-
     protected isLocalMainPlayer: boolean = true;
-    recordingPlaybackSubject: Subject<UserPositionData> = new Subject();
+    localTeam: Team | undefined;
+    splits: TaskSplit[] = [];
+    gameState: GameState = new GameState();
+    cleanupHandler: RunCleanupHandler = new RunCleanupHandler;
+
+
 
     inMidRunRestartPenaltyWait: number = 0;
     isSyncing: boolean = false;
@@ -72,7 +79,7 @@ export class SocketHandler {
     private timerSubscription: Subscription;
 
 
-    constructor(public socketPort: number, public user: User, run: Run, public cleanupHandler: RunCleanupHandler, public zone: NgZone) {
+    constructor(public socketPort: number, public user: User, public connectionHandler: ConnectionHandler, run: Run, public state: PlayerState, public zone: NgZone) {
         this.ogSocket = webSocket('ws://localhost:' + socketPort);
 
         this.run = run;
@@ -106,6 +113,7 @@ export class SocketHandler {
                 });
                 this.ogSocket.complete();
                 this.ogSocket = webSocket('ws://localhost:' + socketPort);
+                this.connectionHandler.sendEvent(EventType.GameClosed, this.user.id);
             }
 
         });
@@ -153,77 +161,7 @@ export class SocketHandler {
 
     private connectToOpengoal() {
         this.ogSocket.subscribe(target => {
-
-            if (target.connected && !this.socketConnected) {
-                this.socketPackage.version = "v" + pkg.version;
-                this.socketPackage.username = this.user.displayName;
-
-                //handle mid game restarts
-                if (this.run?.timer.runState !== RunState.Waiting) {
-                    this.inMidRunRestartPenaltyWait = 10;
-                    this.isSyncing = false;
-                    this.addCommand(OgCommand.DisableDebugMode);
-                    if (!this.run.hasSpectator(this.user.id)) {
-                        const lastCheckpoint = this.run?.getPlayer(this.user.id)?.gameState.currentCheckpoint;
-                        if (lastCheckpoint) this.forceCheckpointSpawn(lastCheckpoint);
-    
-                        setTimeout(() => {
-                            this.inMidRunRestartPenaltyWait = 0;
-                            this.isSyncing = false;
-                            if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode))
-                                this.addCommand(OgCommand.TargetRelease);
-                        }, (this.inMidRunRestartPenaltyWait * 1000));
-                    }
-                    else
-                        this.addCommand(OgCommand.EnableSpectatorMode);
-                        
-                }
-
-                setTimeout(() => { //give the game a bit of time to actually start
-                    console.log("Socket Connected!");
-                    this.zone.run(() => {
-                        this.socketConnected = true;
-                    });
-
-                    this.resetAllPlayerMpStates(); //so players aleady connected are given interactive/active state in game
-                    this.fillAllPlayerDataValues();
-                    this.resetAllPlayersNoneOverwritableValues();
-                    
-                    this.updateGameSettings(new GameSettings(this.timer.isPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version, !this.run.forPracticeTool)));
-                    this.run.getAllPlayers().forEach(player => { // set the team for any users already connected
-                        this.updatePlayerInfo(player.user.id, this.run.getRemotePlayerInfo(player.user.id));
-                    });
-
-                    this.addCommand(OgCommand.None); //send empty message to update username, version & controller
-                }, 300);
-            }
-
-            if (target.position)
-                this.updatePlayerPosition(new UserPositionData(target.position, this.timer.totalMs, this.user.id, this.user.displayName ?? this.user.name));
-
-            if (target.state) {
-                if (target.state.justSpawned) {
-                    if (this.timer.runState === RunState.Countdown)
-                        this.addCommand(OgCommand.TargetGrab);
-                }
-                //local save logic
-                if (target.state.justSaved && this.run.data.mode === RunMode.Casual && this.timer.totalMs > 5000) {
-                    let save: LocalSave = (this.localTeam?.runState ?? this.run.getTeam(0)?.runState) as LocalSave;
-                    if (save.cellCount !== 0 || save.orbCount !== 0 || save.buzzerCount !== 0) {
-                        save.name = this.run.data.name;
-                        save.users = this.localTeam?.players.flatMap(x => x.user) ?? [];
-                        (window as any).electron.send('save-write', save);
-                    }
-                }
-            }
-
-            /*
-            if (target.state) {
-              console.log(target.state)
-            }*/
-
-            if (target.levels)
-                this.localTeam?.runState.onLevelsUpdate(target.levels, this);
+            this.onOpengoalUpdate(target);
         },
         error => {
             if (this.connectionAttempts < 4) {
@@ -237,6 +175,165 @@ export class SocketHandler {
                 console.log("Opengoal socket error, did the game shut down?");
         });
     }
+
+    onOpengoalUpdate(target: any) {
+        const positionData = new UserPositionData(target.position, this.timer.totalMs ?? 0, this.user.id, this.user.displayName ?? this.user.name);
+
+        //--- Connection ---
+        if (target.connected && !this.socketConnected) {
+            this.socketPackage.version = "v" + pkg.version;
+            this.socketPackage.username = this.user.displayName;
+
+            //handle mid game restarts
+            if (this.run?.timer.runState !== RunState.Waiting) {
+                this.inMidRunRestartPenaltyWait = 10;
+                this.isSyncing = false;
+                this.addCommand(OgCommand.DisableDebugMode);
+                if (!this.run.hasSpectator(this.user.id)) {
+                    const lastCheckpoint = this.run?.getPlayer(this.user.id)?.gameState.currentCheckpoint;
+                    if (lastCheckpoint) this.forceCheckpointSpawn(lastCheckpoint);
+
+                    setTimeout(() => {
+                        this.inMidRunRestartPenaltyWait = 0;
+                        this.isSyncing = false;
+                        if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode))
+                            this.addCommand(OgCommand.TargetRelease);
+                    }, (this.inMidRunRestartPenaltyWait * 1000));
+                }
+                else
+                    this.addCommand(OgCommand.EnableSpectatorMode);
+                    
+            }
+
+            setTimeout(() => { //give the game a bit of time to actually start
+                console.log("Socket Connected!");
+                this.zone.run(() => {
+                    this.socketConnected = true;
+                });
+
+                this.resetAllPlayerMpStates(); //so players aleady connected are given interactive/active state in game
+                this.fillAllPlayerDataValues();
+                this.resetAllPlayersNoneOverwritableValues();
+                
+                this.updateGameSettings(new GameSettings(this.timer.isPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version, !this.run.forPracticeTool)));
+                this.run.getAllPlayers().forEach(player => { // set the team for any users already connected
+                    this.updatePlayerInfo(player.user.id, this.run.getRemotePlayerInfo(player.user.id));
+                });
+
+                this.addCommand(OgCommand.None); //send empty message to update username, version & controller
+            }, 300);
+        }
+
+        //--- Position Data ---
+        if (target.position) {
+            if (this.localTeam !== undefined)
+                this.connectionHandler.sendPosition(positionData);
+
+            this.updatePlayerPosition(new UserPositionData(target.position, this.timer.totalMs, this.user.id, this.user.displayName ?? this.user.name));
+        }
+
+        //--- State Data ---
+        if (target.state) {
+            let state: GameState = target.state;
+            if (state.justSpawned) {
+                if (this.timer.runState === RunState.Countdown)
+                    this.addCommand(OgCommand.TargetGrab);
+            }
+
+            //local save logic
+            if (state.justSaved && this.run.data.mode === RunMode.Casual && this.timer.totalMs > 5000) {
+                let save: LocalSave = (this.localTeam?.runState ?? this.run.getTeam(0)?.runState) as LocalSave;
+                if (save.cellCount !== 0 || save.orbCount !== 0 || save.buzzerCount !== 0) {
+                    save.name = this.run.data.name;
+                    save.users = this.localTeam?.players.flatMap(x => x.user) ?? [];
+                    (window as any).electron.send('save-write', save);
+                }
+            }
+
+            //game state checks
+            if (!this.connectionHandler.lobby?.hasSpectator(this.user.id) && this.state !== PlayerState.Finished) {
+                if (state.justSpawned && this.inMidRunRestartPenaltyWait !== 0) {
+                    if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode)) {
+                        state.debugModeActive = false;
+                        this.addCommand(OgCommand.TargetGrab);
+                        //!TODO: Add in game notification for timer
+                        //this.userService.sendNotification("Mid run restart penalty applied, you will be released in " + this.inMidRunRestartPenaltyWait + " seconds.", 10000);
+                    }
+                    else if (this.localTeam)
+                        this.importRunStateHandler(this.localTeam.runState, SyncType.Full);
+                }
+                this.zone.run(() => {
+                    this.connectionHandler.sendEvent(EventType.NewPlayerState, this.user.id, state);
+                });
+    
+                const previousCheckpoint = this.gameState.currentCheckpoint;
+                this.gameState = state;
+                
+                if (state.justSpawned || state.justSaved || state.justLoaded || previousCheckpoint !== state.currentCheckpoint)
+                    this.checkDesync(this.run!);
+            }
+        }
+
+        //--- Level Data ---
+        if (target.levels) {
+            this.localTeam?.runState.onLevelsUpdate(target.levels, this);
+            this.cleanupHandler.onLevelsUpdate(target.levels, this); 
+        }
+        
+        // check for run end
+        if (Task.isRunEnd(positionData) && this.run) {
+            const task: GameTaskLevelTime = GameTaskLevelTime.fromPositionData(positionData);
+            this.zone.run(() => {
+                this.state = PlayerState.Finished;
+                this.connectionHandler.sendEvent(EventType.EndPlayerRun, this.user.id, task);
+            });
+        }
+    }
+    
+
+  importRunStateHandler(runStateHandler: RunStateHandler, syncType: SyncType) {
+    this.isSyncing = true;
+    this.cleanupHandler.importRunState(runStateHandler, this, this.gameState, syncType);
+
+    setTimeout(() => {
+      if (this.inMidRunRestartPenaltyWait === 0)
+        this.isSyncing = false;
+    }, 100);
+  }
+
+  checkDesync(run: Run) {
+    if (!this.localTeam) this.localTeam = run.getPlayerTeam(this.user.id, true);
+    let syncType = this.isInSync();
+    if (!this.localTeam || syncType === SyncType.None || this.isSyncing) return;
+
+
+    this.isSyncing = true;
+    setTimeout(() => {  //give the player some time to catch up if false positive
+      syncType = this.isInSync();
+      if (syncType === SyncType.None) {
+        this.isSyncing = false;
+        return;
+      }
+      
+      this.importRunStateHandler(this.localTeam!.runState, syncType);
+
+    }, 1000);
+    }
+
+  private isInSync(): SyncType {
+    let syncType: SyncType = SyncType.None;
+    if (!this.localTeam) return syncType;
+    
+    if (this.localTeam.runState.orbCount > this.gameState.orbCount)
+      syncType = SyncType.Soft;
+    /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
+      syncType = SyncType.Hard;
+    }*/
+    if (this.localTeam.runState.cellCount > this.gameState.cellCount)
+      syncType = SyncType.Hard;
+
+    return syncType;
+  }
 
     resetGetRecordings(): UserRecording[] {
         const recordings = this.userPositionRecordings;
@@ -506,7 +603,7 @@ export class SocketHandler {
                                 this.setPlayerMultiplayerState(currentPlayer);
 
                             if (this.isLocalMainPlayer && !this.run.forPracticeTool)
-                                this.recordingPlaybackSubject.next(new UserPositionData(positionData, this.timer.totalMs ?? 0, recording.id, recording.username));
+                                this.connectionHandler.sendPosition(new UserPositionData(positionData, this.timer.totalMs ?? 0, recording.id, recording.username));
                             
                             //handle missed pickups
                             if (previousRecordingdataIndex && (previousRecordingdataIndex - 1) > newRecordingdataIndex) {
