@@ -10,5 +10,12 @@ export const environment = { //copy this file, rename it to environment.ts and f
         authDomain: '',
         messagingSenderId: '',
         measurementId: ''
-    }
+    },
+    turnIceServers: [
+      {
+        urls: '',
+        username: '',
+        credential: '',
+      }
+    ]
 };

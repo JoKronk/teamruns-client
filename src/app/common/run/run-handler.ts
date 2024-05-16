@@ -271,6 +271,9 @@ export class RunHandler {
                         this.lobby!.getUser(newUser.user.id)!.isRunner = isRunner;
                         this.updateFirestoreLobby();
                     }
+
+                    if (this.connectionHandler.isPotentialTurnServerHost())
+                        this.userService.sendNotification("Potential TURN restriction detected for host, swapping lobby host recommended.", 20000);
                 }
                 else if (event.userId === userId) {
                     this.connectionHandler.sendEventAsMain(EventType.RequestRunSync, new SyncRequest(userId, SyncRequestReason.InitConnect));

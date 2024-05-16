@@ -6,6 +6,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgChartsModule } from 'ng2-charts';
+import { environment } from '../environments/environment';
 
 import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
@@ -30,7 +31,6 @@ import { LobbyComponent } from './lobby/lobby.component';
 import { SnackbarComponent } from './snackbars/snackbar/snackbar.component';
 import { CreateRunComponent } from './dialogs/create-run/create-run.component';
 import { RunComponent } from './run-components/run/run.component';
-import { environment } from '../environments/environment';
 import { RunSplitsComponent } from './run-components/run-splits/run-splits.component';
 import { RunTimerComponent } from './run-components/run-timer/run-timer.component';
 import { RunSpectatorsComponent } from './run-components/run-spectators/run-spectators.component';

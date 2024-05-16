@@ -161,12 +161,27 @@ export class ConnectionHandler {
         return this.localSlave !== undefined;
     }
 
+    isPotentialTurnServerHost(): boolean {
+        if (this.localMaster === undefined || this.localMaster.peers.length <= 1)
+            return false;
+
+        for (let peer of this.localMaster.peers) {
+            for (let candidate of peer.masterCandidates) {
+                if (candidate.type === "host")
+                    continue;
+                
+                if (candidate.type !== "relay")
+                    return false;
+            }
+        }
+        return true;
+    }
+
     getHostId(): string | undefined {
         if (this.isSlave())
             return this.localSlave!.hostId;
         else
             return this.localMaster?.user.id;
-
     }
 
     destory() {

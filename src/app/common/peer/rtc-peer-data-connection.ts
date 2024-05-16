@@ -1,5 +1,6 @@
 import { AngularFirestoreDocument } from "@angular/fire/compat/firestore";
-import { Subject, Subscription } from "rxjs";
+import { Subject } from "rxjs";
+import { environment } from '../../../environments/environment';
 import { CollectionName } from "../firestore/collection-name";
 import { Lobby } from "../firestore/lobby";
 import { DataChannelEvent } from "./data-channel-event";
@@ -23,10 +24,12 @@ export class RTCPeerDataConnection {
 
 
     constructor(eventChannel: Subject<DataChannelEvent>, positionChannel: Subject<UserPositionData> | null, self: UserBase, peer: PlayerBase, lobbyDoc: AngularFirestoreDocument<Lobby>, creatorIsMaster: boolean, connectionLog: string[] | null = null) {
+        let peerIceServers: RTCIceServer[] = [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }];
+        for (let turnServer of environment.turnIceServers)
+            peerIceServers.push(turnServer);
+
         this.connection = new RTCPeerConnection({
-            iceServers: [
-              { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
-            ],
+            iceServers: peerIceServers,
             iceCandidatePoolSize: 10,
         });
         this.lobbyDoc = lobbyDoc;
