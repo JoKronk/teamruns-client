@@ -746,7 +746,7 @@ export class SocketHandler {
         const isTeammate = isSelfInteraction || (playerTeam.id === this.localTeam.id && (this.run.teams.length !== 1 || !RunMod.singleTeamEqualsFFA(this.run.data.mode)));
         //interactions on game side is executed if the target the interaction belongs to is set to interactive, to avoid use positionData.resetCurrentInteraction();
         
-        if (this.hasInteractionInMemory(interaction, playerTeam.id)) {
+        if (!isSelfInteraction && this.hasInteractionInMemory(interaction, playerTeam.id)) {
             positionData.resetCurrentInteraction();
             return;
         }
