@@ -154,7 +154,7 @@ export class ConnectionHandler {
 
 
     isMaster(): boolean {
-        return this.localMaster !== undefined;
+        return !this.isOnlineInstant || this.localMaster !== undefined;
     }
 
     isSlave(): boolean {
