@@ -186,7 +186,7 @@ export class SocketHandler {
             this.socketPackage.username = this.user.displayName;
 
             //handle mid game restarts
-            if (this.run?.timer.runState !== RunState.Waiting) {
+            if (this.run?.timer.runState !== RunState.Waiting && !this.run.forPracticeTool) {
                 this.inMidRunRestartPenaltyWait = 10;
                 this.isSyncing = false;
                 this.addCommand(OgCommand.DisableDebugMode);
@@ -254,7 +254,7 @@ export class SocketHandler {
             //game state checks
             if (!this.connectionHandler.lobby?.hasSpectator(this.user.id) && this.state !== PlayerState.Finished) {
                 if (state.justSpawned && this.inMidRunRestartPenaltyWait !== 0) {
-                    if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode)) {
+                    if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode) && !this.run.forPracticeTool) {
                         state.debugModeActive = false;
                         this.addCommand(OgCommand.TargetGrab);
                         this.sendNotification("Restart penalty applied, you will be released in " + this.inMidRunRestartPenaltyWait + " seconds.", (this.inMidRunRestartPenaltyWait - 1));
