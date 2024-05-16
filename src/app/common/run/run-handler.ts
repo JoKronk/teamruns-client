@@ -481,7 +481,19 @@ export class RunHandler {
                 
             case EventType.NewPlayerState:
                 this.zone.run(() => {
-                    this.run!.updateState(event.userId, event.value, this.userService);
+                    if (!this.run) return;
+                    let player = this.run.getPlayer(event.userId);
+                    let state: GameState = event.value;
+                    if (!player) return;
+
+                    if (!player.gameState.debugModeActive && state.debugModeActive && this.run.timer.isPastCountdown()) {
+                        let notifMessage = player.user.name + " just activated debug mode!";
+                        this.userService.sendNotification(notifMessage);
+                        for (let localPlayer of this.userService.localUsers)
+                            localPlayer.socketHandler.sendNotification(notifMessage, 5);
+                    }
+
+                    this.run!.updateState(event.userId, state, player);
                 });
                 break;
 
@@ -522,7 +534,7 @@ export class RunHandler {
                     }
                     this.selfImportedRecordings.forEach(recPlayer => {
                         this.connectionHandler.sendEvent(EventType.Ready, recPlayer.id, event.value);
-                    })
+                    });
                 }
                 
                 this.zone.run(() => {

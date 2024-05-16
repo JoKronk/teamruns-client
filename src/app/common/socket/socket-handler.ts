@@ -40,6 +40,7 @@ import { EventType } from "../peer/event-type";
 import { GameState } from "../opengoal/game-state";
 import { SyncType } from "../level/sync-type";
 import { RunStateHandler } from "../level/run-state-handler";
+import { NotificationPackage } from "./notification-package";
 
 export class SocketHandler {
 
@@ -256,8 +257,7 @@ export class SocketHandler {
                     if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode)) {
                         state.debugModeActive = false;
                         this.addCommand(OgCommand.TargetGrab);
-                        //!TODO: Add in game notification for timer
-                        //this.userService.sendNotification("Mid run restart penalty applied, you will be released in " + this.inMidRunRestartPenaltyWait + " seconds.", 10000);
+                        this.sendNotification("Restart penalty applied, you will be released in " + this.inMidRunRestartPenaltyWait + " seconds.", (this.inMidRunRestartPenaltyWait - 1));
                     }
                     else if (this.localTeam)
                         this.importRunStateHandler(this.localTeam.runState, SyncType.Full);
@@ -384,6 +384,10 @@ export class SocketHandler {
     addCommand(command: OgCommand) {
         this.socketCommandBuffer.push(command);
         this.sendCommandsFromBuffer();
+    }
+
+    sendNotification(message: string, time: number = 10) {
+        this.socketPackage.notification = new NotificationPackage(message, time);
     }
 
     private async sendCommandsFromBuffer(initStart: boolean = true) {
@@ -562,7 +566,7 @@ export class SocketHandler {
         else
             this.checkRegisterPlayer(new UserBase(positionData.userId, positionData.username), MultiplayerState.interactive);
 
-        if (this.timer.totalMs === 0 || !this.isLocalMainPlayer || player === undefined ||player.isRecording) return;
+        if (this.timer.totalMs === 0 || !this.isLocalMainPlayer || player === undefined || player.isRecording) return;
 
         //handle user position recording
         let userRecording = this.userPositionRecordings.find(x => x.userId === positionData.userId);

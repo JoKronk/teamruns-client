@@ -112,12 +112,10 @@ export class Run {
         this.timer.runState = RunState.Ended;
     }
 
-    updateState(playerId: string, state: GameState, userService: UserService): void {
-        let player = this.getPlayer(playerId);
+    updateState(playerId: string, state: GameState, player: Player | undefined = undefined): void {
+        if (!player)
+            player = this.getPlayer(playerId);
         if (!player) return;
-
-        if (!player.gameState.debugModeActive && state.debugModeActive && this.timer.isPastCountdown())
-            userService.sendNotification(player.user.name + " just activated debug mode!");
 
         const oldCheckpoint = player.gameState.currentCheckpoint;
         player.gameState = state;

@@ -1,6 +1,7 @@
 import { CurrentPositionData } from "./current-position-data";
 import { GameSettings } from "./game-settings";
 import { InteractionData } from "./interaction-data";
+import { NotificationPackage } from "./notification-package";
 import { OgCommand } from "./og-command";
 import { RemotePlayerInfo } from "./remote-player-info";
 import { TimerPackage } from "./timer-package";
@@ -16,6 +17,7 @@ export class SocketPackage {
     version: string | undefined;
     players: CurrentPositionData[] | undefined;
     timer: TimerPackage | undefined;
+    notification: NotificationPackage | undefined;
 
     constructor() {
         this.command = undefined;
@@ -28,6 +30,7 @@ export class SocketPackage {
         this.version = undefined;
         this.players = undefined;
         this.timer = undefined;
+        this.notification = undefined;
     }
 
     resetOneTimeValues() {
@@ -40,5 +43,6 @@ export class SocketPackage {
         this.version = undefined;
         this.username = undefined;
         this.timer?.resetSplitData();
+        this.notification = undefined;
     }
 }
