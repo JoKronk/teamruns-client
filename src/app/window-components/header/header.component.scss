@@ -38,11 +38,6 @@
                 outline: none;
             }
         }
-        &-tooltip {
-            position: absolute;
-            top: 0;
-            right: 160px;
-        }
         & .title {
             margin-left: 14px;
             margin-top: 18px;
@@ -81,10 +76,6 @@
                 background-color: #380000;
             }
         }
-    }
-    & .space {
-        flex: 2;
-        height: 100%;
     }
     & .logo {
         &-container {

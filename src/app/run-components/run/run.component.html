@@ -20,12 +20,15 @@
           <button (click)="addLocalPlayer()">Add Local Player</button>
         </div>
       </div>
+      <div class="run-sidenav-info">
+        <p>{{ runHandler.info }}</p>
+      </div>
     </div>
   </mat-sidenav>
 
   <mat-sidenav-content class="run">
     <!-- HEADER -->
-    <app-header [runInfo]="runHandler.info" [inRun]="runHandler.run?.timer?.runState !== runState.Waiting" [title]="runHandler.run?.data?.name ?? ''"></app-header>
+    <app-header [inRun]="runHandler.run?.timer?.runState !== runState.Waiting" [title]="runHandler.run?.data?.name ?? ''"></app-header>
 
     <div class="run-body" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
       <!-- TEAMS -->

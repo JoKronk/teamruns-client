@@ -240,10 +240,14 @@ export class RunHandler {
         this.runSetupSubject.next(RunSetupState.SetupComplete);
 
         //set run info
-        if (this.run.data.category == 0)
-            this.info = this.run.data.name + "\n\nSame Level: " + this.run.data.requireSameLevel + "\nSolo Zoomers: " + this.run.data.allowSoloHubZoomers + "\nNo LTS: " + this.run.data.noLTS + "\nCitadel Skip: " + CitadelOption[this.run.data.citadelSkip];
+        if (this.run.isMode(RunMode.Speedrun)) {
+            if (this.run.data.requireSameLevel)
+                this.info = Category.GetGategories()[this.run.data.category].displayName + " (Same Level)";
+            else
+                this.info = Category.GetGategories()[this.run.data.category].displayName;
+        }
         else
-            this.info = this.run.data.name + "\n\n" + RunMode[this.run.data.mode] + "\nCategory: " + Category.GetGategories()[this.run.data.category].displayName + "\nSame Level: " + this.run.data.requireSameLevel;
+            this.info = RunMode[this.run.data.mode];
     }
 
     onDataChannelEvent(event: DataChannelEvent) {

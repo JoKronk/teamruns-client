@@ -160,7 +160,7 @@
         }
         &-menu {
             flex-shrink: 1;
-            margin: 20px 10px 52px;
+            margin: 20px 10px 0;
             &-container {
                 flex-shrink: 1;
                 display: flex;
@@ -184,6 +184,19 @@
                     border: 1px solid #575757;
                     background: rgba(14, 14, 14, 0.8);
                 }
+            }
+        }
+        &-info {
+            flex-shrink: 1;
+            margin: 4px 12px 1px;
+            font-size: 22px;
+            font-weight: bold;
+            font-family: "Jak";
+            font-size: bold;
+            color: #575757;
+            & p {
+                text-align: end;
+                margin: 10px;
             }
         }
     }

@@ -17,7 +17,6 @@ export class HeaderComponent {
   
   buildVersion: string = pkg.version;
   @Input() title: string;
-  @Input() runInfo?: string;
   @Input() inRun: boolean;
   @Input() showLobbyButtons: boolean;
   
