@@ -25,8 +25,7 @@ export class RTCPeerDataConnection {
 
     constructor(eventChannel: Subject<DataChannelEvent>, positionChannel: Subject<UserPositionData> | null, self: UserBase, peer: PlayerBase, lobbyDoc: AngularFirestoreDocument<Lobby>, creatorIsMaster: boolean, connectionLog: string[] | null = null) {
         let peerIceServers: RTCIceServer[] = [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }];
-        for (let turnServer of environment.turnIceServers)
-            peerIceServers.push(turnServer);
+        peerIceServers.push(environment.turnIceServer);
 
         this.connection = new RTCPeerConnection({
             iceServers: peerIceServers,
