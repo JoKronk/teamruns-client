@@ -173,7 +173,7 @@ export class CurrentPlayerData {
         if (this.interactionBufferRateLimit > 0) {
             this.interactionBufferRateLimit -= 1;
             
-            if (this.interactionBufferRateLimit === 1)
+            if (this.interactionBufferRateLimit >= 1)
                 return;
         }
 
