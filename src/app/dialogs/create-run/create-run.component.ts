@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { CitadelOption, RunData } from 'src/app/common/run/run-data';
 import { FireStoreService } from 'src/app/services/fire-store.service';
 import pkg from 'app/package.json';
-import { RunMode } from 'src/app/common/run/run-mode';
+import { RunMod, RunMode } from 'src/app/common/run/run-mode';
 import { Lobby } from 'src/app/common/firestore/lobby';
 import { Preset } from 'src/app/common/firestore/preset';
 import { UserService } from 'src/app/services/user.service';
@@ -23,6 +23,7 @@ export class CreateRunComponent {
   countdownOptions: number[] = [5, 10, 15];
   citadelSkipOptions: number[] = Object.values(CitadelOption).filter((v) => !isNaN(Number(v))).map(x => parseInt(x.toString()));
   password: string | null = null;
+  modeInfo: string | null = null;
 
   runMode = RunMode;
   citadelOptions = CitadelOption;
@@ -32,6 +33,7 @@ export class CreateRunComponent {
 
   constructor(private _user: UserService, private _firestore: FireStoreService, private router: Router, private dialogRef: MatDialogRef<CreateRunComponent>) {
     this.getPreset();
+    this.getModeInfo();
   }
 
   createRun() {
@@ -63,6 +65,10 @@ export class CreateRunComponent {
     this.runData = this.tournamentPreset.runData;
   }
 
+  getModeInfo() {
+    this.modeInfo = RunMod.getInfo(this.runData.mode);
+  }
+
   changeMode() {
     if (this.runData.mode === RunMode.Lockout) {
         if (this.runData.teams === 1)
@@ -75,6 +81,7 @@ export class CreateRunComponent {
       this.categoryOptions = Category.GetGategories();
       this.runData.category = CategoryOption.NoLts;
     }
+    this.getModeInfo();
   }
   changeTeams() {
     if (this.runData.mode === RunMode.Lockout && this.runData.teams === 1) {

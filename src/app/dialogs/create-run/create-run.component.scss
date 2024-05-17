@@ -23,6 +23,38 @@
 }
 
 .option {
+    &-info {
+        display: flex;
+        & p {
+            flex-shrink: 1;
+            display: inline-block;
+        }
+
+        &-tooltip {
+            flex-shrink: 1;
+            height: 22px;
+            margin-top: 20px;
+            margin-left: 4px;
+
+            & svg {
+            height: 22px;
+            margin-right: 8px;
+            & g {
+                fill: #929292;
+                transition: 0.22s;
+            }
+            &:hover {
+                cursor: pointer;
+                & g {
+                    fill: #a56d06;
+                }
+            }
+            &:focus {
+                outline: none;
+            }
+        }
+        }
+    }
     & p {
         margin: 20px 4px 2px;
     }
