@@ -20,6 +20,7 @@ import { Subscription } from 'rxjs';
 import { RunImportComponent } from 'src/app/dialogs/run-import/run-import.component';
 import { RecordingPackage } from 'src/app/common/recording/recording-package';
 import { LevelSymbol } from 'src/app/common/opengoal/levels';
+import { RunSetupState } from 'src/app/common/run/run-setup-state';
 
 @Component({
   selector: 'app-run',
@@ -49,11 +50,13 @@ export class RunComponent implements OnDestroy {
       let runId = params.get('id');
 
       this.runHandler = new RunHandler(runId ?? undefined, firestoreService, _user, dialog, zone);
-      this.runSetupSubscription = this.runHandler.runSetupCompleteSubject.subscribe(runData => {
-        if (!runData || !this.runHandler.run || this.mainLocalPlayer) return;
+      this.runSetupSubscription = this.runHandler.runSetupSubject.subscribe(state => {
+        if (state === null || !this.runHandler.run || (this.mainLocalPlayer && state === RunSetupState.SetupComplete)) return;
         
-        this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.connectionHandler, this.runHandler.run, this.zone);
-        this.runHandler.setupLocalMainPlayer(this.mainLocalPlayer);
+        if (state === RunSetupState.SetupComplete) {
+          this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.connectionHandler, this.runHandler.run, this.zone);
+          this.runHandler.setupLocalMainPlayer(this.mainLocalPlayer);
+        }
       });
     });
   }

@@ -3,7 +3,7 @@ import { RunMod, RunMode } from "./run-mode";
 import { LocalPlayerData } from "../user/local-player-data";
 import { Lobby } from "../firestore/lobby";
 import { UserService } from "src/app/services/user.service";
-import { BehaviorSubject, Subscription, finalize } from "rxjs";
+import { BehaviorSubject, Subscription } from "rxjs";
 import { DataChannelEvent } from "../peer/data-channel-event";
 import { EventType } from "../peer/event-type";
 import { PlayerState } from "../player/player-state";
@@ -12,11 +12,10 @@ import { Task } from "../opengoal/task";
 import { LobbyUser } from "../firestore/lobby-user";
 import { UserBase } from "../user/user";
 import { FireStoreService } from "src/app/services/fire-store.service";
-import { CitadelOption, RunData } from "./run-data";
+import { RunData } from "./run-data";
 import { Player } from "../player/player";
 import { Category, CategoryOption } from "./category";
 import { DbRun } from "../firestore/db-run";
-import { UserPositionData } from "../socket/position-data";
 import { GameState } from "../opengoal/game-state";
 import pkg from 'app/package.json';
 import { OgCommand } from "../socket/og-command";
@@ -35,7 +34,7 @@ import { RecordingPackage } from "../recording/recording-package";
 import { Recording } from "../recording/recording";
 import { MultiplayerState } from "../opengoal/multiplayer-state";
 import { Team } from "./team";
-import { SyncType } from "../level/sync-type";
+import { RunSetupState } from "./run-setup-state";
 import { RunState } from "./run-state";
 import { PbTeamPlayers } from "../peer/pb-team-players";
 import { PlayerBase } from "../player/player-base";
@@ -59,7 +58,7 @@ export class RunHandler {
     userSetupSubscription: Subscription;
     dataChannelSubscription: Subscription;
     pbSubscription: Subscription;
-    runSetupCompleteSubject: BehaviorSubject<RunData | null> = new BehaviorSubject<RunData | null>(null);
+    runSetupSubject: BehaviorSubject<RunSetupState | null> = new BehaviorSubject<RunSetupState | null>(null);
 
     
     constructor(lobbyId: string | undefined,
@@ -111,6 +110,13 @@ export class RunHandler {
         this.onLobbyChange();
     }
 
+    private markConnected() {
+        if (this.connected)
+            return;
+        this.connected = true;
+        this.runSetupSubject.next(RunSetupState.Connected);
+    }
+
     async onLobbyChange() {
         const userId = this.userService.getMainUserId();
         if (!this.lobby) return;
@@ -145,7 +151,7 @@ export class RunHandler {
                 await this.updateFirestoreLobby();
                 this.connectionHandler.setupMaster(this.firestoreService.getLobbyDoc(this.lobby!.id));
             }
-            this.connected = true;
+            this.markConnected();
         }
 
 
@@ -231,7 +237,7 @@ export class RunHandler {
         console.log("Creating Run!");
         this.run = new Run(this.lobby.runData, this.isPracticeTool);
 
-        this.runSetupCompleteSubject.next(this.run.data);
+        this.runSetupSubject.next(RunSetupState.SetupComplete);
 
         //set run info
         if (this.run.data.category == 0)
@@ -393,7 +399,7 @@ export class RunHandler {
                             this.runSyncLocalPlayer(localPlayer, this.run!, true);
                         });
                     }
-                    this.connected = true;
+                    this.markConnected();
                 });
                 break;
 

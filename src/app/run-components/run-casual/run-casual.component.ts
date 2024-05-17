@@ -16,9 +16,9 @@ import { TaskStatus } from '../../common/opengoal/task-status';
 import { AddPlayerComponent, AddPlayerPackage, AddPlayerResponse } from '../../dialogs/add-player/add-player.component';
 import { OG } from '../../common/opengoal/og';
 import { LocalSave } from 'src/app/common/level/local-save';
-import { OgCommand } from 'src/app/common/socket/og-command';
 import { Subscription } from 'rxjs';
 import { SyncType } from 'src/app/common/level/sync-type';
+import { RunSetupState } from 'src/app/common/run/run-setup-state';
 
 @Component({
   selector: 'app-run-casual',
@@ -47,15 +47,19 @@ export class RunCasualComponent implements OnDestroy {
       let runId = params.get('id');
 
       this.runHandler = new RunHandler(runId ?? undefined, firestoreService, _user, dialog, zone);
-      this.runSetupSubscription = this.runHandler.runSetupCompleteSubject.subscribe(runData => {
-        if (!runData || !this.runHandler.run || this.mainLocalPlayer) return;
-        
-        this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.connectionHandler, this.runHandler.run, this.zone);
-        this.runHandler.setupLocalMainPlayer(this.mainLocalPlayer);
-        setTimeout(() => {
-          this.switchTeam(0);
-          this.toggleReady();
-        }, 1000);
+      this.runSetupSubscription = this.runHandler.runSetupSubject.subscribe(state => {
+        if (state === null || !this.runHandler.run || (this.mainLocalPlayer && state === RunSetupState.SetupComplete)) return;
+
+        if (state === RunSetupState.SetupComplete) {
+          this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.connectionHandler, this.runHandler.run, this.zone);
+          this.runHandler.setupLocalMainPlayer(this.mainLocalPlayer);
+        }
+        else if (state === RunSetupState.Connected) {
+          setTimeout(() => {
+            this.switchTeam(0);
+            this.toggleReady();
+          }, 1000);
+        }
         
       });
     });
@@ -69,10 +73,8 @@ export class RunCasualComponent implements OnDestroy {
     const dialogSubscription = dialogRef.afterClosed().subscribe((response: AddPlayerResponse | undefined) => {
       dialogSubscription.unsubscribe();
 
-      if (response?.player && this.runHandler.run) {
+      if (response?.player && this.runHandler.run)
         this.runHandler.setupLocalSecondaryPlayer(response.player, response.teamId);
-        response.player.socketHandler.addCommand(OgCommand.StartRun);
-      }
     });
   }
 

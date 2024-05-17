@@ -140,7 +140,7 @@ export class SocketHandler {
                 break;
 
             case RunState.CountdownSpawning:
-                if (!this.run.forPracticeTool)
+                if (!this.run.forPracticeTool && !this.run.isMode(RunMode.Casual))
                     this.addCommand(OgCommand.StartRun);
                 break;
 
@@ -192,7 +192,10 @@ export class SocketHandler {
                 this.addCommand(OgCommand.DisableDebugMode);
                 if (!this.run.hasSpectator(this.user.id)) {
                     const lastCheckpoint = this.run?.getPlayer(this.user.id)?.gameState.currentCheckpoint;
-                    if (lastCheckpoint) this.forceCheckpointSpawn(lastCheckpoint);
+                    if (lastCheckpoint) 
+                        this.forceCheckpointSpawn(lastCheckpoint);
+                    else if (this.run.isMode(RunMode.Casual))
+                        this.addCommand(OgCommand.StartRun);
 
                     setTimeout(() => {
                         this.inMidRunRestartPenaltyWait = 0;
@@ -310,48 +313,48 @@ export class SocketHandler {
     
 
     importRunStateHandler(runStateHandler: RunStateHandler, syncType: SyncType) {
-      this.isSyncing = true;
-      this.cleanupHandler.importRunState(runStateHandler, this, this.gameState, syncType);
-  
-      setTimeout(() => {
-        if (this.inMidRunRestartPenaltyWait === 0)
-          this.isSyncing = false;
-      }, 100);
-    }
-  
-    checkDesync(run: Run) {
-      if (!this.localTeam) this.localTeam = run.getPlayerTeam(this.user.id, true);
-      let syncType = this.isInSync();
-      if (!this.localTeam || syncType === SyncType.None || this.isSyncing) return;
-  
-  
-      this.isSyncing = true;
-      setTimeout(() => {  //give the player some time to catch up if false positive
-        syncType = this.isInSync();
-        if (syncType === SyncType.None) {
-          this.isSyncing = false;
-          return;
-        }
-        
-        this.importRunStateHandler(this.localTeam!.runState, syncType);
-  
-      }, 1000);
-      }
-  
-    private isInSync(): SyncType {
-      let syncType: SyncType = SyncType.None;
-      if (!this.localTeam) return syncType;
-      
-      if (this.localTeam.runState.orbCount > this.gameState.orbCount)
-          syncType = SyncType.Soft;
-        /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
-          syncType = SyncType.Hard;
-        }*/
-        if (this.localTeam.runState.cellCount > this.gameState.cellCount)
-          syncType = SyncType.Hard;
+        this.isSyncing = true;
+        this.cleanupHandler.importRunState(runStateHandler, this, this.gameState, syncType);
     
-        return syncType;
+        setTimeout(() => {
+          if (this.inMidRunRestartPenaltyWait === 0)
+            this.isSyncing = false;
+        }, 100);
       }
+    
+      checkDesync(run: Run) {
+        if (!this.localTeam) this.localTeam = run.getPlayerTeam(this.user.id, true);
+        let syncType = this.isInSync();
+        if (!this.localTeam || syncType === SyncType.None || this.isSyncing) return;
+    
+    
+        this.isSyncing = true;
+        setTimeout(() => {  //give the player some time to catch up if false positive
+          syncType = this.isInSync();
+          if (syncType === SyncType.None) {
+            this.isSyncing = false;
+            return;
+          }
+          
+          this.importRunStateHandler(this.localTeam!.runState, syncType);
+    
+        }, 1000);
+        }
+    
+      private isInSync(): SyncType {
+        let syncType: SyncType = SyncType.None;
+        if (!this.localTeam) return syncType;
+        
+        if (this.localTeam.runState.orbCount > this.gameState.orbCount)
+            syncType = SyncType.Soft;
+          /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
+            syncType = SyncType.Hard;
+          }*/
+          if (this.localTeam.runState.cellCount > this.gameState.cellCount)
+            syncType = SyncType.Hard;
+      
+          return syncType;
+        }
 
     resetGetRecordings(): UserRecording[] {
         const recordings = this.userPositionRecordings;
@@ -709,6 +712,8 @@ export class SocketHandler {
         this.sendSocketPackageToOpengoal();
         this.players = [];
     }
+
+
 
     protected checkUpdateSplit(task: GameTaskLevelTime) {
         if (this.run.isMode(RunMode.Casual))
