@@ -17,6 +17,7 @@ import { OG } from '../../common/opengoal/og';
 import { MatDialog } from '@angular/material/dialog';
 import { RecordingFile } from 'src/app/common/recording/recording-file';
 import { RecordingPackage } from 'src/app/common/recording/recording-package';
+import { RunSetupState } from 'src/app/common/run/run-setup-state';
 
 @Component({
   selector: 'app-practice',
@@ -69,22 +70,25 @@ export class PracticeComponent implements OnDestroy {
   constructor(public _user: UserService, firestoreSerivce: FireStoreService, private dialog: MatDialog, private zone: NgZone) {
 
     this.runHandler = new RunHandler(undefined, firestoreSerivce, _user, dialog, zone, true);
-    this.runSetupSubscription = this.runHandler.runSetupSubject.subscribe(runData => {
-      if (!runData || !this.runHandler.run || this.mainLocalPlayer) return;
+    this.runSetupSubscription = this.runHandler.runSetupSubject.subscribe(state => {
+      if (state === null || !this.runHandler.run || (this.mainLocalPlayer && state === RunSetupState.SetupComplete)) return;
       
-      this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.connectionHandler, this.runHandler.run, this.zone);
-      this._user.resetLocalPlayersToNewMain(this.mainLocalPlayer);
-      this.runHandler.connectionHandler.reLinkLocalPeers(this._user.localUsers);
-      this.runHandler.run.timer.setStartConditions(1);
       
-
-      //timer end listener
-      this.timerStateSubscription = this.mainLocalPlayer.socketHandler.timer.timerSubject.subscribe(state => {
-        this.timerInWait = state === RunState.Waiting;
+      if (state === RunSetupState.SetupComplete) {
+        this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.connectionHandler, this.runHandler.run, this.zone);
+        this._user.resetLocalPlayersToNewMain(this.mainLocalPlayer);
+        this.runHandler.connectionHandler.reLinkLocalPeers(this._user.localUsers);
+        this.runHandler.run.timer.setStartConditions(1);
         
-        if (state === RunState.Ended)
-          this.stopPlaybackIfIsRunning();
-      });
+  
+        //timer end listener
+        this.timerStateSubscription = this.mainLocalPlayer.socketHandler.timer.timerSubject.subscribe(state => {
+          this.timerInWait = state === RunState.Waiting;
+          
+          if (state === RunState.Ended)
+            this.stopPlaybackIfIsRunning();
+        });
+      }
     });
 
 
@@ -108,6 +112,7 @@ export class PracticeComponent implements OnDestroy {
 
   startRecording() {
     if (!this.mainLocalPlayer) return;
+    console.log("here");
     this.stopPlaybackIfIsRunning();
     this.currentRecording = this.usePlayback === "true" ? "all" : "none";
 
