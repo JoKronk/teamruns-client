@@ -43,6 +43,7 @@
         "AppImage"
       ],
       "artifactName": "${name}-${version}-linux.${ext}",
+      "icon": "src/assets/icon.png",
       "category": "Game"
     }
   },
