@@ -296,7 +296,7 @@ export class SocketHandler {
 
         //--- Buffer Size Game Side ---
         if (target.interactionBufferCount) {
-            this.self = target.interactionBufferCount;
+            this.self.interactionBufferRateLimit = target.interactionBufferCount;
             for (let player of this.players)
                 player.interactionBufferRateLimit = target.interactionBufferCount;
         }
