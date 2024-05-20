@@ -40,6 +40,7 @@ import { PbTeamPlayers } from "../peer/pb-team-players";
 import { PlayerBase } from "../player/player-base";
 import { PlayerType } from "../player/player-type";
 import { ConnectionHandler } from "../peer/connection-handler";
+import { DbUsersCollection } from "../firestore/db-users-collection";
 
 export class RunHandler {
 
@@ -434,8 +435,7 @@ export class RunHandler {
                         //run validation
                         this.checkTeamGameVersions(playerTeam); //!TODO: Should be check earlier than run end.
                         this.run.checkRunEndValid();
-                        if (playerTeam.runIsValid && !playerTeam.players.every(x => signedInPlayers.includes(x.user.id)))
-                            playerTeam.checkMarkRunInvalid(false, "Run invalid for leaderboard, includes Guest User(s).");
+                        this.validateTeamPlayersSignedIn(collection);
                         if (!playerTeam.runIsValid && playerTeam.runInvalidReason) 
                             this.userService.sendNotification(playerTeam.runInvalidReason.startsWith("Run invalid") ? playerTeam.runInvalidReason : ("Run Invalid: " + playerTeam.runInvalidReason), 10000);
 
@@ -640,6 +640,24 @@ export class RunHandler {
         }
     }
 
+    validateTeamPlayersSignedIn(userCollection: DbUsersCollection | undefined = undefined) {
+        if (!this.run || !this.lobby) return;
+        let userIds: string[] | undefined = userCollection === undefined ? undefined : userCollection.users.flatMap(x => x.id);
+
+        for (let team of this.run.teams) {
+            if (!team.runIsValid)
+                continue;
+
+            for (let player of team.players) {
+                let lobbyPlayer = this.lobby.users.find(x => x.user.id === player.user.id);
+                if (userIds && userIds.includes(player.user.id) || lobbyPlayer && lobbyPlayer.type !== PlayerType.User) {
+                    team.checkMarkRunInvalid(false, "Run invalid for leaderboard, includes Guest User(s).");
+                    break;
+                }
+            }
+        }
+    }
+
     checkTeamGameVersions(playerTeam: Team) {
         if (!this.run?.isMode(RunMode.Casual)) {
             if (!playerTeam.everyoneOnSameVersion())
@@ -660,6 +678,7 @@ export class RunHandler {
         this.run.teams.forEach(team => {
             team.resetForRun(false);
         });
+        this.validateTeamPlayersSignedIn();
 
         let fetchedPbs: DbPb[] = [];
 
