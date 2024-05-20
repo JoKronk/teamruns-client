@@ -279,11 +279,11 @@ export class SocketHandler {
                 if (state.justSpawned || state.justSaved || state.justLoaded || previousCheckpoint !== this.gameState.currentCheckpoint) {
                     if (state.justSpawned || this.inMidRunRestartPenaltyWait) {
                         setTimeout(() => {
-                            this.checkDesync(this.run!);
+                            this.checkDesync();
                         }, 1000);
                     }
                     else
-                        this.checkDesync(this.run!);
+                        this.checkDesync();
                 }
             }
         }
@@ -312,49 +312,49 @@ export class SocketHandler {
     }
     
 
-    importRunStateHandler(runStateHandler: RunStateHandler, syncType: SyncType) {
-        this.isSyncing = true;
-        this.cleanupHandler.importRunState(runStateHandler, this, this.gameState, syncType);
-    
-        setTimeout(() => {
-          if (this.inMidRunRestartPenaltyWait === 0)
-            this.isSyncing = false;
-        }, 100);
+  importRunStateHandler(runStateHandler: RunStateHandler, syncType: SyncType) {
+    this.isSyncing = true;
+    this.cleanupHandler.importRunState(runStateHandler, this, this.gameState, syncType);
+
+    setTimeout(() => {
+      if (this.inMidRunRestartPenaltyWait === 0)
+        this.isSyncing = false;
+    }, 100);
+  }
+
+  checkDesync() {
+    if (!this.localTeam) this.localTeam = this.run.getPlayerTeam(this.user.id, true);
+    let syncType = this.isInSync();
+    if (!this.localTeam || syncType === SyncType.None || this.isSyncing) return;
+
+
+    this.isSyncing = true;
+    setTimeout(() => {  //give the player some time to catch up if false positive
+      syncType = this.isInSync();
+      if (syncType === SyncType.None) {
+        this.isSyncing = false;
+        return;
       }
-    
-      checkDesync(run: Run) {
-        if (!this.localTeam) this.localTeam = run.getPlayerTeam(this.user.id, true);
-        let syncType = this.isInSync();
-        if (!this.localTeam || syncType === SyncType.None || this.isSyncing) return;
-    
-    
-        this.isSyncing = true;
-        setTimeout(() => {  //give the player some time to catch up if false positive
-          syncType = this.isInSync();
-          if (syncType === SyncType.None) {
-            this.isSyncing = false;
-            return;
-          }
-          
-          this.importRunStateHandler(this.localTeam!.runState, syncType);
-    
-        }, 1000);
-        }
-    
-      private isInSync(): SyncType {
-        let syncType: SyncType = SyncType.None;
-        if (!this.localTeam) return syncType;
-        
-        if (this.localTeam.runState.orbCount > this.gameState.orbCount)
-            syncType = SyncType.Soft;
-          /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
-            syncType = SyncType.Hard;
-          }*/
-          if (this.localTeam.runState.cellCount > this.gameState.cellCount)
-            syncType = SyncType.Hard;
       
-          return syncType;
-        }
+      this.importRunStateHandler(this.localTeam!.runState, syncType);
+
+    }, 1000);
+    }
+
+  private isInSync(): SyncType {
+    let syncType: SyncType = SyncType.None;
+    if (!this.localTeam) return syncType;
+    
+    if (this.localTeam.runState.orbCount > this.gameState.orbCount)
+        syncType = SyncType.Soft;
+      /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
+        syncType = SyncType.Hard;
+      }*/
+      if (this.localTeam.runState.cellCount > this.gameState.cellCount)
+        syncType = SyncType.Hard;
+  
+      return syncType;
+    }
 
     resetGetRecordings(): UserRecording[] {
         const recordings = this.userPositionRecordings;
