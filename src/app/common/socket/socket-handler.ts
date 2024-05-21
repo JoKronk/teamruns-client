@@ -271,7 +271,7 @@ export class SocketHandler {
     
                 const previousCheckpoint = this.gameState.currentCheckpoint;
                 this.gameState = state;
-                if (!state.currentCheckpoint)
+                if (!state.currentCheckpoint || state.currentCheckpoint === "title-start")
                     this.gameState.currentCheckpoint = previousCheckpoint;
                 
                 if (state.justSpawned || state.justSaved || state.justLoaded || previousCheckpoint !== this.gameState.currentCheckpoint) {

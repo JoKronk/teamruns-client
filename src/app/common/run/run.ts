@@ -130,7 +130,7 @@ export class Run {
 
         const oldCheckpoint = player.gameState.currentCheckpoint;
         player.gameState = state;
-        if (!state.currentCheckpoint)
+        if (!state.currentCheckpoint || state.currentCheckpoint === "title-start")
             player.gameState.currentCheckpoint = oldCheckpoint;
 
         if (state.debugModeActive && this.timer.isPastCountdown()) {
