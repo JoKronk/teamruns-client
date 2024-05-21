@@ -19,7 +19,7 @@ export class Category {
                 key: CategoryOption.AllCells
             },
             {
-                displayName: "100%",
+                displayName: "100% (Beta)",
                 key: CategoryOption.Hundo
             },
             {
@@ -35,7 +35,7 @@ export class Category {
                 key: CategoryOption.AllFlies
             },
             {
-                displayName: "All Orbs",
+                displayName: "All Orbs (Beta)",
                 key: CategoryOption.AllOrbs
             },
         ]
