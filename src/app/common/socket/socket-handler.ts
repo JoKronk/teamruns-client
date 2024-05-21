@@ -188,7 +188,6 @@ export class SocketHandler {
             //handle mid game restarts
             if (this.run?.timer.runState !== RunState.Waiting && !this.run.forPracticeTool) {
                 this.inMidRunRestartPenaltyWait = 10;
-                this.isSyncing = false;
                 this.addCommand(OgCommand.DisableDebugMode);
                 if (!this.run.hasSpectator(this.user.id)) {
                     const lastCheckpoint = this.run?.getPlayer(this.user.id)?.gameState.currentCheckpoint;
@@ -199,7 +198,6 @@ export class SocketHandler {
 
                     setTimeout(() => {
                         this.inMidRunRestartPenaltyWait = 0;
-                        this.isSyncing = false;
                         if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode))
                             this.addCommand(OgCommand.TargetRelease);
                     }, (this.inMidRunRestartPenaltyWait * 1000));
@@ -315,33 +313,27 @@ export class SocketHandler {
   importRunStateHandler(runStateHandler: RunStateHandler, syncType: SyncType) {
     this.isSyncing = true;
     this.cleanupHandler.importRunState(runStateHandler, this, this.gameState, syncType);
-
-    setTimeout(() => {
-      if (this.inMidRunRestartPenaltyWait === 0)
-        this.isSyncing = false;
-    }, 100);
   }
 
   checkDesync() {
     if (!this.localTeam) this.localTeam = this.run.getPlayerTeam(this.user.id, true);
-    let syncType = this.isInSync();
+    let syncType = this.checkGetSynctype();
     if (!this.localTeam || syncType === SyncType.None || this.isSyncing) return;
 
 
     this.isSyncing = true;
     setTimeout(() => {  //give the player some time to catch up if false positive
-      syncType = this.isInSync();
+      syncType = this.checkGetSynctype();
       if (syncType === SyncType.None) {
         this.isSyncing = false;
         return;
       }
-      
       this.importRunStateHandler(this.localTeam!.runState, syncType);
 
     }, 1000);
     }
 
-  private isInSync(): SyncType {
+  private checkGetSynctype(): SyncType {
     let syncType: SyncType = SyncType.None;
     if (!this.localTeam) return syncType;
     
@@ -354,6 +346,14 @@ export class SocketHandler {
         syncType = SyncType.Hard;
   
       return syncType;
+    }
+
+    private checkSyncingComplete() {
+        if (this.isSyncing)
+            return;
+
+        if (this.self.interactionBuffer.length === 0 && this.players.every(x => x.interactionBuffer.length === 0))
+            this.isSyncing = false;
     }
 
     resetGetRecordings(): UserRecording[] {
@@ -682,6 +682,8 @@ export class SocketHandler {
             //fill interaction from buffer if possible
             player.checkUpdateInteractionFromBuffer();
         });
+
+        this.checkSyncingComplete();
 
         await new Promise(r => setTimeout(r, this.positionUpdateRateMs));
         this.drawPlayers();
