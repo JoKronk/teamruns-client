@@ -16,7 +16,7 @@ export class RunMod {
         }
     }
 
-    public static endRunOnSigleTeamFinish(mode: RunMode): boolean {
+    public static endRunOnSiglePlayerFinish(mode: RunMode): boolean {
         switch (mode) {
             case RunMode.Lockout:
                 return true;

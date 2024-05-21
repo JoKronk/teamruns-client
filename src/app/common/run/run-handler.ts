@@ -417,10 +417,10 @@ export class RunHandler {
                     this.run.addSplit(new Task(endTask));
 
                     this.run.endPlayerRun(event.userId, endTask.name === Task.forfeit);
-                    RunMod.endRunOnSigleTeamFinish(this.run.data.mode) ? this.run.endAllTeamsRun(endTask) : this.run?.endTeamRun(endTask);
+                    RunMod.endRunOnSiglePlayerFinish(this.run.data.mode) ? this.run.endAllTeamsRun(endTask) : this.run?.endTeamRun(endTask);
                     
                     let playerTeam = this.run.getPlayerTeam(userId);
-                    if (!playerTeam || !playerTeam.everyoneHasFinished())
+                    if (!playerTeam || !this.run.everyoneHasFinished(playerTeam))
                         return;
 
                     let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings();

@@ -90,12 +90,23 @@ export class Run {
         let player = this.getPlayer(playerId);
         if (!player) return;
         player.state = forfeit ? PlayerState.Forfeit : PlayerState.Finished;
-        if (this.everyoneHasFinished() || (!forfeit && RunMod.endRunOnSigleTeamFinish(this.data.mode)))
+        if (this.everyoneHasFinished())
             this.timer.runState = RunState.Ended;
     }
 
-    everyoneHasFinished(): boolean {
-        return this.teams.every(x => x.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit));
+    everyoneHasFinished(team: Team | undefined = undefined): boolean {
+        if (team === undefined) {
+            if (RunMod.endRunOnSiglePlayerFinish(this.data.mode) && this.teams.some(x => x.players.some(y => y.state === PlayerState.Finished)))
+                return true;
+            
+            return this.teams.every(x => x.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit));
+        }
+        else {
+            if (RunMod.endRunOnSiglePlayerFinish(this.data.mode) && team.players.some(y => y.state === PlayerState.Finished))
+                return true;
+            
+            return team.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit);
+        }
     }
 
     endTeamRun(task: GameTaskLevelTime): void {
