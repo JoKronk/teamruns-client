@@ -21,7 +21,7 @@ export class SocketHandlerLockout extends SocketHandler {
 
     override onTask(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         
-        const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction, isSelfInteraction ? this.user.displayName : playerTeam.players.find(x => x.user.id === interaction.userId)?.user.name ?? "Unknown");
+        const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction, isSelfInteraction ? this.user.displayName : playerTeam.players.find(x => x.user.id === interaction.userId)?.user.name ?? this.players.find(x => x.userId === interaction.userId)?.getCurrentUsername() ?? "Unknown");
 
         //check duped cell buy
         if (isSelfInteraction && Task.isCellWithCost(task.name) && this.localTeam && !interaction.interCleanup && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution)) {
@@ -46,13 +46,20 @@ export class SocketHandlerLockout extends SocketHandler {
             }
         }
 
-        if (isCell && (this.run.isFFA ? !this.run.hasSplit(task.name) : isNewTaskStatus)) { // end run split added in EndPlayerRun event
-            this.zone.run(() => {
-                this.run.addSplit(new Task(task));
-            });
-        }
-        if (isCell && isTeammate)
+        if (isCell) { // end run split added in EndPlayerRun event
+            if (this.run.isFFA ? !this.run.hasSplit(task.name) : isNewTaskStatus) {
+                this.zone.run(() => {
+                    this.run.addSplit(new Task(task));
+                });
+            }
             this.checkUpdateSplit(task);
+
+            //open warp gate on new hub cell
+            //!TODO: could probably been done cleaner than to generate one gate task per cell
+            let gateTask = Task.generateIneractionForHubGate(Task.getTaskHub(task.name));
+            if (gateTask && (this.localTeam?.runState.isNewTaskStatus(gateTask) ?? false))
+                this.addSelfInteraction(gateTask);
+        }
 
         this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
 

@@ -432,6 +432,10 @@ export class SocketHandler {
         player.interactionBuffer.push(InteractionData.getInteractionValues(interaction));
     }
 
+    addSelfInteraction(interaction: InteractionData) {
+        this.self.interactionBuffer.push(InteractionData.getInteractionValues(interaction));
+    }
+
     updatePlayerInfo(userId: string, playerInfo: RemotePlayerInfo | undefined) {
         if (!playerInfo) return;
 

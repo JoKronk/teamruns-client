@@ -187,6 +187,46 @@ export class Task {
         ]).includes(gameTask);
     }
 
+    public static generateIneractionForHubGate(hub: number) : InteractionData | undefined {
+        switch(hub) {
+            case 2:
+                return {
+                    interType: InteractionType.gameTask,
+                    interAmount: 103,
+                    interStatus: 4,
+                    interName: "village2-levitator",
+                    interParent: "entity-pool",
+                    interLevel: "village2",
+                    interCleanup: true,
+                    time: 0
+                }
+            case 3:
+                return {
+                    interType: InteractionType.gameTask,
+                    interAmount: 105,
+                    interStatus: 3,
+                    interName: "village3-button",
+                    interParent: "entity-pool",
+                    interLevel: "village3",
+                    interCleanup: true,
+                    time: 0
+                }
+            case 4:
+                return {
+                    interType: InteractionType.gameTask,
+                    interAmount: 111,
+                    interStatus: 6,
+                    interName: "village4-button",
+                    interParent: "entity-pool",
+                    interLevel: "lavatube",
+                    interCleanup: true,
+                    time: 0
+                }
+            default:
+                return undefined;
+        }
+    }
+
     public static nameFromEnum(task: number): string {
         if (task > 116) return "none";
         return([
@@ -307,6 +347,120 @@ export class Task {
         "leaving-misty",
         "assistant-village3",
         "max"][task]);
+    }
+
+
+    public static getTaskHub(taskName: string): number {
+        switch (taskName) {
+            case "training-gimmie":
+            case "training-door":
+            case "training-climb":
+            case "training-buzzer":
+            case "village1-yakow":
+            case "village1-mayor-money":
+            case "village1-uncle-money":
+            case "village1-oracle-money1":
+            case "village1-oracle-money2":
+            case "village1-buzzer":
+            case "jungle-eggtop":
+            case "jungle-lurkerm":
+            case "jungle-tower":
+            case "jungle-fishgame":
+            case "jungle-plant":
+            case "jungle-buzzer":
+            case "jungle-canyon-end":
+            case "jungle-temple-door":
+            case "beach-ecorocks":
+            case "beach-pelican":
+            case "beach-flutflut":
+            case "beach-seagull":
+            case "beach-cannon":
+            case "beach-gimmie":
+            case "beach-sentinel":
+            case "beach-buzzer":
+            case "misty-muse":
+            case "misty-boat":
+            case "misty-warehouse":
+            case "misty-cannon":
+            case "misty-bike":
+            case "misty-buzzer":
+            case "misty-bike-jump":
+            case "misty-eco-challenge":
+            case "firecanyon-buzzer":
+            case "firecanyon-end":
+                return 1;
+            case "village2-gambler-money":
+            case "village2-geologist-money":
+            case "village2-warrior-money":
+            case "village2-oracle-money1":
+            case "village2-oracle-money2":
+            case "village2-buzzer":
+            case "swamp-billy":
+            case "swamp-flutflut":
+            case "swamp-battle":
+            case "swamp-tether-1":
+            case "swamp-tether-2":
+            case "swamp-tether-3":
+            case "swamp-tether-4":
+            case "swamp-buzzer":
+            case "sunken-platforms":
+            case "sunken-pipe":
+            case "sunken-slide":
+            case "sunken-room":
+            case "sunken-sharks":
+            case "sunken-buzzer":
+            case "sunken-top-of-helix":
+            case "sunken-spinning-room":
+            case "rolling-race":
+            case "rolling-robbers":
+            case "rolling-moles":
+            case "rolling-plants":
+            case "rolling-lake":
+            case "rolling-buzzer":
+            case "rolling-ring-chase-1":
+            case "rolling-ring-chase-2":
+            case "ogre-boss":
+            case "ogre-secret":
+            case "ogre-end":
+            case "ogre-buzzer":
+                return 2;
+            case "village3-miner-money1":
+            case "village3-miner-money2":
+            case "village3-miner-money3":
+            case "village3-miner-money4":
+            case "village3-oracle-money1":
+            case "village3-oracle-money2":
+            case "village3-extra1":
+            case "village3-buzzer":
+            case "snow-eggtop":
+            case "snow-ram":
+            case "snow-fort":
+            case "snow-ball":
+            case "snow-bunnies":
+            case "snow-buzzer":
+            case "snow-bumpers":
+            case "snow-cage":
+            case "cave-gnawers":
+            case "cave-dark-crystals":
+            case "cave-dark-climb":
+            case "cave-robot-climb":
+            case "cave-swing-poles":
+            case "cave-spider-tunnel":
+            case "cave-platforms":
+            case "cave-buzzer":
+            case "lavatube-end":
+            case "lavatube-buzzer":
+                return 3;
+            case "citadel-sage-blue":
+            case "citadel-sage-red":
+            case "citadel-sage-yellow":
+            case "citadel-sage-green":
+            case "citadel-buzzer":
+            case "finalboss-movies":
+                return 4;
+            default:
+                return 0;
+        }
     }
 
     public static defaultSplitName(taskName: string): string | undefined {
