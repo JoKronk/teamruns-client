@@ -337,7 +337,7 @@ export class SocketHandler {
     let syncType: SyncType = SyncType.None;
     if (!this.localTeam) return syncType;
     
-    if (this.localTeam.runState.orbCount > this.gameState.orbCount)
+    if (this.localTeam.runState.orbCount > this.gameState.orbCount || this.gameState.orbCount > (this.localTeam.runState.orbCount + 5))
         syncType = SyncType.Soft;
       /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
         syncType = SyncType.Hard;
