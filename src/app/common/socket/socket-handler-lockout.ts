@@ -136,10 +136,7 @@ export class SocketHandlerLockout extends SocketHandler {
     }
 
     override onEco(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-        if (!isTeammate)
-            positionData.resetCurrentInteraction();
-        else
-            super.onEco(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
+        super.onEco(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
     override onFish(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
@@ -164,38 +161,23 @@ export class SocketHandlerLockout extends SocketHandler {
     }
     
     override onEnemyDeath(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-        if (!isTeammate)
-            positionData.resetCurrentInteraction();
-        else
-            super.onEnemyDeath(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
+        super.onEnemyDeath(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
     override onPeriscope(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-        if (!isTeammate)
-            positionData.resetCurrentInteraction();
-        else
-            super.onPeriscope(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
+        super.onPeriscope(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
     override onSnowBumper(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-        if (!isTeammate)
-            positionData.resetCurrentInteraction();
-        else
-            super.onSnowBumper(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
+        super.onSnowBumper(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
     override onDarkCrystal(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-        if (!isTeammate)
-            positionData.resetCurrentInteraction();
-        else
-            super.onDarkCrystal(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
+        super.onDarkCrystal(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
     
     override onLpcChamber(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
-        if (!isTeammate)
-            positionData.resetCurrentInteraction();
-        else
-            super.onLpcChamber(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
+        super.onLpcChamber(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
 
 
