@@ -41,7 +41,7 @@ class OpenGoal {
         }
 
         //start REPL
-        replInstance = spawn(path.join(ogPath, "goalc"), [], {detached: true, shell: true});
+        replInstance = spawn(path.join(ogPath, "goalc"), [], {detached: true, shell: true, stdio: [ 'ignore', 'pipe', 'ignore']});
 
         //On kill
         replInstance.stdout.on('end', () => {
@@ -67,6 +67,10 @@ class OpenGoal {
             replSocket.on('close', () => {
                 replIsRunning = false;
             });
+        });
+
+        replInstance.stdout.on('data', (data) => {
+
         });
         
         await sleep(2500);
@@ -124,33 +128,24 @@ class OpenGoal {
     }
 
     startGK(ogPath, port) {
-        let openGoalClient = spawn(path.join(ogPath, "gk"), ["--socketport", port, "--game", "jak1", "--", "-boot", "-fakeiso", "-debug"], { detached: true, shell: true });
+        let openGoalClient = spawn(path.join(ogPath, "gk"), ["--ocketport", port, "--game", "jak1", "--", "-boot", "-fakeiso", "-debug"], { detached: true, shell: true, stdio: [ 'ignore', 'pipe', 'ignore'] });
         let newInstance = {port: port, client: openGoalClient};
         openGoalInstances.push(newInstance);
-        
-        //On error
-        openGoalClient.stderr.on('data', (data) => {
-            const msg = data.toString();
-            if (!msg.startsWith("[DECI2] Got message:")) {
-                console.log("OG Error!: " + data.toString());
-            }
-        });
 
         //On kill
         openGoalClient.stdout.on('end', () => {
             win.webContents.send("og-closed", port);
             openGoalInstances = openGoalInstances.filter(x => x.port !== port);
         });
+        
+        //We need to consume the data from stdout since it has limited buffer capacity and will pause gk if not consumed
+        openGoalClient.stdout.on('data', (data) => {
 
-        //On Full Start
-        openGoalClient.on('spawn', () => {
-            
         });
     }
 
     killAllOgInstances() {
         openGoalInstances.forEach(instance => {
-            instance.client.stdin.pause();
             if (isWindows())
                 spawn("taskkill", ["/pid", instance.client.pid, '/f', '/t']);
             else
