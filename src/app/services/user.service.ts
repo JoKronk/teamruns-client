@@ -56,7 +56,8 @@ export class UserService implements OnDestroy {
     let localUser = this.localUsers.find(x => x.user.id === user.id);
     const isMainUser: boolean = user.id === this.user.id;
     const port = isMainUser ? OG.mainPort : localUser ? localUser.socketHandler.socketPort : (OG.mainPort - this.localUsers.length);
-    
+
+    user.isLaunching = true;
     (window as any).electron.send('og-start-game', port);
     
     if (!localUser) {

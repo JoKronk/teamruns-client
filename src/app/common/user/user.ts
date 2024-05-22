@@ -24,6 +24,7 @@ export class User extends UserBase {
     saveRecordingsLocally: boolean = true;
     hasSignedIn: boolean = false;
     
+    isLaunching: boolean = false;
     gameLaunched: boolean = false;
     controllerPort: number | undefined = undefined;
 

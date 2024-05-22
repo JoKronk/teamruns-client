@@ -182,6 +182,7 @@ export class SocketHandler {
 
         //--- Connection ---
         if (target.connected && !this.socketConnected) {
+            this.user.isLaunching = false;
             this.socketPackage.version = "v" + pkg.version;
             this.socketPackage.username = this.user.displayName;
 

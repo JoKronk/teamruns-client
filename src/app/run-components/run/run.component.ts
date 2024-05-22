@@ -80,6 +80,10 @@ export class RunComponent implements OnDestroy {
     });
   }
 
+  launchGame() {
+    this._user.startGame(this._user.user, undefined, undefined);
+  }
+
   forfeit() {
     if (!this.runHandler.run) return;
 
