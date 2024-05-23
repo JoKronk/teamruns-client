@@ -198,6 +198,11 @@ export class PracticeComponent implements OnDestroy {
 
   shiftPlaybackEnd() {
     if (!this.mainLocalPlayer) return;
+
+    //fetch new levels if skipped backwards
+    if (this.recordingDragStart - this.mainLocalPlayer.socketHandler.timer.totalMs > 0)
+      this.mainLocalPlayer.socketHandler.updateRecordingsLevels();
+
     this.mainLocalPlayer.socketHandler.timer.shiftTimerByMs(this.recordingDragStart - this.mainLocalPlayer.socketHandler.timer.totalMs);
     this.recordingDragStart = 0;
 

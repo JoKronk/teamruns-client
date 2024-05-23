@@ -556,6 +556,21 @@ export class SocketHandler {
             player.fillPositionValues();
     }
 
+    updateRecordingsLevels() {
+        for (let recording of this.recordings) {
+            const currentPlayer = this.players.find(x => x.positionData.userId === recording.id);
+            if (!currentPlayer || !currentPlayer.recordingDataIndex)
+                continue;
+
+            for (let i = currentPlayer.recordingDataIndex; i < recording.playback.length; i++) {
+                if (recording.playback[i].cL !== undefined) {
+                    currentPlayer.positionData.currentLevel = recording.playback[i].cL;
+                    break;
+                }
+            }
+        }
+    }
+
     updatePlayerPosition(positionData: UserPositionData) {
 
         const isLocalUser = positionData.userId === this.user.id;
@@ -647,7 +662,7 @@ export class SocketHandler {
                                         currentPlayer.positionData.tgtState = recording.playback[i].tS;
                                         newDataIndexHasAnimationState = true;
                                     }
-                                    if (recording.playback[i].cL !== undefined) { //make sure we don't skip any animation states
+                                    if (recording.playback[i].cL !== undefined) { //make sure we don't skip any level changes
                                         currentPlayer.positionData.currentLevel = recording.playback[i].cL;
                                     }
                                 }
