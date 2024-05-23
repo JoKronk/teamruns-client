@@ -122,7 +122,7 @@ export class DbRun {
                         if (!previousPb || previousPb.endTimeMs > team.endTimeMs) {
                             leaderboard.pbs = leaderboard.pbs.sort((a, b) => a.endTimeMs - b.endTimeMs);
                             
-                            let newPb = DbPb.convertToFromRun(this, team, leaderboard.pbs.length === 0 || leaderboard.pbs[0].endTimeMs > team.endTimeMs);
+                            let newPb = DbPb.convertToFromRun(this, team, leaderboard.pbs.length === 0 || leaderboard.pbs[0].endTimeMs > team.endTimeMs, (recordings !== undefined && recordings.length !== 0));
                             newPb.isCurrentPb = true;
                             leaderboard.pbs.push(DbLeaderboardPb.convertToFromPb(newPb)); //needs to come before pb being added since it removes id
                             
@@ -142,7 +142,7 @@ export class DbRun {
                                     oldPbSubscription.unsubscribe();
                                     if (oldDbPb) {
                                         oldDbPb.isCurrentPb = false;
-                                        if (!oldDbPb.wasWr) {
+                                        if (!oldDbPb.wasWr && oldDbPb.playbackAvailable) {
                                             oldDbPb.playbackAvailable = false;
                                             firestoreService.deleteRecording(oldDbPb.id);
                                         }

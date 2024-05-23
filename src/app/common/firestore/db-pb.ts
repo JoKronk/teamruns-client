@@ -18,14 +18,14 @@ export class DbPb extends DbLeaderboardPb {
     isCurrentPb: boolean;
 
 
-    static convertToFromRun(run: DbRun, team: DbTeam, isWr: boolean): DbPb {
+    static convertToFromRun(run: DbRun, team: DbTeam, isWr: boolean, hasPlayback: boolean): DbPb {
         let pb = new DbPb();
 
         pb.version = run.data.buildVersion;
         pb.date = run.date;
         pb.tasks = team.tasks;
         pb.endTimeMs = team.endTimeMs;
-        pb.playbackAvailable = true;
+        pb.playbackAvailable = hasPlayback;
 
         pb.id = crypto.randomUUID(); //id can't be same as runId since there might be multiple teams pbing which would create duplicates
         pb.runId = run.id ?? "";
