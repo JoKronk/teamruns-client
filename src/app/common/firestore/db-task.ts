@@ -5,13 +5,13 @@ export class DbTask {
     isCell: boolean;
     obtainedByName: string;
     obtainedById: string;
-    obtainedAt: string;
+    obtainedAtMs: number;
 
     constructor(task: Task) {
         this.gameTask = task.gameTask;
         this.isCell = task.isCollectedCell ?? Task.resultsInCell(task.gameTask);
         this.obtainedByName = task.obtainedByName;
         this.obtainedById = task.obtainedById;
-        this.obtainedAt = task.obtainedAt;
+        this.obtainedAtMs = task.obtainedAtMs;
     }
 }

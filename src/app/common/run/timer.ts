@@ -231,7 +231,7 @@ export class Timer {
 
   public static timeToMs(time: string): number {
       if (time === "DNF")
-          return 0;
+          return -1;
       let timeArray: number[] = time.replace(".", ":").split(":").map(x => +x).reverse();
       return (timeArray[0] * 100) + (timeArray[1] * 1000) + (!timeArray[2] ? 0 : timeArray[2] * 60000) + (!timeArray[3] ? 0 : timeArray[3] * 3600000);
   }

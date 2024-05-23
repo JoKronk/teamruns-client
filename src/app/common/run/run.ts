@@ -113,12 +113,12 @@ export class Run {
         let team = this.getPlayerTeam(task.user.id);
         if (!team) return;
         if (team.players.every(y => y.state === PlayerState.Finished))
-            team.endTimeMs = Timer.timeToMs(task.timerTime);
+            team.endTimeMs = task.timerTimeMs;
     }
 
     endAllTeamsRun(task: GameTaskLevelTime): void {
         this.teams.forEach((team, index) => {
-            this.teams[index].endTimeMs = Timer.timeToMs(task.timerTime);
+            this.teams[index].endTimeMs = task.timerTimeMs;
         });
         this.timer.runState = RunState.Ended;
     }

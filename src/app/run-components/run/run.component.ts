@@ -93,12 +93,12 @@ export class RunComponent implements OnDestroy {
 
         this._user.localUsers.forEach(localPlayer => {
           localPlayer.state = PlayerState.Forfeit;
-          const task = new GameTaskLevelTime(Task.forfeit, localPlayer.user.getUserBaseWithDisplayName(), this.runHandler.run?.getPlayer(localPlayer.user.id)?.currentLevel ?? "", this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
+          const task = new GameTaskLevelTime(Task.forfeit, localPlayer.user.getUserBaseWithDisplayName(), this.runHandler.run?.getPlayer(localPlayer.user.id)?.currentLevel ?? "", this.runHandler.run!.timer.totalMs, TaskStatus.unknown);
           this.runHandler.connectionHandler.sendEvent(EventType.EndPlayerRun, localPlayer.user.id, task);
         });
 
         this.runHandler.selfImportedRecordings.forEach(recPlayer => {
-          const task = new GameTaskLevelTime(Task.forfeit, recPlayer, this.runHandler.run?.getPlayer(recPlayer.id)?.currentLevel ?? "", this.runHandler.run!.getTimerShortenedFormat(), TaskStatus.unknown);
+          const task = new GameTaskLevelTime(Task.forfeit, recPlayer, this.runHandler.run?.getPlayer(recPlayer.id)?.currentLevel ?? "", this.runHandler.run!.timer.totalMs, TaskStatus.unknown);
           this.runHandler.connectionHandler.sendEvent(EventType.EndPlayerRun, recPlayer.id, task);
         });
       }

@@ -29,7 +29,7 @@ export class TimerPackage {
             return;
 
         this.splitName = split?.name ?? Task.defaultSplitName(task.name) ?? task.name;
-        this.splitTime = task.timerTime;
+        this.splitTime = Timer.msToTimeFormat(task.timerTimeMs, true, true);
         this.splitPlayer = task.user.name;
         this.splitTimesave = timeSave ?? "";
     }

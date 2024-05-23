@@ -754,7 +754,7 @@ export class SocketHandler {
             return;
         }
 
-        const timesave = Timer.timeToMs(task.timerTime) - Timer.timeToMs(pbTask.obtainedAt);
+        const timesave = task.timerTimeMs - pbTask.obtainedAtMs;
         this.socketPackage.timer?.updateSplit(split, task, Timer.msToTimesaveFormat(timesave));
     }
     

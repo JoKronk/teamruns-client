@@ -1,4 +1,5 @@
 import { DbTask } from "../firestore/db-task";
+import { Timer } from "../run/timer";
 import { InteractionData } from "../socket/interaction-data";
 import { GameTaskLevelTime } from "./game-task";
 import { InteractionType } from "./interaction-type";
@@ -9,6 +10,7 @@ export class Task {
     isCollectedCell: boolean;
     obtainedByName: string;
     obtainedById: string;
+    obtainedAtMs: number;
     obtainedAt: string;
 
     constructor(task: GameTaskLevelTime) {
@@ -16,7 +18,8 @@ export class Task {
         this.isCollectedCell = Task.isCellCollect(task.name, task.status);
         this.obtainedById = task.user.id;
         this.obtainedByName = task.user.name;
-        this.obtainedAt = task.timerTime;
+        this.obtainedAtMs = task.timerTimeMs;
+        this.obtainedAt = Timer.msToTimeFormat(task.timerTimeMs, true, true);
     }
 
     public static fromDbTask(task: DbTask): Task {
@@ -25,7 +28,8 @@ export class Task {
             isCollectedCell: task.isCell,
             obtainedByName: task.obtainedByName,
             obtainedById: task.obtainedById,
-            obtainedAt: task.obtainedAt
+            obtainedAtMs: task.obtainedAtMs,
+            obtainedAt: Timer.msToTimeFormat(task.obtainedAtMs, true, true)
         };
     }
 

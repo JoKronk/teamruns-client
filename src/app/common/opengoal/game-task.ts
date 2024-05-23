@@ -28,12 +28,12 @@ export class GameTask {
 }
 
 export class GameTaskLevelTime extends GameTask {
-    timerTime: string;
+    timerTimeMs: number;
     level: string;
 
-    constructor(name: string, user: UserBase, level: string, timerTime: string, status: string = TaskStatus.needResolution) {
+    constructor(name: string, user: UserBase, level: string, timerTimeMs: number, status: string = TaskStatus.needResolution) {
         super(name, user, status);
-        this.timerTime = timerTime;
+        this.timerTimeMs = timerTimeMs;
         this.level = level;
     }
 
@@ -42,7 +42,7 @@ export class GameTaskLevelTime extends GameTask {
             name: positionData.interName,
             status: TaskStatus.nameFromEnum(positionData.interStatus),
             user: new UserBase(positionData.userId, positionData.username),
-            timerTime: Timer.msToTimeFormat(positionData.time, true, true),
+            timerTimeMs: positionData.time,
             level: positionData.interLevel
         }
     }
@@ -53,7 +53,7 @@ export class GameTaskLevelTime extends GameTask {
             name: interaction.interName,
             status: TaskStatus.nameFromEnum(interaction.interStatus),
             user: new UserBase(positionData.userId, username),
-            timerTime: Timer.msToTimeFormat(interaction.time, true, true),
+            timerTimeMs: interaction.time,
             level: interaction.interLevel
         }
     }
