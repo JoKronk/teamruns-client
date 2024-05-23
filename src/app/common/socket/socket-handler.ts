@@ -41,6 +41,7 @@ import { GameState } from "../opengoal/game-state";
 import { SyncType } from "../level/sync-type";
 import { RunStateHandler } from "../level/run-state-handler";
 import { NotificationPackage } from "./notification-package";
+import { SyncState } from "../level/sync-state";
 
 export class SocketHandler {
 
@@ -59,7 +60,7 @@ export class SocketHandler {
 
 
     inMidRunRestartPenaltyWait: number = 0;
-    isSyncing: boolean = false;
+    syncState: SyncState = SyncState.Available;
     
     protected self: CurrentPlayerData;
     protected players: CurrentPlayerData[] = [];
@@ -104,7 +105,7 @@ export class SocketHandler {
         this.shutdownListener = (window as any).electron.receive("og-closed", (port: number) => {
             if (port == this.socketPort) {
                 this.inMidRunRestartPenaltyWait = 0;
-                this.isSyncing = false
+                this.syncState = SyncState.Available;
                 this.socketConnected = false;
                 this.socketCommandBuffer = [];
                 this.socketPackage.timer = undefined;
@@ -312,21 +313,21 @@ export class SocketHandler {
     
 
   importRunStateHandler(runStateHandler: RunStateHandler, syncType: SyncType) {
-    this.isSyncing = true;
+    this.syncState = SyncState.Syncing;
     this.cleanupHandler.importRunState(runStateHandler, this, this.gameState, syncType);
   }
 
   checkDesync() {
     if (!this.localTeam) this.localTeam = this.run.getPlayerTeam(this.user.id, true);
     let syncType = this.checkGetSynctype();
-    if (!this.localTeam || syncType === SyncType.None || this.isSyncing) return;
+    if (!this.localTeam || syncType === SyncType.None || this.syncState !== SyncState.Available) return;
 
 
-    this.isSyncing = true;
+    this.syncState = SyncState.PreCheck;
     setTimeout(() => {  //give the player some time to catch up if false positive
       syncType = this.checkGetSynctype();
       if (syncType === SyncType.None) {
-        this.isSyncing = false;
+        this.syncState = SyncState.Available;
         return;
       }
       this.importRunStateHandler(this.localTeam!.runState, syncType);
@@ -350,11 +351,11 @@ export class SocketHandler {
     }
 
     private checkSyncingComplete() {
-        if (this.isSyncing)
+        if (this.syncState !== SyncState.Syncing || !this.self)
             return;
 
         if (this.self.interactionBuffer.length === 0 && this.players.every(x => x.interactionBuffer.length === 0))
-            this.isSyncing = false;
+            this.syncState = SyncState.Available;
     }
 
     resetGetRecordings(): UserRecording[] {
