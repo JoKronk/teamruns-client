@@ -25,7 +25,7 @@ export class RunImportComponent implements OnDestroy {
   usersCollection?: DbUsersCollection;
   players: number = this.run.getPlayerTeam(this._user.getMainUserId())?.players.length ?? 1;
   playerOptions: number[] = [1, 2, 3, 4, 5, 6];
-  sameLevel: boolean = this.run.data.requireSameLevel;
+  sameLevel: boolean = this.run.data.sameLevel;
 
   leaderboardPbs: number = 0; 
   leaderboardHasLoaded: boolean = false; 
@@ -70,7 +70,7 @@ export class RunImportComponent implements OnDestroy {
   }
 
   changePlayerCount() {
-    this.sameLevel = this.players === 1 ? false : this.run.data.requireSameLevel;
+    this.sameLevel = this.players === 1 ? false : this.run.data.sameLevel;
     this.updateContent();
   }
 

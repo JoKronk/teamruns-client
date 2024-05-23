@@ -93,7 +93,7 @@ export class DbRun {
         
         if (playerCounts.length === 0) return;
         
-        return firestoreService.getLeaderboards(this.data.category, this.data.requireSameLevel, playerCounts).pipe(
+        return firestoreService.getLeaderboards(this.data.category, this.data.sameLevel, playerCounts).pipe(
                 map(dbLeaderboards => {
                     let pbUsers: PbTeamPlayers[] = [];
                     
@@ -103,7 +103,7 @@ export class DbRun {
                     playerCounts.forEach(count => {
                         let leaderboard = dbLeaderboards.find(x => x.players === count);
                         if (!leaderboard)
-                            leaderboards.push(new DbLeaderboard(this.data.category, this.data.requireSameLevel, count));
+                            leaderboards.push(new DbLeaderboard(this.data.category, this.data.sameLevel, count));
                     });
         
                     

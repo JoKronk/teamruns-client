@@ -48,7 +48,7 @@
             </div>
             <div *ngIf="runData.mode !== runMode.Casual">
                 <br />
-                <label matTooltip="Require players to be in the same level for cell pickups." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.requireSameLevel">Same level</label>
+                <label matTooltip="Require players to be in the same level for cell pickups." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.sameLevel">Same level</label>
             </div>
             
             <div *ngIf="runData.mode !== runMode.Casual && runData.category === 0">

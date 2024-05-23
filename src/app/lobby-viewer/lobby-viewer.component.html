@@ -2,7 +2,7 @@
     <h2>{{ lobby.runData.name }}</h2>
     <span>
         {{ categoryOptions[lobby.runData.category].displayName }}
-        <span class="subtext" *ngIf="lobby.runData.requireSameLevel" >(Same Level)</span>
+        <span class="subtext" *ngIf="lobby.runData.sameLevel" >(Same Level)</span>
     </span>
     <span>{{ runMode[lobby.runData.mode] }}</span>
 

@@ -16,7 +16,7 @@ export class GameSettings {
         if (runData) {
             this.category = runData.category;
             this.mode = runData.mode;
-            this.requireSameLevel = runData.requireSameLevel ? 1 : 0;
+            this.requireSameLevel = runData.sameLevel ? 1 : 0;
             this.allowSoloHubZoomers = runData.allowSoloHubZoomers ? 1 : 0;
             this.noLTS = runData.noLTS ? 1 : 0;
             this.citadelSkip = runData.citadelSkip;

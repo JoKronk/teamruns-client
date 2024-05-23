@@ -85,12 +85,12 @@ export class CreateRunComponent {
   }
   changeTeams() {
     if (this.runData.mode === RunMode.Lockout && this.runData.teams === 1) {
-        this.runData.requireSameLevel = false;
+        this.runData.sameLevel = false;
     }
   }
   changeCategory() {
     if (this.runData.mode === RunMode.Lockout && this.runData.teams === 1) {
-        this.runData.requireSameLevel = false;
+        this.runData.sameLevel = false;
     }
   }
 }

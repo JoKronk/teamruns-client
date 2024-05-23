@@ -15,7 +15,7 @@ export class RunData {
     submitPbs: boolean = true;
 
     //category settings
-    requireSameLevel: boolean = false;
+    sameLevel: boolean = false;
     allowSoloHubZoomers: boolean = false;
     noLTS: boolean = true;
     citadelSkip: CitadelOption = CitadelOption.Shared;
@@ -47,7 +47,7 @@ export class RunData {
         this.countdownSeconds = 5;
         this.mode = RunMode.Casual;
         this.submitPbs = false;
-        this.requireSameLevel = false;
+        this.sameLevel = false;
         this.allowSoloHubZoomers = true;
         this.noLTS = false;
         this.citadelSkip = CitadelOption.Normal;

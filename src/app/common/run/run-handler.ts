@@ -243,7 +243,7 @@ export class RunHandler {
 
         //set run info
         if (this.run.isMode(RunMode.Speedrun)) {
-            if (this.run.data.requireSameLevel)
+            if (this.run.data.sameLevel)
                 this.info = Category.GetGategories()[this.run.data.category].displayName + " (Same Level)";
             else
                 this.info = Category.GetGategories()[this.run.data.category].displayName;
@@ -705,7 +705,7 @@ export class RunHandler {
                 }
 
                 if (!pbAlreadyFetched) {
-                    const pbSubscription = this.firestoreService.getUsersCurrentPb(this.run.data.category, playerIds.length === 1 ? false : this.run.data.requireSameLevel, playerIds).subscribe(pbs => {
+                    const pbSubscription = this.firestoreService.getUsersCurrentPb(this.run.data.category, playerIds.length === 1 ? false : this.run.data.sameLevel, playerIds).subscribe(pbs => {
                         pbSubscription.unsubscribe();
                         if (pbs && pbs.length !== 0) { 
                             localPlayer.socketHandler.setCurrentPb(pbs[0]);

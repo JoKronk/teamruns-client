@@ -30,7 +30,7 @@ export class DbPb extends DbLeaderboardPb {
         pb.id = crypto.randomUUID(); //id can't be same as runId since there might be multiple teams pbing which would create duplicates
         pb.runId = run.id ?? "";
         pb.category = run.data.category;
-        pb.sameLevel = run.data.requireSameLevel;
+        pb.sameLevel = run.data.sameLevel;
         pb.userIds = DbPb.convertUserIds(team.players.flatMap(x => x.user.id));
         pb.playerCount = team.players.length;
         pb.cellCount = team.cellCount;
@@ -59,7 +59,7 @@ export class DbPb extends DbLeaderboardPb {
         if (pb === undefined)
             return false;
 
-        return pb.category === runData.category && pb.sameLevel === runData.requireSameLevel && DbRun.arraysEqual(playerIds, (pb instanceof Map) ? Array.from(pb.userIds.keys()) : Array.from(new Map(Object.entries(pb.userIds)).keys()));
+        return pb.category === runData.category && pb.sameLevel === runData.sameLevel && DbRun.arraysEqual(playerIds, (pb instanceof Map) ? Array.from(pb.userIds.keys()) : Array.from(new Map(Object.entries(pb.userIds)).keys()));
     }
 
 }
