@@ -116,11 +116,6 @@ export class FireStoreService {
 
   // ----- LEADERBOARDS -----
 
-  getAllLbs() {
-    this.checkAuthenticated();
-    return this.leaderboards.valueChanges({idField: 'id'});
-  }
-
   getLeaderboard(category: CategoryOption, sameLevel: boolean, players: number) {
     this.checkAuthenticated();
     return this.firestore.collection<DbLeaderboard>(CollectionName.leaderboards, ref => ref.where('category', '==', category).where('sameLevel', '==', sameLevel).where('players', '==', players)).valueChanges({idField: 'id'});
