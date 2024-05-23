@@ -43,15 +43,27 @@ export class FireStoreService {
     this.runs = firestore.collection<DbRun>(CollectionName.runs);
   }
 
-  async deleteCurrentUser(): Promise<boolean> {
-    if (this.currentUser) {
-      await this.currentUser.delete();
-      this.isAuthenticated = false;
-      await this.checkAuthenticated();
-      return true;
-    }
-    return false;
+  private async checkAuthenticated() { // !TODO: this currently has some problems in some case as not all firestore functions created here are async atm, but the user is usually already signed in in all use cases where it's not async..
+    if (this.isAuthenticated) return;
+    return await this.auth.signInWithEmailAndPassword(environment.firestoreUsername, environment.firestorePassword).then(() => {
+      this.isAuthenticated = true;
+      return;
+    });
   }
+
+  authenticateUsernamePw(user: DbUserProfile, pw: string) {
+    return this.auth.signInWithEmailAndPassword(user.name + "@teamruns.web.app", pw).then((userCredential) => {
+      this.isAuthenticated = true;
+      this.currentUser = userCredential.user;
+      return true;
+    }).catch(error => {
+      return false;
+    });
+  }
+
+
+
+  // ----- USER CREATION -----
 
   createUser(username: string, pw: string, setAsCurrent: boolean = true): Promise<AccountReply> { //firebase forces it to be an email to doesn't require it to exist..
     this.checkAuthenticated();
@@ -67,16 +79,6 @@ export class FireStoreService {
     });
   }
 
-  authenticateUsernamePw(user: DbUserProfile, pw: string) {
-    return this.auth.signInWithEmailAndPassword(user.name + "@teamruns.web.app", pw).then((userCredential) => {
-      this.isAuthenticated = true;
-      this.currentUser = userCredential.user;
-      return true;
-    }).catch(error => {
-      return false;
-    });
-  }
-
   async checkUserExists(name: string): Promise<boolean> {
     return this.auth.signInWithEmailAndPassword(name + "@teamruns.web.app", "none").then((userCredential) => {
       return true;
@@ -85,62 +87,33 @@ export class FireStoreService {
     });
   }
 
-  private async checkAuthenticated() { // !TODO: this currently has some problems in some case as not all firestore functions created here are async atm, but the user is usually already signed in in all use cases where it's not async..
-    if (this.isAuthenticated) return;
-    return await this.auth.signInWithEmailAndPassword(environment.firestoreUsername, environment.firestorePassword).then(() => {
-      this.isAuthenticated = true;
-      return;
-    });
+  async deleteCurrentUser(): Promise<boolean> {
+    if (this.currentUser) {
+      await this.currentUser.delete();
+      this.isAuthenticated = false;
+      await this.checkAuthenticated();
+      return true;
+    }
+    return false;
   }
 
-  // ----- GET -----
 
-  getOpenLobbies() {
-    this.checkAuthenticated();
-    return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('visible', '==', true)).valueChanges();
-  }
-  getLobbyDoc(id: string) {
-    this.checkAuthenticated();
-    return this.lobbies.doc(id);
-  }
 
-  getUserLobby(userId: string) {
-    this.checkAuthenticated();
-    return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('runners', 'array-contains', userId)).valueChanges();
-  }
+  // ----- USER DATA -----
 
   async getUsers() { // NOTE: why only all? All users are stored in one array currently to reduce read cost when getting users for leaderboards and such, TLDR: Cost savings (but a bit scuffed)
     await this.checkAuthenticated();
     return (await this.globalData.doc("users").ref.get()).data();
   }
 
-  async getRun(id: string) {
+  async updateUsers(userCollection: DbUsersCollection) {
     await this.checkAuthenticated();
-    return (await this.runs.doc(id).ref.get()).data();
+    await this.globalData.doc<DbUsersCollection>("users").set(JSON.parse(JSON.stringify(userCollection)));
   }
+  
 
-  getPb(id: string) {
-    this.checkAuthenticated();
-    return this.personalBests.doc(id).valueChanges({idField: 'id'});
-  }
 
-  getPbs() {
-    this.checkAuthenticated();
-    return this.personalBests.valueChanges({idField: 'id'});
-  }
-
-  downloadRecording(pbId: string): Observable<boolean> { //calls backend to fetch the file
-    this.checkAuthenticated();
-    return this.recordings.child(pbId).getDownloadURL().pipe(
-      map((url: URL) => {
-        (window as any).electron.send('recordings-download', url);
-        return true;
-      }),
-      catchError(error => {
-        return of (false);
-      })
-    );
-  }
+  // ----- LEADERBOARDS -----
 
   getAllLbs() {
     this.checkAuthenticated();
@@ -161,23 +134,38 @@ export class FireStoreService {
     this.checkAuthenticated();
     return this.firestore.collection<DbPb>(CollectionName.personalBests, ref => ref.where('category', '==', category).where('sameLevel', '==', sameLevel).where('playerCount', '==', playerCount).where('wasWr', '==', true)).valueChanges({idField: 'id'});
   }
-
-  getRuns() {
-    this.checkAuthenticated();
-    return this.runs.valueChanges({idField: 'id'});
-  }
-
-  getUserRuns(userId: string) {
-    this.checkAuthenticated();
-    return this.firestore.collection<DbRun>(CollectionName.runs, ref => ref.where('userIds.' + userId, '==', true)).valueChanges({idField: 'id'});
-  }
-
-  async getPreset(id: string) {
+  
+  async putLeaderboard(leaderboard: DbLeaderboard) {
     await this.checkAuthenticated();
-    return (await this.firestore.collection<Preset>(CollectionName.presets).doc<Preset>(id).ref.get()).data();
+    //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
+    const id = leaderboard.id;
+    leaderboard.clearFrontendValues();
+
+    console.log("Cat:" + leaderboard.category + " P:" + leaderboard.players + " S:" + leaderboard.sameLevel, leaderboard);
+    if (id)
+      await this.leaderboards.doc<DbLeaderboard>(id).set(JSON.parse(JSON.stringify(leaderboard)));
+    else
+      await this.leaderboards.doc<DbLeaderboard>().set(JSON.parse(JSON.stringify(leaderboard)));
   }
 
-  // ----- POST/PUT -----
+
+
+  // ----- LOBBIES -----
+  
+  getLobbyDoc(id: string) {
+    this.checkAuthenticated();
+    return this.lobbies.doc(id);
+  }
+
+  getOpenLobbies() {
+    this.checkAuthenticated();
+    return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('visible', '==', true)).valueChanges();
+  }
+
+  getUserLobby(userId: string) {
+    this.checkAuthenticated();
+    return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('runners', 'array-contains', userId)).valueChanges();
+  }
 
   async addLobby(lobby: Lobby) {
     await this.checkAuthenticated();
@@ -189,23 +177,45 @@ export class FireStoreService {
     await this.addLobby(lobby); //they happen to be the same command, just trying to avoid confusion when looking for an update method
   }
 
-  async addRun(run: DbRun) {
+  async deleteOldLobbies() {
     await this.checkAuthenticated();
-    //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
-    if (!(run instanceof DbRun))
-      run = Object.assign(new DbRun(), run);
-    
-    if (run.userIds instanceof Map)
-      run.userIds = Object.fromEntries(run.userIds);
-    
-    run.clearFrontendValues();
-    
-    const id = run.id;
-    run.id = undefined;
-    if (id)
-      await this.runs.doc<DbRun>(id).set(JSON.parse(JSON.stringify(run)));
-    else
-      await this.runs.doc<DbRun>().set(JSON.parse(JSON.stringify(run)));
+    const expireDate = new Date();
+    expireDate.setHours(expireDate.getHours() - 4);
+
+    (await this.lobbies.ref.get()).forEach(async (lobbySnapshot) => {
+      let lobby = lobbySnapshot.data();
+      if (new Date(lobby.creationDate) < expireDate) {
+        await this.deleteLobby(lobbySnapshot.id);
+      }
+    });
+  }
+
+  async deleteLobby(id: string) {
+    await this.checkAuthenticated();
+    await this.deleteLobbySubCollections(id);
+    await this.lobbies.doc<Lobby>(id).delete();
+  }
+  
+  async deleteLobbySubCollections(id: string) {
+    await this.checkAuthenticated();
+    let lobbyConnections = this.lobbies.doc<Lobby>(id).collection(CollectionName.peerConnections);
+    (await lobbyConnections.ref.get()).forEach(conSnapshot => {
+      lobbyConnections.doc<RTCPeer>(conSnapshot.id).delete();
+    });
+  }
+
+
+
+  // ----- PBS -----
+
+  getPbs() {
+    this.checkAuthenticated();
+    return this.personalBests.valueChanges({idField: 'id'});
+  }
+
+  getPb(id: string) {
+    this.checkAuthenticated();
+    return this.personalBests.doc(id).valueChanges({idField: 'id'});
   }
 
   getUsersCurrentPb(category: CategoryOption, sameLevel: boolean, userIds: string[]) {
@@ -227,14 +237,6 @@ export class FireStoreService {
     pb.clearFrontendValues();
     if (id)
       await this.personalBests.doc<DbPb>(id).set(JSON.parse(JSON.stringify(pb)));
-
-  }
-
-  async uploadRecording(recording: DbRecordingFile) {
-    await this.checkAuthenticated();
-    //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
-    
-    await this.recordings.child(recording.pdId).put(new Blob([JSON.stringify(recording)], {type: "application/json"}));
   }
 
   async updatePb(pb: DbPb) {
@@ -260,52 +262,72 @@ export class FireStoreService {
       return;
     });
   }
-  
-  async putLeaderboard(leaderboard: DbLeaderboard) {
+
+
+
+  // ----- RECORDINGS -----
+
+  downloadRecording(pbId: string): Observable<boolean> { //calls backend to fetch the file
+    this.checkAuthenticated();
+    return this.recordings.child(pbId).getDownloadURL().pipe(
+      map((url: URL) => {
+        (window as any).electron.send('recordings-download', url);
+        return true;
+      }),
+      catchError(error => {
+        return of (false);
+      })
+    );
+  }
+
+  async uploadRecording(recording: DbRecordingFile) {
     await this.checkAuthenticated();
     //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
-    const id = leaderboard.id;
-    leaderboard.clearFrontendValues();
+    
+    await this.recordings.child(recording.pdId).put(new Blob([JSON.stringify(recording)], {type: "application/json"}));
+  }
 
-    console.log("Cat:" + leaderboard.category + " P:" + leaderboard.players + " S:" + leaderboard.sameLevel, leaderboard);
+  async deleteRecording(pbId: string) {
+    await this.checkAuthenticated();
+    this.recordings.child(pbId).delete();
+  }
+
+
+
+  // ----- RUNS -----
+
+  async getRun(id: string) {
+    await this.checkAuthenticated();
+    return (await this.runs.doc(id).ref.get()).data();
+  }
+
+  getRuns() {
+    this.checkAuthenticated();
+    return this.runs.valueChanges({idField: 'id'});
+  }
+
+  getUserRuns(userId: string) {
+    this.checkAuthenticated();
+    return this.firestore.collection<DbRun>(CollectionName.runs, ref => ref.where('userIds.' + userId, '==', true)).valueChanges({idField: 'id'});
+  }
+
+  async addRun(run: DbRun) {
+    await this.checkAuthenticated();
+    //class needs to be object, Object.assign({}, run); doesn't work either due to nested objects
+    if (!(run instanceof DbRun))
+      run = Object.assign(new DbRun(), run);
+    
+    if (run.userIds instanceof Map)
+      run.userIds = Object.fromEntries(run.userIds);
+    
+    run.clearFrontendValues();
+    
+    const id = run.id;
+    run.id = undefined;
     if (id)
-      await this.leaderboards.doc<DbLeaderboard>(id).set(JSON.parse(JSON.stringify(leaderboard)));
+      await this.runs.doc<DbRun>(id).set(JSON.parse(JSON.stringify(run)));
     else
-      await this.leaderboards.doc<DbLeaderboard>().set(JSON.parse(JSON.stringify(leaderboard)));
-  }
-
-  async updateUsers(userCollection: DbUsersCollection) {
-    await this.checkAuthenticated();
-    await this.globalData.doc<DbUsersCollection>("users").set(JSON.parse(JSON.stringify(userCollection)));
-  }
-
-  // ----- DELETE -----
-
-  async deleteOldLobbies() {
-    await this.checkAuthenticated();
-    const expireDate = new Date();
-    expireDate.setHours(expireDate.getHours() - 4);
-
-    (await this.lobbies.ref.get()).forEach(async (lobbySnapshot) => {
-      let lobby = lobbySnapshot.data();
-      if (new Date(lobby.creationDate) < expireDate) {
-        await this.deleteLobby(lobbySnapshot.id);
-      }
-    });
-  }
-
-  async deleteLobby(id: string) {
-    await this.checkAuthenticated();
-    await this.deleteLobbySubCollections(id);
-    await this.lobbies.doc<Lobby>(id).delete();
-  }
-
-  async deleteLobbySubCollections(id: string) {
-    await this.checkAuthenticated();
-    let lobbyConnections = this.lobbies.doc<Lobby>(id).collection(CollectionName.peerConnections);
-    (await lobbyConnections.ref.get()).forEach(conSnapshot => {
-      lobbyConnections.doc<RTCPeer>(conSnapshot.id).delete();
-    });
+      await this.runs.doc<DbRun>().set(JSON.parse(JSON.stringify(run)));
   }
 
   async deleteRun(id: string) {
@@ -313,8 +335,13 @@ export class FireStoreService {
     await this.runs.doc<DbRun>(id).delete();
   }
 
-  async deleteRecording(pbId: string) {
+
+
+  // ----- OTHER -----
+
+  async getPreset(id: string) {
     await this.checkAuthenticated();
-    this.recordings.child(pbId).delete();
+    return (await this.firestore.collection<Preset>(CollectionName.presets).doc<Preset>(id).ref.get()).data();
   }
+
 }
