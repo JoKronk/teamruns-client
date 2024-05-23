@@ -186,7 +186,7 @@ export class RunCleanupHandler extends RunStateHandler {
             });
     
             level.interactions = [];
-        }, 4000);
+        }, 2500);
     }
 
 
