@@ -650,7 +650,7 @@ export class RunHandler {
 
             for (let player of team.players) {
                 let lobbyPlayer = this.lobby.users.find(x => x.user.id === player.user.id);
-                if (userIds && userIds.includes(player.user.id) || lobbyPlayer && lobbyPlayer.type !== PlayerType.User) {
+                if ((userIds && !userIds.includes(player.user.id)) || (lobbyPlayer && lobbyPlayer.type !== PlayerType.User)) {
                     team.checkMarkRunInvalid(false, "Run invalid for leaderboard, includes Guest User(s).");
                     break;
                 }
