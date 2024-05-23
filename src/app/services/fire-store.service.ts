@@ -17,6 +17,7 @@ import { AccountReply } from '../dialogs/account-dialog/account-dialog.component
 import { DbLeaderboardPb } from '../common/firestore/db-leaderboard-pb';
 import { DbRecordingFile } from '../common/firestore/db-recording-file';
 import { Observable, catchError, map, of } from 'rxjs';
+import pkg from 'app/package.json';
 
 @Injectable({
   providedIn: 'root'
@@ -159,7 +160,7 @@ export class FireStoreService {
 
   getOpenLobbies() {
     this.checkAuthenticated();
-    return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('visible', '==', true)).valueChanges();
+    return this.firestore.collection<Lobby>(CollectionName.lobbies, ref => ref.where('visible', '==', true).where('runData.buildVersion', '==', pkg.version)).valueChanges();
   }
 
   getUserLobby(userId: string) {

@@ -65,14 +65,19 @@
         }
     }
     &-old {
-        margin-top:52px;
+        margin-top:32px;
         color: #d49012;
+        font-size: 14px;
         & h2 {
             margin: 0;
             margin-bottom: 2px;
         }
         & table {
             background-color: rgba(0, 0, 0, 0.25) !important;
+            tr.run-row:hover {
+                background-color: rgba(58, 58, 58, 0.1);
+                cursor: default;
+            }
         }
 
     }

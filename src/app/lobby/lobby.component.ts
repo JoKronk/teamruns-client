@@ -24,7 +24,7 @@ export class LobbyComponent implements OnDestroy {
 
   buildVersion: string = pkg.version;
   avaliableLobbies: Lobby[] = [];
-  unavaliableLobbies: Lobby[] = [];
+  unavailableLobbies: Lobby[] = [];
   loaded: boolean = false;
 
   selectedLobby: Lobby | null = null;
@@ -60,10 +60,10 @@ export class LobbyComponent implements OnDestroy {
       });
 
       const version = this.buildVersion.slice(0, -2);
-      this.avaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) === version).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
+      this.avaliableLobbies = lobbies.filter(x => x.available).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
       this.dataSource = new MatTableDataSource(this.avaliableLobbies);
-      this.unavaliableLobbies = lobbies.filter(x => x.runData.buildVersion.slice(0, -2) !== version).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
-      this.dataSourceUnavailable = new MatTableDataSource(this.unavaliableLobbies);
+      this.unavailableLobbies = lobbies.filter(x => !x.available).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
+      this.dataSourceUnavailable = new MatTableDataSource(this.unavailableLobbies);
       this.selectedLobby = this.avaliableLobbies[0];
       this.loaded = true;
     });

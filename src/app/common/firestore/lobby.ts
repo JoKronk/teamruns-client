@@ -12,6 +12,7 @@ export class Lobby {
     users: LobbyUser[] = [];
     runnerIds: string[] = []; //for obs plugin to find user
     visible: boolean = true;
+    available: boolean = true;
     creatorId: string;
     creationDate: string = new Date().toUTCString(); //firestore saves it as string if Date and fetches it as string
     lastUpdateDate: string = new Date().toUTCString();

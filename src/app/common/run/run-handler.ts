@@ -149,6 +149,7 @@ export class RunHandler {
             this.lobby.users = this.lobby.users.filter(x => x.isRunner || this.run?.hasSpectator(x.user.id));
 
             if (this.connectionHandler.isOnlineInstant) {
+                this.lobby.visible = true;
                 await this.updateFirestoreLobby();
                 this.connectionHandler.setupMaster(this.firestoreService.getLobbyDoc(this.lobby!.id));
             }
@@ -556,10 +557,8 @@ export class RunHandler {
 
                 //check if everyone is ready, send start call if so
                 if (this.connectionHandler.isMaster() && event.value === PlayerState.Ready && this.run!.everyoneIsReady()) {
-                    if (this.run.data.mode !== RunMode.Casual) {
-                        this.lobby!.visible = false;
-                        this.updateFirestoreLobby();
-                    }
+                    if (this.run.data.mode !== RunMode.Casual)
+                        this.makeLobbyUnavailable();
 
                     this.connectionHandler.sendEventAsMain(EventType.StartRun, new Date().toUTCString());
                 }
@@ -603,6 +602,7 @@ export class RunHandler {
                             localPlayer.socketHandler.resetTimer();
                             localPlayer.state = PlayerState.Neutral;
                         });
+                        this.makeLobbyAvailable();
                     }
                 });
                 break;
@@ -717,6 +717,23 @@ export class RunHandler {
 
             localPlayer.updateTeam(this.run?.getPlayerTeam(localPlayer.user.id, localPlayer.user.id !== this.userService.getMainUserId())); //last param gives new team to none main FFA users
         }
+    }
+
+    makeLobbyAvailable() {
+        if (!this.lobby || (this.lobby.available && this.lobby.visible))
+            return;
+
+        this.lobby.visible = true;
+        this.lobby.available = true;
+        this.updateFirestoreLobby();
+    }
+
+    makeLobbyUnavailable() {
+        if (!this.lobby || !this.lobby.available)
+            return;
+
+        this.lobby.available = false;
+        this.updateFirestoreLobby();
     }
 
     async updateFirestoreLobby() {
