@@ -1,6 +1,9 @@
 <mat-sidenav-container fullscreen [dragdrop]="['.json']" (fileDropped)="onFilesDrop($event)">
   <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true">
-    <app-run-timer *ngIf="runHandler.run !== undefined" [timer]="runHandler.run.timer"></app-run-timer>
+    <div class="run-sidenav">
+      <app-run-timer *ngIf="runHandler.run !== undefined" class="run-sidenav-timer" [timer]="runHandler.run.timer"></app-run-timer>
+      <app-spawn-loader class="run-sidenav-checkpoints"></app-spawn-loader>
+    </div>
   </mat-sidenav>
 
   <mat-sidenav-content>

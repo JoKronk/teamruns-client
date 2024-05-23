@@ -19,7 +19,7 @@ import { OG } from '../../common/opengoal/og';
 import { Subscription } from 'rxjs';
 import { RunImportComponent } from 'src/app/dialogs/run-import/run-import.component';
 import { RecordingPackage } from 'src/app/common/recording/recording-package';
-import { LevelSymbol } from 'src/app/common/opengoal/levels';
+import { LevelSymbol } from 'src/app/common/opengoal/level';
 import { RunSetupState } from 'src/app/common/run/run-setup-state';
 
 @Component({

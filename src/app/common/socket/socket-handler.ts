@@ -33,7 +33,7 @@ import { ShortMemoryInteraction } from "./short-memory-interaction";
 import { RunData } from "../run/run-data";
 import { Subscription } from "rxjs";
 import { DbPb } from "../firestore/db-pb";
-import { LevelSymbol } from "../opengoal/levels";
+import { LevelSymbol } from "../opengoal/level";
 import { TaskSplit } from "../opengoal/task-split";
 import { ConnectionHandler } from "../peer/connection-handler";
 import { EventType } from "../peer/event-type";
@@ -420,6 +420,8 @@ export class SocketHandler {
 
     forceCheckpointSpawn(checkpoint: string) {
         this.socketPackage.forceContinue = checkpoint;
+        if (!this.drawPositions)
+            this.addCommand(OgCommand.None);
     }
 
     private addRecordingInteractionToBuffer(currentPlayer: CurrentPlayerData, positionData: RecordingPositionData) {

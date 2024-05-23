@@ -1,7 +1,7 @@
 import { Task } from "../opengoal/task";
 import { LevelStatus } from "./level-status";
 import { RunStateHandler } from "./run-state-handler";
-import { Level } from "../opengoal/levels";
+import { Level } from "../opengoal/level";
 import { SocketHandler } from "../socket/socket-handler";
 import { InteractionData, UserInteractionData } from "../socket/interaction-data";
 import { InteractionType } from "../opengoal/interaction-type";

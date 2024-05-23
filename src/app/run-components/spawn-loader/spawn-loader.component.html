@@ -1,0 +1,11 @@
+<div class="container">
+    <p class="title">Checkpoint Loader</p>
+
+    <div class="checkpoint-container">
+        <div class="checkpoint" *ngFor="let checkpoint of checkpoints" (click)="loadCheckpoint(checkpoint.gameCheckpoint)">
+            <h4><span>{{ checkpoint.levelName }}</span> - {{ checkpoint.name }}</h4>
+        </div>
+    </div>
+</div>
+
+<h1 class="backtext text-in-background" title="Loader">Loader</h1>

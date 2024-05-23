@@ -1,5 +1,5 @@
 import { InteractionType } from "../opengoal/interaction-type";
-import { Level } from "../opengoal/levels";
+import { Level } from "../opengoal/level";
 import { Task } from "../opengoal/task";
 import { TaskStatus } from "../opengoal/task-status";
 import { InteractionData, UserInteractionData } from "../socket/interaction-data";

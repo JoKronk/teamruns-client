@@ -1,0 +1,49 @@
+.container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.title {
+    flex-shrink: 1;
+    -webkit-user-select: none;
+    font-family: 'jak';
+    font-size: 22px;
+    margin: 18px 8px 14px;
+    color: #d49012;
+}
+
+.checkpoint {
+    flex-shrink: 1;
+    border-bottom: 1px solid #d49012;
+    padding: 5px 5px 10px;
+    transition: 0.2s;
+    &-container {
+        flex-shrink: 1;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    & h4, span {
+        margin: 3px;
+        color: #cecece;
+    }
+    & span {
+        color: #a56d06;
+    }
+    &:hover {
+        background-color: #494949;
+        cursor: pointer;
+    }
+}
+
+.backtext {
+    font-family: 'precursor';
+    transform: rotate(90deg);
+    font-size: 80px;
+    margin-left: 150px;
+    position: absolute;
+    bottom: 150px;
+    right: -100px;
+}

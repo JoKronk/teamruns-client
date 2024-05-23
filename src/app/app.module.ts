@@ -57,6 +57,7 @@ import { SaveLoaderComponent } from './run-components/save-loader/save-loader.co
 import { RunImportComponent } from './dialogs/run-import/run-import.component';
 import { FooterComponent } from './window-components/footer/footer.component';
 import { SnackbarImportComponent } from './snackbars/snackbar-import/snackbar-import.component';
+import { SpawnLoaderComponent } from './run-components/spawn-loader/spawn-loader.component';
 
 @NgModule({
   declarations: [
@@ -92,7 +93,8 @@ import { SnackbarImportComponent } from './snackbars/snackbar-import/snackbar-im
     SaveLoaderComponent,
     RunImportComponent,
     FooterComponent,
-    SnackbarImportComponent
+    SnackbarImportComponent,
+    SpawnLoaderComponent
   ],
   imports: [
     BrowserModule,

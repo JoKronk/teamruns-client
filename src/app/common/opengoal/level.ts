@@ -21,6 +21,54 @@ export class Level {
     static hub2 = "village2";
     static hub3 = "village3";
     
+    static getDisplayName(levelName: string | undefined) {
+        switch(levelName) {      
+            case Level.lavaTube:
+                return "Lavatube";
+            case Level.beach:
+                return "Beach";
+            case Level.citadel:
+                return "Citadel";
+            case Level.darkCave:
+                return "Spider Cave";
+            case Level.finalBoss:
+                return "Final Boss";
+            case Level.fireCanyon:
+                return "Fire Canyon";
+            case Level.jungle:
+                return "FJ";
+            case Level.plantBoss:
+                return "FJ";
+            case Level.spiderCave:
+                return "Spider Cave";
+            case Level.misty:
+                return "Misty";
+            case Level.mountainPass:
+                return "Mountain Pass";
+            case Level.spiderRobotCave:
+                return "Spider Cave";
+            case Level.basin:
+                return "Basin";
+            case Level.snowy:
+                return "Snowy";
+            case Level.lpcTopPart:
+                return "LPC";
+            case Level.lpcBottomPart:
+                return "LPC";
+            case Level.boggy:
+                return "Boggy";
+            case Level.geyser:
+                return "Geyser";
+            case Level.hub1:
+                return "Sandover";
+            case Level.hub2:
+                return "Rock Village";
+            case Level.hub3:
+                return "Volcanic Crate";
+            default:
+                return "";
+        }
+    }
 
     static toSymbol(levelName: string | undefined) {
         switch(levelName) {      
