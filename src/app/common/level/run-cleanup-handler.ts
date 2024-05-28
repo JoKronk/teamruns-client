@@ -43,9 +43,10 @@ export class RunCleanupHandler extends RunStateHandler {
             for (let level of unloadedLevels)
                 this.runLevelCleanup(level, socketHandler, gameState);
         }
-        
-        const orbAdjustCount = runStateHandler.orbCount - gameState.orbCount;
-        socketHandler.addOrbAdjustmentToCurrentPlayer(orbAdjustCount);
+
+        for (let level of runStateHandler.levels)
+            socketHandler.addSelfInteraction(this.generateOrbInteractionFromLevel(level));
+
     }
 
     private runLevelCleanup(level: LevelInteractions, socketHandler: SocketHandler, gameState: GameState) {

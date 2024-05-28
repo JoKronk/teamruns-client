@@ -81,6 +81,11 @@ export class CurrentPositionData {
         this.interaction = undefined;
     }
 
+    convertInteractionToCleanup() {
+        if (this.interaction)
+        this.interaction.interCleanup = true;
+    }
+
     resetCurrentInfo() {
         this.playerInfo = undefined;
     }

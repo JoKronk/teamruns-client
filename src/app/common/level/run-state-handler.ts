@@ -125,11 +125,11 @@ export class RunStateHandler {
 
         //add task status for level
         const level = this.getCreateLevel(interaction.interLevel);
-        this.pushLevelCleanupInteraction(level, interaction);
+        let newInteraction = this.pushLevelCleanupInteraction(level, interaction);
 
         //update counts
         const status: string = TaskStatus.nameFromEnum(interaction.interStatus);
-        if (Task.isCellCollect(interaction.interName, status) && !interaction.interCleanup) {
+        if (Task.isCellCollect(interaction.interName, status) && !interaction.interCleanup && newInteraction) {
             this.cellCount += 1;
             this.orbCount -= Task.cellCost(interaction);
         }
@@ -152,6 +152,32 @@ export class RunStateHandler {
         const level = this.getCreateLevel(interaction.interLevel);
         if (this.pushLevelCleanupInteraction(level, interaction) && !interaction.interCleanup)
             this.buzzerCount += 1;
+    }
+
+    addOrbInteraction(interaction: UserInteractionData, level: LevelInteractions | undefined = undefined) {
+        if (!level)
+            level = this.getCreateLevel(interaction.interLevel);
+        
+        const newInteraction = this.pushLevelCleanupInteraction(level, interaction);
+        if (newInteraction) {
+            this.orbCount += 1;
+            this.totalOrbCount += 1;
+            level.orbCount += 1;
+        }
+        return newInteraction;
+    }
+
+    generateOrbInteractionFromLevel(level: LevelInteractions | undefined = undefined): InteractionData {
+        return {
+            interType: InteractionType.money,
+            interAmount: this.orbCount,
+            interStatus: level !== undefined ? level.orbCount : 0,
+            interName: "",
+            interParent: "client",
+            interLevel: level !== undefined ? level.levelName : "none",
+            interCleanup: true,
+            time: 0
+        }
     }
 
     checkDupeAddOrbInteraction(teamPlayerIds: string[], selfId: string, interaction: UserInteractionData, level: LevelInteractions | undefined = undefined): boolean {

@@ -472,21 +472,6 @@ export class SocketHandler {
         this.socketPackage.timer?.sendResetPackage();
     }
 
-    addOrbAdjustmentToCurrentPlayer(adjustmentAmount: number, level: string | undefined = undefined) {
-        const orbReductionInteraction: UserInteractionData = {
-            interType: InteractionType.money,
-            interAmount: adjustmentAmount,
-            interStatus: 0,
-            interName: "money",
-            interParent: "entity-pool",
-            interLevel: level ?? "none",
-            interCleanup: true, //to make sure it does not run through player interaction handler
-            time: 0,
-            userId: this.user.id
-        };
-        this.addPlayerInteraction(orbReductionInteraction);
-    }
-
     stopDrawPlayer(userId: string) {
         let player = this.players.find(x => x.positionData.userId === userId);
         if (!player) return;
@@ -593,7 +578,7 @@ export class SocketHandler {
             if (isLocalUser) { //handled in draw update cycle for remote players
                 const runPlayer = this.run.getPlayer(player.positionData.userId);
                 if (this.run.timer.runState === RunState.Started && runPlayer && runPlayer.state !== PlayerState.Finished && runPlayer.state !== PlayerState.Forfeit)
-                this.handlePlayerInteractions(player.positionData);
+                    this.handlePlayerInteractions(player.positionData);
             }
         }
         else
@@ -680,7 +665,7 @@ export class SocketHandler {
         this.players.filter(x=> x.positionData.interaction && x.positionData.interaction.interType !== InteractionType.none).forEach(player => {
             const runPlayer = this.run.getPlayer(player.positionData.userId);
             if (this.run.timer.runState === RunState.Started && runPlayer && runPlayer.state !== PlayerState.Finished && runPlayer.state !== PlayerState.Forfeit)
-            this.handlePlayerInteractions(player.positionData);
+                this.handlePlayerInteractions(player.positionData);
         });
 
         //send data
@@ -782,7 +767,7 @@ export class SocketHandler {
         if (!this.localTeam || !playerTeam) return;
         const isTeammate = isSelfInteraction || (playerTeam.id === this.localTeam.id && (this.run.teams.length !== 1 || !RunMod.singleTeamEqualsFFA(this.run.data.mode)));
         //interactions on game side is executed if the target the interaction belongs to is set to interactive, to avoid use positionData.resetCurrentInteraction();
-        
+
         if (!isSelfInteraction && this.hasInteractionInMemory(interaction, playerTeam.id)) {
             positionData.resetCurrentInteraction();
             return;
@@ -858,12 +843,6 @@ export class SocketHandler {
 
         const task: GameTaskLevelTime = GameTaskLevelTime.fromCurrentPositionData(positionData, interaction, isSelfInteraction ? this.user.displayName : playerTeam.players.find(x => x.user.id === interaction.userId)?.user.name ?? "Unknown");
 
-        //check duped cell buy
-        if (isSelfInteraction && Task.isCellWithCost(task.name) && this.localTeam && !interaction.interCleanup && this.localTeam.runState.hasAtleastTaskStatus(interaction.interName, TaskStatus.needResolution)) {
-            this.addOrbAdjustmentToCurrentPlayer((Task.cellCost(interaction)), interaction.interLevel);
-            return;
-        }
-
         //set players to act as ghosts on run end
         if (Task.isRunEnd(interaction)) {
             const player = this.players.find(x => x.positionData.userId === positionData.userId);
@@ -884,23 +863,23 @@ export class SocketHandler {
         }
         this.updatePlayerInfo(positionData.userId, this.run.getRemotePlayerInfo(positionData.userId));
 
-        //handle none current user things
-        if (!isSelfInteraction && isTeammate) {
-
-            //task updates
-            if (isNewTaskStatus)
-                this.cleanupHandler.onInteraction(interaction);
-
-            //cell cost check
-            if (isCell && isTeammate && !interaction.interCleanup && Task.cellCost(interaction) !== 0)
-                this.addOrbAdjustmentToCurrentPlayer(-(Task.cellCost(interaction)), interaction.interLevel);
-        }
-
-        if (!isNewTaskStatus) return;
         
         //add to team run state
-        if (this.isLocalMainPlayer || this.run.isFFA)
+        if (isNewTaskStatus && (this.isLocalMainPlayer || this.run.isFFA)) {
             playerTeam.runState.addTaskInteraction(interaction);
+            
+            //adjust orb count for local peers if cell with cost
+            if (!this.run.isFFA && isCell && !interaction.interCleanup && Task.cellCost(interaction) !== 0) {
+                for (let localPlayer of this.connectionHandler.localPeers) {
+                    if (playerTeam.players.some(x => x.user.id === localPlayer.user.id && localPlayer.user.id !== positionData.userId))
+                        localPlayer.socketHandler.addSelfInteraction(playerTeam.runState.generateOrbInteractionFromLevel());
+                }
+            }
+        }
+
+        //add cleanup if teammate interaction from other level
+        if (!isSelfInteraction && isTeammate && isNewTaskStatus)
+            this.cleanupHandler.onInteraction(interaction);
     }
     
     protected onBuzzer(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
@@ -920,23 +899,25 @@ export class SocketHandler {
         
         let level = playerTeam.runState.getCreateLevel(interaction.interLevel);
         if (isTeammate && playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players.flatMap(x => x.user.id), this.user.id, interaction, level)) {
-            if (isSelfInteraction)
-                this.addOrbAdjustmentToCurrentPlayer(-1, interaction.interLevel);
-            else if (!interaction.interCleanup)
+            if (!isSelfInteraction && !interaction.interCleanup)
                 positionData.resetCurrentInteraction();
             
             return;
         }
         //if not orb dupe or if not part of team
-        else if ((this.isLocalMainPlayer || this.run.isFFA) && !interaction.interCleanup) {
-            if (playerTeam.runState.addInteraction(interaction, level)) {
-                playerTeam.runState.orbCount += 1;
-                playerTeam.runState.totalOrbCount += 1;
+        else if (!interaction.interCleanup) {
+            if ((this.isLocalMainPlayer || this.run.isFFA)) {
+                if (playerTeam.runState.addOrbInteraction(interaction, level))
+                    this.addSelfInteraction(playerTeam.runState.generateOrbInteractionFromLevel(level));
             }
+            else //just update for other local peers
+                this.addSelfInteraction(playerTeam.runState.generateOrbInteractionFromLevel(level));
         }
         
         if (!isSelfInteraction && isTeammate)
             this.cleanupHandler.onInteraction(interaction);
+
+        positionData.convertInteractionToCleanup();
     }
 
     protected onEco(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {

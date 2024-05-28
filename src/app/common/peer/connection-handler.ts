@@ -14,7 +14,7 @@ export class ConnectionHandler {
     private localMaster: RTCPeerMaster | undefined;
     localSlave: RTCPeerSlave | undefined; //not private yet as connection logs are read from here !TODO: Change/update
 
-    private localPeers: LocalPlayerData[];
+    localPeers: LocalPlayerData[];
     private mainLocalUser: User;
     lobby: Lobby | undefined;
     isOnlineInstant: boolean;
