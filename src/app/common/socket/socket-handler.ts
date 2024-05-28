@@ -398,8 +398,8 @@ export class SocketHandler {
         this.sendCommandsFromBuffer();
     }
 
-    sendNotification(message: string, time: number = 10) {
-        this.socketPackage.notification = new NotificationPackage(message, time);
+    sendNotification(message: string, timeSeconds: number = 10) {
+        this.socketPackage.notification = new NotificationPackage(message, timeSeconds);
     }
 
     private async sendCommandsFromBuffer(initStart: boolean = true) {

@@ -476,6 +476,13 @@ export class RunHandler {
                                 currentPbData = pb; //incase it gets updated while writing a comment
                             else {
                                 currentPbData = pb;
+                                //send in game notification
+                                for (let player of this.userService.localUsers) {
+                                    if (pbTeam.playerIds.includes(player.user.id))
+                                        player.socketHandler.sendNotification(pbTeam.leaderboardPosition === 0 ? "New World Record!" : "New PB! " + DbPb.placementNumberToString(pbTeam.leaderboardPosition) + " place.", 10);
+                                }
+
+                                //open pb dialog
                                 const dialogSubscription = this.dialog.open(PbCommentDialogComponent, { data: { newPb: true } }).afterClosed().subscribe((content: DbRunUserContent) => {
                                   dialogSubscription.unsubscribe();
                                   this.pbSubscription.unsubscribe();

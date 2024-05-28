@@ -62,4 +62,19 @@ export class DbPb extends DbLeaderboardPb {
         return pb.category === runData.category && pb.sameLevel === runData.sameLevel && DbRun.arraysEqual(playerIds, (pb instanceof Map) ? Array.from(pb.userIds.keys()) : Array.from(new Map(Object.entries(pb.userIds)).keys()));
     }
 
+    static placementNumberToString(placement: number) {
+        let j = placement % 10;
+        let k = placement % 100;
+        if (j === 1 && k !== 11) {
+            return placement + "st";
+        }
+        if (j === 2 && k !== 12) {
+            return placement + "nd";
+        }
+        if (j === 3 && k !== 13) {
+            return placement + "rd";
+        }
+        return placement + "th";
+    }
+
 }

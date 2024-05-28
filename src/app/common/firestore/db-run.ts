@@ -109,7 +109,7 @@ export class DbRun {
                     
             
                     //fill leaderboards with pbs (filtered by valid and signed in)
-                    for (let team of this.teams.filter(x => x.endTimeMs !== 0 && x.runIsValid && x.players.every(player => signedInPlayerIds.includes(player.user.id)))) {
+                    for (let team of this.teams.filter(x => x.endTimeMs !== 0 && x.runIsValid && x.players.every(player => signedInPlayerIds.includes(player.user.id))).sort((a, b) => b.endTimeMs - a.endTimeMs)) {
                         let leaderboard = leaderboards.find(x => x.players === team.players.length);
                         if (!leaderboard) continue;
                         const leaderboardIndex = leaderboards.indexOf(leaderboard);
@@ -120,11 +120,11 @@ export class DbRun {
                         
                         //if new pb
                         if (!previousPb || previousPb.endTimeMs > team.endTimeMs) {
-                            leaderboard.pbs = leaderboard.pbs.sort((a, b) => a.endTimeMs - b.endTimeMs);
-                            
                             let newPb = DbPb.convertToFromRun(this, team, leaderboard.pbs.length === 0 || leaderboard.pbs[0].endTimeMs > team.endTimeMs, (recordings !== undefined && recordings.length !== 0));
                             newPb.isCurrentPb = true;
-                            leaderboard.pbs.push(DbLeaderboardPb.convertToFromPb(newPb)); //needs to come before pb being added since it removes id
+                            const leaderboardPb = DbLeaderboardPb.convertToFromPb(newPb);
+                            leaderboard.pbs.push(leaderboardPb); //needs to come before pb being added since it removes id
+                            leaderboard.pbs = leaderboard.pbs.sort((a, b) => a.endTimeMs - b.endTimeMs);
                             
                             if (!newPb.id) { //this should always be true
                                 console.log("new pb id missing!");
@@ -133,7 +133,7 @@ export class DbRun {
                             
                             //add users to new pbs map
                             let teamUserIds = team.players.flatMap(x => x.user.id);
-                            pbUsers.push(new PbTeamPlayers(newPb.id, teamUserIds));
+                            pbUsers.push(new PbTeamPlayers(newPb.id, teamUserIds, leaderboard.pbs.indexOf(leaderboardPb)));
                             
         
                             //delete old recording if any
@@ -162,7 +162,7 @@ export class DbRun {
                             //add pb to db
                             firestoreService.addPb(newPb);
                             if (previousPb)
-                                leaderboard.pbs = leaderboard.pbs.filter(x => x.id !== previousPb!.id);
+                                leaderboard.pbs = leaderboard.pbs.filter(x => x.id !== previousPb!.id).sort((a, b) => a.endTimeMs - b.endTimeMs);
                             
                             //update leaderboard
                             const leaderboardId = leaderboard.id;
