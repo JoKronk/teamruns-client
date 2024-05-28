@@ -84,7 +84,7 @@ export class PracticeComponent implements OnDestroy {
         //timer end listener
         this.timerStateSubscription = this.mainLocalPlayer.socketHandler.timer.timerSubject.subscribe(state => {
           this.timerInWait = state === RunState.Waiting;
-          
+
           if (state === RunState.Ended)
             this.stopPlaybackIfIsRunning();
         });
@@ -112,7 +112,6 @@ export class PracticeComponent implements OnDestroy {
 
   startRecording() {
     if (!this.mainLocalPlayer) return;
-    console.log("here");
     this.stopPlaybackIfIsRunning();
     this.currentRecording = this.usePlayback === "true" ? "all" : "none";
 
@@ -207,7 +206,7 @@ export class PracticeComponent implements OnDestroy {
     this.recordingDragStart = 0;
 
     if (!this.recordingPausedBeforeDrag)
-    this.pause();
+      this.pause();
   }
 
   pause() {
