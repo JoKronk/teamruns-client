@@ -897,15 +897,9 @@ export class SocketHandler {
             return;
         }
         
-        let level = playerTeam.runState.getCreateLevel(interaction.interLevel);
-        if (isTeammate && playerTeam.runState.checkDupeAddOrbInteraction(playerTeam.players.flatMap(x => x.user.id), this.user.id, interaction, level)) {
-            if (!isSelfInteraction && !interaction.interCleanup)
-                positionData.resetCurrentInteraction();
-            
-            return;
-        }
-        //if not orb dupe or if not part of team
-        else if (!interaction.interCleanup) {
+        //add orb and update user
+        if (!interaction.interCleanup) {
+            let level = playerTeam.runState.getCreateLevel(interaction.interLevel);
             if ((this.isLocalMainPlayer || this.run.isFFA)) {
                 if (playerTeam.runState.addOrbInteraction(interaction, level))
                     this.addSelfInteraction(playerTeam.runState.generateOrbInteractionFromLevel(level));

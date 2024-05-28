@@ -2,7 +2,6 @@ import { Component, EventEmitter, Input, NgZone, OnDestroy, Output } from '@angu
 import { LocalSave } from 'src/app/common/level/local-save';
 import { ConfirmComponent } from 'src/app/dialogs/confirm/confirm.component';
 import { MatDialog } from '@angular/material/dialog';
-import { OrbValidation } from 'src/app/common/level/orb-validation';
 
 @Component({
   selector: 'app-save-loader',
@@ -35,11 +34,6 @@ export class SaveLoaderComponent implements OnDestroy {
       dialogSubscription.unsubscribe();
       if (confirmed) {
         save = Object.assign(new LocalSave(), save);
-        save.orbValidations.forEach((orb, index) => { //called on orb dupe checks, other objects in class doesn't really have any functions that are called after they are stored atm, but can ofc create bugs in the future..
-          const collectors = save.orbValidations[index].collectedByIds;
-          save.orbValidations[index] = Object.assign(new OrbValidation(save.orbValidations[index].entityName, ""), save.orbValidations[index]);
-          save.orbValidations[index].collectedByIds = collectors;
-        });
         this.onLoadSave.emit(save);
       }
     });
