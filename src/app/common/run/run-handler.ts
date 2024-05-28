@@ -828,6 +828,7 @@ export class RunHandler {
             if (wasHost) {
                 console.log("Removing host!")
                 this.lobby.host = null;
+                this.lobby.visible = false;
             }
 
             this.userService.localUsers.forEach(localPlayer => {
