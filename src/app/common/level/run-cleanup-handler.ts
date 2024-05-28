@@ -28,7 +28,7 @@ export class RunCleanupHandler extends RunStateHandler {
         runStateHandler.tasksStatuses.forEach(interaction => {
             const modifiedInteraction = interaction;
             modifiedInteraction.interCleanup = true;
-            this.resendCommonInteraction(modifiedInteraction, socketHandler);
+            this.resendCommonInteraction(modifiedInteraction, socketHandler, true);
         });
 
         if (syncType >= SyncType.Hard) {
@@ -50,27 +50,27 @@ export class RunCleanupHandler extends RunStateHandler {
 
     private runLevelCleanup(level: LevelInteractions, socketHandler: SocketHandler, gameState: GameState) {
         level.interactions.filter(x => x.interType == InteractionType.crate).forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler);
+            this.resendCommonInteraction(interaction, socketHandler, false);
         });
 
         level.interactions.filter(x => x.interType == InteractionType.money).forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler);
+            this.resendCommonInteraction(interaction, socketHandler, false);
         });
 
         level.interactions.filter(x => x.interType == InteractionType.enemyDeath).forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler);
+            this.resendCommonInteraction(interaction, socketHandler, false);
         });
 
         level.interactions.filter(x => x.interType == InteractionType.periscope).forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler);
+            this.resendCommonInteraction(interaction, socketHandler, false);
         });
 
         level.interactions.filter(x => x.interType == InteractionType.snowBumper).forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler);
+            this.resendCommonInteraction(interaction, socketHandler, false);
         });
 
         level.interactions.filter(x => x.interType == InteractionType.darkCrystal).forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler);
+            this.resendCommonInteraction(interaction, socketHandler, false);
         });
         
         level.interactions.filter(x => x.interType == InteractionType.lpcChamber).forEach(interaction => {
@@ -82,13 +82,15 @@ export class RunCleanupHandler extends RunStateHandler {
             level.interactions.filter(x => x.interType == InteractionType.buzzer).forEach(interaction => {
                 if (gameState.buzzerCount === 0) //re give all scoutflies if restart
                     interaction.interCleanup = false;
-                this.resendCommonInteraction(interaction, socketHandler);
+                this.resendCommonInteraction(interaction, socketHandler, true);
             });
         }, 500);
     }
 
-    private resendCommonInteraction(interaction: UserInteractionData, socketHandler: SocketHandler) {
-        socketHandler.addPlayerInteraction(interaction);
+    private resendCommonInteraction(interaction: UserInteractionData, socketHandler: SocketHandler, alwaysPushToGame: boolean) {
+        if (alwaysPushToGame || this.levelIsLoaded(interaction.interLevel))
+            socketHandler.addPlayerInteraction(interaction);
+        
         this.onInteraction(interaction);
     }
     
@@ -105,9 +107,18 @@ export class RunCleanupHandler extends RunStateHandler {
                 case InteractionType.gameTask:
                     this.addTaskInteraction(interaction);
                     break;
+                case InteractionType.buzzer:
+                    this.addBuzzerInteraction(interaction);
+                    break;
+                case InteractionType.money:
+                    this.addOrbInteraction(interaction);
+                    break;
                 case InteractionType.crate:
                     if ((InteractionData.isBuzzerCrate(interaction) || InteractionData.isOrbsCrate(interaction)))
                         this.addInteraction(interaction);
+                    break;
+                case InteractionType.lpcChamber:
+                    this.addLpcInteraction(interaction);
                     break;
                 default:
                     this.addInteraction(interaction);
