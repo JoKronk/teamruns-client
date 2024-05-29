@@ -75,7 +75,7 @@ export class Run {
     checkForRunReset(forceReset: boolean = false): boolean {
         if (!forceReset) {
             let players = this.teams.flatMap(x => x.players);
-            if (players.filter(x => x.state === PlayerState.WantsToReset).length / players.length <= 0.65)
+            if (players.filter(x => x.state === PlayerState.WantsToReset || x.state === PlayerState.Disconnected).length / players.length <= 0.65)
                 return false;
         }
         
