@@ -322,6 +322,10 @@ export class SocketHandler {
     let syncType = this.checkGetSynctype();
     if (!this.localTeam || syncType === SyncType.None || this.syncState !== SyncState.Available) return;
 
+    if (syncType === SyncType.Orbs) {
+        this.addSelfInteraction(this.localTeam.runState.generateOrbInteractionFromLevel());
+        return;
+    }
 
     this.syncState = SyncState.PreCheck;
     setTimeout(() => {  //give the player some time to catch up if false positive
@@ -340,12 +344,12 @@ export class SocketHandler {
     if (!this.localTeam) return syncType;
     
     if (this.localTeam.runState.orbCount > this.gameState.orbCount || this.gameState.orbCount > (this.localTeam.runState.orbCount + 5))
-        syncType = SyncType.Soft;
+        syncType = SyncType.Orbs;
       /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
         syncType = SyncType.Hard;
       }*/
       if (this.localTeam.runState.cellCount > this.gameState.cellCount)
-        syncType = SyncType.Hard;
+        syncType = SyncType.Normal;
   
       return syncType;
     }

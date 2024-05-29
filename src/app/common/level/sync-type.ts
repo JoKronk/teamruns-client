@@ -1,6 +1,6 @@
 export enum SyncType {
     None,
-    Soft,
-    Hard,
+    Orbs,
+    Normal,
     Full
 }

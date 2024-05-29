@@ -22,7 +22,8 @@ export class RunCleanupHandler extends RunStateHandler {
         this.resetHandler();
 
         //reset game
-        if (syncType === SyncType.Full) socketHandler.addCommand(OgCommand.ResetGame);
+        if (syncType === SyncType.Full) 
+            socketHandler.addCommand(OgCommand.ResetGame);
 
         //import task statuses to game
         runStateHandler.tasksStatuses.forEach(interaction => {
@@ -31,7 +32,7 @@ export class RunCleanupHandler extends RunStateHandler {
             this.resendCommonInteraction(modifiedInteraction, socketHandler, true);
         });
 
-        if (syncType >= SyncType.Hard) {
+        if (syncType >= SyncType.Normal) {
             //update collectables
             let loadedLevelsNames = this.getLoadedLevels().flatMap(x => x.name);
             let loadedLevels = runStateHandler.levels.filter(x => loadedLevelsNames.includes(x.levelName));
