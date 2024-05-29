@@ -59,7 +59,7 @@
         <!-- READY -->
         <div class="run-info-details">
           <button [class.run-info-details-ready]="mainLocalPlayer.state == playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
-            [disabled]="(runHandler.run.timer.runState !== runState.Waiting && runHandler.run.timer.runState === runState.Started) || mainLocalPlayer.state === playerState.Forfeit || mainLocalPlayer.state === playerState.WantsToReset || mainLocalPlayer.user.isLaunching || mainLocalPlayer.socketHandler.localTeam?.id === undefined"
+            [disabled]="(runHandler.run.timer.runState !== runState.Waiting && runHandler.run.timer.runState !== runState.Started) || mainLocalPlayer.state === playerState.Forfeit || mainLocalPlayer.state === playerState.WantsToReset || mainLocalPlayer.user.isLaunching || mainLocalPlayer.socketHandler.localTeam?.id === undefined"
             (click)="runHandler.run.timer.runState === runState.Started ? forfeit() : !mainLocalPlayer.socketHandler.socketConnected ? launchGame() : toggleReady()">{{ runHandler.run.timer.runState === runState.Started ? "Forfeit" : !mainLocalPlayer.socketHandler.socketConnected ? "Launch" : "Ready" }}</button>
 
             <button class="run-info-details-reset" 
