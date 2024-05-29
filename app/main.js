@@ -54,7 +54,6 @@ function createWindow() {
     require('electron-reloader')(module);
 
     win.loadURL('http://localhost:4200');
-    win.webContents.openDevTools({mode: "detach"});
   } 
   else {
     win.loadURL(url.format({      
@@ -204,6 +203,10 @@ function createWindow() {
   autoUpdater.on('update-downloaded', () => {
     win.webContents.send('update-downloaded');
   });
+
+  
+  if (!app.isPackaged)
+    win.webContents.openDevTools({mode: "detach"});
 
     return win;
 } 
