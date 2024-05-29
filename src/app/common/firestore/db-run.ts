@@ -12,6 +12,8 @@ import { DbRecordingFile } from "./db-recording-file";
 import { UserRecording } from "../recording/user-recording";
 import { Observable, map } from "rxjs";
 import { PbTeamPlayers } from "../peer/pb-team-players";
+import { Lobby } from "./lobby";
+import { PlayerType } from "../player/player-type";
 
 export class DbRun {
     data: RunData;
@@ -27,21 +29,29 @@ export class DbRun {
         this.id = crypto.randomUUID();
     }
 
-    static convertToFromRun(run: Run): DbRun {
+    static convertToFromRun(run: Run, lobby: Lobby | undefined = undefined): DbRun {
         let dbRun = new DbRun();
 
         dbRun.data = run.data;
         dbRun.date = run.timer.startDateMs ?? 0;
 
+        if (lobby) {
+            for (let team of run.teams) {
+                let recordings = lobby.users.filter(x => x.type === PlayerType.Recording).flatMap(x => x.user.id);
+                team.players = team.players.filter(x => !recordings.includes(x.user.id));
+            }
+            run.teams = run.teams.filter(x => x.players.length !== 0);
+        }
+
         //teams
-        run.teams.forEach(team => {
+        for (let team of run.teams) {
             if (team.players.length !== 0) {
                 dbRun.teams.push(new DbTeam(team));
                 team.players.forEach(player => {
                     dbRun.userIds.set(player.user.id, true);
                 });
             }
-        });
+        };
 
         return dbRun;
     }

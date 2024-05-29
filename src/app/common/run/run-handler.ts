@@ -442,7 +442,7 @@ export class RunHandler {
 
                         //pb upload
                         if (this.connectionHandler.isMaster() && RunMod.isAddedToRunHistory(this.run.data.mode) && !this.isPracticeTool && this.run.everyoneHasFinished()) {
-                            let dbRun: DbRun = DbRun.convertToFromRun(this.run);
+                            let dbRun: DbRun = DbRun.convertToFromRun(this.run, this.lobby);
                         
                             // add run to history if any player is signed in
                             if (players.some(player => collection.users.find(user => user.id === player.user.id)))
