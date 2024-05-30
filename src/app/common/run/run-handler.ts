@@ -418,7 +418,7 @@ export class RunHandler {
                     this.run.addSplit(new Task(endTask));
 
                     this.run.endPlayerRun(event.userId, endTask.name === Task.forfeit);
-                    RunMod.endRunOnSiglePlayerFinish(this.run.data.mode) ? this.run.endAllTeamsRun(endTask) : this.run?.endTeamRun(endTask);
+                    RunMod.endRunOnSiglePlayerFinish(this.run.data.mode) ? this.run.endAllTeamsRun(endTask) : this.run?.checkSetTeamEndTime(endTask);
                     
                     let playerTeam = this.run.getPlayerTeam(userId);
                     if (!playerTeam || !this.run.everyoneHasFinished(playerTeam))
@@ -507,7 +507,7 @@ export class RunHandler {
                     let state: GameState = event.value;
                     if (!player) return;
 
-                    if (!player.gameState.debugModeActive && state.debugModeActive && this.run.timer.isPastCountdown()) {
+                    if (!player.gameState.debugModeActive && state.debugModeActive && this.run.timer.inRunPastCountdown()) {
                         let notifMessage = player.user.name + " just activated debug mode!";
                         this.userService.sendNotification(notifMessage);
                         for (let localPlayer of this.userService.localUsers)

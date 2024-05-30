@@ -109,7 +109,7 @@ export class Run {
         }
     }
 
-    endTeamRun(task: GameTaskLevelTime): void {
+    checkSetTeamEndTime(task: GameTaskLevelTime): void {
         let team = this.getPlayerTeam(task.user.id);
         if (!team) return;
         if (team.players.every(y => y.state === PlayerState.Finished))
@@ -133,7 +133,7 @@ export class Run {
         if (!state.currentCheckpoint || state.currentCheckpoint === "title-start")
             player.gameState.currentCheckpoint = oldCheckpoint;
 
-        if (state.debugModeActive && this.timer.isPastCountdown()) {
+        if (state.debugModeActive && this.timer.inRunPastCountdown()) {
             const team = this.getPlayerTeam(playerId);
             if (team) team.checkMarkRunInvalid(false, "Debug mode used.");
         }

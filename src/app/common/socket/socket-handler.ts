@@ -220,7 +220,7 @@ export class SocketHandler {
                 this.fillAllPlayerDataValues();
                 this.resetAllPlayersNoneOverwritableValues();
                 
-                this.updateGameSettings(new GameSettings(this.timer.isPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version, !this.run.forPracticeTool)));
+                this.updateGameSettings(new GameSettings(this.timer.inRunPastCountdown() ? this.run.data : RunData.getFreeroamSettings(pkg.version, !this.run.forPracticeTool)));
                 this.run.getAllPlayers().forEach(player => { // set the team for any users already connected
                     this.updatePlayerInfo(player.user.id, this.run.getRemotePlayerInfo(player.user.id));
                 });
@@ -618,7 +618,7 @@ export class SocketHandler {
         if (!this.drawPositions) return;
 
         //handle recordings
-        if (this.timer.isPastCountdown()) {
+        if (this.run.forPracticeTool ? this.timer.inRunPastCountdown() : this.timer.inRunPastSpawnIn()) {
             this.recordings.forEach(recording => {
                 const positionData = recording.getNextPositionData(this.timer.totalMs);
                 if (positionData) {
@@ -700,7 +700,7 @@ export class SocketHandler {
         if (this.socketCommandBuffer.length !== 0)
             this.socketPackage.command = this.socketCommandBuffer.shift();
 
-        if (this.timer.isPastCountdown() && !this.run.isMode(RunMode.Casual)) {
+        if (this.timer.inRunPastCountdown() && !this.run.isMode(RunMode.Casual)) {
             if (!this.socketPackage.timer) this.socketPackage.timer = new TimerPackage();
             this.socketPackage.timer.updateTime(this.timer.totalMs);
         }
