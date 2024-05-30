@@ -193,15 +193,16 @@ export class SocketHandler {
                 this.addCommand(OgCommand.DisableDebugMode);
                 if (!this.run.hasSpectator(this.user.id)) {
                     const lastCheckpoint = this.run?.getPlayer(this.user.id)?.gameState.currentCheckpoint;
-                    if (lastCheckpoint) 
-                        this.forceCheckpointSpawn(lastCheckpoint);
-                    else if (this.run.isMode(RunMode.Casual))
+                    if (this.run.isMode(RunMode.Casual))
                         this.addCommand(OgCommand.StartRun);
 
                     setTimeout(() => {
                         this.inMidRunRestartPenaltyWait = 0;
                         if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode))
                             this.addCommand(OgCommand.TargetRelease);
+                        if (lastCheckpoint)
+                            this.forceCheckpointSpawn(lastCheckpoint);
+
                     }, (this.inMidRunRestartPenaltyWait * 1000));
                 }
                 else
@@ -260,7 +261,7 @@ export class SocketHandler {
                     if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode) && !this.run.forPracticeTool) {
                         state.debugModeActive = false;
                         this.addCommand(OgCommand.TargetGrab);
-                        this.sendNotification("Restart penalty applied, you will be released in " + this.inMidRunRestartPenaltyWait + " seconds.", (this.inMidRunRestartPenaltyWait - 1));
+                        this.sendNotification("Restart penalty applied, you will be released in " + this.inMidRunRestartPenaltyWait + " seconds.", this.inMidRunRestartPenaltyWait);
                     }
                     else if (this.localTeam)
                         this.importRunStateHandler(this.localTeam.runState, SyncType.Full);
