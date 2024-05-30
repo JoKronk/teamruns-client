@@ -194,6 +194,93 @@ export class LevelSymbol {
 }
 
 export class MultiLevel {
+    static getLevels(levelName: string): string[] {
+        switch(levelName) {      
+            case Level.lavaTube:
+                return [Level.lavaTube];
+            case Level.beach:
+                return [Level.beach];
+            case Level.citadel:
+            case Level.finalBoss:
+                return [Level.citadel, Level.finalBoss];
+            case Level.darkCave:
+            case Level.spiderCave:
+            case Level.spiderRobotCave:
+                return [Level.darkCave, Level.spiderCave, Level.spiderRobotCave];
+            case Level.fireCanyon:
+                return [Level.fireCanyon];
+            case Level.jungle:
+            case Level.plantBoss:
+                return [Level.jungle, Level.plantBoss];
+            case Level.misty:
+                return [Level.misty];
+            case Level.mountainPass:
+                return [Level.mountainPass];
+            case Level.basin:
+                return [Level.basin];
+            case Level.snowy:
+                return [Level.snowy];
+            case Level.lpcTopPart:
+            case Level.lpcBottomPart:
+                return [Level.lpcTopPart, Level.lpcBottomPart];
+            case Level.boggy:
+                return [Level.boggy];
+            case Level.geyser:
+                return [Level.geyser];
+            case Level.hub1:
+                return [Level.hub1];
+            case Level.hub2:
+                return [Level.hub2];
+            case Level.hub3:
+                return [Level.hub3];
+            default:
+                return [];
+        }
+    }
+    static getMainLevelName(levelName: string): string {
+        switch(levelName) {      
+            case Level.lavaTube:
+                return Level.lavaTube;
+            case Level.beach:
+                return Level.beach;
+            case Level.citadel:
+            case Level.finalBoss:
+                return Level.citadel;
+            case Level.darkCave:
+            case Level.spiderCave:
+            case Level.spiderRobotCave:
+                return Level.spiderCave;
+            case Level.fireCanyon:
+                return Level.fireCanyon;
+            case Level.jungle:
+            case Level.plantBoss:
+                return Level.jungle;
+            case Level.misty:
+                return Level.misty;
+            case Level.mountainPass:
+                return Level.mountainPass;
+            case Level.basin:
+                return Level.basin;
+            case Level.snowy:
+                return Level.snowy;
+            case Level.lpcTopPart:
+            case Level.lpcBottomPart:
+                return Level.lpcTopPart;
+            case Level.boggy:
+                return Level.boggy;
+            case Level.geyser:
+                return Level.geyser;
+            case Level.hub1:
+                return Level.hub1;
+            case Level.hub2:
+                return Level.hub2;
+            case Level.hub3:
+                return Level.hub3;
+            default:
+                return "none";
+        }
+    }
+
     static spiderCave(): string[] {
         return [ Level.spiderCave, Level.spiderRobotCave, Level.darkCave];
     }

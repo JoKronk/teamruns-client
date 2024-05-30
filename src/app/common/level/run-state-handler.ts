@@ -1,5 +1,5 @@
 import { InteractionType } from "../opengoal/interaction-type";
-import { Level } from "../opengoal/level";
+import { Level, MultiLevel } from "../opengoal/level";
 import { Task } from "../opengoal/task";
 import { TaskStatus } from "../opengoal/task-status";
 import { InteractionData, UserInteractionData } from "../socket/interaction-data";
@@ -162,13 +162,26 @@ export class RunStateHandler {
     }
 
     generateOrbInteractionFromLevel(level: LevelInteractions | undefined = undefined): InteractionData {
+        const levelGiven = level !== undefined;
+        let levelOrbCount = levelGiven ? level.orbCount : 0;
+        if (levelGiven) {
+            for (let levelName of MultiLevel.getLevels(level.levelName)) {
+                if (level.levelName === levelName)
+                    continue;
+
+                let siblingLevel = this.levels.find(x => x.levelName === levelName);
+                if (siblingLevel)
+                    levelOrbCount += siblingLevel.orbCount;
+            }
+        }
+
         return {
             interType: InteractionType.money,
             interAmount: this.orbCount,
-            interStatus: level !== undefined ? level.orbCount : 0,
+            interStatus: levelOrbCount,
             interName: "",
             interParent: "client",
-            interLevel: level !== undefined ? level.levelName : "none",
+            interLevel: level !== undefined ? MultiLevel.getMainLevelName(level.levelName) : "none",
             interCleanup: true,
             time: 0
         }
