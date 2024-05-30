@@ -277,13 +277,9 @@ export class SocketHandler {
                     this.gameState.currentCheckpoint = previousCheckpoint;
                 
                 if (state.justSpawned || state.justSaved || state.justLoaded || previousCheckpoint !== this.gameState.currentCheckpoint) {
-                    if (state.justSpawned || this.inMidRunRestartPenaltyWait) {
-                        setTimeout(() => {
-                            this.checkDesync();
-                        }, 1000);
-                    }
-                    else
+                    setTimeout(() => {
                         this.checkDesync();
+                    }, previousCheckpoint !== this.gameState.currentCheckpoint ? 1000 : 3000);
                 }
             }
         }
@@ -336,7 +332,7 @@ export class SocketHandler {
       }
       this.importRunStateHandler(this.localTeam!.runState, syncType);
 
-    }, 1000);
+    }, 2000);
     }
 
   private checkGetSynctype(): SyncType {
