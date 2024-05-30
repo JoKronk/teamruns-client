@@ -484,15 +484,15 @@ export class RunHandler {
 
                                 //open pb dialog
                                 const dialogSubscription = this.dialog.open(PbCommentDialogComponent, { data: { newPb: true } }).afterClosed().subscribe((content: DbRunUserContent) => {
-                                  dialogSubscription.unsubscribe();
-                                  this.pbSubscription.unsubscribe();
+                                    dialogSubscription.unsubscribe();
+                                    this.pbSubscription.unsubscribe();
                                     if (content) {
                                         content.userId = userId;
-                                        pb = Object.assign(new DbPb(), pb);
-                                        pb.userContent = pb.userContent.filter(x => x.userId !== content.userId);
-                                        pb.userContent.push(content);
-                                        this.firestoreService.updatePb(pb);
-                                  }
+                                        currentPbData = Object.assign(new DbPb(), currentPbData);
+                                        currentPbData.userContent = currentPbData.userContent.filter(x => x.userId !== content.userId);
+                                        currentPbData.userContent.push(content);
+                                        this.firestoreService.updatePb(currentPbData);
+                                    }
                                 });
                             }
                         });
