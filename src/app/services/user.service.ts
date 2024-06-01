@@ -28,7 +28,7 @@ export class UserService implements OnDestroy {
   offlineSettings: RunData | undefined;
 
   isBrowser: boolean;
-  clientInMaintanceMode: boolean = false;
+  clientInMaintenanceMode: boolean = false;
   downloadHandler: DownloadHandler = new DownloadHandler();
 
   private launchListener: any;
