@@ -9,14 +9,13 @@
 
       <!-- BUTTONS 1 -->
       <div class="sidenav-content sidenav-buttons sidenav-buttons-big" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
-        <button [class.sidenav-buttons-big-orange]="runHandler.run.timer.runState !== runState.Started && mainLocalPlayer.state !== playerState.Ready"
+        <button [class.sidenav-buttons-big-orange]="runHandler.run.timer.runState === runState.Waiting && mainLocalPlayer.state !== playerState.Ready"
         [class.sidenav-buttons-big-ready]="mainLocalPlayer.state == playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
-        [disabled]="(runHandler.run.timer.runState !== runState.Waiting && runHandler.run.timer.runState !== runState.Started) || mainLocalPlayer.state === playerState.Forfeit || mainLocalPlayer.state === playerState.WantsToReset || mainLocalPlayer.user.isLaunching || mainLocalPlayer.socketHandler.localTeam?.id === undefined"
+        [disabled]="(runHandler.run.timer.runState !== runState.Waiting && runHandler.run.timer.runState !== runState.Started) || mainLocalPlayer.state === playerState.Forfeit || mainLocalPlayer.state === playerState.WantsToReset || mainLocalPlayer.user.isLaunching || (runHandler.run.timer.runState === runState.Started && mainLocalPlayer.socketHandler.localTeam === undefined)"
         (click)="runHandler.run.timer.runState === runState.Started ? forfeit() : !mainLocalPlayer.socketHandler.socketConnected ? launchGame() : toggleReady()">{{ runHandler.run.timer.runState === runState.Started ? "Forfeit" : !mainLocalPlayer.socketHandler.socketConnected ? "Launch" : "Ready" }}</button>
 
         <button class="sidenav-buttons-big-reset" 
         [disabled]="runHandler.run.timer.runState !== runState.Started && runHandler.run.timer.runState !== runState.Ended"
-        [class.sidenav-buttons-big-reset-ready]="mainLocalPlayer.state === playerState.WantsToReset"
         (click)="toggleReset()">Vote Reset</button>
       </div>
 
@@ -72,7 +71,7 @@
                   <img *ngIf="player.currentLevel" class="run-info-teams-level" [src]="'./assets/levels/' + player.currentLevel + '.png'">
                   <span>{{ player.user.name }}</span>
                   <span class="run-info-teams-cells-cont"><img class="run-info-teams-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>
-                  <span *ngIf="runHandler.lobby?.host?.user?.id" class="run-info-teams-kick" (click)="kickPlayer(player.user)">X</span>
+                  <span *ngIf="runHandler.lobby?.host?.user?.id && runHandler.run.timer.runState === runState.Waiting" class="run-info-teams-kick" (click)="kickPlayer(player.user)">X</span>
                 </p>
               </div>
             </div>

@@ -67,11 +67,6 @@
             &-reset {
                 font-size: 22px !important;
                 font-weight: bold;
-                &:hover:enabled {
-                    background-color: rgb(56, 0, 0, 0.9) !important;
-                    color: rgba(204, 204, 204, 0.8) !important;
-                    cursor: pointer;
-                }
             }
         }
         &-small {
