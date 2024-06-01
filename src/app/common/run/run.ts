@@ -178,6 +178,9 @@ export class Run {
             player = new Player(user, PlayerType.GuestUser);
             console.log("Found non existent user!");
         }
+        if (!oldTeam)
+            player.state = PlayerState.Neutral;
+        
         newTeam.players.push(player!);
         this.spectators = this.spectators.filter(x => x.user.id !== user.id);
 
