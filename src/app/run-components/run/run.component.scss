@@ -1,6 +1,119 @@
 .sidenav {
     background-color: rgb(0, 0, 0, 0);
     width: 300px;
+
+    &-container {
+        display: flex;
+        flex-direction: column;
+        max-height: 100%;
+        height: 100%;
+    }
+
+    &-content {
+        flex-shrink: 1;
+    }
+    &-chat {
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+
+    &-logo {
+        margin: 26px 60px 10px;
+        & img {
+            user-drag: none;
+            -webkit-user-drag: none;
+            user-select: none;
+            -webkit-user-select: none;
+            max-width:100%;
+            max-height:100%;
+        }
+    }
+
+    &-buttons {
+        & button {
+            color: #636363;
+            -webkit-user-select: none;
+            background-color: #3e3e3e !important;
+            margin: 4px;
+            font-family: 'jak';
+            outline: none;
+            transition: 0.2s;
+            &:hover:enabled {
+                cursor: pointer;
+                color: #cecece !important;
+                border: 2px solid #cecece !important;
+            }
+        }
+
+        &-big {
+            display: flex;
+            justify-content: center;
+            & button {
+                flex-shrink: 1;
+                font-size: 28px;
+                padding-top: 5px;
+                height: 62px;
+                width: 120px;
+                border: 2px solid #636363;
+                border-radius: 12px;
+            }
+            &-orange {
+                color: #d0901d !important;
+                border: 2px solid #d0901d !important;
+            }
+            &-ready {
+                background-color: rgb(212, 144, 18, 0.7) !important;
+            }
+            &-reset {
+                font-size: 22px !important;
+                font-weight: bold;
+                &:hover:enabled {
+                    background-color: rgb(56, 0, 0, 0.9) !important;
+                    color: rgba(204, 204, 204, 0.8) !important;
+                    cursor: pointer;
+                }
+            }
+        }
+        &-small {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 4px;
+
+            & div {
+                flex-shrink: 1;
+            }
+            & button {
+                font-size: 18px;
+                padding-top: 6px;
+                white-space: nowrap;
+                height: 35px;
+                width: 126px;
+                border: 2px solid #636363;
+                border-radius: 6px;
+            }
+            &-local {
+                font-size: 14px !important;
+            }
+            &-exit {
+                color: #b13b3e !important;
+                border: 2px solid #b13b3e !important;
+            }
+        }
+    }
+    &-info {
+        flex-shrink: 1;
+        margin: 4px 12px 1px;
+        font-size: 22px;
+        font-weight: bold;
+        font-family: "Jak";
+        font-size: bold;
+        color: #575757;
+        & p {
+            text-align: end;
+            margin: 10px;
+        }
+    }
 }
 
 .run {
@@ -21,6 +134,7 @@
         flex-shrink: 1;
         display: flex;
         border-bottom: 3px solid #494949;
+        min-height: 200px;
         &-teams {
             flex: 7;
             display: flex;
@@ -98,105 +212,19 @@
             border-left: 3px solid #494949;
             margin-bottom: 20px;
             margin-left: 10px;
-            & button {
-                float: right;
-                font-family: 'jak';
-                font-size: 32px;
-                color: #636363;
-                margin: 12px 0px 2px;
-                height: 66px;
-                width: 120px;
-                background-color: #3e3e3e;
-                border: 2px solid #636363;
-                border-radius: 12px;
-                outline: none;
-                transition: 0.2s;
-                &:hover:enabled {
-                    color: rgba(204, 204, 204, 0.9);
-                    background-color: rgba(85, 85, 85, 0.8);
-                    cursor: pointer;
-                }
-            }
-            &-ready {
-                background-color: rgb(212, 144, 18, 0.7) !important;
-                color: #3e3e3e !important;
-            }
-            &-reset {
-                font-size: 24px !important;
-                font-weight: bold;
-                height: 62px !important;
-                &:hover:enabled {
-                    background-color: rgb(56, 0, 0, 0.9) !important;
-                    color: rgba(204, 204, 204, 0.8) !important;
-                    cursor: pointer;
-                }
-            }
-            &-owner {
-                float: right;
-                width: 130px;
-                overflow: hidden;
-                position: relative;
+            padding-left: 6px;
+            &-host {
                 & p {
-                    margin-top: 12px;
-                    color: #cccccc;
-                    text-decoration: underline;
+                    -webkit-user-select: none;
+                    font-family: 'jak';
+                    font-size: 18px;
+                    color: #d49012;
+                    margin: 0;
                 }
                 & span {
-                    position: absolute;
-                    bottom: 0;
-                    left: 25px;
-                    padding-top: 122px;
-                }
-            }
-        }
-    }
-    &-sidenav {
-        display: flex;
-        height: 100%;
-        flex-direction: column;
-
-        &-content {
-            flex-grow: 3;
-        }
-        &-menu {
-            flex-shrink: 1;
-            margin: 20px 10px 0;
-            &-container {
-                flex-shrink: 1;
-                display: flex;
-                justify-content: center;
-            }
-            & button {
-                border: 1px solid rgba(24, 24, 24, 0.8);
-                background: rgba(24, 24, 24, 0.7);
-                border-radius: 4px;
-                height: 58px;
-                width: 120px;
-                transition-timing-function: ease;
-                color: #cecece;
-                font-family: 'jak';
-                font-size: 22px;
-                outline: none;
-                transition: 0.2s;
-                &:hover:enabled {
-                    cursor: pointer;
                     color: #cccccc;
-                    border: 1px solid #575757;
-                    background: rgba(14, 14, 14, 0.8);
+                    font-size: 14px;
                 }
-            }
-        }
-        &-info {
-            flex-shrink: 1;
-            margin: 4px 12px 1px;
-            font-size: 22px;
-            font-weight: bold;
-            font-family: "Jak";
-            font-size: bold;
-            color: #575757;
-            & p {
-                text-align: end;
-                margin: 10px;
             }
         }
     }
@@ -312,7 +340,7 @@
     }
 }
 .logs {
-    margin: 70px 1px;
+    margin: 10px 1px;
     & p {
         margin: 4px;
         font-family: 'jak';

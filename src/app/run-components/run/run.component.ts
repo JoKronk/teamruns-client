@@ -153,6 +153,10 @@ export class RunComponent implements OnDestroy {
     this.editingTeamId = null;
   }
 
+  handleChatMessage(message: string) {
+    this.runHandler.connectionHandler.sendEventAsMain(EventType.ChatMessage, message);
+  }
+
   kickPlayer(user: UserBase) {
     if (this.runHandler.run?.timer.runIsOngoing()) {
       const dialogSubscription = this.dialog.open(ConfirmComponent, { data: { message: "Are you sure you want to kick " + user.name + "?" } }).afterClosed().subscribe(confirmed => {
@@ -163,6 +167,19 @@ export class RunComponent implements OnDestroy {
     }
     else
       this.runHandler.connectionHandler.sendEventAsMain(EventType.Kick, user);
+  }
+
+  leave() {
+    if (this.runHandler.run?.timer?.runState === RunState.Waiting) {
+      this.router.navigate(['/lobby' ]);
+      return;
+    }
+
+    const dialogSubscription = this.dialog.open(ConfirmComponent, { data: { message: "Are you sure you want to leave the game?" } }).afterClosed().subscribe(confirmed => {
+      dialogSubscription.unsubscribe();
+      if (confirmed)
+        this.router.navigate(['/lobby' ]);
+    });
   }
 
 

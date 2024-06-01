@@ -149,9 +149,7 @@ export class Run {
             this.getPlayerTeam(task.obtainedById)?.addSplit(task);
     }
 
-    toggleReady(playerId: string, state: PlayerState): void {
-        let player = this.getPlayer(playerId);
-        if (!player) return;
+    toggleReady(player: Player, state: PlayerState): void {
         player.state = state;
     }
 

@@ -41,12 +41,14 @@ import { PlayerBase } from "../player/player-base";
 import { PlayerType } from "../player/player-type";
 import { ConnectionHandler } from "../peer/connection-handler";
 import { DbUsersCollection } from "../firestore/db-users-collection";
+import { ChatMessage } from "../peer/chat-message";
 
 export class RunHandler {
 
     lobby: Lobby | undefined;
     run: Run | undefined;
     selfImportedRecordings: UserBase[] = [];
+    chatMessages: ChatMessage[] = [];
 
     connected: boolean = false;
     info: string = "";
@@ -232,6 +234,10 @@ export class RunHandler {
         this.updateFirestoreLobby();
     }
 
+    sendChatMessage(message: ChatMessage) {
+        this.chatMessages.unshift(message);
+    }
+
 
     setupRun() {
         if (!this.lobby) return;
@@ -265,6 +271,7 @@ export class RunHandler {
             case EventType.Connect: //rtc stuff on connection is setup individually in rtc-peer-master/slave
                 const newUser: PlayerBase = event.value as PlayerBase;
                 console.log(newUser.user.name + " connected!");
+                this.sendChatMessage(new ChatMessage(newUser.user.name + " connected!", undefined, "#cecece"));
 
                 if (this.connectionHandler.isMaster()) {
                     //handle run
@@ -310,6 +317,7 @@ export class RunHandler {
                 //remove from run
                 this.zone.run(() => {
                     this.run?.removePlayer(disconnectedUser.id);
+                    this.sendChatMessage(new ChatMessage(disconnectedUser.name + " disconnected!", undefined, "#cecece"));
                 });
                 this.updateAllPlayerInfo();
 
@@ -557,9 +565,13 @@ export class RunHandler {
                         this.connectionHandler.sendEvent(EventType.Ready, recPlayer.id, event.value);
                     });
                 }
-                
+
                 this.zone.run(() => {
-                    this.run!.toggleReady(event.userId, event.value);
+                    let player = this.run?.getPlayer(event.userId);
+                    if (player) {
+                        this.run!.toggleReady(player, event.value);
+                        this.sendChatMessage(new ChatMessage(player.user.name + (player.state === PlayerState.Ready ? " is ready!" : " is not ready!"), undefined, "#d0901d"));
+                    }
                 });
 
                 //check if everyone is ready, send start call if so
@@ -576,6 +588,7 @@ export class RunHandler {
                 if (this.run.timer.runState === RunState.Waiting) { //locals players and recordings will also ready up and repeat run start
                     this.zone.run(() => {
                         this.run!.start(new Date());
+                        this.sendChatMessage(new ChatMessage("Run is starting!", undefined, "#d0901d"));
                     });
                     this.setupRunStart();
                 }
@@ -602,7 +615,6 @@ export class RunHandler {
                                 localPlayer.socketHandler.addCommand(OgCommand.DisableSpectatorMode);
                                 localPlayer.socketHandler.forceCheckpointSpawn("village1-hut");
                             }
-
                             localPlayer.socketHandler.addCommand(OgCommand.Trip);
                             localPlayer.socketHandler.addCommand(OgCommand.EnableDebugMode);
                             localPlayer.socketHandler.updateGameSettings(new GameSettings(RunData.getFreeroamSettings(pkg.version)));
@@ -612,6 +624,11 @@ export class RunHandler {
                         this.makeLobbyAvailable();
                     }
                 });
+                break;
+
+
+            case EventType.ChatMessage:
+                this.sendChatMessage(new ChatMessage(event.value, this.run?.getPlayer(event.userId)?.user.name));
                 break;
 
 

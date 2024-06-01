@@ -18,5 +18,6 @@ export enum EventType {
     ChangeTeamName,
     ToggleReset,
     EndPlayerRun,
-    NewPb
+    NewPb,
+    ChatMessage
 }

@@ -1,37 +1,30 @@
 .container {
     max-height: 100%;
-    padding: 20px 10px;
+    padding: 14px 2px 0;
     position: relative;
 }
 
 .title {
     -webkit-user-select: none;
     font-family: 'jak';
-    font-size: 22px;
-    margin: 4px;
+    font-size: 18px;
+    margin: 4px 0 0;
     color: #d49012;
 }
 
 .spectators {
+    max-height: 96px;
+    overflow-y: auto;
     & p {
-        margin: 3px;
+        font-size: 14px;
+        margin: 0;
         color: #cccccc;
     }
 }
 
-.backtext {
-    font-family: 'precursor';
-    transform: rotate(90deg);
-    font-size: 80px;
-    margin-left: 150px;
-    position: absolute;
-    top: 330px;
-    right: -150px;
-}
-
 .kick {
     margin-left: 2px;
-    font-size: 19px;
+    font-size: 17px;
     font-family: 'jak';
     color: #380000;
     transition: 0.3s;

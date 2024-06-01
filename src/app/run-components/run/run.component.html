@@ -1,34 +1,56 @@
 <mat-sidenav-container fullscreen>
   <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true">
+    <div class="sidenav-container">
 
-    <div *ngIf="(!runHandler.connected || !this.mainLocalPlayer) && runHandler.connectionHandler.localSlave" class="logs">
-      <p *ngFor="let log of runHandler.connectionHandler.localSlave?.connectionLogs">{{ log }}</p>
-    </div>
-
-    <!-- TIMER -->
-    <div class="run-sidenav">
-      <div class="run-sidenav-content">
-        <app-run-timer *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run" [timer]="runHandler.run.timer"></app-run-timer>
-    
-        <app-run-spectators *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run" [spectators]="runHandler.run.spectators" [isHost]="runHandler.lobby?.host?.user?.id === mainLocalPlayer.user.id" [userId]="mainLocalPlayer.user.id" (onKick)="kickPlayer($event)"></app-run-spectators>
+      <!-- LOGO -->
+      <div class="sidenav-content sidenav-logo">
+        <img src="./assets/teamruns-logo.png" alt="image">
       </div>
-      <div class="run-sidenav-menu-container" *ngIf="runHandler.connected && runHandler.run && mainLocalPlayer?.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting">
-        <div class="run-sidenav-menu">
+
+      <!-- BUTTONS 1 -->
+      <div class="sidenav-content sidenav-buttons sidenav-buttons-big" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
+        <button [class.sidenav-buttons-big-orange]="runHandler.run.timer.runState !== runState.Started && mainLocalPlayer.state !== playerState.Ready"
+        [class.sidenav-buttons-big-ready]="mainLocalPlayer.state == playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
+        [disabled]="(runHandler.run.timer.runState !== runState.Waiting && runHandler.run.timer.runState !== runState.Started) || mainLocalPlayer.state === playerState.Forfeit || mainLocalPlayer.state === playerState.WantsToReset || mainLocalPlayer.user.isLaunching || mainLocalPlayer.socketHandler.localTeam?.id === undefined"
+        (click)="runHandler.run.timer.runState === runState.Started ? forfeit() : !mainLocalPlayer.socketHandler.socketConnected ? launchGame() : toggleReady()">{{ runHandler.run.timer.runState === runState.Started ? "Forfeit" : !mainLocalPlayer.socketHandler.socketConnected ? "Launch" : "Ready" }}</button>
+
+        <button class="sidenav-buttons-big-reset" 
+        [disabled]="runHandler.run.timer.runState !== runState.Started && runHandler.run.timer.runState !== runState.Ended"
+        [class.sidenav-buttons-big-reset-ready]="mainLocalPlayer.state === playerState.WantsToReset"
+        (click)="toggleReset()">Vote Reset</button>
+      </div>
+
+      <!-- TIMER -->
+      <app-run-timer class="sidenav-content" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run" [timer]="runHandler.run.timer"></app-run-timer>
+
+      <!-- BUTTONS 2 -->
+      <div class="sidenav-content sidenav-buttons sidenav-buttons-small" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
+        <div *ngIf="mainLocalPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting">
           <button (click)="importRun()">Import Run</button>
         </div>
-        <div class="run-sidenav-menu">
-          <button (click)="addLocalPlayer()">Add Local Player</button>
+        <div *ngIf="mainLocalPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting">
+          <button (click)="addLocalPlayer()" class="sidenav-buttons-small-local">Add Local Player</button>
+        </div>
+        <div>
+          <button (click)="leave()" class="sidenav-buttons-small-exit">Exit Lobby</button>
         </div>
       </div>
-      <div class="run-sidenav-info">
-        <p>{{ runHandler.info }}</p>
+      
+      <!-- CHAT -->
+      <app-chat class="sidenav-chat" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run" [chatMessages]="runHandler.chatMessages" (onMessage)="handleChatMessage($event)"></app-chat>
+
+      <!-- CONNECTION LOGS -->
+      <div *ngIf="(!runHandler.connected || !this.mainLocalPlayer) && runHandler.connectionHandler.localSlave" class="logs">
+        <p *ngFor="let log of runHandler.connectionHandler.localSlave?.connectionLogs">{{ log }}</p>
       </div>
+  
+
     </div>
   </mat-sidenav>
 
   <mat-sidenav-content class="run">
     <!-- HEADER -->
-    <app-header [inRun]="runHandler.run?.timer?.runState !== runState.Waiting" [title]="runHandler.run?.data?.name ?? ''"></app-header>
+    <app-header [inRun]="runHandler.run?.timer?.runState !== runState.Waiting" [title]="(runHandler.run?.data?.name ? (runHandler.run?.data?.name + ' | ') : '' ) + runHandler.info" [hideLogo]="true"></app-header>
 
     <div class="run-body" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
       <!-- TEAMS -->
@@ -56,25 +78,20 @@
             </div>
           </div>
         </div>
-        <!-- READY -->
+        <!-- RUN DETAILS -->
         <div class="run-info-details">
-          <button [class.run-info-details-ready]="mainLocalPlayer.state == playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
-            [disabled]="(runHandler.run.timer.runState !== runState.Waiting && runHandler.run.timer.runState !== runState.Started) || mainLocalPlayer.state === playerState.Forfeit || mainLocalPlayer.state === playerState.WantsToReset || mainLocalPlayer.user.isLaunching || mainLocalPlayer.socketHandler.localTeam?.id === undefined"
-            (click)="runHandler.run.timer.runState === runState.Started ? forfeit() : !mainLocalPlayer.socketHandler.socketConnected ? launchGame() : toggleReady()">{{ runHandler.run.timer.runState === runState.Started ? "Forfeit" : !mainLocalPlayer.socketHandler.socketConnected ? "Launch" : "Ready" }}</button>
-
-            <button class="run-info-details-reset" 
-            [disabled]="runHandler.run.timer.runState !== runState.Started && runHandler.run.timer.runState !== runState.Ended"
-            [class.run-info-details-reset-ready]="mainLocalPlayer.state === playerState.WantsToReset"
-            (click)="toggleReset()">Vote Reset</button>
-
-          <div class="run-info-details-owner">
-            <p>Host:<span>{{ runHandler.lobby?.host?.user?.name }}</span></p>
+          <div class="run-info-details-host">
+            <p>Host</p>
+            <span>{{ runHandler.lobby?.host?.user?.name }}</span>
           </div>
+
+          <app-run-spectators *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run" [spectators]="runHandler.run.spectators" [isHost]="runHandler.lobby?.host?.user?.id === mainLocalPlayer.user.id" [userId]="mainLocalPlayer.user.id" (onKick)="kickPlayer($event)"></app-run-spectators>
         </div>
+
       </div>
 
 
-      <!-- RUN STATS -->
+      <!-- RUN SPLITS -->
       <div class="progress">
         <app-run-splits *ngFor="let team of runHandler.run.teams; let i = index" [team]="team" class="progress-team" [class.progress-team-splitter]="i !== 0"></app-run-splits>
       </div>
