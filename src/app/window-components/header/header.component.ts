@@ -19,6 +19,7 @@ export class HeaderComponent {
   @Input() title: string;
   @Input() inRun: boolean;
   @Input() showLobbyButtons: boolean;
+  @Input() hideLogo: boolean;
   
   constructor(public _user: UserService, private router: Router, private location: Location, private dialog: MatDialog) {
     

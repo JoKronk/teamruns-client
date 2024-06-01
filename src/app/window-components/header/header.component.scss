@@ -83,15 +83,15 @@
             justify-content: center;
             flex: 2;
             height: 100%;
+            padding-top: 10px;
         }
         & img {
             user-drag: none;
             -webkit-user-drag: none;
             user-select: none;
             -webkit-user-select: none;
-            max-width:100%;
+            max-width: 100px;
             max-height:100%;
-            border-bottom: 1px solid #6c4700;
         }
     }
 }
