@@ -34,6 +34,15 @@ export class RunMod {
         }
     }
 
+    public static usesReadyUp(mode: RunMode): boolean {
+        switch (mode) {
+            case RunMode.Casual:
+                return false;
+            default:
+                return true;
+        }
+    }
+
     public static isAddedToRunHistory(mode: RunMode): boolean {
         switch (mode) {
             case RunMode.Speedrun:

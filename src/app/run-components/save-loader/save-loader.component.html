@@ -14,11 +14,10 @@
                     </div>
                 </div>
                 <div>
-                    <span *ngFor="let user of save.users">{{user.name}}</span>
+                    <span *ngFor="let user of save.users; let end = last">{{user.name}} <span *ngIf="!end">·</span>
+                    </span>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<h1 class="backtext text-in-background" title="Saves">Saves</h1>

@@ -5,28 +5,33 @@
         <p *ngFor="let log of runHandler.connectionHandler.localSlave.connectionLogs">{{ log }}</p>
       </div>
   
-      <!-- SAVES -->
-      <div class="run-sidenav">
-        <div class="run-sidenav-content">
-          <app-save-loader *ngIf="runHandler.lobby?.host?.user?.id === mainLocalPlayer?.user?.id" [hideFiles]="hasLoadedFile" (onLoadSave)="loadSave($event)"></app-save-loader>
-        </div>
-        <div class="run-sidenav-menu-container" *ngIf="runHandler.connected && runHandler.run">
-          <div class="run-sidenav-menu">
+      <div class="sidenav-container">
+
+        <!-- SAVES -->
+        <app-save-loader class="sidenav-content" *ngIf="runHandler.lobby?.host?.user?.id === mainLocalPlayer?.user?.id" [hideFiles]="hasLoadedFile" (onLoadSave)="loadSave($event)"></app-save-loader>
+        
+        <!-- BUTTONS 2 -->
+        <div class="sidenav-content sidenav-buttons sidenav-buttons-small" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
+          <div>
             <button (click)="openSavesFolder()">Saves Folder</button>
           </div>
-          <div class="run-sidenav-menu">
-            <button (click)="addLocalPlayer()">Add Local Player</button>
+          <div>
+            <button (click)="addLocalPlayer()" class="sidenav-buttons-small-local">Add Local Player</button>
+          </div>
+          <div>
+            <button (click)="leave()" class="sidenav-buttons-small-exit">Exit Lobby</button>
           </div>
         </div>
-        <div class="run-sidenav-info">
-          <p>{{ runHandler.info }}</p>
-        </div>
+
+        <!-- CHAT -->
+        <app-chat class="sidenav-chat" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run" [chatMessages]="runHandler.chatMessages" (onMessage)="handleChatMessage($event)"></app-chat>
+
       </div>
     </mat-sidenav>
   
     <mat-sidenav-content class="run">
       <!-- HEADER -->
-      <app-header [inRun]="runHandler.run?.timer?.runState !== runState.Waiting" [title]="runHandler.run?.data?.name ?? ''"></app-header>
+      <app-header [inRun]="runHandler.run?.timer?.runState !== runState.Waiting" [title]="(runHandler.run?.data?.name ? (runHandler.run?.data?.name + ' | ') : '' ) + runHandler.info"></app-header>
   
       <div class="run-body" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
         <!-- TEAMS -->
@@ -46,12 +51,15 @@
               </div>
             </div>
           </div>
-          <!-- READY -->
-          <div class="run-info-details">
-            <div class="run-info-details-owner">
-              <p>Host:<span>{{ runHandler.lobby?.host?.user?.name }}</span></p>
-            </div>
+          <!-- RUN DETAILS -->
+        <div class="run-info-details">
+          <div class="run-info-details-host">
+            <p>Host</p>
+            <span>{{ runHandler.lobby?.host?.user?.name }}</span>
           </div>
+
+          <app-run-spectators *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run" [spectators]="runHandler.run.spectators" [isHost]="runHandler.lobby?.host?.user?.id === mainLocalPlayer.user.id" [userId]="mainLocalPlayer.user.id" (onKick)="kickPlayer($event)"></app-run-spectators>
+        </div>
         </div>
   
   

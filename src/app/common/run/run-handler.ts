@@ -570,7 +570,8 @@ export class RunHandler {
                     let player = this.run?.getPlayer(event.userId);
                     if (player) {
                         this.run!.toggleReady(player, event.value);
-                        this.sendChatMessage(new ChatMessage(player.user.name + (player.state === PlayerState.Ready ? " is ready!" : " is not ready!"), undefined, "#d0901d"));
+                        if (RunMod.usesReadyUp(this.run!.data.mode))
+                            this.sendChatMessage(new ChatMessage(player.user.name + (player.state === PlayerState.Ready ? " is ready!" : " is not ready!"), undefined, "#d0901d"));
                     }
                 });
 
@@ -588,7 +589,8 @@ export class RunHandler {
                 if (this.run.timer.runState === RunState.Waiting) { //locals players and recordings will also ready up and repeat run start
                     this.zone.run(() => {
                         this.run!.start(new Date());
-                        this.sendChatMessage(new ChatMessage("Run is starting!", undefined, "#d0901d"));
+                        if (RunMod.usesReadyUp(this.run!.data.mode))
+                            this.sendChatMessage(new ChatMessage("Run is starting!", undefined, "#d0901d"));
                     });
                     this.setupRunStart();
                 }
