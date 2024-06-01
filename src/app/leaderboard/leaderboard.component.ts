@@ -284,7 +284,7 @@ export class LeaderboardComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.downloadListener();
+    if (this.downloadListener) this.downloadListener();
   }
 }
 
