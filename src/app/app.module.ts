@@ -58,6 +58,7 @@ import { RunImportComponent } from './dialogs/run-import/run-import.component';
 import { FooterComponent } from './window-components/footer/footer.component';
 import { SnackbarImportComponent } from './snackbars/snackbar-import/snackbar-import.component';
 import { SpawnLoaderComponent } from './run-components/spawn-loader/spawn-loader.component';
+import { ChatComponent } from './run-components/chat/chat.component';
 
 @NgModule({
   declarations: [
@@ -94,7 +95,8 @@ import { SpawnLoaderComponent } from './run-components/spawn-loader/spawn-loader
     RunImportComponent,
     FooterComponent,
     SnackbarImportComponent,
-    SpawnLoaderComponent
+    SpawnLoaderComponent,
+    ChatComponent
   ],
   imports: [
     BrowserModule,

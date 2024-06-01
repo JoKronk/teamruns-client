@@ -1,0 +1,12 @@
+<div class="container">
+    <p class="title">Chat</p>
+  
+    <div class="chat-container">
+        <div class="chat-window">
+            <div *ngFor="let message of chatMessages" class="chat-message">
+                <p [ngStyle]="{'color': message.color}"><span *ngIf="message.username">{{ message.username }}: </span><span>{{ message.text }}</span></p>
+            </div>
+        </div>
+        <input class="chat-input" [(ngModel)]="message" (keyup.enter)="sendMessage()">
+    </div>
+  </div>
