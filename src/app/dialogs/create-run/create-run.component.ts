@@ -6,7 +6,6 @@ import { FireStoreService } from 'src/app/services/fire-store.service';
 import pkg from 'app/package.json';
 import { RunMod, RunMode } from 'src/app/common/run/run-mode';
 import { Lobby } from 'src/app/common/firestore/lobby';
-import { Preset } from 'src/app/common/firestore/preset';
 import { UserService } from 'src/app/services/user.service';
 import { Category, CategoryOption } from 'src/app/common/run/category';
 
@@ -28,11 +27,7 @@ export class CreateRunComponent {
   runMode = RunMode;
   citadelOptions = CitadelOption;
 
-  tournamentPreset: Preset;
-  usingPreset: boolean;
-
   constructor(private _user: UserService, private _firestore: FireStoreService, private router: Router, private dialogRef: MatDialogRef<CreateRunComponent>) {
-    this.getPreset();
     this.getModeInfo();
   }
 
@@ -54,15 +49,6 @@ export class CreateRunComponent {
     this._user.offlineSettings = this.runData;
     this.router.navigate(this.runData.mode !== this.runMode.Casual ? ['/run'] : ['/run-casual']);
     this.dialogRef.close();
-  }
-
-  async getPreset() {
-    this.tournamentPreset = await this._firestore.getPreset("tournament") ?? new Preset(this.runData);
-  }
-
-  usePreset() {
-    this.usingPreset = true;
-    this.runData = this.tournamentPreset.runData;
   }
 
   getModeInfo() {

@@ -6,7 +6,6 @@ import { environment } from 'src/environments/environment';
 import { CollectionName } from '../common/firestore/collection-name';
 import { DbRun } from '../common/firestore/db-run';
 import { Lobby } from '../common/firestore/lobby';
-import { Preset } from '../common/firestore/preset';
 import { RTCPeer } from '../common/peer/rtc-peer';
 import { DbUsersCollection } from '../common/firestore/db-users-collection';
 import { CategoryOption } from '../common/run/category';
@@ -332,12 +331,5 @@ export class FireStoreService {
   }
 
 
-
-  // ----- OTHER -----
-
-  async getPreset(id: string) {
-    await this.checkAuthenticated();
-    return (await this.firestore.collection<Preset>(CollectionName.presets).doc<Preset>(id).ref.get()).data();
-  }
 
 }

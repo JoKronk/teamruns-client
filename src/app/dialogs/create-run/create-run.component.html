@@ -26,7 +26,7 @@
                       </svg>
                     </div>
                 </div>
-                <select [disabled]="usingPreset" [(ngModel)]="runData.mode" (change)="changeMode()">
+                <select [(ngModel)]="runData.mode" (change)="changeMode()">
                     <option [ngValue]="runMode.Speedrun">Speedrun</option>
                     <option [ngValue]="runMode.Casual">Casual</option>
                     <option [ngValue]="runMode.Lockout">Lockout</option>
@@ -44,20 +44,20 @@
                     <input [(ngModel)]="password" maxlength="20">
                 </div>
                 <br />
-                <div><label matTooltip="Enables damage between ALL players." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.enablePvp">PVP</label></div>
+                <div><label matTooltip="Enables damage between ALL players." matTooltipPosition="after"><input type="checkbox" [(ngModel)]="runData.enablePvp">PVP</label></div>
             </div>
             <div *ngIf="runData.mode !== runMode.Casual">
                 <br />
-                <label matTooltip="Require players to be in the same level for cell pickups." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset || (runData.mode === runMode.Lockout && runData.teams === 1)" [(ngModel)]="runData.sameLevel">Same level</label>
+                <label matTooltip="Require players to be in the same level for cell pickups." matTooltipPosition="after"><input type="checkbox" [disabled]="runData.mode === runMode.Lockout && runData.teams === 1" [(ngModel)]="runData.sameLevel">Same level</label>
             </div>
             
             <div *ngIf="runData.mode !== runMode.Casual && runData.category === 0">
                 <div class="option">
                     <p>Modifiers</p>
                 </div>
-                <div><label matTooltip="Players by default need to all be on their own zoomer between the hub worlds at the same time once for it to be able to go at full speed, this disables that." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label></div>
-                <div><label matTooltip="Enables damage between ALL players." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.enablePvp">PVP</label></div>
-                <div><label matTooltip="Disables Lava Tube Skip." matTooltipPosition="after"><input type="checkbox" [disabled]="usingPreset" [(ngModel)]="runData.noLTS">No LTS</label></div>
+                <div><label matTooltip="Players by default need to all be on their own zoomer between the hub worlds at the same time once for it to be able to go at full speed, this disables that." matTooltipPosition="after"><input type="checkbox" [(ngModel)]="runData.allowSoloHubZoomers">Allow solo hub zoomer usage</label></div>
+                <div><label matTooltip="Enables damage between ALL players." matTooltipPosition="after"><input type="checkbox" [(ngModel)]="runData.enablePvp">PVP</label></div>
+                <div><label matTooltip="Disables Lava Tube Skip." matTooltipPosition="after"><input type="checkbox" [(ngModel)]="runData.noLTS">No LTS</label></div>
                 <div class="option">
                     <p>Citadel Skip</p>
                     <select [(ngModel)]="runData.citadelSkip">
@@ -90,7 +90,6 @@
                 <div *ngIf="runData.mode === runMode.Speedrun" class="option">
                     <mat-slide-toggle [(ngModel)]="runData.submitPbs" matTooltip="Runs by teams with guest accounts will not be submitted." matTooltipPosition="after"><span>Submit PBs</span></mat-slide-toggle>
                 </div>
-                <button *ngIf="tournamentPreset && tournamentPreset.presetIsVisible && !usingPreset" (click)="usePreset()">{{ tournamentPreset.presetButtonText }}</button>
             </div>
         </div>
     </div>
