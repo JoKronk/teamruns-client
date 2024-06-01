@@ -304,6 +304,9 @@ export class SocketHandler {
             this.zone.run(() => {
                 this.state = PlayerState.Finished;
                 this.connectionHandler.sendEvent(EventType.EndPlayerRun, this.user.id, task);
+
+                if (this.timer.runState === RunState.Ended)
+                    this.checkUpdateSplit(task);
             });
         }
     }
@@ -727,7 +730,7 @@ export class SocketHandler {
 
 
     protected checkUpdateSplit(task: GameTaskLevelTime) {
-        if (this.run.isMode(RunMode.Casual))
+        if (!this.run.isMode(RunMode.Speedrun))
             return;
 
         const split = this.splits.find(x => x.gameTask === task.name);
