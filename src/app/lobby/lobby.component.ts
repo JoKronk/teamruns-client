@@ -26,6 +26,7 @@ export class LobbyComponent implements OnDestroy {
   avaliableLobbies: Lobby[] = [];
   unavailableLobbies: Lobby[] = [];
   loaded: boolean = false;
+  inMaintance: boolean;
 
   selectedLobby: Lobby | null = null;
   hideViewer: boolean = true;
@@ -66,6 +67,10 @@ export class LobbyComponent implements OnDestroy {
       this.dataSourceUnavailable = new MatTableDataSource(this.unavailableLobbies);
       this.selectedLobby = this.avaliableLobbies[0];
       this.loaded = true;
+      this._user.clientInMaintanceMode = false;
+    }, error => {
+      if (error.message === "Missing or insufficient permissions.")
+        this._user.clientInMaintanceMode = true;
     });
 
     

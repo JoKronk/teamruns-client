@@ -46,6 +46,9 @@
         <div *ngIf="avaliableLobbies.length === 0 && unavailableLobbies.length === 0 && loaded" class="lobbies-none">
           <h3>No current lobbies <br /> Create one under "NEW RUN"</h3>
         </div>
+        <div *ngIf="_user.clientInMaintanceMode" class="lobbies-none">
+          <h3>In maintance mode. <br />Check back later for online runs.</h3>
+        </div>
 
         <div *ngIf="unavailableLobbies.length !== 0" class="lobbies-old">
           <h2>In progress (Unavailable)</h2>

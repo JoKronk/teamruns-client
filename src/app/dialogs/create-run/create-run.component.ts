@@ -27,7 +27,7 @@ export class CreateRunComponent {
   runMode = RunMode;
   citadelOptions = CitadelOption;
 
-  constructor(private _user: UserService, private _firestore: FireStoreService, private router: Router, private dialogRef: MatDialogRef<CreateRunComponent>) {
+  constructor(public _user: UserService, private _firestore: FireStoreService, private router: Router, private dialogRef: MatDialogRef<CreateRunComponent>) {
     this.getModeInfo();
   }
 
