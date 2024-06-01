@@ -4,7 +4,7 @@
     <div class="spectators">
         <div *ngFor="let spectator of spectators">
             <p>
-                {{ spectator.user.name }}
+                <span class="name" >{{ spectator.user.name }}</span>
                 <span *ngIf="isHost && spectator.user.id !== userId" class="kick" (click)="kickPlayer(spectator.user)">X</span>
             </p>
         </div>

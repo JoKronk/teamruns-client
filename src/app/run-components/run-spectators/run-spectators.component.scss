@@ -16,14 +16,19 @@
     max-height: 96px;
     overflow-y: auto;
     & p {
+        display: flex;
+        justify-content: space-between;
         font-size: 14px;
         margin: 0;
         color: #cccccc;
     }
+    & span {
+        flex-shrink: 1;
+    }
 }
 
 .kick {
-    margin-left: 2px;
+    margin-right: 2px;
     font-size: 17px;
     font-family: 'jak';
     color: #380000;
