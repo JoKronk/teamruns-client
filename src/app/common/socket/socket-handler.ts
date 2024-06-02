@@ -905,10 +905,10 @@ export class SocketHandler {
         if (!interaction.interCleanup) {
             let level = playerTeam.runState.getCreateLevel(interaction.interLevel);
             if ((this.isLocalMainPlayer || this.run.isFFA)) {
-                if (playerTeam.runState.addOrbInteraction(interaction, level))
+                if (playerTeam.runState.addOrbInteraction(interaction, level) && isTeammate)
                     this.addSelfInteraction(playerTeam.runState.generateOrbInteractionFromLevel(level));
             }
-            else //just update for other local peers
+            else if (isTeammate) //just update for other local peers
                 this.addSelfInteraction(playerTeam.runState.generateOrbInteractionFromLevel(level));
         }
         
