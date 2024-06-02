@@ -2,7 +2,7 @@
   <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true">
     <div class="run-sidenav">
       <app-run-timer *ngIf="runHandler.run !== undefined" class="run-sidenav-timer" [timer]="runHandler.run.timer"></app-run-timer>
-      <app-spawn-loader class="run-sidenav-checkpoints"></app-spawn-loader>
+      <app-spawn-loader *ngIf="!inSpectatorMode" class="run-sidenav-checkpoints"></app-spawn-loader>
     </div>
   </mat-sidenav>
 
