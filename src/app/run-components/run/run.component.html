@@ -11,7 +11,7 @@
       <div class="sidenav-content sidenav-buttons sidenav-buttons-big" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
         <button [class.sidenav-buttons-big-orange]="runHandler.run.timer.runState === runState.Waiting && mainLocalPlayer.state !== playerState.Ready"
         [class.sidenav-buttons-big-ready]="mainLocalPlayer.state == playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
-        [disabled]="(runHandler.run.timer.runState !== runState.Waiting && runHandler.run.timer.runState !== runState.Started) || mainLocalPlayer.state === playerState.Forfeit || mainLocalPlayer.state === playerState.WantsToReset || mainLocalPlayer.user.isLaunching || (runHandler.run.timer.runState === runState.Started && mainLocalPlayer.socketHandler.localTeam === undefined)"
+        [disabled]="(runHandler.run.timer.runState !== runState.Waiting && runHandler.run.timer.runState !== runState.Started) || mainLocalPlayer.state === playerState.Forfeit || mainLocalPlayer.state === playerState.WantsToReset || mainLocalPlayer.user.isLaunching || (runHandler.run.timer.runState === runState.Started && mainLocalPlayer.socketHandler.localTeam === undefined) || _user.downloadHandler.isDownloading"
         (click)="runHandler.run.timer.runState === runState.Started ? forfeit() : !mainLocalPlayer.socketHandler.socketConnected ? launchGame() : toggleReady()">{{ runHandler.run.timer.runState === runState.Started ? "Forfeit" : !mainLocalPlayer.socketHandler.socketConnected ? "Launch" : "Ready" }}</button>
 
         <button class="sidenav-buttons-big-reset" 
