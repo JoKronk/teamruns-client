@@ -13,6 +13,9 @@ export class PbCommentDialogComponent {
   showVideoLinkInfo: boolean = false;
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: PbCommentData, public dialogRef: MatDialogRef<PbCommentDialogComponent>) {
+    if (data.newPb)
+      dialogRef.disableClose = true;
+    
     if (data.content)
       this.content = data.content;
   }

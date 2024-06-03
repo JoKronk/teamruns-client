@@ -14,7 +14,7 @@
     </div>
     
     <div class="buttons">
-        <button class="cancel" (click)="close()">Cancel</button>
+        <button class="cancel" (click)="close()">{{data.newPb ? "Skip" : "Cancel"}}</button>
         <button (click)="confirm()">{{data.newPb ? "Confirm" : "Update"}}</button>
     </div>
 </div>
