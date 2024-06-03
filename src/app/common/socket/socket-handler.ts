@@ -737,14 +737,27 @@ export class SocketHandler {
         if (split && !split.enabled)
             return;
 
-        const pbTask = this.currentPb?.tasks.find(x => x.gameTask === task.name);
-        if (!pbTask) {
-            this.socketPackage.timer?.updateSplit(split, task, undefined);
-            return;
+        //race comparison
+        if (this.run.teams.length > 1) {
+            const teamTasks =  this.run.teams.flatMap(x => x.splits).filter(x => x.gameTask === task.name).sort((a, b) => a.obtainedAtMs - b.obtainedAtMs);;
+            if (teamTasks.length === 0) 
+                this.socketPackage.timer?.updateSplit(split, task, undefined);
+            else {
+                const timesave = task.timerTimeMs - teamTasks[0].obtainedAtMs;
+                this.socketPackage.timer?.updateSplit(split, task, Timer.msToTimesaveFormat(timesave));
+            }
+        }
+        //pb comparison
+        else {
+            const pbTask = this.currentPb?.tasks.find(x => x.gameTask === task.name);
+            if (!pbTask)
+                this.socketPackage.timer?.updateSplit(split, task, undefined);
+            else {
+                const timesave = task.timerTimeMs - pbTask.obtainedAtMs;
+                this.socketPackage.timer?.updateSplit(split, task, Timer.msToTimesaveFormat(timesave));
+            }
         }
 
-        const timesave = task.timerTimeMs - pbTask.obtainedAtMs;
-        this.socketPackage.timer?.updateSplit(split, task, Timer.msToTimesaveFormat(timesave));
     }
     
     private cleanShortTermMemory() {
