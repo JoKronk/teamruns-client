@@ -76,8 +76,7 @@ export class PracticeComponent implements OnDestroy {
       
       if (state === RunSetupState.SetupComplete) {
         this.mainLocalPlayer = new LocalPlayerData(this._user.user, OG.mainPort, this.runHandler.connectionHandler, this.runHandler.run, this.zone);
-        this._user.resetLocalPlayersToNewMain(this.mainLocalPlayer);
-        this.runHandler.connectionHandler.reLinkLocalPeers(this._user.localUsers);
+        this.runHandler.setupLocalMainPlayer(this.mainLocalPlayer);
         this.runHandler.run.timer.setStartConditions(1);
         
   
@@ -91,7 +90,7 @@ export class PracticeComponent implements OnDestroy {
       }
     });
 
-
+    
 
     //recording import listener
     this.fileListener = (window as any).electron.receive("recordings-fetch-get", (data: RecordingFile) => {
