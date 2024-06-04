@@ -425,7 +425,8 @@ export class RunHandler {
                 this.zone.run(() => {
                     if (!this.run) return;
                     const endTask: GameTaskLevelTime = event.value;
-                    this.run.addSplit(new Task(endTask));
+                    if (!this.run.addSplit(new Task(endTask))) //if already ended skip running logic
+                        return;
 
                     this.run.endPlayerRun(event.userId, endTask.name === Task.forfeit);
                     RunMod.endRunOnSiglePlayerFinish(this.run.data.mode) ? this.run.endAllTeamsRun(endTask) : this.run?.checkSetTeamEndTime(endTask);

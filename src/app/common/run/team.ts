@@ -67,13 +67,18 @@ export class Team {
         this.runInvalidReason = reason;
     }
     
-    addSplit(split: Task) {
+    addSplit(split: Task): boolean {
+        //if existing split
+        if (this.splits.find(x => x.gameTask === split.gameTask && x.obtainedById === split.obtainedById) !== undefined)
+            return false;
+
         if (split.isCollectedCell) {
             const player = this.players.find(x => x.user.id === split.obtainedById);
             if (player) player.cellsCollected++;
         }
             
         this.splits.unshift(split);
+        return true;
     }
 
     hasSplit(taskName: string): boolean {

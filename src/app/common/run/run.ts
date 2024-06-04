@@ -144,8 +144,8 @@ export class Run {
         player.state = PlayerState.Ready;
     }
 
-    addSplit(task: Task): void {
-            this.getPlayerTeam(task.obtainedById)?.addSplit(task);
+    addSplit(task: Task): boolean {
+        return this.getPlayerTeam(task.obtainedById)?.addSplit(task) ?? false;
     }
 
     toggleReady(player: Player, state: PlayerState): void {
