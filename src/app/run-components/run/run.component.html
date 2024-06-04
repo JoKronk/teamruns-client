@@ -9,9 +9,9 @@
 
       <!-- BUTTONS 1 -->
       <div class="sidenav-content sidenav-buttons sidenav-buttons-big" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
-        <button [class.sidenav-buttons-big-orange]="runHandler.run.timer.runState === runState.Waiting && mainLocalPlayer.state !== playerState.Ready"
-        [class.sidenav-buttons-big-ready]="mainLocalPlayer.state == playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
-        [disabled]="(runHandler.run.timer.runState !== runState.Waiting && runHandler.run.timer.runState !== runState.Started) || mainLocalPlayer.state === playerState.Forfeit || mainLocalPlayer.state === playerState.WantsToReset || mainLocalPlayer.user.isLaunching || (runHandler.run.timer.runState === runState.Started && mainLocalPlayer.socketHandler.localTeam === undefined) || _user.downloadHandler.isDownloading"
+        <button [class.sidenav-buttons-big-orange]="runHandler.run.timer.runState === runState.Waiting && mainLocalPlayer.socketHandler.player?.state !== playerState.Ready"
+        [class.sidenav-buttons-big-ready]="mainLocalPlayer.socketHandler.player?.state == playerState.Ready && runHandler.run.timer.runState === runState.Waiting"
+        [disabled]="(runHandler.run.timer.runState !== runState.Waiting && runHandler.run.timer.runState !== runState.Started) || mainLocalPlayer.socketHandler.player?.state === playerState.Forfeit || mainLocalPlayer.socketHandler.player?.state === playerState.WantsToReset || mainLocalPlayer.user.isLaunching || (runHandler.run.timer.runState === runState.Started && mainLocalPlayer.socketHandler.localTeam === undefined) || _user.downloadHandler.isDownloading"
         (click)="runHandler.run.timer.runState === runState.Started ? forfeit() : !mainLocalPlayer.socketHandler.socketConnected ? launchGame() : toggleReady()">{{ runHandler.run.timer.runState === runState.Started ? "Forfeit" : !mainLocalPlayer.socketHandler.socketConnected ? "Launch" : "Ready" }}</button>
 
         <button class="sidenav-buttons-big-reset" 
@@ -24,10 +24,10 @@
 
       <!-- BUTTONS 2 -->
       <div class="sidenav-content sidenav-buttons sidenav-buttons-small" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
-        <div *ngIf="mainLocalPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting">
+        <div *ngIf="mainLocalPlayer.socketHandler.player?.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting">
           <button (click)="importRun()">Import Run</button>
         </div>
-        <div *ngIf="mainLocalPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting">
+        <div *ngIf="mainLocalPlayer.socketHandler.player?.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting">
           <button (click)="addLocalPlayer()" class="sidenav-buttons-small-local">Add Local Player</button>
         </div>
         <div>
@@ -59,7 +59,7 @@
             
             <div class="run-info-teams-title">
               <img *ngIf="!team.runIsValid" src="./assets/icons/finalboss-forfeit.png"  [matTooltip]="team.runInvalidReason" matTooltipPosition="below">
-              <p *ngIf="this.editingTeamId !== team.id" [class.team-name-editable]="mainLocalPlayer.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting" (click)="editTeamName(team.id)" class="team-name">{{ team.name }}</p>
+              <p *ngIf="this.editingTeamId !== team.id" [class.team-name-editable]="mainLocalPlayer.socketHandler.player?.state !== playerState.Ready && runHandler.run.timer.runState === runState.Waiting" (click)="editTeamName(team.id)" class="team-name">{{ team.name }}</p>
               <input *ngIf="this.editingTeamId === team.id" (focusout)="updateTeamName()" (keyup.enter)="updateTeamName()" [(ngModel)]="team.name" maxlength="16">
             </div>
             

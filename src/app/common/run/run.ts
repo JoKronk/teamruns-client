@@ -80,9 +80,8 @@ export class Run {
         }
         
         this.timer.reset();
-        this.teams.forEach(team => {
+        for (let team of this.teams)
             team.resetForRun();
-        });
         return true;
     }
 
@@ -211,7 +210,8 @@ export class Run {
             return this.teams.find(x => x.players.some(player => player.user.id === playerId));
     }
 
-    getPlayer(playerId: string): Player | undefined {
+    getPlayer(playerId: string | undefined): Player | undefined {
+        if (playerId === undefined) return;
         return this.getPlayerTeam(playerId)?.players.find(x => x.user.id === playerId) ?? this.spectators.find(x => x.user.id === playerId);
     }
 

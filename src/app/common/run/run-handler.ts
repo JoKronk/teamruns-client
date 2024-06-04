@@ -431,7 +431,7 @@ export class RunHandler {
                     let playerTeam = this.run.getPlayerTeam(userId);
                     if (!playerTeam || !this.run.everyoneHasFinished(playerTeam))
                         return;
-
+                    
                     let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings();
                     this.checkSaveRecordingsLocally(recordings, playerTeam);
 
@@ -558,7 +558,6 @@ export class RunHandler {
                 if (event.userId === userId) {
                     for (let localPlayer of this.userService.localUsers) {
                         if (localPlayer.user.id === userId) continue;
-                        localPlayer.state = event.value;
                         this.connectionHandler.sendEvent(EventType.Ready, localPlayer.user.id, event.value);
                     }
                     this.selfImportedRecordings.forEach(recPlayer => {
@@ -599,33 +598,30 @@ export class RunHandler {
 
             case EventType.ToggleReset:
                 //repeat for locals
+                this.zone.run(() => {
+                    if (this.run!.toggleVoteReset(event.userId, event.value)) {
+                        for (let localPlayer of this.userService.localUsers) {
+                            localPlayer.socketHandler.addCommand(OgCommand.DisableSpectatorMode);
+                            if (this.run?.hasSpectator(localPlayer.user.id))
+                                localPlayer.socketHandler.forceCheckpointSpawn("village1-hut");
+                            localPlayer.socketHandler.addCommand(OgCommand.Trip);
+                            localPlayer.socketHandler.addCommand(OgCommand.EnableDebugMode);
+                            localPlayer.socketHandler.updateGameSettings(new GameSettings(RunData.getFreeroamSettings(pkg.version)));
+                            localPlayer.socketHandler.resetTimer();
+                        }
+                        this.makeLobbyAvailable();
+                    }
+                });
+
                 if (event.userId === userId) {
                     for (let localPlayer of this.userService.localUsers) {
                         if (localPlayer.user.id === userId) continue;
-                        localPlayer.state = event.value;
                         this.connectionHandler.sendEvent(EventType.ToggleReset, localPlayer.user.id, event.value);
                     }
                     this.selfImportedRecordings.forEach(recPlayer => {
                         this.connectionHandler.sendEvent(EventType.ToggleReset, recPlayer.id, event.value);
                     })
                 }
-
-                this.zone.run(() => {
-                    if (this.run!.toggleVoteReset(event.userId, event.value)) {
-                        this.userService.localUsers.forEach(localPlayer => {
-                            if (this.run?.hasSpectator(localPlayer.user.id)) {
-                                localPlayer.socketHandler.addCommand(OgCommand.DisableSpectatorMode);
-                                localPlayer.socketHandler.forceCheckpointSpawn("village1-hut");
-                            }
-                            localPlayer.socketHandler.addCommand(OgCommand.Trip);
-                            localPlayer.socketHandler.addCommand(OgCommand.EnableDebugMode);
-                            localPlayer.socketHandler.updateGameSettings(new GameSettings(RunData.getFreeroamSettings(pkg.version)));
-                            localPlayer.socketHandler.resetTimer();
-                            localPlayer.state = PlayerState.Neutral;
-                        });
-                        this.makeLobbyAvailable();
-                    }
-                });
                 break;
 
 

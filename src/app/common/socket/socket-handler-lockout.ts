@@ -10,13 +10,12 @@ import { MultiplayerState } from "../opengoal/multiplayer-state";
 import { TaskStatus } from "../opengoal/task-status";
 import { Run } from "../run/run";
 import { ConnectionHandler } from "../peer/connection-handler";
-import { PlayerState } from "../player/player-state";
 
 export class SocketHandlerLockout extends SocketHandler {
 
     
-    constructor(socketPort: number, user: User, connectionHandler: ConnectionHandler, run: Run, state: PlayerState, zone: NgZone) {
-        super(socketPort, user, connectionHandler, run, state, zone);
+    constructor(socketPort: number, user: User, connectionHandler: ConnectionHandler, run: Run, zone: NgZone) {
+        super(socketPort, user, connectionHandler, run, zone);
     }
 
     override onTask(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {

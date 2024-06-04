@@ -92,7 +92,11 @@ export class RunComponent implements OnDestroy {
       if (confirmed) {
 
         this._user.localUsers.forEach(localPlayer => {
-          localPlayer.state = PlayerState.Forfeit;
+          if (localPlayer.socketHandler.player)
+            localPlayer.socketHandler.player.state = PlayerState.Forfeit;
+          else
+            console.log("Missing localplayer in sockethandler!");
+
           const task = new GameTaskLevelTime(Task.forfeit, localPlayer.user.getUserBaseWithDisplayName(), this.runHandler.run?.getPlayer(localPlayer.user.id)?.currentLevel ?? "", this.runHandler.run!.timer.totalMs, TaskStatus.unknown);
           this.runHandler.connectionHandler.sendEvent(EventType.EndPlayerRun, localPlayer.user.id, task);
         });
@@ -106,17 +110,19 @@ export class RunComponent implements OnDestroy {
   }
 
   toggleReady() {
-    if (!this.mainLocalPlayer) return;
-      
-    this.mainLocalPlayer.state = this.mainLocalPlayer.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
-    this.runHandler.connectionHandler.sendEventAsMain(EventType.Ready, this.mainLocalPlayer.state);
+    let player = this.runHandler.run?.getPlayer(this.mainLocalPlayer?.user.id);
+    if (!player) return;
+    
+    player.state = player.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
+    this.runHandler.connectionHandler.sendEventAsMain(EventType.Ready, player.state);
   }
 
   toggleReset() {
-    if (!this.mainLocalPlayer) return;
+    let player = this.runHandler.run?.getPlayer(this.mainLocalPlayer?.user.id);
+    if (!player || !this.mainLocalPlayer) return;
 
-    this.mainLocalPlayer.state = this.mainLocalPlayer.state === PlayerState.WantsToReset ? this.mainLocalPlayer.socketHandler.localTeam?.splits.some(x => x.obtainedById === this.mainLocalPlayer?.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
-    this.runHandler.connectionHandler.sendEventAsMain(EventType.ToggleReset, this.mainLocalPlayer.state);
+    player.state = player.state === PlayerState.WantsToReset ? this.mainLocalPlayer.socketHandler.localTeam?.splits.some(x => x.obtainedById === this.mainLocalPlayer?.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
+    this.runHandler.connectionHandler.sendEventAsMain(EventType.ToggleReset, player.state);
   }
 
   switchTeam(teamId: number) {
@@ -137,7 +143,7 @@ export class RunComponent implements OnDestroy {
     if (!this.mainLocalPlayer) return;
     if (this.editingTeamId !== null)
       this.updateTeamName();
-    if (this.mainLocalPlayer.state !== PlayerState.Ready && this.runHandler?.run?.timer.runState === RunState.Waiting)
+    if (this.mainLocalPlayer.socketHandler.player?.state !== PlayerState.Ready && this.runHandler?.run?.timer.runState === RunState.Waiting)
       this.editingTeamId = teamId;
   }
   updateTeamName() {

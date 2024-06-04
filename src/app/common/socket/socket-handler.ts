@@ -42,6 +42,7 @@ import { SyncType } from "../level/sync-type";
 import { RunStateHandler } from "../level/run-state-handler";
 import { NotificationPackage } from "./notification-package";
 import { SyncState } from "../level/sync-state";
+import { Player } from "../player/player";
 
 export class SocketHandler {
 
@@ -53,6 +54,7 @@ export class SocketHandler {
     currentPb: DbPb | undefined = undefined;
     protected isLocalMainPlayer: boolean = true;
     localTeam: Team | undefined;
+    player: Player | undefined;
     splits: TaskSplit[] = [];
     gameState: GameState = new GameState();
     cleanupHandler: RunCleanupHandler = new RunCleanupHandler;
@@ -81,7 +83,7 @@ export class SocketHandler {
     private timerSubscription: Subscription;
 
 
-    constructor(public socketPort: number, public user: User, public connectionHandler: ConnectionHandler, run: Run, public state: PlayerState, public zone: NgZone) {
+    constructor(public socketPort: number, public user: User, public connectionHandler: ConnectionHandler, run: Run, public zone: NgZone) {
         this.ogSocket = webSocket('ws://localhost:' + socketPort);
 
         this.run = run;
@@ -240,13 +242,14 @@ export class SocketHandler {
         //--- State Data ---
         if (target.state) {
             let state: GameState = target.state;
+            let playerState = this.getPlayerState();
             if (state.justSpawned) {
                 if (this.timer.runState === RunState.Countdown)
                     this.addCommand(OgCommand.TargetGrab);
             }
 
             //local save logic
-            if (state.justSaved && this.run.data.mode === RunMode.Casual && this.timer.totalMs > 5000) {
+            if (state.justSaved && this.run.isMode(RunMode.Casual) && this.timer.totalMs > 5000) {
                 let save: LocalSave = (this.localTeam?.runState ?? this.run.getTeam(0)?.runState) as LocalSave;
                 if (save.cellCount !== 0 || save.orbCount !== 0 || save.buzzerCount !== 0) {
                     save.name = this.run.data.name;
@@ -256,7 +259,7 @@ export class SocketHandler {
             }
 
             //game state checks
-            if (!this.connectionHandler.lobby?.hasSpectator(this.user.id) && this.state !== PlayerState.Finished) {
+            if (!this.connectionHandler.lobby?.hasSpectator(this.user.id) && playerState !== PlayerState.Finished) {
                 if (state.justSpawned && this.inMidRunRestartPenaltyWait !== 0) {
                     if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode) && !this.run.forPracticeTool) {
                         state.debugModeActive = false;
@@ -302,7 +305,6 @@ export class SocketHandler {
         if (Task.isRunEnd(positionData) && this.run) {
             const task: GameTaskLevelTime = GameTaskLevelTime.fromPositionData(positionData);
             this.zone.run(() => {
-                this.state = PlayerState.Finished;
                 this.connectionHandler.sendEvent(EventType.EndPlayerRun, this.user.id, task);
 
                 if (this.timer.runState === RunState.Ended)
@@ -315,6 +317,10 @@ export class SocketHandler {
   importRunStateHandler(runStateHandler: RunStateHandler, syncType: SyncType) {
     this.syncState = SyncState.Syncing;
     this.cleanupHandler.importRunState(runStateHandler, this, this.gameState, syncType);
+  }
+
+  getPlayerState(): PlayerState {
+    return this.player?.state ?? PlayerState.Disconnected;
   }
 
   checkDesync() {

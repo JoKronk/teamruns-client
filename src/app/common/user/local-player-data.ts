@@ -1,4 +1,3 @@
-import { PlayerState } from "../player/player-state";
 import { RunMode } from "../run/run-mode";
 import { Run } from "../run/run";
 import { Team } from "../run/team";
@@ -11,7 +10,6 @@ import { ConnectionHandler } from "../peer/connection-handler";
 export class LocalPlayerData {
   user: User;
   mode: RunMode = RunMode.Speedrun;
-  state: PlayerState = PlayerState.Neutral;
 
   socketHandler: SocketHandler;
 
@@ -21,10 +19,10 @@ export class LocalPlayerData {
 
     switch (run.data.mode) {
       case RunMode.Lockout:
-        this.socketHandler = new SocketHandlerLockout(port, user, connectionHandler, run, this.state, zone);
+        this.socketHandler = new SocketHandlerLockout(port, user, connectionHandler, run, zone);
         break;
       default:
-        this.socketHandler = new SocketHandler(port, user, connectionHandler, run, this.state, zone);
+        this.socketHandler = new SocketHandler(port, user, connectionHandler, run, zone);
         break;
     }
   }
@@ -32,6 +30,7 @@ export class LocalPlayerData {
   updateTeam(team: Team | undefined) {
     if (!team) return;
     this.socketHandler.localTeam = team;
+    this.socketHandler.player = team.players.find(x => x.user.id === this.user.id);
   }
 
   onDestroy(): void {

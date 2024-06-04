@@ -79,17 +79,19 @@ export class RunCasualComponent implements OnDestroy {
   }
 
   toggleReady() {
-    if (!this.mainLocalPlayer) return;
-      
-    this.mainLocalPlayer.state = this.mainLocalPlayer.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
-    this.runHandler.connectionHandler.sendEventAsMain(EventType.Ready, this.mainLocalPlayer.state);
+    let player = this.runHandler.run?.getPlayer(this.mainLocalPlayer?.user.id);
+    if (!player) return;
+    
+    player.state = player.state === PlayerState.Ready ? PlayerState.Neutral : PlayerState.Ready;
+    this.runHandler.connectionHandler.sendEventAsMain(EventType.Ready, player.state);
   }
 
   toggleReset() {
-    if (!this.mainLocalPlayer) return;
+    let player = this.runHandler.run?.getPlayer(this.mainLocalPlayer?.user.id);
+    if (!player || !this.mainLocalPlayer) return;
 
-    this.mainLocalPlayer.state = this.mainLocalPlayer.state === PlayerState.WantsToReset ? this.mainLocalPlayer.socketHandler.localTeam?.splits.some(x => x.obtainedById === this.mainLocalPlayer?.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
-    this.runHandler.connectionHandler.sendEventAsMain(EventType.ToggleReset, this.mainLocalPlayer.state);
+    player.state = player.state === PlayerState.WantsToReset ? this.mainLocalPlayer.socketHandler.localTeam?.splits.some(x => x.obtainedById === this.mainLocalPlayer?.user.id && x.gameTask === Task.forfeit) ? PlayerState.Forfeit : PlayerState.Neutral : PlayerState.WantsToReset;
+    this.runHandler.connectionHandler.sendEventAsMain(EventType.ToggleReset, player.state);
   }
 
   loadSave(save: LocalSave) {

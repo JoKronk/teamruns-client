@@ -45,11 +45,11 @@ export class Team {
 
 
         if (!resetPlayers) return;
-        this.players.forEach(player => {
+        for (let player of this.players) {
             player.state = PlayerState.Neutral;
             player.cellsCollected = 0;
             player.gameState = new GameState();
-        })
+        }
     }
 
     everyoneOnSameVersion(): boolean {
