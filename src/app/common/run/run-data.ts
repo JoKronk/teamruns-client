@@ -7,6 +7,7 @@ export class RunData {
     name: string = "";
     teams: number = 1;
     buildVersion: string;
+    gameVersion: string;
 
     //run settings
     category: CategoryOption = CategoryOption.NoLts;

@@ -177,6 +177,7 @@ export class RunHandler {
         this.userService.resetLocalPlayersToNewMain(localMain);
         this.connectionHandler.reLinkLocalPeers(this.userService.localUsers);
 
+        this.run.data.gameVersion = localMain.user.gameVersion;
         this.run.spectators.push(new Player(localMain.user.getUserBaseWithDisplayName(), localMain.user.getPlayerType()));
         localMain.socketHandler.startDrawPlayers();
 
