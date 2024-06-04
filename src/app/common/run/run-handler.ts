@@ -515,7 +515,7 @@ export class RunHandler {
                     let state: GameState = event.value;
                     if (!player) return;
 
-                    if (!player.gameState.debugModeActive && state.debugModeActive && this.run.timer.inRunPastCountdown()) {
+                    if (!player.gameState.debugModeActive && state.debugModeActive && !this.run.forPracticeTool && this.run.timer.inRunPastCountdown()) {
                         let notifMessage = player.user.name + " just activated debug mode!";
                         this.userService.sendNotification(notifMessage);
                         for (let localPlayer of this.userService.localUsers)
