@@ -53,6 +53,7 @@ export class RunHandler {
     connected: boolean = false;
     info: string = "";
     isBeingDestroyed: boolean = false;
+    runFullyFinished: boolean = false; //quick fix
     becomeHostQuickAccess: boolean;
 
     connectionHandler: ConnectionHandler;
@@ -444,7 +445,8 @@ export class RunHandler {
                         if (!playerTeam.runIsValid && playerTeam.runInvalidReason) 
                             this.userService.sendNotification(playerTeam.runInvalidReason.startsWith("Run invalid") ? playerTeam.runInvalidReason : ("Run Invalid: " + playerTeam.runInvalidReason), 10000);
 
-                        if (!this.isPracticeTool && this.run.everyoneHasFinished()) {
+                        if (!this.isPracticeTool && this.run.everyoneHasFinished() && !this.runFullyFinished) {
+                            this.runFullyFinished = true;
                             //save recordings locally
                             this.validateTeamPlayersSignedIn(collection);
                             let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings();
@@ -698,6 +700,7 @@ export class RunHandler {
     setupRunStart() {
         if (!this.run) return;
 
+        this.runFullyFinished = false;
         this.updateAllPlayerInfo();
         
         this.run.teams.forEach(team => {
