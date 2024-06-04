@@ -440,13 +440,13 @@ export class RunHandler {
                     
                         //run validation
                         this.checkTeamGameVersions(playerTeam); //!TODO: Should be check earlier than run end.
-                        this.run.checkRunEndValid();
-                        this.validateTeamPlayersSignedIn(collection);
+                        this.run.checkRunEndValid(playerTeam);
                         if (!playerTeam.runIsValid && playerTeam.runInvalidReason) 
                             this.userService.sendNotification(playerTeam.runInvalidReason.startsWith("Run invalid") ? playerTeam.runInvalidReason : ("Run Invalid: " + playerTeam.runInvalidReason), 10000);
 
                         if (!this.isPracticeTool && this.run.everyoneHasFinished()) {
                             //save recordings locally
+                            this.validateTeamPlayersSignedIn(collection);
                             let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings();
                             this.checkSaveRecordingsLocally(recordings, playerTeam);
 

@@ -243,45 +243,43 @@ export class Run {
         return this.data.mode === mode;
     }
 
-    checkRunEndValid(): undefined {
-        for (let team of this.teams) {
-            if (!team.runIsValid)
-                continue;
+    checkRunEndValid(team: Team): undefined {
+        if (!team.runIsValid)
+            return;
 
-            if (team.players.some(x => x.state === PlayerState.Forfeit)) {
-                team.checkMarkRunInvalid(false, "Forfeit.");
-                continue;
-            }
+        if (team.players.some(x => x.state === PlayerState.Forfeit)) {
+            team.checkMarkRunInvalid(false, "Forfeit.");
+            return;
+        }
 
-            switch (this.data.category) {
-                case CategoryOption.NoLts:
-                    team.checkMarkRunInvalid(team.runState.cellCount >= 72, "Run invalid, only " + team.runState.cellCount + " cells registered.");
-                    break;
-                case CategoryOption.AllCells:
-                    team.checkMarkRunInvalid(team.runState.cellCount === 101, "Run invalid, only " + team.runState.cellCount + " cells registered.");
-                    break;
-                case CategoryOption.Hundo:
-                    team.checkMarkRunInvalid(team.runState.cellCount === 101 && team.runState.totalOrbCount === 2000, team.runState.totalOrbCount !== 2000 ? 
-                        "Run invalid, only " + team.runState.totalOrbCount + " orbs registered." : 
-                        "Run invalid, only " + team.runState.cellCount + " cells registered."
-                    );
-                    break;
-                case CategoryOption.NoFcs:
-                    team.checkMarkRunInvalid(team.runState.cellCount >= 22, "Run invalid, only " + team.runState.cellCount + " cells registered.");
-                    break;
-                case CategoryOption.Orbless:
-                    team.checkMarkRunInvalid(team.runState.totalOrbCount === 0, "Run invalid " + team.runState.totalOrbCount + "orbs registered.");
-                    break;
-                case CategoryOption.AllFlies:
-                    team.checkMarkRunInvalid(team.runState.buzzerCount === 112, "Run invalid, only " + team.runState.buzzerCount + " scoutflies registered.");
-                    break;
-                case CategoryOption.AllOrbs:
-                    team.checkMarkRunInvalid(team.runState.totalOrbCount === 2000, "Run invalid, only " + team.runState.totalOrbCount + " orbs registered.");
-                    break;
-                default:
-                    team.checkMarkRunInvalid(false, "Run invalid, category is not a registered speedrun category.");
-                    break;
-            }
+        switch (this.data.category) {
+            case CategoryOption.NoLts:
+                team.checkMarkRunInvalid(team.runState.cellCount >= 72, "Run invalid, only " + team.runState.cellCount + " cells registered.");
+                break;
+            case CategoryOption.AllCells:
+                team.checkMarkRunInvalid(team.runState.cellCount === 101, "Run invalid, only " + team.runState.cellCount + " cells registered.");
+                break;
+            case CategoryOption.Hundo:
+                team.checkMarkRunInvalid(team.runState.cellCount === 101 && team.runState.totalOrbCount === 2000, team.runState.totalOrbCount !== 2000 ? 
+                    "Run invalid, only " + team.runState.totalOrbCount + " orbs registered." : 
+                    "Run invalid, only " + team.runState.cellCount + " cells registered."
+                );
+                break;
+            case CategoryOption.NoFcs:
+                team.checkMarkRunInvalid(team.runState.cellCount >= 22, "Run invalid, only " + team.runState.cellCount + " cells registered.");
+                break;
+            case CategoryOption.Orbless:
+                team.checkMarkRunInvalid(team.runState.totalOrbCount === 0, "Run invalid " + team.runState.totalOrbCount + "orbs registered.");
+                break;
+            case CategoryOption.AllFlies:
+                team.checkMarkRunInvalid(team.runState.buzzerCount === 112, "Run invalid, only " + team.runState.buzzerCount + " scoutflies registered.");
+                break;
+            case CategoryOption.AllOrbs:
+                team.checkMarkRunInvalid(team.runState.totalOrbCount === 2000, "Run invalid, only " + team.runState.totalOrbCount + " orbs registered.");
+                break;
+            default:
+                team.checkMarkRunInvalid(false, "Run invalid, category is not a registered speedrun category.");
+                break;
         }
         return;
     }
