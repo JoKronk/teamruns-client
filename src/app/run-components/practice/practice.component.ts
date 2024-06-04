@@ -63,6 +63,7 @@ export class PracticeComponent implements OnDestroy {
   timerInWait: boolean = true;
 
   //listeners
+  launchListener: any;
   fileListener: any;
   timerStateSubscription: Subscription;
   runSetupSubscription: Subscription;
@@ -91,6 +92,10 @@ export class PracticeComponent implements OnDestroy {
       }
     });
 
+    this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
+      if (port == this.mainLocalPlayer?.socketHandler.socketPort && this.inSpectatorMode)
+        this.toggleFreecam();
+  });
 
 
     //recording import listener
@@ -325,6 +330,7 @@ export class PracticeComponent implements OnDestroy {
     if (this.inSpectatorMode)
       this.toggleFreecam();
 
+    this.launchListener();
     this.fileListener();
     if (this.runSetupSubscription) this.runSetupSubscription.unsubscribe();
     if (this.timerStateSubscription) this.timerStateSubscription.unsubscribe();
