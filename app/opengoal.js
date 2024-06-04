@@ -128,7 +128,7 @@ class OpenGoal {
     }
 
     startGK(ogPath, port) {
-        let openGoalClient = spawn(path.join(ogPath, "gk"), ["--socketport", port, "--game", "jak1", "--", "-boot", "-fakeiso", "-debug"], { detached: true, shell: true, stdio: [ 'ignore', 'pipe', 'ignore'] });
+        let openGoalClient = spawn(path.join(ogPath, "gk"), ["--socketport", port, "--game", "jak1", "--", "-boot", "-fakeiso", "-debug"], { detached: true, stdio: [ 'ignore', 'pipe', 'ignore'] });
         let newInstance = {port: port, client: openGoalClient};
         openGoalInstances.push(newInstance);
 
