@@ -122,10 +122,10 @@
       <div class="page-player">
         <div class="playback">
           <div class="playback-button" [class.playback-button-play]="timerInWait && !replay" [class.playback-button-stop]="!timerInWait && replay" [class.playback-button-cancel]="!timerInWait && !replay">
-            <div (click)="playAllRecordings()"><span>{{ !timerInWait ? replay ? "&#x25A0;" : "&#x2716;" : "&#x25BA;" }}</span></div>
+            <div [matTooltip]="!timerInWait ? replay ? 'Stop' : 'Cancel' : 'Play'" matTooltipPosition="above" (click)="playAllRecordings()"><span>{{ !timerInWait ? replay ? "&#x25A0;" : "&#x2716;" : "&#x25BA;" }}</span></div>
           </div>
           <div class="playback-button" [class.playback-button-record]="timerInWait && !replay && !recordingPaused" [class.playback-button-stop]="!timerInWait && !replay && !recordingPaused" [class.playback-button-pause]="!timerInWait && replay && !recordingPaused" [class.playback-button-play]="!timerInWait && replay && recordingPaused">
-            <div (click)="!timerInWait ? replay ? pause() : stopRecording() : startRecording()"><span>{{ !timerInWait ? replay ? recordingPaused ? "&#x25BA;" : "||" : "&#x25A0;" : "&#x25CF;" }}</span></div>
+            <div [matTooltip]="!timerInWait ? replay ? recordingPaused ? 'Play' : 'Pause' : 'Save' : 'Record'" matTooltipPosition="above" (click)="!timerInWait ? replay ? pause() : stopRecording() : startRecording()"><span>{{ !timerInWait ? replay ? recordingPaused ? "&#x25BA;" : "||" : "&#x25A0;" : "&#x25CF;" }}</span></div>
           </div>
           <mat-slider min="0" [max]="recordingsEndtime">
             <input matSliderThumb [(ngModel)]="runHandler.run.timer.totalMs" [disabled]="!replay && !timerInWait" (dragStart)="shiftPlaybackStart()" (dragEnd)="shiftPlaybackEnd()">
