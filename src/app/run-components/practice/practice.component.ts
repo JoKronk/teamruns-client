@@ -18,6 +18,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { RecordingFile } from 'src/app/common/recording/recording-file';
 import { RecordingPackage } from 'src/app/common/recording/recording-package';
 import { RunSetupState } from 'src/app/common/run/run-setup-state';
+import pkg from 'app/package.json';
 
 @Component({
   selector: 'app-practice',
@@ -90,7 +91,7 @@ export class PracticeComponent implements OnDestroy {
       }
     });
 
-    
+
 
     //recording import listener
     this.fileListener = (window as any).electron.receive("recordings-fetch-get", (data: RecordingFile) => {
@@ -280,6 +281,18 @@ export class PracticeComponent implements OnDestroy {
     }
 
     return longest;
+  }
+
+
+  downloadAllRecordings() {
+    if (this.recordings.length === 0) return;
+
+    const blob = new Blob([JSON.stringify(new RecordingFile(pkg.version, this.recordings[0].gameVersion, this.recordings, this.runHandler.run?.data))], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = 'recordings.json';
+    link.href = url;
+    link.click();
   }
 
 

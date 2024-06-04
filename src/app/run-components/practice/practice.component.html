@@ -28,6 +28,9 @@
             <input type="file" id="import" multiple [accept]="['.json']" (change)="importRecordings($event)" />
             <label class="category-button" for="import">Import</label>
           </div>
+          <div class="category">
+            <div class="category-button" (click)="downloadAllRecordings()">Export</div>
+          </div>
         </div>
         <hr />
 
