@@ -23,6 +23,7 @@ export class CreateRunComponent {
   citadelSkipOptions: number[] = Object.values(CitadelOption).filter((v) => !isNaN(Number(v))).map(x => parseInt(x.toString()));
   password: string | null = null;
   modeInfo: string | null = null;
+  allowLateSpectate: boolean = false;
 
   runMode = RunMode;
   citadelOptions = CitadelOption;
@@ -36,7 +37,7 @@ export class CreateRunComponent {
     if (this.runData.mode === this.runMode.Casual)
       this.runData.applyCasualSettings();
     
-    const lobby = new Lobby(this.runData, this._user.getMainUserId(), this.password);
+    const lobby = new Lobby(this.runData, this._user.getMainUserId(), this.allowLateSpectate, this.password);
     this._firestore.addLobby(lobby);
     this.router.navigate(this.runData.mode !== this.runMode.Casual ? ['/run'] : ['/run-casual'], { queryParams: { id: lobby.id } });
     this.dialogRef.close();

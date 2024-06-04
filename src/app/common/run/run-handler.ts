@@ -86,7 +86,7 @@ export class RunHandler {
                     let lobby = snapshot.payload.data();
                     if (!lobby) return;
 
-                    this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
+                    this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.allowLateSpectate, lobby.password, lobby.id), lobby);
                     this.connectionHandler.onLobbyUpdate(this.lobby);
 
                     this.checkSetupRun();
@@ -94,7 +94,7 @@ export class RunHandler {
             }
             //local lobby
             else {
-                this.lobby = new Lobby(this.userService.offlineSettings ?? RunData.getFreeroamSettings(pkg.version, false), userId, null);
+                this.lobby = new Lobby(this.userService.offlineSettings ?? RunData.getFreeroamSettings(pkg.version, false), userId, false, null);
                 this.userService.offlineSettings = undefined;
                 this.connectionHandler.onLobbyUpdate(this.lobby);
                 this.checkSetupRun();
@@ -579,7 +579,7 @@ export class RunHandler {
                 //check if everyone is ready, send start call if so
                 if (this.connectionHandler.isMaster() && event.value === PlayerState.Ready && this.run!.everyoneIsReady()) {
                     if (this.run.data.mode !== RunMode.Casual)
-                        this.makeLobbyUnavailable();
+                        this.updateLobbyInProgress();
 
                     this.connectionHandler.sendEventAsMain(EventType.StartRun, new Date().toUTCString());
                 }
@@ -611,7 +611,7 @@ export class RunHandler {
                             localPlayer.socketHandler.updateGameSettings(new GameSettings(RunData.getFreeroamSettings(pkg.version)));
                             localPlayer.socketHandler.resetTimer();
                         }
-                        this.makeLobbyAvailable();
+                        this.makeLobbyOpen();
                     }
                 });
                 
@@ -743,20 +743,22 @@ export class RunHandler {
         }
     }
 
-    makeLobbyAvailable() {
-        if (!this.lobby || (this.lobby.available && this.lobby.visible))
+    makeLobbyOpen() {
+        if (!this.lobby || (this.lobby.available && this.lobby.visible && !this.lobby.inProgress))
             return;
 
+        this.lobby.inProgress = false;
         this.lobby.visible = true;
         this.lobby.available = true;
         this.updateFirestoreLobby();
     }
 
-    makeLobbyUnavailable() {
-        if (!this.lobby || !this.lobby.available)
-            return;
+    updateLobbyInProgress() {
+        if (!this.lobby) return;
 
-        this.lobby.available = false;
+        this.lobby.inProgress = true;
+        this.lobby.available = this.lobby.allowLateSpectate;
+        this.lobby.visible = true;
         this.updateFirestoreLobby();
     }
 
@@ -843,7 +845,7 @@ export class RunHandler {
         //remove demote if host
         if (this.lobby && (wasHost || this.lobby?.host === null)) { //host removes user from lobby otherwise but host has to the job for himself
             if (wasHost) {
-                console.log("Removing host!")
+                console.log("Removing host!");
                 this.lobby.host = null;
                 this.lobby.visible = false;
             }

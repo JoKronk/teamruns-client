@@ -11,17 +11,20 @@ export class Lobby {
     password: string | null;
     users: LobbyUser[] = [];
     runnerIds: string[] = []; //for obs plugin to find user
+    allowLateSpectate: boolean = false;
+    inProgress: boolean = false;
     visible: boolean = true;
     available: boolean = true;
     creatorId: string;
     creationDate: string = new Date().toUTCString(); //firestore saves it as string if Date and fetches it as string
     lastUpdateDate: string = new Date().toUTCString();
 
-    constructor(runData: RunData, creatorId: string, password: string | null = null, id: string | null = null) {
+    constructor(runData: RunData, creatorId: string, lateSpectate: boolean, password: string | null = null, id: string | null = null) {
         this.id = id ?? crypto.randomUUID();
         this.runData = runData;
         this.password = password;
         this.creatorId = creatorId;
+        this.allowLateSpectate = lateSpectate;
     }
 
     hasUser(id: string) {

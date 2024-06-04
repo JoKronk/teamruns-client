@@ -23,8 +23,8 @@ export class LobbyComponent implements OnDestroy {
   categoryOptions: Category[] = Category.GetGategories();
 
   buildVersion: string = pkg.version;
-  avaliableLobbies: Lobby[] = [];
-  unavailableLobbies: Lobby[] = [];
+  newLobbies: Lobby[] = [];
+  inProgressLobbies: Lobby[] = [];
   loaded: boolean = false;
   inMaintance: boolean;
 
@@ -32,7 +32,7 @@ export class LobbyComponent implements OnDestroy {
   hideViewer: boolean = true;
   
   dataSource: MatTableDataSource<Lobby> = new MatTableDataSource();
-  dataSourceUnavailable: MatTableDataSource<Lobby> = new MatTableDataSource();
+  dataSourceInProgress: MatTableDataSource<Lobby> = new MatTableDataSource();
   columns: string[] = ["name", "mode", "category", "teams", "players"];
 
   lobbiesSubscription: Subscription;
@@ -40,38 +40,41 @@ export class LobbyComponent implements OnDestroy {
 
   constructor(public _user: UserService, private _firestore: FireStoreService, private router: Router, private dialog: MatDialog) {
     
-    this.lobbiesSubscription = this._firestore.getOpenLobbies().subscribe((lobbies) => {
-      const expireDate = new Date();
-      expireDate.setHours(expireDate.getHours() - 4);
-      //remove old lobbies
-      lobbies.filter(x => new Date(x.creationDate) < expireDate).forEach(lobby => {
-        _firestore.deleteLobby(lobby.id);
-      });
-      
-      lobbies = lobbies.filter(x => new Date(x.creationDate) >= expireDate);
-      
-      //(The question marks in user for filtering here is only for backwards compability)
-      lobbies.filter(x => x.users.some(user => user?.user?.id === _user.user.id) || x.host?.user?.id === _user.user.id).forEach(lobby => {
-        lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.password, lobby.id), lobby);
-        if (lobby.host?.user.id === _user.user.id)
-          lobby.host = null;
+    setTimeout(()=> {
+      this.lobbiesSubscription = this._firestore.getOpenLobbies().subscribe((lobbies) => {
+        const expireDate = new Date();
+        expireDate.setHours(expireDate.getHours() - 4);
+        //remove old lobbies
+        lobbies.filter(x => new Date(x.creationDate) < expireDate).forEach(lobby => {
+          _firestore.deleteLobby(lobby.id);
+        });
         
-        lobby.removeUser(_user.user.id);
-        _firestore.updateLobby(lobby);
+        lobbies = lobbies.filter(x => new Date(x.creationDate) >= expireDate);
+        
+        //(The question marks in user for filtering here is only for backwards compability)
+        lobbies.filter(x => x.users.some(user => user?.user?.id === _user.user.id) || x.host?.user?.id === _user.user.id).forEach(lobby => {
+          lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.allowLateSpectate, lobby.password, lobby.id), lobby);
+          if (lobby.host?.user.id === _user.user.id)
+            lobby.host = null;
+          
+          lobby.removeUser(_user.user.id);
+          lobby.visible = false;
+          _firestore.updateLobby(lobby);
+        });
+  
+        const version = this.buildVersion.slice(0, -2);
+        this.newLobbies = lobbies.filter(x => !x.inProgress).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
+        this.dataSource = new MatTableDataSource(this.newLobbies);
+        this.inProgressLobbies = lobbies.filter(x => x.inProgress).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
+        this.dataSourceInProgress = new MatTableDataSource(this.inProgressLobbies);
+        this.selectedLobby = this.newLobbies[0];
+        this.loaded = true;
+        this._user.clientInMaintenanceMode = false;
+      }, error => {
+        if (error.message === "Missing or insufficient permissions.")
+          this._user.clientInMaintenanceMode = true;
       });
-
-      const version = this.buildVersion.slice(0, -2);
-      this.avaliableLobbies = lobbies.filter(x => x.available).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
-      this.dataSource = new MatTableDataSource(this.avaliableLobbies);
-      this.unavailableLobbies = lobbies.filter(x => !x.available).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
-      this.dataSourceUnavailable = new MatTableDataSource(this.unavailableLobbies);
-      this.selectedLobby = this.avaliableLobbies[0];
-      this.loaded = true;
-      this._user.clientInMaintenanceMode = false;
-    }, error => {
-      if (error.message === "Missing or insufficient permissions.")
-        this._user.clientInMaintenanceMode = true;
-    });
+    }, 500); //quick pause to give the db chance to dehost properly when exiting !TODO: fix by awaiting in runhandler destory
 
     
     this.userSubscription = this._user.userSetupSubject.subscribe(user => {
@@ -89,6 +92,8 @@ export class LobbyComponent implements OnDestroy {
   }
 
   routeToRun(lobby: Lobby) {
+    if (!lobby.available) return;
+    
     if (lobby.password) {
       const dialogRef = this.dialog.open(InputDialogComponent, { data: { passwordCheck: true, password: lobby.password, precursorTitle: "Password", title: "Lobby password:", confirmText: "Join" } });
       const dialogSubscription = dialogRef.afterClosed().subscribe((successful: boolean | null) => {
