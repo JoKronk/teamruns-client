@@ -128,7 +128,7 @@ export class SocketHandler {
                 if (!this.run.forPracticeTool)
                     this.addCommand(OgCommand.SetupRun);
 
-                if (this.timer.countdownSeconds > 1)
+                if (this.timer.countdownSeconds > 1 && RunMod.usesReadyUp(this.run.data.mode))
                     this.addCommand(OgCommand.TargetGrab);
 
                 this.resetOngoingRecordings();
@@ -148,7 +148,8 @@ export class SocketHandler {
                 break;
 
             case RunState.Started:
-                this.addCommand(OgCommand.TargetRelease);
+                if (RunMod.usesReadyUp(this.run.data.mode))
+                    this.addCommand(OgCommand.TargetRelease);
                 break;
 
             default:
@@ -244,7 +245,7 @@ export class SocketHandler {
             let state: GameState = target.state;
             let playerState = this.getPlayerState();
             if (state.justSpawned) {
-                if (this.timer.runState === RunState.Countdown)
+                if (this.timer.runState === RunState.Countdown && RunMod.usesReadyUp(this.run.data.mode))
                     this.addCommand(OgCommand.TargetGrab);
             }
 
@@ -260,19 +261,21 @@ export class SocketHandler {
 
             //game state checks
             if (!this.connectionHandler.lobby?.hasSpectator(this.user.id) && playerState !== PlayerState.Finished) {
-                if (state.justSpawned && this.inMidRunRestartPenaltyWait !== 0) {
-                    if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode) && !this.run.forPracticeTool) {
+                //mid run penalty logic
+                if (RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode) && !this.run.forPracticeTool) {
+                    if (state.justSpawned && this.inMidRunRestartPenaltyWait !== 0) {
                         state.debugModeActive = false;
                         this.addCommand(OgCommand.TargetGrab);
                         this.sendNotification("Restart penalty applied, you will be released in " + this.inMidRunRestartPenaltyWait + " seconds.", this.inMidRunRestartPenaltyWait);
                     }
-                    else if (this.localTeam)
+                    else if (this.localTeam && RunMod.usesMidGameRestartPenaltyLogic(this.run.data.mode))
                         this.importRunStateHandler(this.localTeam.runState, SyncType.Full);
-                }
-                if (!this.inMidRunRestartPenaltyWait) {
-                    this.zone.run(() => {
-                        this.connectionHandler.sendEvent(EventType.NewPlayerState, this.user.id, state);
-                    });
+                
+                    if (!this.inMidRunRestartPenaltyWait) {
+                        this.zone.run(() => {
+                            this.connectionHandler.sendEvent(EventType.NewPlayerState, this.user.id, state);
+                        });
+                    }
                 }
     
                 const previousCheckpoint = this.gameState.currentCheckpoint;
