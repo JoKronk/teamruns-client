@@ -62,6 +62,7 @@ export class RunData {
         rundata.submitPbs = false;
         rundata.citadelSkip = CitadelOption.Normal;
         rundata.enablePvp = withPvp !== undefined ? withPvp : true;
+        rundata.teams = 2;
         return rundata;
     }
 }
