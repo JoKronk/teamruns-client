@@ -119,7 +119,7 @@ export class DbRun {
                     
             
                     //fill leaderboards with pbs (filtered by valid and signed in)
-                    for (let team of this.teams.filter(x => x.endTimeMs !== 0 && x.runIsValid && x.players.every(player => signedInPlayerIds.includes(player.user.id))).sort((a, b) => b.endTimeMs - a.endTimeMs)) {
+                    for (let team of this.teams.filter(x => x.endTimeMs !== 0 && x.runIsValid && x.players.every(player => signedInPlayerIds.includes(player.user.id))).sort((a, b) => a.endTimeMs - b.endTimeMs)) {
                         let leaderboard = leaderboards.find(x => x.players === team.players.length);
                         if (!leaderboard) continue;
                         const leaderboardIndex = leaderboards.indexOf(leaderboard);
