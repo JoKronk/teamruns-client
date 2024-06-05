@@ -14,6 +14,7 @@ import { Run } from '../common/run/run';
 import pkg from 'app/package.json';
 import { DbUserProfile } from '../common/firestore/db-user-profile';
 import { ConnectionHandler } from '../common/peer/connection-handler';
+import { ClientUpdate } from './fire-store.service';
 
 @Injectable({
   providedIn: 'root'
@@ -30,6 +31,8 @@ export class UserService implements OnDestroy {
   isBrowser: boolean;
   clientInMaintenanceMode: boolean = false;
   downloadHandler: DownloadHandler = new DownloadHandler();
+
+  clientUpdate: ClientUpdate | undefined = undefined; //TEMP!
 
   private launchListener: any;
   private shutdownListener: any;

@@ -330,6 +330,16 @@ export class FireStoreService {
     await this.runs.doc<DbRun>(id).delete();
   }
 
+  
+  async getCheckForUpdate() { 
+    await this.checkAuthenticated();
+    return (await this.globalData.doc<ClientUpdate>("update").ref.get()).data();
+  }
 
+}
 
+export class ClientUpdate {
+  available: boolean;
+  message: string;
+  blockAccess: string;
 }

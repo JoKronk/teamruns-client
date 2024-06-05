@@ -11,7 +11,7 @@
       </div>
 
       <div class="lobbies-cont">
-        <div [class.lobbies-hidden]="newLobbies.length === 0 && inProgressLobbies.length === 0">
+        <div [class.lobbies-hidden]="newLobbies.length === 0 && inProgressLobbies.length === 0" *ngIf="!_user.clientUpdate || !_user.clientUpdate.blockAccess || !_user.clientUpdate.available">
           <table mat-table [dataSource]="dataSource" multiTemplateDataRows>
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef> Lobby </th>
@@ -49,8 +49,11 @@
         <div *ngIf="_user.clientInMaintenanceMode" class="lobbies-none">
           <h3>In maintenance mode. <br />Check back later for online runs.</h3>
         </div>
+        <div *ngIf="_user.clientUpdate && _user.clientUpdate.available && _user.clientUpdate.blockAccess" class="lobbies-none">
+          <h3>{{ _user.clientUpdate.message }}</h3>
+        </div>
 
-        <div *ngIf="inProgressLobbies.length !== 0" class="lobbies-old">
+        <div *ngIf="inProgressLobbies.length !== 0 && (!_user.clientUpdate || !_user.clientUpdate.blockAccess || !_user.clientUpdate.available)" class="lobbies-old">
           <h2>In progress</h2>
           <table mat-table [dataSource]="dataSourceInProgress" multiTemplateDataRows>
             <ng-container matColumnDef="name">

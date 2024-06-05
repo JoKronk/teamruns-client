@@ -52,6 +52,11 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
     this._user.checkForUpdate();
+    if (!this._user.clientUpdate) {
+      this._firestore.getCheckForUpdate().then(result => {
+        if (result) this._user.clientUpdate = result;
+      });
+    }
   }
 
   sendToLobby(asGuest: boolean) {

@@ -39,6 +39,12 @@ export class LobbyComponent implements OnDestroy {
   userSubscription: Subscription;
 
   constructor(public _user: UserService, private _firestore: FireStoreService, private router: Router, private dialog: MatDialog) {
+
+    if (_user.clientUpdate && _user.clientUpdate.available) {
+      const dialogSubscription = this.dialog.open(ConfirmComponent, { data: { message: _user.clientUpdate.message, yesNo: false } }).afterClosed().subscribe(() => {
+        dialogSubscription.unsubscribe();
+      });
+    }
     
     setTimeout(()=> {
       this.lobbiesSubscription = this._firestore.getOpenLobbies().subscribe((lobbies) => {
@@ -135,8 +141,8 @@ export class LobbyComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.lobbiesSubscription.unsubscribe();
-    this.userSubscription.unsubscribe();
+    if (this.lobbiesSubscription) this.lobbiesSubscription.unsubscribe();
+    if (this.userSubscription) this.userSubscription.unsubscribe();
   }
 
 }
