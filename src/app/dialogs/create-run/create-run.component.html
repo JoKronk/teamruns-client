@@ -66,7 +66,7 @@
                 </div>
             </div>
             <div class="option-buttons">
-                <button *ngIf="!_user.clientInMaintenanceMode" [disabled]="runData.name.length === 0" (click)="createRun()">Create Run</button>
+                <button *ngIf="!_user.clientInMaintenanceMode && (!_user.clientUpdate || !_user.clientUpdate.available)" [disabled]="runData.name.length === 0" (click)="createRun()">Create Run</button>
                 <button [disabled]="runData.name.length === 0" class="offline" (click)="createOfflineRun()">Offline Run</button>
             </div>
             
