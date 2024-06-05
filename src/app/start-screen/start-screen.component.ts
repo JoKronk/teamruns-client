@@ -119,17 +119,20 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
 
   setupUpdateListener() {
     this.updateListener = (window as any).electron.receive("update-available", () => {
-      this.router.navigate(['/install'], { queryParams: { client: 1 } });
+      if (!this._user.downloadHandler.isDownloading)
+        this.router.navigate(['/install'], { queryParams: { client: 1 } });
     });
   }
 
   setupInstallListeners() {
     this.installMissingListener = (window as any).electron.receive("install-missing", () => {
-      this.router.navigate(['/install'], { queryParams: { install: 1 } });
+      if (!this._user.downloadHandler.isDownloading)
+        this.router.navigate(['/install'], { queryParams: { install: 1 } });
     });
 
     this.installOutdatedListener = (window as any).electron.receive("install-outdated", () => {
-      this.router.navigate(['/install'], { queryParams: { update: 1 } });
+      if (!this._user.downloadHandler.isDownloading)
+        this.router.navigate(['/install'], { queryParams: { update: 1 } });
     });
   }
 

@@ -37,7 +37,9 @@ jobs:
         run: echo "${{ secrets.ENV_CONFIG_FILE }}" > src/environments/environment.ts
 
       - name: Build
-        run: npm run dist:linux
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_PAT }}
+        run: npm run deploy:linux
 
       - name: Upload Release Binaries
         env:
