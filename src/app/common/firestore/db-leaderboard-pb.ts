@@ -65,6 +65,9 @@ export class DbLeaderboardPb {
                 this.userDisplayContent = [];
             this.userDisplayContent.push(content);
         });
+        if (!this.userDisplayContent)
+            this.userDisplayContent = [];
+        this.userDisplayContent.sort((a, b) => a.name.localeCompare(b.name));
 
         return this;
     }
