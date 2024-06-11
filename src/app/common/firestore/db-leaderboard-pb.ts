@@ -8,6 +8,7 @@ import { DbUsersCollection } from "./db-users-collection";
 export class DbLeaderboardPb {
     id?: string; //undefined for DbPbs that extends this 
     version: string;
+    gameVersion: string;
     date: number;
     userIds: string[] = [];
     userContent: DbRunUserContent[] = [];
@@ -30,6 +31,7 @@ export class DbLeaderboardPb {
 
         pb.id = run.id;
         pb.version = run.version;
+        pb.gameVersion = run.gameVersion;
         pb.date = run.date;
         if (run.userIds instanceof Map)
             pb.userIds = Array.from(run.userIds.keys());
