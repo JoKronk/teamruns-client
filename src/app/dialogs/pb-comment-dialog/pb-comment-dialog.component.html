@@ -5,12 +5,12 @@
     
     <div class="option">
         <p>Comment</p>
-        <textarea [(ngModel)]="content.comment"></textarea>
+        <textarea maxlength="180" [(ngModel)]="content.comment"></textarea>
     </div>
     
     <div *ngIf="!data.newPb" class="option">
         <p>Video Link <span class="option-warning" *ngIf="showVideoLinkInfo">Link needs to be Youtube or Twitch</span></p>
-        <input [(ngModel)]="content.videoLink">
+        <input  maxlength="120" [(ngModel)]="content.videoLink">
     </div>
     
     <div class="buttons">
