@@ -143,7 +143,9 @@ export class DbRun {
                             
                             //add users to new pbs map
                             let teamUserIds = team.players.flatMap(x => x.user.id);
-                            pbUsers.push(new PbTeamPlayers(newPb.id, teamUserIds, leaderboard.pbs.indexOf(leaderboardPb)));
+                            const leaderboardPosition: number = leaderboard.pbs.indexOf(leaderboardPb);
+                            pbUsers.push(new PbTeamPlayers(newPb.id, teamUserIds, leaderboardPosition));
+                            newPb.lbPositionWhenSet = leaderboardPosition;
                             
         
                             //delete old recording if any

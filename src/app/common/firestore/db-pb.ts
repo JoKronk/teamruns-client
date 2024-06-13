@@ -15,6 +15,7 @@ export class DbPb extends DbLeaderboardPb {
     players: DbPlayer[] = [];
     wasRace: boolean;
     wasWr: boolean;
+    lbPositionWhenSet: number;
     isCurrentPb: boolean;
 
 
