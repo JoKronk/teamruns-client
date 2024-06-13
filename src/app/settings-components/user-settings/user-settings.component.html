@@ -25,7 +25,7 @@
                 <div *ngIf="_user.user.hasSignedIn">
                     <p class="content-subtitle">Change Username / Leaderboard name</p>
                     <div class="content-option">
-                        <p>New Userame</p>
+                        <p>New Username</p>
                         <input [(ngModel)]="newUsername" (keyup.enter)="updateUsername()" maxlength="20">
                         <div>
                             <button (click)="updateUsername()">Update</button>
