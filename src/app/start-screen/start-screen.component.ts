@@ -12,7 +12,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './start-screen.component.html',
   styleUrls: ['./start-screen.component.scss']
 })
-export class StartScreenComponent implements OnDestroy, AfterViewInit {
+export class StartScreenComponent implements OnDestroy {
 
   @ViewChild('video') video: ElementRef;
   @ViewChild('blackscreen') blackscreen: ElementRef;
@@ -42,16 +42,10 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
   constructor(public _user: UserService, private router: Router, private dialog: MatDialog, private _firestore: FireStoreService) {
     this.checkVideoLoad();
 
-    this.setupUpdateListener();
-    this.setupInstallListeners();
     this.setupUserListener();
 
     if (new Date().getHours() % 4 === 0) //saving some reads on the free plan db
       this._firestore.deleteOldLobbies();
-  }
-
-  ngAfterViewInit(): void {
-    this._user.checkForUpdate();
   }
 
   sendToLobby(asGuest: boolean) {
@@ -119,27 +113,32 @@ export class StartScreenComponent implements OnDestroy, AfterViewInit {
 
   setupUpdateListener() {
     this.updateListener = (window as any).electron.receive("update-available", () => {
-      if (!this._user.downloadHandler.isDownloading)
+      if (!this._user.isDownloading)
         this.router.navigate(['/install'], { queryParams: { client: 1 } });
     });
   }
 
   setupInstallListeners() {
     this.installMissingListener = (window as any).electron.receive("install-missing", () => {
-      if (!this._user.downloadHandler.isDownloading)
+      if (!this._user.isDownloading)
         this.router.navigate(['/install'], { queryParams: { install: 1 } });
     });
 
     this.installOutdatedListener = (window as any).electron.receive("install-outdated", () => {
-      if (!this._user.downloadHandler.isDownloading)
+      if (!this._user.isDownloading)
         this.router.navigate(['/install'], { queryParams: { update: 1 } });
     });
   }
 
   setupUserListener() {
-    if (this._user.user.hasSignedIn) return;
-    
     this.userSubscription = this._user.userSetupSubject.subscribe(localUser => {
+      if (!this._user.updateChecked) {
+        this._user.updateChecked = true;
+        this.setupUpdateListener();
+        this.setupInstallListeners();
+        this._user.checkForUpdate();
+      }
+
       if (this._user.user.hasSignedIn) return;
       
       this._firestore.getUsers().then(collection => {

@@ -8,6 +8,7 @@ const child_process = require('child_process');
 const axios = require('axios');
 const yauzl = require('yauzl');
 const mkdirp = require('mkdirp');
+const pjson = require('./package.json');
 const { OpenGoal } = require('./opengoal');
 	
 let win = null;
@@ -183,25 +184,25 @@ function createWindow() {
   });
     
   ipcMain.on('update-check', () => {
-    autoUpdater.checkForUpdatesAndNotify();
+    if (app.isPackaged)
+      checkClientUpToDate();
   });
     
   ipcMain.on('update-start', () => {
-    openGoal.killAllOgInstances();
-    autoUpdater.quitAndInstall();
+    if (clientIsPortable())
+      downloadLatestPortable();
+    else
+      autoUpdater.checkForUpdates();
   });
 
   // --- AUTO UPDATE LISTENERS ---
-  autoUpdater.on('update-available', () => {
-    win.webContents.send('update-available');
-  });
-
   autoUpdater.on('download-progress', (progress) => {
     win.webContents.send('update-progress', progress.percent);
   });
   
   autoUpdater.on('update-downloaded', () => {
-    win.webContents.send('update-downloaded');
+    openGoal.killAllOgInstances();
+    autoUpdater.quitAndInstall();
   });
 
   
@@ -406,6 +407,57 @@ async function readSaveFiles() {
 }
 
 
+// --- CLIENT UPDATES ---
+function clientIsPortable() {
+  return process.env.PORTABLE_EXECUTABLE_DIR !== undefined && process.env.PORTABLE_EXECUTABLE_DIR !== null;
+}
+
+async function checkClientUpToDate() {
+  if (await getLatestClientReleaseVersion() !== pjson.version)
+    win.webContents.send('update-available');
+}
+
+async function getLatestClientReleaseVersion() {
+  const response = await axios.get("https://api.github.com/repos/JoKronk/teamruns-client/releases", { headers: { 'User-Agent': 'Teamruns' } });
+  return response.data.length !== 0 ? response.data[0].name.substring(1) : "";
+}
+
+async function downloadLatestPortable() {
+  sendInstallProgress(1, "Downloading portable");
+  if (!app.isPackaged) {
+    sendInstallProgress(100, ".done");
+    return;
+  }
+  const version = await getLatestClientReleaseVersion();
+  const name = "teamruns-client-" + version + "-portable.exe";
+  const response = await axios({
+    method: "GET",
+    url: "https://github.com/JoKronk/teamruns-client/releases/latest/download/" + name,
+    responseType: "stream"
+  });
+  sendInstallProgress(50, "Saving portable");
+  response.data.pipe(fs.createWriteStream(path.join(process.env.PORTABLE_EXECUTABLE_DIR, name)))
+  return new Promise((resolve, reject) => {
+    response.data.on('end', () => {
+      sendInstallProgress(100, ".done");
+      resolve();
+      setTimeout(() => {
+        sendClientMessage("New client downloaded to current clients location, closing current client.");
+        setTimeout(() => {
+          openGoal.killAllOgInstances();
+          win.close();
+        }, 6500);
+      }, 3500);
+    });
+
+    response.data.on('error', () => {
+      sendInstallProgress(100, "Failed to save new executable");
+      reject();
+    });
+  });
+}
+
+
 // --- OPENGOAL INSTALLATION ---
 function getInstallPath() {
   const installPath = userSettings.ogFolderpath ?? path.join(app.getPath('documents'), "Teamruns", "jak-project");
@@ -458,10 +510,7 @@ async function checkGameIsInstalled() {
 
 async function getLatestGameReleaseVersion() {
   const response = await axios.get("https://api.github.com/repos/JoKronk/teamruns-jak-project/releases", { headers: { 'User-Agent': 'Teamruns' } });
-
-  if (response.data.length !== 0)
-    return response.data[0].name.substring(1);
-  return "";
+  return response.data.length !== 0 ? response.data[0].name.substring(1) : "";
 }
 
 async function checkInstallUpToDate() {

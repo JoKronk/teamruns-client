@@ -87,8 +87,8 @@ export class InstallComponent implements OnDestroy {
   }
 
   updateClient() {
-    this._user.downloadHandler.consentUpdate();
     this._user.drawProgressBar();
+    (window as any).electron.send('update-start');
     this.routeBack();
   }
 

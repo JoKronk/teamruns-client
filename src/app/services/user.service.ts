@@ -8,7 +8,6 @@ import { RunData } from '../common/run/run-data';
 import { SnackbarComponent } from '../snackbars/snackbar/snackbar.component';
 import { SnackbarInstallComponent } from '../snackbars/snackbar-install/snackbar-install.component';
 import { SnackbarImportComponent } from '../snackbars/snackbar-import/snackbar-import.component';
-import { DownloadHandler } from '../common/user/download-handler';
 import { BehaviorSubject } from 'rxjs';
 import { Run } from '../common/run/run';
 import pkg from 'app/package.json';
@@ -29,7 +28,8 @@ export class UserService implements OnDestroy {
 
   isBrowser: boolean;
   clientInMaintenanceMode: boolean = false;
-  downloadHandler: DownloadHandler = new DownloadHandler();
+  isDownloading: boolean = false;
+  updateChecked: boolean = false;
 
   private launchListener: any;
   private shutdownListener: any;
@@ -52,7 +52,7 @@ export class UserService implements OnDestroy {
   }
 
   public startGame(user: User, connenctionHandler: ConnectionHandler | undefined, run: Run | undefined): LocalPlayerData | undefined {
-    if (!(window as any).electron || this.isBrowser || this.downloadHandler.isDownloading) return undefined;
+    if (!(window as any).electron || this.isBrowser || this.isDownloading) return undefined;
 
     let localUser = this.localUsers.find(x => x.user.id === user.id);
     const isMainUser: boolean = user.id === this.user.id;
@@ -107,21 +107,21 @@ export class UserService implements OnDestroy {
   }
 
   public drawProgressBar() {
-    if (this.isBrowser || this.downloadHandler.isDownloading) return;
+    if (this.isBrowser || this.isDownloading) return;
 
-    this.downloadHandler.isDownloading = true; //blocks other snackbars while installing as only one can be open at a time
+    this.isDownloading = true; //blocks other snackbars while installing as only one can be open at a time
     this.zone.run(() => {
       this._snackbar.openFromComponent(SnackbarInstallComponent, {
         verticalPosition: 'bottom',
         horizontalPosition: 'center'
       }).afterDismissed().subscribe(() => {
-        this.downloadHandler.isDownloading = false;
+        this.isDownloading = false;
       });
     });
   }
 
   public drawImportNotif() {
-    if (this.isBrowser || this.downloadHandler.isDownloading) return;
+    if (this.isBrowser || this.isDownloading) return;
 
     this.zone.run(() => {
       this._snackbar.openFromComponent(SnackbarImportComponent, {
@@ -132,7 +132,7 @@ export class UserService implements OnDestroy {
   }
 
   public sendNotification(message: string, notifDurationMs: number = 5000) {
-    if (this.isBrowser || this.downloadHandler.isDownloading) return;
+    if (this.isBrowser || this.isDownloading) return;
 
     this.zone.run(() => {
       this._snackbar.openFromComponent(SnackbarComponent, {
@@ -233,6 +233,5 @@ export class UserService implements OnDestroy {
     this.settingsListener();
     this.messageListener();
     this.errorListener();
-    this.downloadHandler.onDestory();
   }
 }

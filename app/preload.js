@@ -39,7 +39,6 @@ const validIpcChannelsOut = [
     "save-get",
     "update-available",
     "update-progress",
-    "update-downloaded",
     "install-missing",
     "install-found",
     "install-outdated",
