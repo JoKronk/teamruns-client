@@ -32,12 +32,9 @@ export class RunData {
         this.noLTS = false;
 
         switch (this.category) {
-            case 1:
+            case CategoryOption.NoLts:
                 this.noLTS = true;
                 break;
-            case 4:
-                this.noLTS = true;
-                this.citadelSkip = CitadelOption.Patched;
                 break;
         }
     }
