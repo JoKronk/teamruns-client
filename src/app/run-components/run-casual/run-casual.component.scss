@@ -44,41 +44,12 @@
                 border: 2px solid #cecece !important;
             }
         }
-
-        &-big {
-            display: flex;
-            justify-content: center;
-            & button {
-                flex-shrink: 1;
-                font-size: 28px;
-                padding-top: 5px;
-                height: 62px;
-                width: 120px;
-                border: 2px solid #636363;
-                border-radius: 12px;
-            }
-            &-orange {
-                color: #d0901d !important;
-                border: 2px solid #d0901d !important;
-            }
-            &-ready {
-                background-color: rgb(212, 144, 18, 0.7) !important;
-            }
-            &-reset {
-                font-size: 22px !important;
-                font-weight: bold;
-                &:hover:enabled {
-                    background-color: rgb(56, 0, 0, 0.9) !important;
-                    color: rgba(204, 204, 204, 0.8) !important;
-                    cursor: pointer;
-                }
-            }
-        }
+        
         &-small {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            margin-top: 4px;
+            margin-top: 34px;
 
             & div {
                 flex-shrink: 1;
