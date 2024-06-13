@@ -107,6 +107,25 @@
             display: inline-block;
         }
     }
+    &-password {
+        position: absolute;
+        top: 0;
+        left: 0;
+        min-height: 12px;
+        min-width: 14px;
+        &:after {
+            position: absolute;
+            content: '';
+            z-index: 1;
+            height: 0px;
+            width: 0px;
+            left: 0px;
+            bottom: 0px;
+            border-width: 6px 7px;
+            border-style: solid;
+            border-color: #b87512 transparent transparent #b87512;
+        }
+    }
     &-subtext {
         white-space: nowrap;
     }
@@ -135,6 +154,7 @@ td {
 }
 tr.run-row {
     transition: 0.2s;
+    position: relative;
 }
 
 tr.run-row:hover {
