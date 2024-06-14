@@ -342,23 +342,23 @@ export class SocketHandler {
       }
       this.importRunStateHandler(this.localTeam!.runState, syncType);
 
-    }, 2000);
+    }, 5000);
     }
 
-  private checkGetSynctype(): SyncType {
-    let syncType: SyncType = SyncType.None;
-    if (!this.localTeam) return syncType;
+    private checkGetSynctype(): SyncType {
+      let syncType: SyncType = SyncType.None;
+      if (!this.localTeam) return syncType;
+      
+      if (this.localTeam.runState.orbCount > this.gameState.orbCount || this.gameState.orbCount > (this.localTeam.runState.orbCount + 5))
+          syncType = SyncType.Orbs;
+        /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
+          syncType = SyncType.Hard;
+        }*/
+        if (this.localTeam.runState.cellCount > this.gameState.cellCount)
+          syncType = SyncType.Normal;
     
-    if (this.localTeam.runState.orbCount > this.gameState.orbCount || this.gameState.orbCount > (this.localTeam.runState.orbCount + 5))
-        syncType = SyncType.Orbs;
-      /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
-        syncType = SyncType.Hard;
-      }*/
-      if (this.localTeam.runState.cellCount > this.gameState.cellCount)
-        syncType = SyncType.Normal;
-  
-      return syncType;
-    }
+        return syncType;
+      }
 
     private checkSyncingComplete() {
         if (this.syncState !== SyncState.Syncing || !this.self)
