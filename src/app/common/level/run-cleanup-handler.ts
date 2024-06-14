@@ -46,7 +46,7 @@ export class RunCleanupHandler extends RunStateHandler {
         }
 
         for (let level of runStateHandler.levels)
-            socketHandler.addSelfInteraction(this.generateOrbInteractionFromLevel(level));
+            socketHandler.addSelfInteraction(runStateHandler.generateOrbInteractionFromLevel(level));
 
     }
 
