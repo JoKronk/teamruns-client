@@ -71,7 +71,7 @@
                   <img *ngIf="player.currentLevel" class="run-info-teams-level" [src]="'./assets/levels/' + player.currentLevel + '.png'">
                   <span>{{ player.user.name }}</span>
                   <span class="run-info-teams-cells-cont"><img class="run-info-teams-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>
-                  <span *ngIf="runHandler.lobby?.host?.user?.id && runHandler.run.timer.runState === runState.Waiting" class="run-info-teams-kick" (click)="kickPlayer(player.user)">X</span>
+                  <span *ngIf="runHandler.lobby?.host?.user?.id === mainLocalPlayer.user.id && runHandler.run.timer.runState === runState.Waiting" class="run-info-teams-kick" (click)="kickPlayer(player.user)">X</span>
                 </p>
               </div>
             </div>
