@@ -34,15 +34,15 @@ export class RunCleanupHandler extends RunStateHandler {
 
         if (syncType >= SyncType.Normal) {
             //update collectables
-            let loadedLevelsNames = this.getLoadedLevels().flatMap(x => x.name);
+            let loadedLevelsNames = runStateHandler.getLoadedLevels().flatMap(x => x.name);
             let loadedLevels = runStateHandler.levels.filter(x => loadedLevelsNames.includes(x.levelName));
             let unloadedLevels = runStateHandler.levels.filter(x => !loadedLevelsNames.includes(x.levelName));
 
             for (let level of loadedLevels)
-                this.runLevelCleanup(level, socketHandler, gameState);
+                this.runLevelCleanup(level, socketHandler, gameState, true);
             
             for (let level of unloadedLevels)
-                this.runLevelCleanup(level, socketHandler, gameState);
+                this.runLevelCleanup(level, socketHandler, gameState, false);
         }
 
         for (let level of runStateHandler.levels)
@@ -50,29 +50,29 @@ export class RunCleanupHandler extends RunStateHandler {
 
     }
 
-    private runLevelCleanup(level: LevelInteractions, socketHandler: SocketHandler, gameState: GameState) {
+    private runLevelCleanup(level: LevelInteractions, socketHandler: SocketHandler, gameState: GameState, levelLoaded: boolean) {
         level.interactions.filter(x => x.interType == InteractionType.crate).forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler, false);
+            this.resendCommonInteraction(interaction, socketHandler, levelLoaded);
         });
 
         level.interactions.filter(x => x.interType == InteractionType.money).forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler, false);
+            this.resendCommonInteraction(interaction, socketHandler, levelLoaded);
         });
 
         level.interactions.filter(x => x.interType == InteractionType.enemyDeath).forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler, false);
+            this.resendCommonInteraction(interaction, socketHandler, levelLoaded);
         });
 
         level.interactions.filter(x => x.interType == InteractionType.periscope).forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler, false);
+            this.resendCommonInteraction(interaction, socketHandler, levelLoaded);
         });
 
         level.interactions.filter(x => x.interType == InteractionType.snowBumper).forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler, false);
+            this.resendCommonInteraction(interaction, socketHandler, levelLoaded);
         });
 
         level.interactions.filter(x => x.interType == InteractionType.darkCrystal).forEach(interaction => {
-            this.resendCommonInteraction(interaction, socketHandler, false);
+            this.resendCommonInteraction(interaction, socketHandler, levelLoaded);
         });
         
         level.interactions.filter(x => x.interType == InteractionType.lpcChamber).forEach(interaction => {
@@ -89,8 +89,8 @@ export class RunCleanupHandler extends RunStateHandler {
         }, 500);
     }
 
-    private resendCommonInteraction(interaction: UserInteractionData, socketHandler: SocketHandler, alwaysPushToGame: boolean) {
-        if (alwaysPushToGame || this.levelIsLoaded(interaction.interLevel))
+    private resendCommonInteraction(interaction: UserInteractionData, socketHandler: SocketHandler, pushToGame: boolean) {
+        if (pushToGame)
             socketHandler.addPlayerInteraction(interaction);
         
         this.onInteraction(interaction);

@@ -239,7 +239,7 @@ export class RunStateHandler {
         return level.status.startsWith(LevelStatus.DisplayedBase);
     }
 
-    protected getLoadedLevels(): LevelStatus[] {
+    public getLoadedLevels(): LevelStatus[] {
         return this.levelStatuses.filter(x => x.status.startsWith(LevelStatus.DisplayedBase));
     }
 }
