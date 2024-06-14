@@ -27,7 +27,7 @@ export class Category {
                 key: CategoryOption.NoFcs
             },
             {
-                displayName: "Orbless",
+                displayName: "Orbless (Beta)",
                 key: CategoryOption.Orbless
             },
             {
