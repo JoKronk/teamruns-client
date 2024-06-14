@@ -7,6 +7,6 @@
                 <p [ngStyle]="{'color': message.color}"><span *ngIf="message.username">{{ message.username }}: </span><span>{{ message.text }}</span></p>
             </div>
         </div>
-        <input class="chat-input" [(ngModel)]="message" (keyup.enter)="sendMessage()">
+        <input class="chat-input" maxlength="500" [(ngModel)]="message" (keyup.enter)="sendMessage()">
     </div>
   </div>
