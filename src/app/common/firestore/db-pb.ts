@@ -23,7 +23,7 @@ export class DbPb extends DbLeaderboardPb {
         let pb = new DbPb();
 
         pb.version = run.data.buildVersion;
-        pb.version = run.data.gameVersion;
+        pb.gameVersion = run.data.gameVersion;
         pb.date = run.date;
         pb.tasks = team.tasks;
         pb.endTimeMs = team.endTimeMs;
