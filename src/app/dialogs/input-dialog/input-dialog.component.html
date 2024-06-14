@@ -3,11 +3,11 @@
     
     <div class="option">
         <p>{{input.title}}</p>
-        <input [(ngModel)]="userInput" maxlength="36">
+        <input [(ngModel)]="userInput" (keyup.enter)="confirm()" maxlength="36">
     </div>
     
     <div class="buttons">
         <button class="cancel" (click)="close()">Cancel</button>
-        <button (click)="confirm()">{{input.confirmText}}</button>
+        <button (click)="confirm()">{{ input.confirmText }}</button>
     </div>
 </div>
