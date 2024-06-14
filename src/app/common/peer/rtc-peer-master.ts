@@ -109,11 +109,18 @@ export class RTCPeerMaster {
         });
     }
 
-    respondToSlave(event: DataChannelEvent, userId: string) {
+    sendEventToSpecificSlave(event: DataChannelEvent, userId: string) {
         const peer = this.peers.find(x => x.player.user.id === userId);
         if (!peer) return;
 
         peer.peer.sendEvent(event);
+    }
+
+    sendPositionToSpecificSlave(positionData: UserPositionData, userId: string) {
+        const peer = this.peers.find(x => x.player.user.id === userId);
+        if (!peer) return;
+
+        peer.peer.sendPosition(positionData);
     }
 
 

@@ -42,6 +42,7 @@ import { PlayerType } from "../player/player-type";
 import { ConnectionHandler } from "../peer/connection-handler";
 import { DbUsersCollection } from "../firestore/db-users-collection";
 import { ChatMessage } from "../peer/chat-message";
+import { UserPositionData } from "../socket/position-data";
 
 export class RunHandler {
 
@@ -260,6 +261,26 @@ export class RunHandler {
             this.info = RunMode[this.run.data.mode];
     }
 
+    loadRunToRemotePlayer(userId: string) {
+        if (!this.run) return;
+        const syncRun = Object.assign(new Run(this.run.data), JSON.parse(JSON.stringify(this.run, (key, value) => { return key === "timerSubject" ? undefined : value; }))).reconstructRun();
+        for (let team of syncRun.teams)
+            team.runState.resetHandler();
+        this.connectionHandler.respondToSlave(new DataChannelEvent(this.userService.getMainUserId(), EventType.RunSync, new SyncResponse(new SyncRequest("", SyncRequestReason.InitConnect), syncRun)), userId);
+        let users = this.run!.getAllPlayers().flatMap(x => x.user);
+        setTimeout(() => {
+            for (let interaction of this.run!.teams.flatMap(x => x.runState.levels).flatMap(x => x.interactions))
+                this.connectionHandler.respondToSlave(UserPositionData.fromUserInteractionData(interaction, users.find(x => x.id === interaction.userId) ?? this.userService.user, true), userId);
+        }, 1000); 
+    }
+
+    loadRunToAllRemote() {
+        let localMain = this.getMainLocalPlayer();
+        if (!localMain || !localMain.socketHandler.localTeam) return;
+        for (let player of localMain.socketHandler.localTeam.players)
+            this.loadRunToRemotePlayer(player.user.id);
+    }
+
     onDataChannelEvent(event: DataChannelEvent) {
         if (!this.run) return;
         const userId = this.userService.getMainUserId();
@@ -390,7 +411,7 @@ export class RunHandler {
 
             case EventType.RequestRunSync:
                 if (this.connectionHandler.isMaster()) {
-                    this.connectionHandler.respondToSlave(new DataChannelEvent(userId, EventType.RunSync, new SyncResponse(event.value, this.run)), event.userId);
+                    this.loadRunToRemotePlayer(event.userId);
                     console.log("Got run sync request, responding!");
                 }
                 break;

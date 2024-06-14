@@ -131,11 +131,14 @@ export class ConnectionHandler {
         this.localMaster?.relayToSlaves(event);
     }
 
-    respondToSlave(event: DataChannelEvent, userId: string) {
+    respondToSlave(data: DataChannelEvent | UserPositionData, userId: string) {
         if (!this.isMaster())
             return;
 
-        this.localMaster?.respondToSlave(event, userId);
+        if (data instanceof DataChannelEvent)
+            this.localMaster?.sendEventToSpecificSlave(data, userId);
+        else
+            this.localMaster?.sendPositionToSpecificSlave(data, userId);
     }
 
     destoryPeer(userId: string) {

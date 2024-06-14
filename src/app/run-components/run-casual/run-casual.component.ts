@@ -115,6 +115,7 @@ export class RunCasualComponent implements OnDestroy {
         if (teamPlayer) teamPlayer.cellsCollected = save.tasksStatuses.filter(x => x.userId === teamPlayer?.user.id && Task.isCellCollect(x.interName, TaskStatus.nameFromEnum(x.interStatus))).length;
       }
     });
+    this.runHandler.loadRunToAllRemote();
     this.hasLoadedFile = true;
   }
 

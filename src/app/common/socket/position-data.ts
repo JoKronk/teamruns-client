@@ -1,5 +1,5 @@
-import { User } from "../user/user";
-import { InteractionData } from "./interaction-data";
+import { UserBase } from "../user/user";
+import { InteractionData, UserInteractionData } from "./interaction-data";
 
 export class PositionData extends InteractionData {
     transX: number;
@@ -44,6 +44,31 @@ export class UserPositionData extends PositionData {
         this.time = time;
         this.userId = userId;
         this.username = username;
+    }
+
+    static fromUserInteractionData(positionData: UserInteractionData, player: UserBase, forceNoneCleanup: boolean = false) : UserPositionData {
+        return {
+            quatW: 0,
+            quatX: 0,
+            quatY: 0,
+            quatZ: 0,
+            rotY: 0,
+            transX: 0,
+            transY: 0,
+            transZ: 0,
+            tgtState: undefined,
+            currentLevel: undefined,
+            interType: positionData.interType,
+            interAmount: positionData.interAmount,
+            interStatus: positionData.interStatus,
+            interName: positionData.interName,
+            interParent: positionData.interParent,
+            interLevel: positionData.interLevel,
+            interCleanup: forceNoneCleanup ? false : positionData.interCleanup,
+            time: positionData.time,
+            username: player.name,
+            userId: player.id
+        }
     }
 }
 
