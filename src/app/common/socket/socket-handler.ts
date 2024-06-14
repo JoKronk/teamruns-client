@@ -341,24 +341,23 @@ export class SocketHandler {
         return;
       }
       this.importRunStateHandler(this.localTeam!.runState, syncType);
-
-    }, 5000);
+    }, this.gameState.cellCount === 0 ? 2000 : 8000); //run quicker if no cells as it's probably a game restart
     }
 
-    private checkGetSynctype(): SyncType {
-      let syncType: SyncType = SyncType.None;
-      if (!this.localTeam) return syncType;
+  private checkGetSynctype(): SyncType {
+    let syncType: SyncType = SyncType.None;
+    if (!this.localTeam) return syncType;
       
-      if (this.localTeam.runState.orbCount > this.gameState.orbCount || this.gameState.orbCount > (this.localTeam.runState.orbCount + 5))
-          syncType = SyncType.Orbs;
-        /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
-          syncType = SyncType.Hard;
-        }*/
-        if (this.localTeam.runState.cellCount > this.gameState.cellCount)
-          syncType = SyncType.Normal;
-    
-        return syncType;
-      }
+    if (this.localTeam.runState.orbCount > this.gameState.orbCount || this.gameState.orbCount > (this.localTeam.runState.orbCount + 5))
+        syncType = SyncType.Orbs;
+      /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
+        syncType = SyncType.Hard;
+      }*/
+      if (this.localTeam.runState.cellCount > this.gameState.cellCount)
+        syncType = SyncType.Normal;
+  
+      return syncType;
+    }
 
     private checkSyncingComplete() {
         if (this.syncState !== SyncState.Syncing || !this.self)
