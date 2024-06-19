@@ -143,7 +143,7 @@ export class DbRun {
                             
                             //add users to new pbs map
                             let teamUserIds = team.players.flatMap(x => x.user.id);
-                            const leaderboardPosition: number = leaderboard.pbs.indexOf(leaderboardPb);
+                            const leaderboardPosition: number = leaderboard.pbs.indexOf(leaderboardPb) + 1;
                             pbUsers.push(new PbTeamPlayers(newPb.id, teamUserIds, leaderboardPosition));
                             newPb.lbPositionWhenSet = leaderboardPosition;
                             
