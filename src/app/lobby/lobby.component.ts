@@ -135,8 +135,8 @@ export class LobbyComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.lobbiesSubscription.unsubscribe();
-    this.userSubscription.unsubscribe();
+    if (this.lobbiesSubscription) this.lobbiesSubscription.unsubscribe();
+    if (this.userSubscription) this.userSubscription.unsubscribe();
   }
 
 }
