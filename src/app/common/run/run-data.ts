@@ -26,7 +26,7 @@ export class RunData {
         this.buildVersion = version;
     }
 
-    setCategoryDefaultSettings(): void {
+    applyCategorySettings(): void {
         this.allowSoloHubZoomers = false;
         this.citadelSkip = CitadelOption.Shared;
         this.noLTS = false;
@@ -35,7 +35,8 @@ export class RunData {
             case CategoryOption.NoLts:
                 this.noLTS = true;
                 break;
-                break;
+            case CategoryOption.Orbless:
+                this.noLTS = true;
         }
     }
 

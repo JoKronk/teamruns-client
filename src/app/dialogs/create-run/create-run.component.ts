@@ -32,11 +32,27 @@ export class CreateRunComponent {
     this.getModeInfo();
   }
 
-  createRun() {
+  private createRun() {
     this.runData.buildVersion = pkg.version;
-    if (this.runData.mode === this.runMode.Casual)
-      this.runData.applyCasualSettings();
-    
+    this.runData.gameVersion = this._user.user.gameVersion;
+
+    switch(this.runData.mode) {
+      case RunMode.Speedrun:
+        this.runData.applyCategorySettings();
+        break;
+
+      case RunMode.Casual:
+        this.runData.applyCasualSettings();
+        break;
+        
+      default:
+        break;
+    }
+  }
+
+  createOnlineRun() {
+    this.createRun();
+
     const lobby = new Lobby(this.runData, this._user.getMainUserId(), this.allowLateSpectate, this.password);
     this._firestore.addLobby(lobby);
     this.router.navigate(this.runData.mode !== this.runMode.Casual ? ['/run'] : ['/run-casual'], { queryParams: { id: lobby.id } });
@@ -44,9 +60,8 @@ export class CreateRunComponent {
   }
 
   createOfflineRun() {
-    this.runData.buildVersion = pkg.version;
-    if (this.runData.mode === this.runMode.Casual)
-      this.runData.applyCasualSettings();
+    this.createRun();
+    
     this._user.offlineSettings = this.runData;
     this.router.navigate(this.runData.mode !== this.runMode.Casual ? ['/run'] : ['/run-casual']);
     this.dialogRef.close();
