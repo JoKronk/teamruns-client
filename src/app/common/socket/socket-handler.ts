@@ -191,7 +191,7 @@ export class SocketHandler {
 
             //handle mid game restarts
             if (this.run?.timer.runState !== RunState.Waiting && !this.run.forPracticeTool) {
-                this.inMidRunRestartPenaltyWait = 10;
+                this.inMidRunRestartPenaltyWait = 5;
                 this.addCommand(OgCommand.DisableDebugMode);
                 if (!this.run.hasSpectator(this.user.id)) {
                     const lastCheckpoint = this.run?.getPlayer(this.user.id)?.gameState.currentCheckpoint;
@@ -347,7 +347,7 @@ export class SocketHandler {
   private checkGetSynctype(): SyncType {
     let syncType: SyncType = SyncType.None;
     if (!this.localTeam) return syncType;
-      
+    
     if (this.localTeam.runState.orbCount > this.gameState.orbCount || this.gameState.orbCount > (this.localTeam.runState.orbCount + 5))
         syncType = SyncType.Orbs;
       /*if (this.socketHandler.localTeam.runState.buzzerCount > this.gameState.buzzerCount) {
