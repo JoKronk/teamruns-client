@@ -332,7 +332,7 @@ export class RunHandler {
 
                 //remove if recording
                 this.userService.localUsers.forEach(localPlayer => {
-                    if (!localPlayer.socketHandler.checkRemoveRecording(disconnectedUser.id))
+                    if (!localPlayer.socketHandler.checkRemovePlaybackRecording(disconnectedUser.id))
                         localPlayer.socketHandler.stopDrawPlayer(disconnectedUser.id);
                 });
                 this.selfImportedRecordings = this.selfImportedRecordings.filter(x => x.id !== disconnectedUser.id);
@@ -470,7 +470,7 @@ export class RunHandler {
 
                         if (this.run.everyoneHasFinished() && !this.runFullyFinished)
                             this.runFullyFinished = true;
-
+                        
                         //save recordings locally
                         this.validateTeamPlayersSignedIn(collection);
                         let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings(playerTeam.players.flatMap(x => x.user.id));
@@ -806,7 +806,7 @@ export class RunHandler {
 
           let forceState: boolean = recordingPackage.forceState !== undefined;
           if (mainLocalPlayer)
-            mainLocalPlayer.socketHandler.addRecording(recording, forceState ? recordingPackage.forceState! : mainLocalPlayer.socketHandler.localTeam?.id === recordingPackage.teamId ? MultiplayerState.interactive : MultiplayerState.active, forceState);
+            mainLocalPlayer.socketHandler.addPlaybackRecording(recording, forceState ? recordingPackage.forceState! : mainLocalPlayer.socketHandler.localTeam?.id === recordingPackage.teamId ? MultiplayerState.interactive : MultiplayerState.active, forceState);
         }
     }
 

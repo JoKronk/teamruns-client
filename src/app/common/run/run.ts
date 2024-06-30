@@ -98,7 +98,7 @@ export class Run {
             if (RunMod.endRunOnSiglePlayerFinish(this.data.mode) && this.teams.some(x => x.players.some(y => y.state === PlayerState.Finished)))
                 return true;
             
-            return this.teams.every(x => x.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit));
+            return this.teams.every(x => x.players.every(y => y.state === PlayerState.Finished || y.state === PlayerState.Forfeit || y.type === PlayerType.Recording));
         }
         else {
             if (RunMod.endRunOnSiglePlayerFinish(this.data.mode) && team.players.some(y => y.state === PlayerState.Finished))

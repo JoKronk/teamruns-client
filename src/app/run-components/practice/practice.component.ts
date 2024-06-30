@@ -205,7 +205,7 @@ export class PracticeComponent implements OnDestroy {
 
     //fetch new levels if skipped backwards
     if (this.recordingDragStart - this.mainLocalPlayer.socketHandler.timer.totalMs > 0)
-      this.mainLocalPlayer.socketHandler.updateRecordingsLevels();
+      this.mainLocalPlayer.socketHandler.updatePlaybackRecordingsLevels();
 
     this.mainLocalPlayer.socketHandler.timer.shiftTimerByMs(this.recordingDragStart - this.mainLocalPlayer.socketHandler.timer.totalMs);
     this.recordingDragStart = 0;
@@ -262,7 +262,7 @@ export class PracticeComponent implements OnDestroy {
     if (this.mainLocalPlayer.socketHandler.timer.runState !== RunState.Waiting) {
       this.mainLocalPlayer.socketHandler.timer.reset();
 
-      this.mainLocalPlayer.socketHandler.recordings.forEach(rec => {
+      this.mainLocalPlayer.socketHandler.playback.forEach(rec => {
         this.runHandler.connectionHandler.sendEvent(EventType.Disconnect, rec.id, new UserBase(rec.id, rec.username ?? ""));
       });
 

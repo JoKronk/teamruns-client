@@ -34,24 +34,13 @@ export class DbRun {
 
         dbRun.data = run.data;
         dbRun.date = run.timer.startDateMs ?? 0;
-
-        if (lobby) {
-            for (let team of run.teams) {
-                let recordings = lobby.users.filter(x => x.type === PlayerType.Recording).flatMap(x => x.user.id);
-                team.players = team.players.filter(x => !recordings.includes(x.user.id));
-            }
-            run.teams = run.teams.filter(x => x.players.length !== 0);
-        }
-
+        
         //teams
-        for (let team of run.teams) {
-            if (team.players.length !== 0) {
-                dbRun.teams.push(new DbTeam(team));
-                team.players.forEach(player => {
-                    dbRun.userIds.set(player.user.id, true);
-                });
-            }
-        };
+        for (let team of run.teams.filter(x => !x.players.some(y => y.type === PlayerType.Recording))) {
+            dbRun.teams.push(new DbTeam(team));
+            for (let player of team.players)
+                dbRun.userIds.set(player.user.id, true);
+        }
 
         return dbRun;
     }
