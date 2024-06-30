@@ -15,6 +15,7 @@ export class Team {
     
     runState: RunStateHandler;
 
+    hasFinished: boolean = false
     runIsValid: boolean = true;
     runInvalidReason: string = "";
 
@@ -42,6 +43,7 @@ export class Team {
         this.splits = [];
         this.runState = new RunStateHandler();
         this.runIsValid = true;
+        this.hasFinished = false;
 
 
         if (!resetPlayers) return;

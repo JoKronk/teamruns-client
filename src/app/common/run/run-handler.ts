@@ -453,9 +453,10 @@ export class RunHandler {
                     RunMod.endRunOnSiglePlayerFinish(this.run.data.mode) ? this.run.endAllTeamsRun(endTask) : this.run?.checkSetTeamEndTime(endTask);
                     
                     let playerTeam = this.run.getPlayerTeam(userId);
-                    if (!playerTeam || !this.run.everyoneHasFinished(playerTeam))
+                    if (!playerTeam || playerTeam.hasFinished || !this.run.everyoneHasFinished(playerTeam) || this.runFullyFinished || this.isPracticeTool)
                         return;
-                    
+                    playerTeam.hasFinished = true;
+
                     const players: Player[] = this.run.getAllPlayers();
                     this.firestoreService.getUsers().then(collection => {
                         if (!collection || !players || !playerTeam || !this.run) return;
@@ -467,32 +468,32 @@ export class RunHandler {
                         if (!playerTeam.runIsValid && playerTeam.runInvalidReason) 
                             this.userService.sendNotification(playerTeam.runInvalidReason.startsWith("Run invalid") ? playerTeam.runInvalidReason : ("Run Invalid: " + playerTeam.runInvalidReason), 10000);
 
-                        if (!this.isPracticeTool && this.run.everyoneHasFinished() && !this.runFullyFinished) {
+                        if (this.run.everyoneHasFinished() && !this.runFullyFinished)
                             this.runFullyFinished = true;
-                            //save recordings locally
-                            this.validateTeamPlayersSignedIn(collection);
-                            let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings();
-                            this.checkSaveRecordingsLocally(recordings, playerTeam);
 
-                            //pb upload
-                            if (this.connectionHandler.isMaster() && RunMod.isAddedToRunHistory(this.run.data.mode)) {
-                                let dbRun: DbRun = DbRun.convertToFromRun(this.run, this.lobby);
+                        //save recordings locally
+                        this.validateTeamPlayersSignedIn(collection);
+                        let recordings: UserRecording[] | undefined = this.getMainLocalPlayer()?.socketHandler.resetGetRecordings(playerTeam.players.flatMap(x => x.user.id));
+                        this.checkSaveRecordingsLocally(recordings, playerTeam);
+
+                        //pb upload
+                        if (this.connectionHandler.isMaster() && RunMod.isAddedToRunHistory(this.run.data.mode)) {
+                            let dbRun: DbRun = DbRun.convertToFromRun(this.run, this.lobby);
+                        
+                            // add run to history if any player is signed in
+                            if (players.some(player => collection.users.find(user => user.id === player.user.id)))
+                                this.firestoreService.addRun(dbRun);
                             
-                                // add run to history if any player is signed in
-                                if (players.some(player => collection.users.find(user => user.id === player.user.id)))
-                                    this.firestoreService.addRun(dbRun);
-                                
-                                // add pb
-                                if (this.run?.data.submitPbs && this.run.isMode(RunMode.Speedrun) && this.run.teams.some(x => x.runIsValid)) {
-                                    const pbUploadSubscription = dbRun.checkUploadPbs(this.firestoreService, signedInPlayers, recordings)?.subscribe(pbUsers => {
-                                        pbUploadSubscription?.unsubscribe();
-                                        if (pbUsers.length !== 0) {
-                                            setTimeout(() => { //give some time for pb to upload !TODO: replace with proper pipe
-                                                this.connectionHandler.sendEventAsMain(EventType.NewPb, pbUsers);
-                                            }, 1000);
-                                        }
-                                    });
-                                }
+                            // add pb
+                            if (this.run?.data.submitPbs && this.run.isMode(RunMode.Speedrun) && playerTeam.runIsValid) {
+                                const pbUploadSubscription = dbRun.checkUploadPbs(this.firestoreService, signedInPlayers, recordings)?.subscribe(pbUsers => {
+                                    pbUploadSubscription?.unsubscribe();
+                                    if (pbUsers.length !== 0) {
+                                        setTimeout(() => { //give some time for pb to upload !TODO: replace with proper pipe
+                                            this.connectionHandler.sendEventAsMain(EventType.NewPb, pbUsers);
+                                        }, 1000);
+                                    }
+                                });
                             }
                         }
                     });

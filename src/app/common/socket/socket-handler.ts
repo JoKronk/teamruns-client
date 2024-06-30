@@ -236,7 +236,7 @@ export class SocketHandler {
             if (this.localTeam !== undefined)
                 this.connectionHandler.sendPosition(positionData);
 
-            this.updatePlayerPosition(new UserPositionData(target.position, this.timer.totalMs, this.user.id, this.user.displayName ?? this.user.name));
+            this.updatePlayerPosition(positionData);
         }
 
         //--- State Data ---
@@ -367,17 +367,17 @@ export class SocketHandler {
             this.syncState = SyncState.Available;
     }
 
-    resetGetRecordings(): UserRecording[] {
-        const recordings = this.userPositionRecordings;
-        this.cleanupPlayers();
+    resetGetRecordings(players: string[] | undefined = undefined): UserRecording[] {
+        const recordings = players === undefined ? this.userPositionRecordings : this.userPositionRecordings.filter(x => players.includes(x.userId));
+        this.cleanupPlayers(players);
 
-        this.resetOngoingRecordings();
-        this.recordings = [];
+        this.resetOngoingRecordings(players);
+        this.recordings = players === undefined ? [] : this.userPositionRecordings.filter(x => players.includes(x.userId));
         return recordings;
     }
 
-    resetOngoingRecordings() {
-        this.userPositionRecordings = [];
+    resetOngoingRecordings(players: string[] | undefined = undefined) {
+        this.userPositionRecordings = players !== undefined ? this.userPositionRecordings.filter(x => !players.includes(x.userId)) : [];
     }
 
     resetRecordingIndexes() {
@@ -719,17 +719,20 @@ export class SocketHandler {
         this.socketPackage.resetOneTimeValues();
     }
 
-    private cleanupPlayers() {
+    private cleanupPlayers(players: string[] | undefined = undefined) {
         if (!this.players.some(x => !x.isInState(MultiplayerState.disconnected))) return;
 
-        this.players.forEach(player => {
+        for (let player of this.players) {
+            if (players !== undefined && !players.includes(player.userId))
+                continue;
+
             player.checkUpdateUsername("");
             player.recordingDataIndex = undefined;
             player.sideLoadNewMpState(MultiplayerState.disconnected);
-        });
+        }
 
         this.sendSocketPackageToOpengoal();
-        this.players = [];
+        this.players = players !== undefined ? this.players.filter(x => !players.includes(x.userId)) : [];
     }
 
 
