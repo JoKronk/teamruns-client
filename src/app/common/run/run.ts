@@ -266,10 +266,10 @@ export class Run {
                 );
                 break;
             case CategoryOption.NoFcs:
-                team.checkMarkRunInvalid(team.runState.cellCount >= 22, "Run invalid, only " + team.runState.cellCount + " cells registered.");
+                team.checkMarkRunInvalid(team.runState.cellCount >= 20, "Run invalid, only " + team.runState.cellCount + " cells registered.");
                 break;
             case CategoryOption.Orbless:
-                team.checkMarkRunInvalid(team.runState.totalOrbCount === 0, "Run invalid " + team.runState.totalOrbCount + "orbs registered.");
+                team.checkMarkRunInvalid(team.runState.cellCount >= 72 && team.runState.totalOrbCount === 0, "Run invalid " + team.runState.totalOrbCount + "orbs registered.");
                 break;
             case CategoryOption.AllFlies:
                 team.checkMarkRunInvalid(team.runState.buzzerCount === 112, "Run invalid, only " + team.runState.buzzerCount + " scoutflies registered.");
