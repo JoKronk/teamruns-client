@@ -13,12 +13,18 @@
         flex: 5;
         height: 100%;
         & #version {
-            font-family: 'precursor';
-            font-size: 30px;
+            font-family: 'OpenSans';
+            font-size: 16px;
             width: 4px;
+            white-space: nowrap;
             display: block;
             margin: 0;
             margin-left: -8px;
+            & span {
+                display: block;
+                line-height: 17px;
+                padding-left: 8px;
+            }
         }
         & .settings {
             height: 22px;
