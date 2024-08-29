@@ -191,7 +191,7 @@ export class Task {
         ]).includes(gameTask);
     }
 
-    public static generateIneractionForHubGate(hub: number) : InteractionData | undefined {
+    public static generateInteractionForHubGate(hub: number) : InteractionData | undefined {
         switch(hub) {
             case 2:
                 return {

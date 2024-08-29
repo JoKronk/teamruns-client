@@ -26,7 +26,16 @@ export class RunCleanupHandler extends RunStateHandler {
             socketHandler.addCommand(OgCommand.ResetGame);
 
         //import task statuses to game
-        runStateHandler.tasksStatuses.forEach(interaction => {
+        //import warp gate tasks first, to ensure gondola is made active upon game restart (e.g. a crash)
+        //TODO: Prevent exploitation here! Currently it does not care if you should have the gondola unlocked or not, so a player
+        //could relaunch the game after hitting the button to gain access to Snowy immediately.
+        runStateHandler.tasksStatuses.filter(x => Task.isWarpGate(x.interName)).forEach(interaction => {
+            const modifiedInteraction = interaction;
+            modifiedInteraction.interCleanup = true;
+            this.resendCommonInteraction(modifiedInteraction, socketHandler, true);
+        });
+          
+        runStateHandler.tasksStatuses.filter(x => !Task.isWarpGate(x.interName)).forEach(interaction => {
             const modifiedInteraction = interaction;
             modifiedInteraction.interCleanup = true;
             this.resendCommonInteraction(modifiedInteraction, socketHandler, true);

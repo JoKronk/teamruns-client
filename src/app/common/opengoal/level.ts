@@ -64,7 +64,7 @@ export class Level {
             case Level.hub2:
                 return "Rock Village";
             case Level.hub3:
-                return "Volcanic Crate";
+                return "Volcanic Crater";
             default:
                 return "";
         }

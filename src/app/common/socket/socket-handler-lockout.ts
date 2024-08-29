@@ -49,7 +49,7 @@ export class SocketHandlerLockout extends SocketHandler {
 
             //open warp gate on new hub cell
             //!TODO: could probably been done cleaner than to generate one gate task per cell
-            let gateTask = Task.generateIneractionForHubGate(Task.getTaskHub(task.name));
+            let gateTask = Task.generateInteractionForHubGate(Task.getTaskHub(task.name));
             if (gateTask && (this.localTeam?.runState.isNewTaskStatus(gateTask) ?? false))
                 this.addSelfInteraction(gateTask);
         }
