@@ -22,9 +22,9 @@ const validIpcChannelsIn = [
     "save-open",
     "update-check",
     "update-start",
+    "download-portable",
     "install-check",
-    "install-start",
-    "install-update"
+    "install-start"
 ];
 const validIpcChannelsOut = [
     "og-launched",
