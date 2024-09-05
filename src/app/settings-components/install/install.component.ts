@@ -124,7 +124,7 @@ export class InstallComponent implements OnDestroy {
   }
 
   installGameVersion(version: string, isoPath: string | undefined = undefined) {
-    if (this.needsIsoInstall) {
+    if (this.needsIsoInstall && !this.isoInstallView) {
       this.isoInstallView = true;
       this.storedVersionValue = version;
       return;

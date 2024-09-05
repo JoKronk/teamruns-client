@@ -48,7 +48,6 @@ function createWindow() {
     icon: "./../src/assets/icon.png"
   });
 
-  getLatestGameReleaseVersion()
   if (!app.isPackaged) {
     const debug = require('electron-debug');
     debug();
@@ -514,7 +513,7 @@ async function checkGameIsInstalled() {
 
 async function getLatestGameReleaseVersion() {
   const response = await axios.get("https://api.github.com/repos/JoKronk/teamruns-jak-project/releases", { headers: { 'User-Agent': 'Teamruns' } });
-  return response.data.length !== 0 ? response.data[0].name.substring(1) : "";
+  return "v" + (response.data.length !== 0 ? response.data[0].name.substring(1) : "");
 }
 
 async function checkInstallUpToDate() {
@@ -525,7 +524,7 @@ async function checkInstallUpToDate() {
   else
     win.webContents.send("install-found");
   
-  if (await getLatestGameReleaseVersion() !== userSettings.gameVersion)
+  if (await getLatestGameReleaseVersion() !== "v" + userSettings.gameVersion)
     win.webContents.send("install-outdated");
 }
 
@@ -582,8 +581,8 @@ async function installGame(gitUrl, isoPath, version) { //downloads and unzips pr
 
   sendInstallProgress(3, "Downloading release");
   if (!gitUrl.endsWith("/")) gitUrl += "/";
-  gitUrl += "releases/download/v" + version;
-  gitUrl += isWindows() ? "/opengoal-windows-v" + version + ".zip" : "/opengoal-linux-v" + version + ".tar.gz";
+  gitUrl += "releases/download/" + version;
+  gitUrl += isWindows() ? "/opengoal-windows-" + version + ".zip" : "/opengoal-linux-" + version + ".tar.gz";
   const response = await axios.get(gitUrl, { responseType: 'arraybuffer' });
   
   sendInstallProgress(5, "Unzipping");
