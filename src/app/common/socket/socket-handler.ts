@@ -874,7 +874,10 @@ export class SocketHandler {
             case InteractionType.lpcChamber:
                 this.onLpcChamber(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
-
+            
+            case InteractionType.taunt:
+                this.onTaunt(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
+                break;
         }
     }
 
@@ -963,6 +966,10 @@ export class SocketHandler {
     }
     
     protected onBossPhase(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+
+    }
+
+    protected onTaunt(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
 
     }
     
