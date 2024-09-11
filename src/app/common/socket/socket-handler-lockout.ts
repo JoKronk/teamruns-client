@@ -145,6 +145,13 @@ export class SocketHandlerLockout extends SocketHandler {
         else
             super.onBossPhase(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
     }
+
+    override onTaunt(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+        if (!isTeammate)
+            positionData.resetCurrentInteraction();
+        else
+            super.onTaunt(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
+    }
     
     override onCrate(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
         if (!isTeammate && InteractionData.isBuzzerCrate(interaction))
