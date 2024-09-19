@@ -193,6 +193,7 @@ export class SocketHandler {
             if (this.run?.timer.runState !== RunState.Waiting && !this.run.forPracticeTool) {
                 this.inMidRunRestartPenaltyWait = 5;
                 this.addCommand(OgCommand.DisableDebugMode);
+                this.addCommand(OgCommand.DisablePlayHints);
                 if (!this.run.hasSpectator(this.user.id)) {
                     const lastCheckpoint = this.run?.getPlayer(this.user.id)?.gameState.currentCheckpoint;
                     if (this.run.isMode(RunMode.Casual))
@@ -874,7 +875,10 @@ export class SocketHandler {
             case InteractionType.lpcChamber:
                 this.onLpcChamber(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
                 break;
-
+            
+            case InteractionType.taunt:
+                this.onTaunt(positionData, interaction, isSelfInteraction, playerTeam, isTeammate);
+                break;
         }
     }
 
@@ -963,6 +967,10 @@ export class SocketHandler {
     }
     
     protected onBossPhase(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
+
+    }
+
+    protected onTaunt(positionData: CurrentPositionData, interaction: UserInteractionData, isSelfInteraction: boolean, playerTeam: Team, isTeammate: boolean) {
 
     }
     

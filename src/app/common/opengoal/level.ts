@@ -72,47 +72,47 @@ export class Level {
 
     static toSymbol(levelName: string | undefined) {
         switch(levelName) {      
-            case Level.lavaTube:
+            case Level.lavaTube:        // lavatube
                 return 1325164;
-            case Level.beach:
-                return 1312916;
-            case Level.citadel:
+            case Level.beach:           // beach
+                return 1312924;
+            case Level.citadel:         // citadel
                 return 1338444;
-            case Level.darkCave:
+            case Level.darkCave:        // darkcave
                 return 1433092;
-            case Level.finalBoss:
+            case Level.finalBoss:       // finalboss
                 return 1340092;
-            case Level.fireCanyon:
+            case Level.fireCanyon:      // firecanyon
                 return 1321092;
-            case Level.jungle:
+            case Level.jungle:          // jungle
                 return 1314348;
-            case Level.plantBoss:
+            case Level.plantBoss:       // jungleb
                 return 1410548;
-            case Level.spiderCave:
+            case Level.spiderCave:      // maincave
                 return 1347564;
-            case Level.misty:
+            case Level.misty:           // misty
                 return 1399604;
-            case Level.mountainPass:
+            case Level.mountainPass:    // ogre
                 return 1403380;
-            case Level.spiderRobotCave:
+            case Level.spiderRobotCave: // robocave
                 return 1358164;
-            case Level.basin:
+            case Level.basin:           // rolling
                 return 1399012;
-            case Level.snowy:
+            case Level.snowy:           // snow
                 return 1409380;
-            case Level.lpcTopPart:
+            case Level.lpcTopPart:      // sunken
                 return 1348316;
-            case Level.lpcBottomPart:
+            case Level.lpcBottomPart:   // sunkenb
                 return 1430476;
-            case Level.boggy:
+            case Level.boggy:           // swamp
                 return 1329836;
-            case Level.geyser:
+            case Level.geyser:          // training
                 return 1334388;
-            case Level.hub1:
+            case Level.hub1:            // village1
                 return 1428580;
-            case Level.hub2:
+            case Level.hub2:            // village2
                 return 1428612;
-            case Level.hub3:
+            case Level.hub3:            // village3
                 return 1428596;
             default:
                 return "";
@@ -122,7 +122,7 @@ export class Level {
 
 export class LevelSymbol {
     static lavaTube = 1325164;
-    static beach = 1312916;
+    static beach = 1312924;
     static citadel = 1338444;
     static darkCave = 1433092;
     static finalBoss = 1340092;
@@ -147,7 +147,7 @@ export class LevelSymbol {
         switch(levelSymbol) {
             case 1325164:
                 return Level.lavaTube;
-            case 1312916:
+            case 1312924:
                 return Level.beach;
             case 1338444:
                 return Level.citadel;
