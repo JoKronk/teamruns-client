@@ -10,7 +10,7 @@
         </div>
     </div>
     <mat-tab-group *ngIf="!isoInstallView" dynamicHeight [selectedIndex]="tab">
-        <mat-tab label="Client">
+        <mat-tab label="Launcher">
             <div class="table-container">
                 <table mat-table [dataSource]="clientReleaseSource" multiTemplateDataRows>
                     <ng-container matColumnDef="download">
@@ -22,6 +22,9 @@
                             <path class="download-lower" d="M 6 50 L 6 80 Q 6 90 16 90 L 96 90 Q 106 90 106 80 L 106 50" fill="none" stroke-width="12" stroke-miterlimit="10"/>
                             </g>
                         </svg>
+                        <div *ngIf="release.name == clientVersion">
+                            <span class="installed-text">Installed!</span>
+                        </div>
                       </td>
                     </ng-container>
                     <ng-container matColumnDef="version">
@@ -42,14 +45,7 @@
                 </table>
             </div>
         </mat-tab>
-        <mat-tab label="Mods">
-            <div class="mods">
-                <div class="mods-section">
-                    <p>Mods <br/>Comming at some point..</p>
-                </div>
-            </div>
-        </mat-tab>
-        <mat-tab label="Version">
+        <mat-tab label="Game">
             <div class="version-mod">
                 <select>
                     <option>Teamruns</option>
@@ -67,6 +63,9 @@
                           <path class="download-lower" d="M 6 50 L 6 80 Q 6 90 16 90 L 96 90 Q 106 90 106 80 L 106 50" fill="none" stroke-width="12" stroke-miterlimit="10"/>
                           </g>
                       </svg>
+                      <div *ngIf="release.name == _user.user.gameVersion">
+                          <span class="installed-text">Installed!</span>
+                      </div>
                     </td>
                   </ng-container>
                   <ng-container matColumnDef="version">
@@ -85,6 +84,13 @@
                 <tr mat-header-row *matHeaderRowDef="columns"></tr>
                 <tr mat-row *matRowDef="let release; columns: columns;" class="run-row"></tr>
               </table>
+            </div>
+        </mat-tab>
+        <mat-tab label="Mods">
+            <div class="mods">
+                <div class="mods-section">
+                    <p>Mods <br/>Coming at some point..</p>
+                </div>
             </div>
         </mat-tab>
         <mat-tab label="Development">

@@ -1,3 +1,23 @@
+/* unvisited link */
+a:link {
+color: rgb(0, 204, 255);
+}
+
+/* visited link */
+a:visited {
+color: rgb(0, 204, 255);
+}
+
+/* mouse over link */
+a:hover {
+color: rgb(177, 239, 255);
+}
+
+/* selected link */
+a:active {
+color: rgb(255, 255, 255);
+}
+
 .blackscreen {
     position: fixed;
     z-index: 10;
