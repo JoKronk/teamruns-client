@@ -193,6 +193,7 @@ export class SocketHandler {
             if (this.run?.timer.runState !== RunState.Waiting && !this.run.forPracticeTool) {
                 this.inMidRunRestartPenaltyWait = 5;
                 this.addCommand(OgCommand.DisableDebugMode);
+                this.addCommand(OgCommand.DisablePlayHints);
                 if (!this.run.hasSpectator(this.user.id)) {
                     const lastCheckpoint = this.run?.getPlayer(this.user.id)?.gameState.currentCheckpoint;
                     if (this.run.isMode(RunMode.Casual))

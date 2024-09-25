@@ -48,7 +48,6 @@ function createWindow() {
     icon: "./../src/assets/icon.png"
   });
 
-  getLatestGameReleaseVersion()
   if (!app.isPackaged) {
     const debug = require('electron-debug');
     debug();
@@ -175,12 +174,8 @@ function createWindow() {
     checkInstallUpToDate();
   });
     
-  ipcMain.on('install-start', (event, isoPath) => {
-    installGame(isoPath);
-  });
-    
-  ipcMain.on('install-update', () => {
-    installGame();
+  ipcMain.on('install-start', (event, install) => {
+    installGame(install.url, install.isoPath, install.version);
   });
     
   ipcMain.on('update-check', () => {
@@ -190,9 +185,13 @@ function createWindow() {
     
   ipcMain.on('update-start', () => {
     if (clientIsPortable())
-      downloadLatestPortable();
+      downloadPortable(undefined);
     else
       autoUpdater.checkForUpdates();
+  });
+    
+  ipcMain.on('download-portable', (event, version) => {
+      downloadPortable(version);
   });
 
   // --- AUTO UPDATE LISTENERS ---
@@ -422,27 +421,31 @@ async function getLatestClientReleaseVersion() {
   return response.data.length !== 0 ? response.data[0].name.substring(1) : "";
 }
 
-async function downloadLatestPortable() {
+async function downloadPortable(selectedVersion) {
   sendInstallProgress(1, "Downloading portable");
-  if (!app.isPackaged) {
+  if (!app.isPackaged && selectedVersion === undefined) {
     sendInstallProgress(100, ".done");
     return;
   }
-  const version = await getLatestClientReleaseVersion();
+  
+  const version = selectedVersion ?? await getLatestClientReleaseVersion();
   const name = "teamruns-client-" + version + "-portable.exe";
   const response = await axios({
     method: "GET",
-    url: "https://github.com/JoKronk/teamruns-client/releases/latest/download/" + name,
+    url: "https://github.com/JoKronk/teamruns-client/releases/download/v" + version + "/" + name,
     responseType: "stream"
   });
   sendInstallProgress(50, "Saving portable");
-  response.data.pipe(fs.createWriteStream(path.join(process.env.PORTABLE_EXECUTABLE_DIR, name)))
+  const filePath = path.join(version !== undefined ? app.getPath('downloads') : process.env.PORTABLE_EXECUTABLE_DIR, name);
+  response.data.pipe(fs.createWriteStream(filePath));
+
   return new Promise((resolve, reject) => {
     response.data.on('end', () => {
       sendInstallProgress(100, ".done");
+      shell.showItemInFolder(filePath);
       resolve();
       setTimeout(() => {
-        sendClientMessage("New client downloaded to current clients location, closing current client.");
+        sendClientMessage(version !== undefined ? "New client downloaded to downloads folder, closing client." : "New client downloaded to current clients location, closing client.");
         setTimeout(() => {
           openGoal.killAllOgInstances();
           win.close();
@@ -510,7 +513,7 @@ async function checkGameIsInstalled() {
 
 async function getLatestGameReleaseVersion() {
   const response = await axios.get("https://api.github.com/repos/JoKronk/teamruns-jak-project/releases", { headers: { 'User-Agent': 'Teamruns' } });
-  return response.data.length !== 0 ? response.data[0].name.substring(1) : "";
+  return "v" + (response.data.length !== 0 ? response.data[0].name.substring(1) : "");
 }
 
 async function checkInstallUpToDate() {
@@ -521,7 +524,7 @@ async function checkInstallUpToDate() {
   else
     win.webContents.send("install-found");
   
-  if (await getLatestGameReleaseVersion() !== userSettings.gameVersion)
+  if (await getLatestGameReleaseVersion() !== "v" + userSettings.gameVersion)
     win.webContents.send("install-outdated");
 }
 
@@ -568,17 +571,19 @@ async function cleanGameInstallLocation() {
 }
 
 //runs update if isoPath is null
-async function installGame(isoPath) { //downloads and unzips project, then calls extractISO
+async function installGame(gitUrl, isoPath, version) { //downloads and unzips project, then calls extractISO
   if (!isSupportedPlatform())
     return;
   
   await cleanGameInstallLocation();
   sendInstallProgress(1, "Fetching game version");
-  const version = await getLatestGameReleaseVersion();
+  version ??= await getLatestGameReleaseVersion();
+
   sendInstallProgress(3, "Downloading release");
-  const response = await (isWindows() 
-    ? axios.get("https://github.com/JoKronk/teamruns-jak-project/releases/latest/download/opengoal-windows-v" + version + ".zip", { responseType: 'arraybuffer' })
-    : axios.get("https://github.com/JoKronk/teamruns-jak-project/releases/latest/download/opengoal-linux-v" + version + ".tar.gz", { responseType: 'arraybuffer' }));
+  if (!gitUrl.endsWith("/")) gitUrl += "/";
+  gitUrl += "releases/download/" + version;
+  gitUrl += isWindows() ? "/opengoal-windows-" + version + ".zip" : "/opengoal-linux-" + version + ".tar.gz";
+  const response = await axios.get(gitUrl, { responseType: 'arraybuffer' });
   
   sendInstallProgress(5, "Unzipping");
   let folderPath = getInstallPath();

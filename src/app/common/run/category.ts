@@ -42,6 +42,7 @@ export class Category {
     }
 }
 
+// If you change this, make sure to change it on the GOAL side as well!
 export enum CategoryOption {
     Custom,
     NoLts,

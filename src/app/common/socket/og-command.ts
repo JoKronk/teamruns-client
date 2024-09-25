@@ -15,4 +15,5 @@ export enum OgCommand {
     OnRemoteLevelUpdate,
     EnableDebugMode,
     DisableDebugMode,
+    DisablePlayHints
 }
