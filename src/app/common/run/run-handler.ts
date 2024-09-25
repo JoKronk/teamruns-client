@@ -132,7 +132,7 @@ export class RunHandler {
             let player = this.run?.getPlayer(userId);
             if (!player) return;
 
-            console.log("Becomming host!");
+            console.log("Becoming host!");
             if (this.connectionHandler.isOnlineInstant)
                 await this.firestoreService.deleteLobbySubCollections(this.lobby.id);
 
