@@ -37,6 +37,9 @@ export class StartScreenComponent implements OnDestroy {
   private installMissingListener: any;
   private installOutdatedListener: any;
 
+  private updateAvailable: boolean = false; //!TODO: Update to add popup linking to installation page
+  private stopByInstallPage: boolean = false;
+
   userCollection: DbUsersCollection | undefined = undefined;
 
   constructor(public _user: UserService, private router: Router, private dialog: MatDialog, private _firestore: FireStoreService) {
@@ -67,7 +70,7 @@ export class StartScreenComponent implements OnDestroy {
 
     this.blackscreen.nativeElement.classList.remove('blackscreen-fade');
     setTimeout(() => {
-      this.router.navigate(['/lobby']);
+      this.router.navigate([this.stopByInstallPage ? '/install' : '/lobby']);
     }, 300);
   }
 
@@ -114,19 +117,19 @@ export class StartScreenComponent implements OnDestroy {
   setupUpdateListener() {
     this.updateListener = (window as any).electron.receive("update-available", () => {
       if (!this._user.isDownloading)
-        this.router.navigate(['/install'], { queryParams: { client: 1 } });
+        this.updateAvailable = true;
     });
   }
 
   setupInstallListeners() {
     this.installMissingListener = (window as any).electron.receive("install-missing", () => {
       if (!this._user.isDownloading)
-        this.router.navigate(['/install'], { queryParams: { install: 1 } });
+        this.stopByInstallPage = true;
     });
 
     this.installOutdatedListener = (window as any).electron.receive("install-outdated", () => {
       if (!this._user.isDownloading)
-        this.router.navigate(['/install'], { queryParams: { update: 1 } });
+        this.updateAvailable = true;
     });
   }
 

@@ -1,3 +1,23 @@
+/* unvisited link */
+a:link {
+color: rgb(0, 204, 255);
+}
+
+/* visited link */
+a:visited {
+color: rgb(0, 204, 255);
+}
+
+/* mouse over link */
+a:hover {
+color: rgb(177, 239, 255);
+}
+
+/* selected link */
+a:active {
+color: rgb(255, 255, 255);
+}
+
 .blackscreen {
     position: fixed;
     z-index: 10;
@@ -47,90 +67,94 @@
     position: fixed;
     background: rgba(0, 0, 0, 0.5);
     width: 750px;
-    height: 420px;
+    height: 620px;
     border-radius: 10px;
     left: 15%;
     top: 50%;
     transform: translateX(-15%) translateY(-50%);
-    &-highlighted {
-        margin-top: 16px;
-        margin-bottom: 0;
-        color: #b87512 !important;
-        font-family: 'jak';
-        text-decoration: underline;
-        font-size: 32px !important;
-    }
     &-bottom {
         position: absolute;
         bottom: 15px;
-        & button:hover {
-            background-color: #380000 !important;
-        }
+        left: 15px;
     }
-    &-body {
-        display: flex;
-        flex-grow: 1;
-        flex-direction: column;
-        position: relative;
-        margin-top: 12px;
-        margin-left: 18px;
-        &-check {
-            margin-left: 30px !important;
-            width: 260px !important;
-        }
-        & button {
-            font-family: 'jak';
-            font-size: 24px;
-            color: #cccccc;
-            margin: 10px 8px;
-            height: 48px;
-            width: 108px;
-            flex-shrink: 1;
-            background-color: #3e3e3e;
-            border: 1px solid #636363;
-            border-radius: 6px;
-            outline: none;
-            transition: 0.3s;
-            &:hover {
-                cursor: pointer;
-                background-color: #a56d06;
-                border: 1px solid rgb(99, 99, 99, 0.6);
-            }
-        }
-        & p {
-            margin: 4px;
-            font-size: 20px;
-            color: #cccccc;
-        }
-        &-center {
-            margin: auto;
-            margin-bottom: 20px;
-            flex-shrink: 1;
-            justify-content: center;
-            & button {
-                font-family: 'jak';
-                font-size: 32px;
-                color: #b87512;
-                margin: 0;
-                height: 96px;
-                width: 212px;
-                flex-shrink: 1;
-                background: rgba(0,0,0,0.4);
-                border: 2px solid #b87512;
-                border-radius: 6px;
-                outline: none;
-                text-decoration: underline;
-                transition: 0.15s;
-                &:hover {
-                    cursor: pointer;
-                    color: #d49012;
-                    border: 1px solid rgb(99, 99, 99, 0.6);
-                }
-            }
+}
+
+.mods {
+  color: #cccccc;
+  font-size: 16px;
+  font-family: OpenSans;
+  margin: 24px;
+
+  &-section {
+    margin-bottom: 24px;
+  }
+}
+
+.version-mod {
+    margin: 4px 18px;
+}
+
+button {
+    margin: 6px;
+    font-family: 'jak';
+    font-size: 20px;
+    color: #cccccc;
+    height: 40px;
+    width: 125px;
+    background: rgba(14, 14, 14, 0.8);
+    border: 1px solid #636363;
+    border-radius: 6px;
+    outline: none;
+    transition: 0.3s;
+    &:not([disabled]):hover {
+        cursor: pointer;
+        color: rgba(255, 255, 255, 1);
+        background-color: #a56d06;
+        border: 1px solid rgb(99, 99, 99, 0.6);
+    }
+}
+
+input, select {
+    border: 2px solid rgba(7, 7, 7, 0.8);
+    background: rgba(14, 14, 14, 0.8);
+    border-radius: 4px;
+    height: 36px;
+    width: 250px;
+    transition: 0.3s;
+    transition-timing-function: ease;
+    color: #ffffff;
+    font-size: 18px;
+    font-family: 'OpenSans';
+}
+textarea:focus, input:focus{
+    outline: none;
+    border: 2px solid rgba(0, 0, 0, 1);
+    background: rgba(24, 24, 24, 0.5);
+}
+
+.dropbox-container {
+    margin: 50px 50px;
+    & button {
+        font-family: 'jak';
+        font-size: 32px;
+        color: #b87512;
+        margin: 0;
+        height: 96px;
+        width: 212px;
+        flex-shrink: 1;
+        background: rgba(0,0,0,0.4);
+        border: 2px solid #b87512;
+        border-radius: 6px;
+        outline: none;
+        text-decoration: underline;
+        transition: 0.15s;
+        &:hover {
+            cursor: pointer;
+            color: #d49012;
+            border: 1px solid rgb(99, 99, 99, 0.6);
         }
     }
 }
-  
 .fileover .dropbox {
     color: #d49012 !important;
     border: 1px solid rgba(214, 214, 214, 0.6);
@@ -140,3 +164,119 @@
     color: #380000 !important;
     border: 1px solid #380000 !important;
   }
+  
+
+.table-container {
+    position: relative;
+    flex-grow: 1;
+    margin: 0px 12px 46px;
+    overflow: auto;
+    max-height: 520px;
+}
+
+.download {
+    height: 18px;
+    & g {
+        fill: #929292;
+        transition: 0.22s;
+    }
+    &:hover {
+        cursor: pointer;
+        & g {
+            fill: #a56d06;
+        }
+        & .download-lower {
+            stroke: #a56d06;
+        }
+    }
+    &:focus {
+        outline: none;
+    }
+    &-lower {
+        transition: 0.22s;
+        stroke: #929292;
+        &:focus {
+            outline: none;
+        }
+    }
+}
+
+table {
+    width: 100%;
+  }
+td {
+    color: #a8a8a8 !important;
+}
+tr.run-expanded-row {
+height: 0;
+}
+tr.run-row {
+    transition: 0.2s;
+}
+tr.run-row-selected {
+    background-color: rgba(204, 204, 204, 0.1) !important;
+}
+
+tr.run-row:active {
+    background-color: rgba(204, 204, 204, 0.2);
+}
+
+::ng-deep .mdc-tab__text-label {
+    color: #cccccc !important;
+}
+
+.mat-mdc-row:nth-child(2n+1){
+    background-color: rgba(0, 0, 0, 0.05);
+}
+.mat-mdc-row:nth-child(even){
+    background-color: rgba(0, 0, 0, 0.09);
+}
+
+tr.run-row:nth-child(2n+1):hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    cursor: default;
+}
+
+tr.run-row:nth-child(even):hover {
+    background-color: rgba(0, 0, 0, 0.09);
+    cursor: default;
+}
+
+.mat-column-player {
+  min-width: 200px !important;
+}
+
+.mat-button-toggle{
+    background-color: #383838;
+    color: #ffffff;
+    border: 1px solid #575757;
+    height: 31px;
+}
+
+.mat-button-toggle:hover {
+    background-color: #835a0e;
+    color: #ffffff !important;    
+}
+
+.mat-button-toggle-checked {
+    background-color: #b87512;
+    color: #ffffff !important;
+}
+
+.run-row td {
+border-bottom-width: 0;
+}
+
+
+.mat-mdc-table {
+    background: none !important;
+}
+
+.mat-mdc-row {
+    height: 42px !important;
+}
+
+.mat-mdc-header-cell {
+    color: #a56d06 !important;
+    border-bottom: 1px solid #b87512;
+}

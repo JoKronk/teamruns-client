@@ -121,6 +121,27 @@ body { margin: 0 !important; font-family: 'Segoe UI', 'OpenSans', Roboto; }
   white-space: pre-line;
 }
 
+.installed-text {
+  -webkit-user-select: none;
+  z-index: -1;
+  font-size: 16px;
+  display: block;
+  color: #ffffff;
+  position: relative;
+  padding: -2px;
+}
+
+.version-display-text {
+  -webkit-user-select: none;
+  z-index: -1;
+  font-size: 40px;
+  display: block;
+  color: rgb(207, 207, 207);
+  //text-shadow: 0px 0px 2px rgb(255, 255, 255, 1);
+  position: relative;
+  padding: 2px;
+}
+
 .text-in-background {
   -webkit-user-select: none;
   z-index: -1;

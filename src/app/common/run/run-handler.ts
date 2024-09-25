@@ -132,7 +132,7 @@ export class RunHandler {
             let player = this.run?.getPlayer(userId);
             if (!player) return;
 
-            console.log("Becomming host!");
+            console.log("Becoming host!");
             if (this.connectionHandler.isOnlineInstant)
                 await this.firestoreService.deleteLobbySubCollections(this.lobby.id);
 
@@ -456,7 +456,7 @@ export class RunHandler {
                     if (!playerTeam || playerTeam.hasFinished || !this.run.everyoneHasFinished(playerTeam) || this.runFullyFinished || this.isPracticeTool)
                         return;
                     playerTeam.hasFinished = true;
-
+                    
                     const players: Player[] = this.run.getAllPlayers();
                     this.firestoreService.getUsers().then(collection => {
                         if (!collection || !players || !playerTeam || !this.run) return;
@@ -714,7 +714,7 @@ export class RunHandler {
                 playerTeam.checkMarkRunInvalid(false, "OpenGOAL version mismatch.");
 
             let mainLocalPlayer = this.getMainLocalPlayer();
-            if (mainLocalPlayer && mainLocalPlayer.socketHandler.localTeam?.id === playerTeam.id && this.isHost() && playerTeam.players.find(x => x.user.id === mainLocalPlayer?.user.id)?.gameState.gameVersion !== ("v" + this.userService.user.gameVersion))
+            if (mainLocalPlayer && mainLocalPlayer.socketHandler.localTeam?.id === playerTeam.id && this.isHost() && playerTeam.players.find(x => x.user.id === mainLocalPlayer?.user.id)?.gameState.gameVersion !== this.userService.user.gameVersion)
                 playerTeam.checkMarkRunInvalid(false, "OpenGOAL version mismatch.");
         }
     }
