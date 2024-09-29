@@ -12,6 +12,9 @@ import { Task } from 'src/app/common/opengoal/task';
 })
 export class UserSettingsComponent implements OnDestroy {
 
+  settingsOptions: string[] = ['General','Splits','Taunts'];
+  selectedSettingTab: string = 'General';
+
   newUsername: string = "";
   newPw: string = "";
 
@@ -85,6 +88,10 @@ export class UserSettingsComponent implements OnDestroy {
         this.setSplits(splits !== null ? splits : TaskSplit.generateDefaultSplitList());
       });
     });
+  }
+
+  changeSettingsTab(setting: string) {
+    this.selectedSettingTab = setting;
   }
 
   ngOnDestroy(): void {

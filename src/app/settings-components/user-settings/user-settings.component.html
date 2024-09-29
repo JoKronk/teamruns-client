@@ -1,26 +1,29 @@
 <div class="page-container">
     <div class="page-inner">
         <app-header title="User Settings"></app-header>
-
-        <div class="content-container">
+        <div class="page-info">
+            <div class="tabs" *ngFor="let setting of settingsOptions">
+                <div *ngIf="setting !== null" (click)="changeSettingsTab(setting)" class="tabs-button" 
+                    [class.tabs-button-selected]="selectedSettingTab === setting">{{setting}}
+                </div>
+            </div>
+          </div>
+        <hr />
+        <div *ngIf="selectedSettingTab === 'General'" class="content-container">
             <div class="content-side">
                 <h1 class="backtext text-in-background" title="Settings">Settings</h1>
-
                 <div class="content">
                     <p class="content-subtitle">Recordings</p>
                     <mat-slide-toggle (change)="_user.writeSettings()" [(ngModel)]="_user.user.saveRecordingsLocally"><span class="pointer">Save finished runs locally</span></mat-slide-toggle>
-
                     <br /><br /><br /><br />
                     <p class="content-subtitle">Local recordings folder</p>
                     <div class="content-option">
                         <button id="select" (click)="openRecordings()">Open</button>
                     </div>
-
                     <br /><br />
                     <span>You can reset the teamruns window with CTRL + SHIFT + B</span>
                 </div>
             </div>
-
             <div class="content">
                 <div *ngIf="_user.user.hasSignedIn">
                     <p class="content-subtitle">Change Username / Leaderboard name</p>
@@ -31,7 +34,6 @@
                             <button (click)="updateUsername()">Update</button>
                         </div>
                     </div>
-
                     <br />
                     <p class="content-subtitle">Update password</p>
                     <div class="content-option">
@@ -42,26 +44,26 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
-
-        <div class="content-splits-container">
-            <h2>Splits</h2>
-            <div class="content-splits-content">
-                <div *ngFor="let split of splits; let i = index" class="content-option content-option-small content-option-splits">
-                    <p>{{ splitsDefaultNames[i] }}</p>
-                    <mat-slide-toggle [(ngModel)]="split.enabled"></mat-slide-toggle>
-                    <input [(ngModel)]="split.name" maxlength="40">
-                </div>
-                <div class="content content-option-splits-button">
-                    <button (click)="saveSplits()">Save</button>
-                    <button class="content-option-negative" (click)="resetSplits()">Reset</button>
+        <div *ngIf="selectedSettingTab === 'Splits'" class="content-container">
+            <div class="content-splits-container">
+                <div class="content-splits-content">
+                    <div *ngFor="let split of splits; let i = index" class="content-option content-option-small content-option-splits">
+                        <p>{{ splitsDefaultNames[i] }}</p>
+                        <mat-slide-toggle [(ngModel)]="split.enabled"></mat-slide-toggle>
+                        <input [(ngModel)]="split.name" maxlength="40">
+                    </div>
+                    <div class="content content-option-splits-button">
+                        <button (click)="saveSplits()">Save</button>
+                        <button class="content-option-negative" (click)="resetSplits()">Reset</button>
+                    </div>
                 </div>
             </div>
         </div>
-
+        <div *ngIf="selectedSettingTab === 'Taunts'" class="content-taunts-container">
+            <h2>Coming soon...</h2>
+        </div>
     </div>
-
     <app-footer></app-footer>
 </div>
