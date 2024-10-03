@@ -11,6 +11,51 @@
     &-inner {
         overflow-y: auto;
     }
+    &-info {
+        flex-shrink: 1;
+        &-link {
+            margin-left: 6px;
+            color: #a56d06;
+            & a {
+                color: #a8a8a8;
+                text-decoration: none;
+                &:hover {
+                    color: #380000;
+                }
+            }
+        }
+    }
+}
+
+.tabs {
+    display: inline-block;
+
+    &-button {
+        font-family: 'jak';
+        font-size: 24px;
+        font-weight: 500;
+        border: 1px solid #575757;
+        border-radius: 6px;
+        background-color: #000000;
+        color: #f5f5f5;
+        padding: 8px 20px;
+        margin: 0 5px;
+        margin-bottom: 6px;
+        cursor: pointer;
+        -webkit-user-select: none;
+        transition: 0.1s;
+        &:hover {
+            background-color: #1b1b1b;
+        }
+        &-selected {
+            border: 1px solid #a56d06;
+            background-color: #b87512;
+            color: #ffffff;
+            &:hover {
+                background-color: #a56d06;
+            }
+        }
+    }
 }
 
 .content {
@@ -22,7 +67,7 @@
         width: 136px;
         margin-bottom: 4px;
     }
-    
+
     &-container {
         display: flex;
         margin-bottom: 56px;
@@ -32,10 +77,28 @@
             margin-bottom: 32px;
             margin-right: 24px;
             & h2 {
-                border-top: 2px solid #636363;
                 text-align: center;
                 padding: 8px 0;
-                color: #636363;
+                color: #a56d06;
+                font-size: 25px;
+                font-family: OpenSans;
+            }
+        }
+        &-content {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+        }
+    }
+    &-taunts {
+        &-container {
+            margin-bottom: 32px;
+            margin-right: 24px;
+            & h2 {
+                text-align: center;
+                padding: 8px 0;
+                color: #a56d06;
                 font-size: 25px;
                 font-family: OpenSans;
             }

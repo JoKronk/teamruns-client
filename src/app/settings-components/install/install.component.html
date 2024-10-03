@@ -15,12 +15,15 @@
                 <table mat-table [dataSource]="clientReleaseSource" multiTemplateDataRows>
                     <ng-container matColumnDef="download">
                       <th mat-header-cell *matHeaderCellDef> </th>
-                      <td mat-cell *matCellDef="let release">
+                      <td mat-cell *matCellDef="let release; let index = dataIndex;">
                         <svg *ngIf="release.name !== clientVersion" matTooltip="Download" matTooltipPosition="below" class="download" (click)="installClient(release.tag_name)" version="1.1" viewBox="-0.5 -0.5 113 98">
                             <g>
-                            <path d="M 21 19.95 L 57 19.95 L 57 0 L 91 35 L 57 70 L 57 50.05 L 21 50.05 L 21 35 Z" transform="rotate(90,56,35)"/>
-                            <path class="download-lower" d="M 6 50 L 6 80 Q 6 90 16 90 L 96 90 Q 106 90 106 80 L 106 50" fill="none" stroke-width="12" stroke-miterlimit="10"/>
+                                <path d="M 21 19.95 L 57 19.95 L 57 0 L 91 35 L 57 70 L 57 50.05 L 21 50.05 L 21 35 Z" transform="rotate(90,56,35)"/>
+                                <path class="download-lower" d="M 6 50 L 6 80 Q 6 90 16 90 L 96 90 Q 106 90 106 80 L 106 50" fill="none" stroke-width="12" stroke-miterlimit="10"/>
                             </g>
+                        </svg>
+                        <svg *ngIf="index !== 0 && release.name !== clientVersion" matTooltip="Installing outdated launchers may cause compatibility issues!" matTooltipPosition="below" class="warning" fill="red" viewBox="0 0 16 16">
+                            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
                         </svg>
                         <div *ngIf="release.name == clientVersion">
                             <span class="installed-text">Installed!</span>
@@ -56,13 +59,16 @@
               <table mat-table [dataSource]="gameReleaseSource" multiTemplateDataRows>
                   <ng-container matColumnDef="download">
                     <th mat-header-cell *matHeaderCellDef> </th>
-                    <td mat-cell *matCellDef="let release">
+                    <td mat-cell *matCellDef="let release; let index = dataIndex;">
                       <svg *ngIf="release.name !== _user.user.gameVersion" matTooltip="Download" matTooltipPosition="below" class="download" (click)="installGameVersion(release.name)" version="1.1" viewBox="-0.5 -0.5 113 98">
                           <g>
                           <path d="M 21 19.95 L 57 19.95 L 57 0 L 91 35 L 57 70 L 57 50.05 L 21 50.05 L 21 35 Z" transform="rotate(90,56,35)"/>
                           <path class="download-lower" d="M 6 50 L 6 80 Q 6 90 16 90 L 96 90 Q 106 90 106 80 L 106 50" fill="none" stroke-width="12" stroke-miterlimit="10"/>
                           </g>
                       </svg>
+                      <svg *ngIf="index !== 0 && release.name !== _user.user.gameVersion" matTooltip="Installing outdated game versions may cause compatibility issues!" matTooltipPosition="below" class="warning" fill="red" viewBox="0 0 16 16">
+                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                    </svg>
                       <div *ngIf="release.name == _user.user.gameVersion">
                           <span class="installed-text">Installed!</span>
                       </div>

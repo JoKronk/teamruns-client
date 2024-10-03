@@ -68,7 +68,7 @@ export class InstallComponent implements OnDestroy {
     if (needsInstall)
       this.needsIsoInstall = needsInstall;
     this.tabForceSet = true;
-    this.tab = 2;
+    this.tab = 1;
 
   }
 

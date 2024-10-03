@@ -201,6 +201,25 @@ textarea:focus, input:focus{
     }
 }
 
+.warning {
+    height: 16px;
+    margin-left: 10px;
+    & g {
+        fill: #e40000;
+        transition: 0.22s;
+    }
+    &:hover {
+        cursor: pointer;
+        & g {
+            fill: #e65555;
+        }
+    }
+    &:focus {
+        outline: none;
+    }
+
+}
+
 table {
     width: 100%;
   }
