@@ -116,7 +116,14 @@
                     <div *ngIf="_user.user.clientInDevMode" class="mods-dev">
                         <p>OpenGOAL Install Path:</p>
                         <p>{{ _user.user.ogFolderpath }}</p>
-                        <button (click)="selectPath(false)">Change</button>
+                        <div class="dev-container">
+                            <button class="dev-container-content" (click)="selectPath(false)">Change</button>
+                            <button *ngIf="_user.user.gameVersion" class="dev-container-content" (click)="checkForInstall()">Verify path</button>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="dev-container-content-verification" viewBox="0 0 40 40">
+                                <path *ngIf="pathVerificationStatus === 1" class="dev-container-content-verification-checkmark" fill="#00ef00" d="M15.45 32.139L8.125 23.344a2.168 2.168 0 1 1 3.326 -2.77l5.336 6.406L28.329 6.989a2.166 2.166 0 0 1 3.753 2.168L18.987 32.139a2.168 2.168 0 0 1 -3.537 0z"/>
+                                <path *ngIf="pathVerificationStatus === 2" class="dev-container-content-verification-cross" fill="#ef0000" d="M10.039 6.386 19.997 16.344l9.905 -9.905A2.453 2.453 0 0 1 31.661 5.666a2.666 2.666 0 0 1 2.666 2.666 2.4 2.4 0 0 1 -0.72 1.76L23.57 19.997l10.038 10.038A2.4 2.4 0 0 1 34.328 31.661a2.666 2.666 0 0 1 -2.666 2.666 2.453 2.453 0 0 1 -1.84 -0.72L19.997 23.65l-9.931 9.931A2.453 2.453 0 0 1 8.332 34.328a2.666 2.666 0 0 1 -2.666 -2.666 2.4 2.4 0 0 1 0.72 -1.76L16.424 19.997 6.386 9.959A2.4 2.4 0 0 1 5.666 8.332a2.666 2.666 0 0 1 2.666 -2.666c0.64 0.008 1.253 0.267 1.706 0.72"/>
+                            </svg>
+                        </div>
                     </div>
                 </div>
             </div>

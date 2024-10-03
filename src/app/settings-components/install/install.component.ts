@@ -25,6 +25,7 @@ export class InstallComponent implements OnDestroy {
   storedVersionValue: string;
   isoInstallView: boolean = false;
   needsIsoInstall: boolean = false;
+  pathVerificationStatus : number = 0;  //0 = unknown , 1 = valid , 2 = invalid
   tabForceSet: boolean = false;
   tab: number = 0;
 
@@ -47,7 +48,7 @@ export class InstallComponent implements OnDestroy {
     this.route.queryParamMap.subscribe((params) => {
       
       if (params.get('client') === "1")
-        this.tabForceSet = true; //tab defualt 0 so no need to set
+        this.tabForceSet = true; //tab default 0 so no need to set
       else if (params.get('install') === "1")
         this.moveToGameVersionTab(true);
       else if (params.get('update') === "1")
@@ -67,14 +68,14 @@ export class InstallComponent implements OnDestroy {
   moveToGameVersionTab(needsInstall: boolean) {
     if (needsInstall)
       this.needsIsoInstall = needsInstall;
-    this.tabForceSet = true;
-    this.tab = 1;
-
+    // this.tabForceSet = true;
+    // this.tab = 1;
   }
 
   setupInstallListeners() {
     this.installMissingListener = (window as any).electron.receive("install-missing", () => {
       this.zone.run(() => {
+        this.pathVerificationStatus = 2;
         this.moveToGameVersionTab(true);
       });
     });
@@ -82,6 +83,7 @@ export class InstallComponent implements OnDestroy {
     this.installFoundListener = (window as any).electron.receive("install-found", () => {
       this.zone.run(() => {
         this.needsIsoInstall = false;
+        this.pathVerificationStatus = 1;
       });
     });
   }
@@ -94,6 +96,7 @@ export class InstallComponent implements OnDestroy {
           this.installGameVersion(this.storedVersionValue, path);
         else {
           this._user.user.ogFolderpath = path;
+          this.pathVerificationStatus = 0;
           this.writeSettings();
         }
       });
