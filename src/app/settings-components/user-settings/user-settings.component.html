@@ -9,25 +9,25 @@
             </div>
           </div>
         <hr />
-        <div *ngIf="selectedSettingTab === 'General'" class="content-container">
-            <div class="content-side">
+        <div *ngIf="selectedSettingTab === 'General'" class="page-inner-container">
+            <div class="general-side">
                 <h1 class="backtext text-in-background" title="Settings">Settings</h1>
-                <div class="content">
-                    <p class="content-subtitle">Recordings</p>
+                <div class="general">
+                    <p class="general-subtitle">Recordings</p>
                     <mat-slide-toggle (change)="_user.writeSettings()" [(ngModel)]="_user.user.saveRecordingsLocally"><span class="pointer">Save finished runs locally</span></mat-slide-toggle>
                     <br /><br /><br /><br />
-                    <p class="content-subtitle">Local recordings folder</p>
-                    <div class="content-option">
+                    <p class="general-subtitle">Local recordings folder</p>
+                    <div class="general-option">
                         <button id="select" (click)="openRecordings()">Open</button>
                     </div>
                     <br /><br />
                     <span>You can reset the teamruns window with CTRL + SHIFT + B</span>
                 </div>
             </div>
-            <div class="content">
+            <div class="general">
                 <div *ngIf="_user.user.hasSignedIn">
-                    <p class="content-subtitle">Change Username / Leaderboard name</p>
-                    <div class="content-option">
+                    <p class="general-subtitle">Change Username / Leaderboard name</p>
+                    <div class="general-option">
                         <p>New Username</p>
                         <input [(ngModel)]="newUsername" (keyup.enter)="updateUsername()" maxlength="20">
                         <div>
@@ -35,8 +35,8 @@
                         </div>
                     </div>
                     <br />
-                    <p class="content-subtitle">Update password</p>
-                    <div class="content-option">
+                    <p class="general-subtitle">Update password</p>
+                    <div class="general-option">
                         <p>New Password</p>
                         <input [(ngModel)]="newPw" type="password" (keyup.enter)="updatePassword()" maxlength="32">
                         <div>
@@ -46,23 +46,65 @@
                 </div>
             </div>
         </div>
-        <div *ngIf="selectedSettingTab === 'Splits'" class="content-container">
-            <div class="content-splits-container">
-                <div class="content-splits-content">
-                    <div *ngFor="let split of splits; let i = index" class="content-option content-option-small content-option-splits">
+        <div *ngIf="selectedSettingTab === 'Splits'" class="page-inner-container">
+            <div class="splits">
+                <div class="page-inner-content">
+                    <div *ngFor="let split of splits; let i = index">
                         <p>{{ splitsDefaultNames[i] }}</p>
                         <mat-slide-toggle [(ngModel)]="split.enabled"></mat-slide-toggle>
                         <input [(ngModel)]="split.name" maxlength="40">
                     </div>
-                    <div class="content content-option-splits-button">
-                        <button (click)="saveSplits()">Save</button>
-                        <button class="content-option-negative" (click)="resetSplits()">Reset</button>
-                    </div>
+                </div>
+                <div class="splits-button">
+                    <button (click)="saveSplits()">Save</button>
+                    <button class="page-inner-content-negative" (click)="resetSplits()">Reset</button>
                 </div>
             </div>
         </div>
-        <div *ngIf="selectedSettingTab === 'Taunts'" class="content-taunts-container">
-            <h2>Coming soon...</h2>
+        <div *ngIf="selectedSettingTab === 'Taunts'" class="page-inner-container">
+            <div class="taunts">
+                <span>You can use <a target="_blank" href="https://docs.google.com/spreadsheets/d/1m_wRx_fyw0UJJNvX9O7tU5GiO8S5-lqZmlsnkb0y6aY/edit?usp=sharing">this sheet</a> for reference!</span>
+                <div class="page-inner-content">
+                    <div *ngFor="let ind of tauntsUp">
+                        <p>{{taunts[ind].input}}</p>
+                        <input [(ngModel)]="taunts[ind].name" maxlength="8">
+                        <br>
+                        <b *ngIf="taunts[ind].valid"></b>
+                        <b *ngIf="!taunts[ind].valid">Invalid name!</b>
+                    </div>
+                </div>
+                <div class="page-inner-content">
+                    <div *ngFor="let ind of tauntsRight">
+                        <p>{{taunts[ind].input}}</p>
+                        <input [(ngModel)]="taunts[ind].name" maxlength="8">
+                        <br>
+                        <b *ngIf="taunts[ind].valid"></b>
+                        <b *ngIf="!taunts[ind].valid">Invalid name!</b>
+                    </div>
+                </div>
+                <div class="page-inner-content">
+                    <div *ngFor="let ind of tauntsDown">
+                        <p>{{taunts[ind].input}}</p>
+                        <input [(ngModel)]="taunts[ind].name" maxlength="8">
+                        <br>
+                        <b *ngIf="taunts[ind].valid"></b>
+                        <b *ngIf="!taunts[ind].valid">Invalid name!</b>
+                    </div>
+                </div>
+                <div class="page-inner-content">
+                    <div *ngFor="let ind of tauntsLeft">
+                        <p>{{taunts[ind].input}}</p>
+                        <input [(ngModel)]="taunts[ind].name" maxlength="8">
+                        <br>
+                        <b *ngIf="taunts[ind].valid"></b>
+                        <b *ngIf="!taunts[ind].valid">Invalid name!</b>
+                    </div>
+                </div>
+                <div class="taunts-button">
+                    <button (click)="saveTaunts()">Save</button>
+                    <button class="page-inner-content-negative" (click)="resetTaunts()">Reset</button>
+                </div>
+            </div>
         </div>
     </div>
     <app-footer></app-footer>

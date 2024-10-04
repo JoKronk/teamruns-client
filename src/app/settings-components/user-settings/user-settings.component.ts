@@ -4,6 +4,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { AccountDialogComponent, AccountReply } from '../../dialogs/account-dialog/account-dialog.component';
 import { TaskSplit } from 'src/app/common/opengoal/task-split';
 import { Task } from 'src/app/common/opengoal/task';
+import { Taunts } from 'src/app/common/opengoal/taunts';
+import { NonNullableFormBuilder } from '@angular/forms';
 
 @Component({
   selector: 'app-user-settings',
@@ -15,17 +17,29 @@ export class UserSettingsComponent implements OnDestroy {
   settingsOptions: string[] = ['General','Splits','Taunts'];
   selectedSettingTab: string = 'General';
 
+  tauntsValid: boolean = true;
+
   newUsername: string = "";
   newPw: string = "";
 
   splitBeingEdited: string | null = null;
+  tauntBeingEdited: number | null = null;
   splits: TaskSplit[] = [];
+  taunts: Taunts[] = [];
+  tauntsUp: number[] = [0,1,2,3];
+  tauntsRight: number[] = [4,5,6,7];
+  tauntsDown: number[] = [8,9,10,11];
+  tauntsLeft: number[] = [12,13,14,15];
   splitsDefaultNames: string[] = [];
+  tauntsDefaultNames: string[] = [];
   private splitsListener: any;
+  private tauntsListener: any;
 
   constructor(public _user: UserService, private dialog: MatDialog, private zone: NgZone) {
     this.setupSplitsListener();
+    this.setupTauntsListener();
     (window as any).electron.send('splits-fetch');
+    (window as any).electron.send('taunts-fetch');
   }
 
   openRecordings() {
@@ -90,12 +104,52 @@ export class UserSettingsComponent implements OnDestroy {
     });
   }
 
+  setTaunts(taunts: Taunts[]) {
+    this.taunts = taunts;
+    this.tauntsDefaultNames = [];
+    for (let taunt of taunts)
+      this.tauntsDefaultNames.push(Taunts.defaultTauntName(taunt.index) ?? "Unknown");
+  }
+
+  resetTaunts() {
+    this.setTaunts(Taunts.generateDefaultTauntList());
+    this.saveTaunts();
+  }
+
+  saveTaunts() {
+    // sanity check before saving
+    this.tauntsValid = true;
+    for (let i = 0 ; i < 16 ; i++) {
+      if(!Taunts.sanityCheck(this.taunts[i].name)) {
+        this.taunts[i].valid = false;
+        this.tauntsValid = false;
+      } else {
+        this.taunts[i].valid = true;
+      }
+    }
+    if (this.tauntsValid) { // sanity check passed, save taunts!
+      (window as any).electron.send('taunts-write', this.taunts);
+      this._user.sendNotification("Taunts saved!");
+    } else {
+      this._user.sendNotification("Invalid name detected!")
+    }
+  }
+
+  setupTauntsListener() {
+    this.tauntsListener = (window as any).electron.receive("taunts-get", (taunts: Taunts[] | null) => {
+      this.zone.run(() => {
+        this.setTaunts(taunts !== null ? taunts : Taunts.generateDefaultTauntList());
+      });
+    });
+  }
+
   changeSettingsTab(setting: string) {
     this.selectedSettingTab = setting;
   }
 
   ngOnDestroy(): void {
     this.splitsListener();
+    this.tauntsListener();
   }
 
 }

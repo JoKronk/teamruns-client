@@ -149,6 +149,14 @@ function createWindow() {
     writeSplits(splits);
   });
 
+  ipcMain.on('taunts-fetch', () => {
+    readTauntsFile();
+  });
+
+  ipcMain.on('taunts-write', (event, taunts) => {
+    writeTaunts(taunts);
+  });
+
   ipcMain.on('save-fetch', () => {
     readSaveFiles();
   });
@@ -367,6 +375,30 @@ function readSplitsFile() {
   fs.readFile(path.join(getSplitsPath(), "splits.json"), 'utf8', function (err, data) {
     if (err) win.webContents.send("splits-get", null)
     else if (data) win.webContents.send("splits-get", JSON.parse(data));
+  });
+}
+
+// --- TAUNTS ---
+function getTauntsPath() {
+  const tauntsPath = path.join(app.getPath('documents'), "Teamruns");
+  if (!fs.existsSync(tauntsPath))
+    fs.mkdirSync(tauntsPath, { recursive: true });
+  
+  return tauntsPath;
+}
+
+function writeTaunts(taunts) {
+  if (!taunts) return;
+  const folderPath = getTauntsPath();
+  fs.writeFile(path.join(folderPath, "taunts.json"), JSON.stringify(taunts), (err) => {
+    if (err) sendClientMessage(err.message);
+  });
+}
+
+function readTauntsFile() {
+  fs.readFile(path.join(getTauntsPath(), "taunts.json"), 'utf8', function (err, data) {
+    if (err) win.webContents.send("taunts-get", null)
+    else if (data) win.webContents.send("taunts-get", JSON.parse(data));
   });
 }
 
