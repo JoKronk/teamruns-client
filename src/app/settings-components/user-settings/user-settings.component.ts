@@ -120,7 +120,7 @@ export class UserSettingsComponent implements OnDestroy {
     // sanity check before saving
     this.tauntsValid = true;
     for (let i = 0 ; i < 16 ; i++) {
-      if(!Taunts.sanityCheck(this.taunts[i].name)) {
+      if(!Taunts.sanityCheck(this.taunts[i].ambient_name)) {
         this.taunts[i].valid = false;
         this.tauntsValid = false;
       } else {

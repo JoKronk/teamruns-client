@@ -1,13 +1,19 @@
 export class Taunts {
     index: number;
-    name: string;
+    menu_name: string;
+    ambient_name: string;
     input: string | undefined;
+    menu_idx: number;
+    play_idx: number;
     valid: boolean;
 
     constructor(index: number) {
         this.index = index;
-        this.name = Taunts.defaultTauntName(index);
+        this.menu_name = Taunts.defaultTauntName(index);
+        this.ambient_name = Taunts.defaultTauntName(index);
         this.input = Taunts.tauntsInputSequence(index);
+        this.menu_idx = Math.floor(index/4) + 1;            // 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 etc.
+        this.play_idx = index - Math.floor(index/4)*4 + 1;  // 1 , 2 , 3 , 4 , 1 , 2 , 3 , 4 etc.
         this.valid = true;
     }
 

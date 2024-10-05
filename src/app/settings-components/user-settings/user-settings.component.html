@@ -67,7 +67,7 @@
                 <div class="page-inner-content">
                     <div *ngFor="let ind of tauntsUp">
                         <p>{{taunts[ind].input}}</p>
-                        <input [(ngModel)]="taunts[ind].name" maxlength="8">
+                        <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
                         <br>
                         <b *ngIf="taunts[ind].valid"></b>
                         <b *ngIf="!taunts[ind].valid">Invalid name!</b>
@@ -76,7 +76,7 @@
                 <div class="page-inner-content">
                     <div *ngFor="let ind of tauntsRight">
                         <p>{{taunts[ind].input}}</p>
-                        <input [(ngModel)]="taunts[ind].name" maxlength="8">
+                        <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
                         <br>
                         <b *ngIf="taunts[ind].valid"></b>
                         <b *ngIf="!taunts[ind].valid">Invalid name!</b>
@@ -85,7 +85,7 @@
                 <div class="page-inner-content">
                     <div *ngFor="let ind of tauntsDown">
                         <p>{{taunts[ind].input}}</p>
-                        <input [(ngModel)]="taunts[ind].name" maxlength="8">
+                        <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
                         <br>
                         <b *ngIf="taunts[ind].valid"></b>
                         <b *ngIf="!taunts[ind].valid">Invalid name!</b>
@@ -94,7 +94,7 @@
                 <div class="page-inner-content">
                     <div *ngFor="let ind of tauntsLeft">
                         <p>{{taunts[ind].input}}</p>
-                        <input [(ngModel)]="taunts[ind].name" maxlength="8">
+                        <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
                         <br>
                         <b *ngIf="taunts[ind].valid"></b>
                         <b *ngIf="!taunts[ind].valid">Invalid name!</b>
