@@ -10,6 +10,7 @@ const yauzl = require('yauzl');
 const mkdirp = require('mkdirp');
 const pjson = require('./package.json');
 const { OpenGoal } = require('./opengoal');
+const spawn = require('child_process').spawn;
 	
 let win = null;
 const runRepl = false;
@@ -393,6 +394,13 @@ function writeTaunts(taunts) {
   fs.writeFile(path.join(folderPath, "taunts.json"), JSON.stringify(taunts), (err) => {
     if (err) sendClientMessage(err.message);
   });
+  // also write to install path for compiler
+  // fs.writeFile(path.join(getInstallPath(), "data/custom_assets/jak1/taunts", "taunts.json"), JSON.stringify(taunts), (err) => {
+  //   if (err) sendClientMessage(err.message);
+  // });
+  spawn(path.join(getInstallPath(), "goalc"), ["--cmd", "(asm-data-file taunt-info \"custom_assets/jak1/taunts/taunts.json\")"],
+    {detached: true, shell: false, stdio: [ 'ignore', 'pipe', 'ignore']})
+    .on('exit', code => {if (code != 0) {sendClientMessage("Error generating taunt file!")}});
 }
 
 function readTauntsFile() {
