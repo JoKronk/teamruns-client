@@ -230,6 +230,15 @@
         display: flex;
         justify-content: space-evenly;
     }
+    &-group {
+        & span {
+            color: #c78100;
+            text-align: left;
+            padding: 0px;
+        }
+        flex-direction: column;
+        justify-content: space-evenly;
+    }
 }
 
 .pointer {

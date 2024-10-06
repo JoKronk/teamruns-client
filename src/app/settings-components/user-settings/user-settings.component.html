@@ -63,43 +63,62 @@
         </div>
         <div *ngIf="selectedSettingTab === 'Taunts'" class="page-inner-container">
             <div class="taunts">
-                <span>You can use <a target="_blank" href="https://docs.google.com/spreadsheets/d/1m_wRx_fyw0UJJNvX9O7tU5GiO8S5-lqZmlsnkb0y6aY/edit?usp=sharing">this sheet</a> for reference!</span>
+                <span>To find the right 'Taunt Code' you can use <a target="_blank" href="https://docs.google.com/spreadsheets/d/1m_wRx_fyw0UJJNvX9O7tU5GiO8S5-lqZmlsnkb0y6aY/edit?usp=sharing">this sheet</a> for reference.
+                        <br>Leave the 'Display Name' blank if you want an automatically generated name!
+                </span>
+                <hr>
                 <div class="page-inner-content">
-                    <div *ngFor="let ind of tauntsUp">
-                        <p>{{taunts[ind].input}}</p>
+                    <div *ngFor="let ind of tauntsUp" class="page-inner-content taunts-group">
+                        <span>{{taunts[ind].input}}</span>
+                        <p>Taunt Code</p>
                         <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
                         <br>
                         <b *ngIf="taunts[ind].valid"></b>
                         <b *ngIf="!taunts[ind].valid">Invalid name!</b>
+                        <p>Display Name</p>
+                        <input [(ngModel)]="taunts[ind].menu_name" maxlength="20">
                     </div>
                 </div>
+                <hr>
                 <div class="page-inner-content">
-                    <div *ngFor="let ind of tauntsRight">
-                        <p>{{taunts[ind].input}}</p>
+                    <div *ngFor="let ind of tauntsRight" class="page-inner-content taunts-group">
+                        <span>{{taunts[ind].input}}</span>
+                        <p>Taunt Code</p>
                         <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
                         <br>
                         <b *ngIf="taunts[ind].valid"></b>
                         <b *ngIf="!taunts[ind].valid">Invalid name!</b>
+                        <p>Display Name</p>
+                        <input [(ngModel)]="taunts[ind].menu_name" maxlength="20">
                     </div>
                 </div>
+                <hr>
                 <div class="page-inner-content">
-                    <div *ngFor="let ind of tauntsDown">
-                        <p>{{taunts[ind].input}}</p>
+                    <div *ngFor="let ind of tauntsDown" class="page-inner-content taunts-group">
+                        <span>{{taunts[ind].input}}</span>
+                        <p>Taunt Code</p>
                         <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
                         <br>
                         <b *ngIf="taunts[ind].valid"></b>
                         <b *ngIf="!taunts[ind].valid">Invalid name!</b>
+                        <p>Display Name</p>
+                        <input [(ngModel)]="taunts[ind].menu_name" maxlength="20">
                     </div>
                 </div>
+                <hr>
                 <div class="page-inner-content">
-                    <div *ngFor="let ind of tauntsLeft">
-                        <p>{{taunts[ind].input}}</p>
+                    <div *ngFor="let ind of tauntsLeft" class="page-inner-content taunts-group">
+                        <span>{{taunts[ind].input}}</span>
+                        <p>Taunt Code</p>
                         <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
                         <br>
                         <b *ngIf="taunts[ind].valid"></b>
                         <b *ngIf="!taunts[ind].valid">Invalid name!</b>
+                        <p>Display Name</p>
+                        <input [(ngModel)]="taunts[ind].menu_name" maxlength="20">
                     </div>
                 </div>
+                <hr>
                 <div class="taunts-button">
                     <button (click)="saveTaunts()">Save</button>
                     <button class="page-inner-content-negative" (click)="resetTaunts()">Reset</button>

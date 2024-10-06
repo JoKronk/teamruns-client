@@ -127,11 +127,17 @@ export class UserSettingsComponent implements OnDestroy {
         this.taunts[i].valid = true;
       }
     }
-    if (this.tauntsValid) { // sanity check passed, save taunts!
+    if (this.tauntsValid) { // sanity check passed
+      for (let i = 0; i < 16 ; i++) {
+        // generate display name if there isn't one
+        if (this.taunts[i].menu_name === "" || this.taunts[i].menu_name === null) {
+          this.taunts[i].menu_name = Taunts.generateReadableName(this.taunts[i].ambient_name);
+        }
+      }
       (window as any).electron.send('taunts-write', this.taunts);
       this._user.sendNotification("Taunts saved!");
-    } else {
-      this._user.sendNotification("Invalid name detected!")
+    } else {  // sanity check failed
+      this._user.sendNotification("Invalid name(s) detected!")
     }
   }
 

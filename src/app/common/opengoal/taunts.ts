@@ -9,7 +9,7 @@ export class Taunts {
 
     constructor(index: number) {
         this.index = index;
-        this.menu_name = Taunts.defaultTauntName(index);
+        this.menu_name = Taunts.generateReadableName(Taunts.defaultTauntName(index));
         this.ambient_name = Taunts.defaultTauntName(index);
         this.input = Taunts.tauntsInputSequence(index);
         this.menu_idx = Math.floor(index/4) + 1;            // 1 , 1 , 1 , 1 , 2 , 2 , 2 , 2 etc.
@@ -92,6 +92,101 @@ export class Taunts {
                 return "Left -> Left";
             default:
                 return undefined;
+        }
+    }
+
+    static generateReadableName(input: string): string {
+        let output = "Unrecognised Hint";
+        if (!this.sanityCheck(input)) {
+            return output;
+        }
+        if (input.toUpperCase() === "ST-LOSE") {
+            return output = "Minigame Failed!";
+        }
+        let NPC4 = input.substring(0,4).toUpperCase();
+        let type = input.substring(4,6).toUpperCase();
+        let index = input.substring(6);
+        // Which NPC?
+        switch(NPC4) {
+            case "BIL-": // boggy billy
+                output = "Bil. ";
+                break;
+            case "BIR-": // bird lady
+                output = "Bir. ";
+                break;
+            case "BLU-": // blue sage
+                output = "Blu. ";
+                break;
+            case "CHI-": // mayor
+                output = "May. ";
+                break;
+            case "EXP-": // uncle
+                output = "Unc. ";
+                break;
+            case "FAR-": // farmer
+                output = "Far. ";
+                break;
+            case "FIS-": // fisherman
+                output = "Fis. ";
+                break;
+            case "GAM-": // gambler
+                output = "Gam. ";
+                break;
+            case "GEO-": // geologist
+                output = "Geo. ";
+                break;
+            case "GOL-": // gol
+                output = "Gol. ";
+                break;
+            case "MAI-": // maia
+                output = "Mai.: ";
+                break;
+            case "MIN-": // miners
+                output = "Min.: ";
+                break;
+            case "MSH-": // gordy
+                output = "Gor. ";
+                break;
+            case "MTA-": // willard
+                output = "Wil. ";
+                break;
+            case "RED-": // red sage
+                output = "Red. ";
+                break;
+            case "SCU-": // sculptor
+                output = "Scu. ";
+                break;
+            case "WAR-": // warrior
+                output = "War. ";
+                break;
+            case "YEL-": // yellow sage
+                output = "Yel. ";
+                break;
+            case "ASST": // keira
+                output = "Kei. ";
+                break;
+            case "SAGE": // samos
+                output = "Sam. ";
+                break;
+            case "SKSP": // daxter
+                output = "Dax. ";
+                break;
+        }
+        // hint type
+        switch(type) {
+            case "AM":  // ambient
+                return output = output.concat("Ambient ",index);
+            case "LP":  // loop
+            case "LO":  // loop
+                return output = output.concat("Loop ",index);
+            case "TA":  // task
+                return output = output.concat("Task ",index);
+            case "V1":  // communicator
+            case "VA":  // communicator
+            case "VB":  // communicator
+                return output = output.concat("Communicator ",index);
+            default:    // daxter hint
+                return output = output.concat(type,index);
         }
     }
 
