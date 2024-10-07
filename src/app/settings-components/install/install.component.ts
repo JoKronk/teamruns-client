@@ -68,8 +68,8 @@ export class InstallComponent implements OnDestroy {
   moveToGameVersionTab(needsInstall: boolean) {
     if (needsInstall)
       this.needsIsoInstall = needsInstall;
-    // this.tabForceSet = true;
-    // this.tab = 1;
+    this.tabForceSet = true;
+    this.tab = 1;
   }
 
   setupInstallListeners() {
