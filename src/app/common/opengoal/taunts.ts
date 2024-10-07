@@ -184,7 +184,7 @@ export class Taunts {
             case "V1":  // communicator
             case "VA":  // communicator
             case "VB":  // communicator
-                return output = output.concat("Communicator ",index);
+                return output = output.concat("Com. ",index);
             default:    // daxter hint
                 return output = output.concat(type,index);
         }

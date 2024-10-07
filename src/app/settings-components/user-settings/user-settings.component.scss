@@ -196,13 +196,6 @@
         font-size: 20px;
         font-family: Roboto;
     }
-    & b {
-        margin-left: 20px;
-        text-align: center;
-        color: #af0f0f;
-        font-size: 14px;
-        font-family: Roboto;
-    }
     & p {
         margin: 4px 4px 2px;
         color: #ccccccb9;
@@ -212,7 +205,7 @@
     & input, select {
         margin-left: 8px;
         margin-right: 50px;
-        margin-bottom: 4px;
+        margin-bottom: 0px;
         height: 32px;
         width: 100px;
         font-size: 18px;
@@ -235,6 +228,14 @@
             color: #c78100;
             text-align: left;
             padding: 0px;
+        } 
+        & b {
+            margin-left: 10px;
+            min-height: 20px;
+            text-align: left;
+            color: #af0f0f;
+            font-size: 14px;
+            font-family: Roboto;
         }
         flex-direction: column;
         justify-content: space-evenly;

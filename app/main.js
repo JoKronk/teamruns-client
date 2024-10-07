@@ -395,9 +395,10 @@ function writeTaunts(taunts) {
     if (err) sendClientMessage(err.message);
   });
   // also write to install path for compiler
-  // fs.writeFile(path.join(getInstallPath(), "data/custom_assets/jak1/taunts", "taunts.json"), JSON.stringify(taunts), (err) => {
-  //   if (err) sendClientMessage(err.message);
-  // });
+  fs.writeFile(path.join(getInstallPath(), "data/custom_assets/jak1/taunts", "taunts.json"), JSON.stringify(taunts), (err) => {
+    if (err) sendClientMessage(err.message);
+  });
+  // recompile taunt file to apply changes game-side
   spawn(path.join(getInstallPath(), "goalc"), ["--cmd", "(asm-data-file taunt-info \"custom_assets/jak1/taunts/taunts.json\")"],
     {detached: true, shell: false, stdio: [ 'ignore', 'pipe', 'ignore']})
     .on('exit', code => {if (code != 0) {sendClientMessage("Error generating taunt file!")}});
