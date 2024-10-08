@@ -395,7 +395,7 @@ function writeTaunts(taunts) {
     if (err) sendClientMessage(err.message);
   });
   // also write to install path for compiler
-  fs.writeFile(path.join(getInstallPath(), "data/custom_assets/jak1/taunts", "taunts.json"), JSON.stringify(taunts), (err) => {
+  fs.writeFile(path.join(getInstallPath(), "data","custom_assets","jak1","taunts","taunts.json"), JSON.stringify(taunts), (err) => {
     if (err) sendClientMessage(err.message);
   });
   // recompile taunt file to apply changes game-side
