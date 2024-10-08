@@ -80,14 +80,41 @@ color: rgb(255, 255, 255);
 }
 
 .mods {
-  color: #cccccc;
-  font-size: 16px;
-  font-family: OpenSans;
-  margin: 24px;
+    color: #cccccc;
+    font-size: 16px;
+    font-family: OpenSans;
+    margin: 24px;
+    &-section {
+        margin-bottom: 24px;
+    }
+}
 
-  &-section {
-    margin-bottom: 24px;
-  }
+.dev-container {
+    display: flex;
+    align-items: center;
+    color: #cccccc;
+    font-size: 16px;
+    font-family: OpenSans;
+    margin-top: 24px;
+    &-content {
+        & button {
+            width: 125px;
+        }
+        &-verification {
+            width: 40px;
+            height: 40px;
+            stroke-width: 4;
+            stroke-miterlimit: 10;
+            stroke-dashoffset: 0;
+            &-checkmark {
+                stroke: #00ef00;
+            }
+            &-cross {
+                stroke: #ef0000;
+            }
+        }
+    }
+    
 }
 
 .version-mod {
