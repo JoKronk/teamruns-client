@@ -13,6 +13,7 @@ import { CurrentPositionData } from "./current-position-data";
 import { CurrentPlayerData } from "./current-player-data";
 import { GameTaskLevelTime } from "../opengoal/game-task";
 import { Task } from "../opengoal/task";
+import { Taunts } from "../opengoal/taunts";
 import { PlayerState } from "../player/player-state";
 import { TaskStatus } from "../opengoal/task-status";
 import { RunMod, RunMode } from "../run/run-mode";
@@ -56,6 +57,7 @@ export class SocketHandler {
     localTeam: Team | undefined;
     player: Player | undefined;
     splits: TaskSplit[] = [];
+    taunts: Taunts[] = [];
     gameState: GameState = new GameState();
     cleanupHandler: RunCleanupHandler = new RunCleanupHandler;
 
@@ -79,6 +81,7 @@ export class SocketHandler {
     private launchListener: any;
     private shutdownListener: any;
     private splitsListener: any;
+    private tauntsListener: any;
     private connectionAttempts: number;
     private timerSubscription: Subscription;
 
@@ -159,8 +162,13 @@ export class SocketHandler {
       this.splitsListener = (window as any).electron.receive("splits-get", (splits: TaskSplit[] | null) => {
           this.splits = splits !== null ? splits : TaskSplit.generateDefaultSplitList();
       });
+
+      this.tauntsListener = (window as any).electron.receive("taunts-get", (taunts: Taunts[] | null) => {
+        this.taunts = taunts !== null ? taunts : Taunts.generateDefaultTauntList();
+    });
       
     (window as any).electron.send('splits-fetch');
+    (window as any).electron.send('taunts-fetch');
     }
 
     private connectToOpengoal() {
@@ -1028,6 +1036,7 @@ export class SocketHandler {
         this.launchListener();
         this.shutdownListener();
         this.splitsListener();
+        this.tauntsListener();
         this.ogSocket.complete();
     }
 }

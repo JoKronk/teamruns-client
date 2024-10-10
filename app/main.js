@@ -10,6 +10,7 @@ const yauzl = require('yauzl');
 const mkdirp = require('mkdirp');
 const pjson = require('./package.json');
 const { OpenGoal } = require('./opengoal');
+const spawn = require('child_process').spawn;
 	
 let win = null;
 const runRepl = false;
@@ -147,6 +148,14 @@ function createWindow() {
 
   ipcMain.on('splits-write', (event, splits) => {
     writeSplits(splits);
+  });
+
+  ipcMain.on('taunts-fetch', () => {
+    readTauntsFile();
+  });
+
+  ipcMain.on('taunts-write', (event, taunts) => {
+    writeTaunts(taunts);
   });
 
   ipcMain.on('save-fetch', () => {
@@ -367,6 +376,38 @@ function readSplitsFile() {
   fs.readFile(path.join(getSplitsPath(), "splits.json"), 'utf8', function (err, data) {
     if (err) win.webContents.send("splits-get", null)
     else if (data) win.webContents.send("splits-get", JSON.parse(data));
+  });
+}
+
+// --- TAUNTS ---
+function getTauntsPath() {
+  const tauntsPath = path.join(app.getPath('documents'), "Teamruns");
+  if (!fs.existsSync(tauntsPath))
+    fs.mkdirSync(tauntsPath, { recursive: true });
+  
+  return tauntsPath;
+}
+
+function writeTaunts(taunts) {
+  if (!taunts) return;
+  const folderPath = getTauntsPath();
+  fs.writeFile(path.join(folderPath, "taunts.json"), JSON.stringify(taunts), (err) => {
+    if (err) sendClientMessage(err.message);
+  });
+  // also write to install path for compiler
+  fs.writeFile(path.join(getInstallPath(), "data","custom_assets","jak1","taunts","taunts.json"), JSON.stringify(taunts), (err) => {
+    if (err) sendClientMessage(err.message);
+  });
+  // recompile taunt file to apply changes game-side
+  spawn(path.join(getInstallPath(), "goalc"), ["--cmd", "(asm-data-file taunt-info \"custom_assets/jak1/taunts/taunts.json\")"],
+    {detached: true, shell: false, stdio: [ 'ignore', 'pipe', 'ignore']})
+    .on('exit', code => {if (code != 0) {sendClientMessage("Error generating taunt file!")}});
+}
+
+function readTauntsFile() {
+  fs.readFile(path.join(getTauntsPath(), "taunts.json"), 'utf8', function (err, data) {
+    if (err) win.webContents.send("taunts-get", null)
+    else if (data) win.webContents.send("taunts-get", JSON.parse(data));
   });
 }
 
