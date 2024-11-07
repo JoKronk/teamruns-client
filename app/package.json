@@ -4,7 +4,7 @@
     "author": {
         "name": "Dexz"
     },
-    "version": "0.10.0",
+    "version": "0.10.1",
     "main": "main.js",
     "private": true,
     "dependencies": {
