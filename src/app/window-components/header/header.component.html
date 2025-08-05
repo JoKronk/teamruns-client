@@ -1,10 +1,8 @@
 
 <div class="header">
-    <div class="info">
-      <p id="version" class="version-display-text"><span>Launcher: v{{ buildVersion }}</span><span>Game: {{ _user.user.gameVersion }}</span></p>
-      
+    <div class="navigation">
       <!-- Menu -->
-      <svg class="settings" matTooltip="Open menu" matTooltipPosition="above" (click)="_user.viewSettings = !_user.viewSettings" version="1.0" viewBox="0 0 119.000000 99.000000" preserveAspectRatio="xMidYMid meet">
+      <svg matTooltip="Open menu" matTooltipPosition="above" (click)="_user.viewSettings = !_user.viewSettings" version="1.0" viewBox="0 0 119.000000 99.000000" preserveAspectRatio="xMidYMid meet">
         <g transform="translate(0.000000,99.000000) scale(0.100000,-0.100000)" stroke="none">
           <path d="M90 905 l0 -85 445 0 445 0 0 85 0 85 -445 0 -445 0 0 -85z"/>
           <path d="M90 505 l0 -85 495 0 495 0 0 85 0 85 -495 0 -495 0 0 -85z"/>
@@ -13,27 +11,19 @@
       </svg>
 
       <!-- Back -->
-      <svg class="settings" matTooltip="Back" matTooltipPosition="above" (click)="routeBack()" version="1.0" viewBox="0 0 111.000000 104.000000" preserveAspectRatio="xMidYMid meet">
+      <svg matTooltip="Back" matTooltipPosition="above" (click)="routeBack()" version="1.0" viewBox="0 0 111.000000 104.000000" preserveAspectRatio="xMidYMid meet">
         <g transform="translate(0.000000,104.000000) scale(0.100000,-0.100000)" stroke="none">
           <path d="M285 788 c-148 -139 -270 -257 -270 -263 0 -11 527 -506 546 -513 5 -2 9 80 9 187 l0 191 265 0 265 0 0 135 0 135 -265 0 -265 0 0 190 c0 105 -3 190 -7 190 -5 -1 -129 -114 -278 -252z"/>
         </g>
       </svg>
-
-      <div class="title title-run" *ngIf="!showLobbyButtons && title">
-        <h2>{{ title }}</h2>
-      </div>
     </div>
 
-    <div class="options-container" *ngIf="showLobbyButtons">
-      <div class="options">
-        <button (click)="openInfo()">Help/Info</button>
-        <button (click)="createLobby()">New Run</button>
-      </div>
+    <div class="title" *ngIf="!showLobbyButtons && title">
+      <h2>{{ title }}</h2>
     </div>
 
-    <div class="logo-container" *ngIf="!hideLogo">
-      <div class="logo">
-        <img src="./assets/teamruns-logo.png" alt="image">
-      </div>
+    <div class="buttons" *ngIf="showLobbyButtons">
+      <button (click)="createLobby()">New Lobby</button>
+      <button (click)="openMods()">Mods</button>
     </div>
   </div>

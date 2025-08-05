@@ -109,7 +109,8 @@ body { margin: 0 !important; font-family: 'Segoe UI', 'OpenSans', Roboto; }
 }
 .mat-sidenav-container {
   overflow: hidden;
-  background-color: #3e3e3e; // For light mode use #eeeeee
+  background-color: #141414; // For light mode use #eeeeee
+  margin-top: 57px;
 }
 
 .mat-mdc-snack-bar-container {

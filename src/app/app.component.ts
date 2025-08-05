@@ -1,6 +1,8 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserService } from './services/user.service';
+import pkg from 'app/package.json';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -10,8 +12,54 @@ import { UserService } from './services/user.service';
 export class AppComponent {
   title = 'Teamruns';
 
-  constructor(public _user: UserService, private router: Router) {
+  buildVersion: string = pkg.version;
+  
+  private userSubscription: Subscription;
+  private updateListener: any;
+  private installMissingListener: any;
+  private installOutdatedListener: any;
+  toolingUpdateAvailable: boolean = false;
+  launcherUpdateAvailable: boolean = false;
 
+  constructor(public _user: UserService, private router: Router, private zone: NgZone) {
+    this.setupUserListener();
+  }
+
+  setupUpdateListener() {
+    this.updateListener = (window as any).electron.receive("update-available", () => {
+      this.zone.run(() => {
+        if (!this._user.isDownloading)
+          this.launcherUpdateAvailable = true;
+      });
+    });
+  }
+
+  setupInstallListeners() {
+    this.installMissingListener = (window as any).electron.receive("install-missing", () => {
+      this.zone.run(() => {
+        if (!this._user.isDownloading)
+          this.toolingUpdateAvailable = true;
+      });
+    });
+
+    this.installOutdatedListener = (window as any).electron.receive("install-outdated", () => {
+      this.zone.run(() => {
+        if (!this._user.isDownloading)
+          this.toolingUpdateAvailable = true;
+      });
+    });
+  }
+
+  setupUserListener() {
+    this.userSubscription = this._user.userSetupSubject.subscribe(localUser => {
+      if (!this._user.updateChecked) {
+        this._user.updateChecked = true;
+          this.setupUpdateListener();
+        this.setupInstallListeners();
+        this._user.checkForUpdate();
+      }
+
+    });
   }
 
   minimize() {
@@ -20,6 +68,17 @@ export class AppComponent {
 
   close() {
     this.router.navigate(['/close']);
+  }
+
+  goToUpdate(tab: number) {
+      this.router.navigate(['/install'], { queryParams: { tab: tab } });
+  }
+
+  ngOnDestroy(): void {
+    if (this.userSubscription) this.userSubscription.unsubscribe();
+    if (this.updateListener) this.updateListener();
+    if (this.installMissingListener) this.installMissingListener();
+    if (this.installOutdatedListener) this.installOutdatedListener();
   }
   
   @HostListener('window:keydown.control.shift.b', ['$event']) onKeydownHandler(event: KeyboardEvent) {

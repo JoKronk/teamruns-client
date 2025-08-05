@@ -33,12 +33,6 @@ export class StartScreenComponent implements OnDestroy {
   infoText: string = this.infoTexts[Math.floor(Math.random() * this.infoTexts.length)];
 
   private userSubscription: Subscription;
-  private updateListener: any;
-  private installMissingListener: any;
-  private installOutdatedListener: any;
-
-  private updateAvailable: boolean = false; //!TODO: Update to add popup linking to installation page
-  private stopByInstallPage: boolean = false;
 
   userCollection: DbUsersCollection | undefined = undefined;
 
@@ -70,7 +64,7 @@ export class StartScreenComponent implements OnDestroy {
 
     this.blackscreen.nativeElement.classList.remove('blackscreen-fade');
     setTimeout(() => {
-      this.router.navigate([this.stopByInstallPage ? '/install' : '/lobby']);
+      this.router.navigate(['/lobby']);
     }, 300);
   }
 
@@ -114,60 +108,23 @@ export class StartScreenComponent implements OnDestroy {
     }, 200);
   }
 
-  setupUpdateListener() {
-    this.updateListener = (window as any).electron.receive("update-available", () => {
-      if (!this._user.isDownloading)
-        this.updateAvailable = true;
-    });
-  }
-
-  setupInstallListeners() {
-    this.installMissingListener = (window as any).electron.receive("install-missing", () => {
-      if (!this._user.isDownloading)
-        this.stopByInstallPage = true;
-    });
-
-    this.installOutdatedListener = (window as any).electron.receive("install-outdated", () => {
-      if (!this._user.isDownloading)
-        this.updateAvailable = true;
-    });
-  }
-
-  setupUserListener() {
+  setupUserListener() { //this pretty much just imports any changes to user from db
     this.userSubscription = this._user.userSetupSubject.subscribe(localUser => {
-      if (!this._user.updateChecked) {
-        this._user.updateChecked = true;
-        this.setupUpdateListener();
-        this.setupInstallListeners();
-        this._user.checkForUpdate();
-      }
-
       if (this._user.user.hasSignedIn) return;
-      
       this._firestore.getUsers().then(collection => {
         if (!collection) return;
         this.userCollection = collection;
-          this.checkCollectionForUser();
+        const user = this.userCollection.users.find(user => user.id === this._user.getMainUserId());
+        if (user) {
+          this._user.user.importDbUser(user, this._user.user.displayName);
+          this._user.user.hasSignedIn = true;
+        }
       });
 
     });
   }
 
-  checkCollectionForUser() {
-    if (!this.userCollection) return;
-
-    const user = this.userCollection.users.find(user => user.id === this._user.getMainUserId());
-    if (user) {
-      this._user.user.importDbUser(user, this._user.user.displayName);
-      this._user.user.hasSignedIn = true;
-    }
-
-  }
-
   ngOnDestroy(): void {
     if (this.userSubscription) this.userSubscription.unsubscribe();
-    if (this.updateListener) this.updateListener();
-    if (this.installMissingListener) this.installMissingListener();
-    if (this.installOutdatedListener) this.installOutdatedListener();
   }
 }

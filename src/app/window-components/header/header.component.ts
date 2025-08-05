@@ -30,8 +30,8 @@ export class HeaderComponent {
     this.dialog.open(CreateRunComponent);
   }
 
-  openInfo() {
-    this.dialog.open(InfoComponent, {maxWidth: "100vw"});
+  openMods() {
+    this.router.navigate(['/install'], { queryParams: { tab: 2 } });
   }
   
 

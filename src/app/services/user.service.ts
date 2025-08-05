@@ -224,6 +224,7 @@ export class UserService implements OnDestroy {
   checkForUpdate(): void {
     if (this.isBrowser) return;
     (window as any).electron.send('update-check');
+    (window as any).electron.send('install-check');
   }
 
   ngOnDestroy(): void {
