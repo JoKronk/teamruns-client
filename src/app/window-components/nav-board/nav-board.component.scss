@@ -1,34 +1,37 @@
 .container {
+    
 }
 #title {
-    margin: 8px 8px 30px;
-    color: #380000;
+    margin: 8px 8px;
+    color: #a56d06;
     font-family: 'precursor';
-    font-size: 32px;
+    font-size: 24px;
 }
 
 h4 {
-    margin: 30px 0 6px;
-    color: #380000;
-    text-decoration: underline;
-    font-size: 17px;
+    margin: 24px 0 6px;
+    color: #a56d06;
+    border-bottom: 2px solid #a56d06;
+    display: inline-block;
+    font-size: 19px;
 }
 
 .list {
     &-container {
         margin-left: 10px;
-        margin-top: 40px;
+        margin-top: 16px;
     }
     &-item {
         font-size: 18px;
         font-weight: bold;
-        border-left: 2px solid #380000;
+        border-left: 1px solid #a1a1a1;
         padding: 7px 4px;
-        margin-bottom: 8px;
+        color: #a1a1a1;
         cursor: pointer;
         transition: 0.2s;
         &:hover {
-            color: #d49012;
+            color: #b87512;
+        border-left: 1px solid #b87512;
         }
         & p {
             margin: 0;
@@ -48,10 +51,11 @@ h4 {
 .backtext {
     font-family: 'precursor';
     transform: rotate(90deg);
-    font-size: 80px;
-    margin-left: 10px;
+    font-size: 52px;
     opacity: 0.4;
+    color: rgba(184, 184, 184, 0.5);
+    text-shadow: 0px 2px 3px rgba(10, 10, 10, 0.8);
     position: absolute;
-    top: 260px;
-    left: -140px;
+    top: 90px;
+    left: 20px;
 }
