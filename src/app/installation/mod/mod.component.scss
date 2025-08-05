@@ -1,0 +1,155 @@
+
+.container {
+    height: 100%;
+    overflow-y: hidden;
+}
+
+app-header {
+  align-self: flex-start;
+}
+
+a {
+  color: #ccc;
+  margin-left: 18px;
+  transition: 0.1s;
+  &:hover {
+    color: #b87512;
+  }
+}
+
+.background-image {
+  position: fixed;
+  z-index: 1;
+  width: 100%;
+  top: 60px;
+  bottom: 0;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center; 
+  -webkit-filter: saturate(105%) brightness(80%);
+  filter: saturate(105%) brightness(80%);
+}
+
+.content {
+  position: fixed;
+  width: 100%;
+  top: 60px;
+  bottom: 0;
+  z-index: 2;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.footer {
+  flex: 1;
+  width: 100%;
+  max-height: 30px;
+  min-height: 30px;
+  display: flex;
+}
+
+.info {
+  flex-shrink: 1;
+  width: 606px;
+  margin: 0 12px 10px;
+  background-color: rgba(0, 0, 0, 0.65);
+  border-radius: 4px;
+  &-content {
+    color: #ccc;
+    font-family: 'OpenSans';
+    font-size: 16px;
+    text-align: end;
+    padding: 0 10px;
+    & h2 {
+      margin-top: 12px;
+      color: #f06903;
+    }
+  }
+}
+
+.table-container {
+  position: relative;
+  flex: 1;
+  width: 606px;
+  margin: 0px 12px 26px;
+  overflow: auto;
+  border-radius: 3px;
+}
+
+.download {
+    height: 18px;
+    fill: #929292;
+    cursor: pointer;
+    transition: 0.22s;
+    &:hover {
+      fill: #a56d06;
+        & .download-lower {
+            stroke: #a56d06;
+        }
+    }
+    &-lower {
+        transition: 0.22s;
+        stroke: #929292;
+    }
+}
+
+.warning {
+    height: 16px;
+    margin-left: 10px;
+    fill: #e40000;
+    cursor: pointer;
+    transition: 0.22s;
+    &:hover {
+      fill: #e65555;
+    }
+}
+
+.github {
+    height: 28px;
+    fill: #cccccc;
+    transition: 0.22s;
+    cursor: pointer;
+    &:hover {
+      fill: #f06903;
+    }
+}
+
+table {
+    width: 100%;
+  }
+td {
+    color: #a8a8a8 !important;
+}
+tr.row {
+  transition: 0.2s;
+  &:hover {
+    background-color: rgba(75, 75, 75, 0.2);
+  }
+  & td {
+    border-bottom-width: 0;
+  }
+}
+
+.mat-mdc-row:nth-child(2n+1){
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.mat-mdc-row:nth-child(even){
+  background-color: rgba(0, 0, 0, 0.19);
+}
+
+
+.mat-mdc-table {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.mat-mdc-row {
+  height: 42px !important;
+}
+
+.mat-mdc-header-cell {
+  color: #a56d06 !important;
+  border-bottom: 1px solid #b87512;
+  background-color: #101010 !important;
+}

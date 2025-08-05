@@ -6,6 +6,8 @@ import { ApiService } from 'src/app/services/api.service';
 import { MatTableDataSource } from '@angular/material/table';
 import { GitRelease } from 'src/app/common/api/git-release';
 import pkg from 'app/package.json';
+import { ModInfo, SupportedGame } from 'src/app/common/api/mod-release';
+import { GameType } from 'src/app/common/opengoal/game-type';
 
 @Component({
   selector: 'app-install',
@@ -13,78 +15,43 @@ import pkg from 'app/package.json';
   styleUrls: ['./install.component.scss']
 })
 export class InstallComponent implements OnDestroy {
-  
-  @ViewChild('video') video: ElementRef;
-  @ViewChild('blackscreen') blackscreen: ElementRef;
 
-  
   clientReleaseSource: MatTableDataSource<GitRelease> = new MatTableDataSource();
   gameReleaseSource: MatTableDataSource<GitRelease> = new MatTableDataSource();
   columns: string[] = ["download", "version", "date", "changes"];
+  mods: ModInfo[] = [];
+
+  games: GameType[] = GameType.getGames();
 
   storedVersionValue: string;
   isoInstallView: boolean = false;
   needsIsoInstall: boolean = false;
   pathVerificationStatus : number = 0;  //0 = unknown , 1 = valid , 2 = invalid
-  tabForceSet: boolean = false;
   tab: number = 0;
+  gameTab: number = 0;
+  
 
   selectingForIso: boolean;
   clientVersion: string = "v" + pkg.version;
 
   private pathListener: any;
-  private installMissingListener: any;
-  private installFoundListener: any;
-  private installOutdatedListener: any;
   
   constructor(public _user: UserService, private apiService: ApiService, private location: Location, private route: ActivatedRoute, private zone: NgZone) {
-    this.checkVideoLoad();
-
     this.setupPathListener();
     
     this.getClientVersions();
     this.getGameVersions();
+    this.getMods();
     
     this.route.queryParamMap.subscribe((params) => {
       
-      if (params.get('client') === "1")
-        this.tabForceSet = true; //tab default 0 so no need to set
-      else if (params.get('install') === "1")
-        this.moveToGameVersionTab(true);
-      else if (params.get('update') === "1")
-        this.moveToGameVersionTab(false);
+      const paramTab: number = Number(params.get('tab'));
+      if (paramTab)
+        this.tab = paramTab;
       
-      if (!this.tabForceSet) {
-        this.setupInstallListeners();
-        this.checkForInstall();
-      }
-    });
-
-    setTimeout(() => {
-      this.blackscreen.nativeElement.classList.add('blackscreen-fade');
-    }, 200);
-  }
-
-  moveToGameVersionTab(needsInstall: boolean) {
-    if (needsInstall)
-      this.needsIsoInstall = needsInstall;
-    this.tabForceSet = true;
-    this.tab = 1;
-  }
-
-  setupInstallListeners() {
-    this.installMissingListener = (window as any).electron.receive("install-missing", () => {
-      this.zone.run(() => {
-        this.pathVerificationStatus = 2;
-        this.moveToGameVersionTab(true);
-      });
-    });
-
-    this.installFoundListener = (window as any).electron.receive("install-found", () => {
-      this.zone.run(() => {
-        this.needsIsoInstall = false;
-        this.pathVerificationStatus = 1;
-      });
+      const paramGameTab: number = Number(params.get('gameTab'));
+      if (paramGameTab)
+        this.gameTab = paramGameTab;
     });
   }
 
@@ -97,14 +64,10 @@ export class InstallComponent implements OnDestroy {
         else {
           this._user.user.ogFolderpath = path;
           this.pathVerificationStatus = 0;
-          this.writeSettings();
+          this._user.writeUserDataChangesToLocal();
         }
       });
     });
-  }
-
-  writeSettings() {
-    this._user.writeUserDataChangesToLocal();
   }
 
   getClientVersions() {
@@ -121,6 +84,24 @@ export class InstallComponent implements OnDestroy {
     });
   }
 
+  getMods() {
+    const apiSubscription = this.apiService.getData("https://jakmods.dev/mods.json").subscribe(data => {
+      apiSubscription.unsubscribe();
+      for (let modId in data.mods) {
+        let mod: ModInfo = data.mods[modId];
+        mod.id = modId;
+        this.mods.push(mod);
+      }
+      this.mods.sort((a, b) => {
+        return a.displayName.localeCompare(b.displayName);
+      });
+    });
+  }
+  
+  getThumbnailArtUrl(mod: ModInfo, gameId: SupportedGame) {
+    return mod.perGameConfig ? mod.perGameConfig[gameId]?.thumbnailArtUrl ?? mod.thumbnailArtUrl : mod.thumbnailArtUrl;
+  }
+
   installClient(version: string) {
     this._user.drawProgressBar();
     (window as any).electron.send('download-portable', version.substring(1));
@@ -135,24 +116,15 @@ export class InstallComponent implements OnDestroy {
     
     this._user.drawProgressBar();
     (window as any).electron.send('install-start', {url: "https://github.com/JoKronk/teamruns-jak-project", isoPath: isoPath, version: version});
-    this.routeBack();
   }
 
   checkForInstall() {
     (window as any).electron.send('install-check');
   }
 
-  routeBack() {
-    this.blackscreen.nativeElement.classList.remove('blackscreen-fade');
-    setTimeout(() => {
-      this.location.back();
-    }, 150);
-  }
-
   updateClient() {
     this._user.drawProgressBar();
     (window as any).electron.send('update-start');
-    this.routeBack();
   }
 
   selectPath(forIso: boolean = true) {
@@ -171,24 +143,8 @@ export class InstallComponent implements OnDestroy {
     this.installGameVersion(this.storedVersionValue, isoPath);
   }
 
-  checkVideoLoad() {
-    setTimeout(() => {
-      if (this.video.nativeElement.readyState === 4) {
-        this.blackscreen.nativeElement.classList.add('blackscreen-fade');
-        (window as any).electron.send('install-check');
-
-        return;
-      }
-      else 
-        this.checkVideoLoad();
-    }, 200);
-  }
-
   ngOnDestroy(): void {
     if (this.pathListener) this.pathListener();
-    if (this.installMissingListener) this.installMissingListener();
-    if (this.installFoundListener) this.installMissingListener();
-    if (this.installOutdatedListener) this.installOutdatedListener();
   }
 
 }

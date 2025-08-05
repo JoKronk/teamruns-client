@@ -10,6 +10,7 @@ import { PracticeComponent } from './run-components/practice/practice.component'
 import { UserSettingsComponent } from './settings-components/user-settings/user-settings.component';
 import { InstallComponent } from './settings-components/install/install.component';
 import { RunCasualComponent } from './run-components/run-casual/run-casual.component';
+import { ModComponent } from './installation/mod/mod.component';
 
 const routes: Routes = [
   { path: 'lobby', component: LobbyComponent },
@@ -20,6 +21,7 @@ const routes: Routes = [
   { path: 'practice', component: PracticeComponent },
   { path: 'settings', component: UserSettingsComponent },
   { path: 'install', component: InstallComponent },
+  { path: 'mod/:game/:id', component: ModComponent },
   { path: 'close', component: CloseScreenComponent },
   { path: '', component: StartScreenComponent, pathMatch: 'full' }
 ];

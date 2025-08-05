@@ -175,6 +175,12 @@ background-color: #a56d06 !important;
   opacity: 0.55 !important;
 }
 
+.mat-mdc-tab-body-wrapper {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
 ::-webkit-scrollbar {
   width: 12px;
   height: 12px;

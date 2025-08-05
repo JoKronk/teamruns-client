@@ -1,91 +1,76 @@
-/* unvisited link */
-a:link {
-color: rgb(0, 204, 255);
-}
 
-/* visited link */
-a:visited {
-color: rgb(0, 204, 255);
-}
 
-/* mouse over link */
-a:hover {
-color: rgb(177, 239, 255);
-}
-
-/* selected link */
-a:active {
-color: rgb(255, 255, 255);
-}
-
-.blackscreen {
-    position: fixed;
-    z-index: 10;
-    padding:0;
-    margin:0;
-    top:0;
-    left:0;
-    width: 100%;
+.container {
+    position: relative;
     height: 100%;
-    background-color: #000000;
-    transition: 0.15s;
-    &-fade {
-        background-color: rgb(255, 255, 255, 0);
-        z-index: -1;
-        visibility: hidden;
-    }
-}
-
-#bg-video {
-    position: fixed;
-    z-index: -1;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    height: 100%;
-}
-
-.logo {
-    position: fixed;
-    width: 250px;
-    height: 150px;
-    top: 58px;
-    right: 40px;
-    & img {
-        user-drag: none;
-        -webkit-user-drag: none;
-        user-select: none;
-        -webkit-user-select: none;
-        max-width:100%;
-        max-height:100%;
-    }
-}
-
-.install {
     display: flex;
     flex-direction: column;
-    position: fixed;
-    background: rgba(0, 0, 0, 0.5);
-    width: 750px;
-    height: 620px;
-    border-radius: 10px;
-    left: 15%;
-    top: 50%;
-    transform: translateX(-15%) translateY(-50%);
-    &-bottom {
-        position: absolute;
-        bottom: 15px;
-        left: 15px;
+    overflow: hidden;
+}
+
+.tab {
+    &-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
     }
+    &-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        padding: 2px;
+        box-sizing: border-box;
+        padding: 8px;
+    }
+}
+
+.table-container {
+    height: 100%;
+    overflow: auto;
+    box-sizing: border-box;
+    margin: 0 26px;
 }
 
 .mods {
     color: #cccccc;
-    font-size: 16px;
+    font-size: 15px;
     font-family: OpenSans;
     margin: 24px;
-    &-section {
-        margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    overflow-y: auto;
+    &-box {
+        flex: 0 0 1; /* flex-grow, flex-shrink, flex-basis */
+        height: 200px;
+        width: 160px;
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        &-container {
+            margin: 6px;
+            cursor: pointer;
+            border: 2px solid rgb(0, 0, 0, 0.0);
+            transition: 0.2s;
+            &:hover {
+                border: 2px solid #d49012;
+            }
+        }
+        p {
+            text-align: center;
+            align-self: flex-end;
+            width: 100%;
+            color: #ffffff;
+            text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+            margin: 4px;
+        }
+    }
+    &-page {
+        height: 100%;
+        width: 100%;
+        background-size: cover;
+        background-position: center;
     }
 }
 
@@ -115,10 +100,6 @@ color: rgb(255, 255, 255);
         }
     }
     
-}
-
-.version-mod {
-    margin: 4px 18px;
 }
 
 button {
@@ -191,60 +172,43 @@ textarea:focus, input:focus{
     color: #380000 !important;
     border: 1px solid #380000 !important;
   }
-  
-
-.table-container {
-    position: relative;
-    flex-grow: 1;
-    margin: 0px 12px 46px;
-    overflow: auto;
-    max-height: 520px;
-}
 
 .download {
     height: 18px;
-    & g {
-        fill: #929292;
-        transition: 0.22s;
-    }
+    fill: #929292;
+    cursor: pointer;
+    transition: 0.22s;
     &:hover {
-        cursor: pointer;
-        & g {
-            fill: #a56d06;
-        }
+      fill: #a56d06;
         & .download-lower {
             stroke: #a56d06;
         }
     }
-    &:focus {
-        outline: none;
-    }
     &-lower {
         transition: 0.22s;
         stroke: #929292;
-        &:focus {
-            outline: none;
-        }
     }
 }
 
 .warning {
     height: 16px;
     margin-left: 10px;
-    & g {
-        fill: #e40000;
-        transition: 0.22s;
-    }
+    fill: #e40000;
+    cursor: pointer;
+    transition: 0.22s;
     &:hover {
-        cursor: pointer;
-        & g {
-            fill: #e65555;
-        }
+      fill: #e65555;
     }
-    &:focus {
-        outline: none;
-    }
+}
 
+.github {
+    height: 28px;
+    fill: #cccccc;
+    transition: 0.22s;
+    cursor: pointer;
+    &:hover {
+      fill: #f06903;
+    }
 }
 
 table {
@@ -253,44 +217,48 @@ table {
 td {
     color: #a8a8a8 !important;
 }
-tr.run-expanded-row {
-height: 0;
-}
-tr.run-row {
+tr.row {
     transition: 0.2s;
+&:hover {
+    background-color: rgba(75, 75, 75, 0.2);
 }
-tr.run-row-selected {
-    background-color: rgba(204, 204, 204, 0.1) !important;
+& td {
+    border-bottom-width: 0;
+    }
 }
 
-tr.run-row:active {
-    background-color: rgba(204, 204, 204, 0.2);
+.mat-mdc-row:nth-child(2n+1){
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.mat-mdc-row:nth-child(even){
+  background-color: rgba(0, 0, 0, 0.19);
+}
+
+
+.mat-mdc-table {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.mat-mdc-row {
+    height: 42px !important;
+}
+
+.mat-mdc-header-cell {
+    color: #a56d06 !important;
+    border-bottom: 1px solid #b87512;
+    background-color: #101010 !important;
 }
 
 ::ng-deep .mdc-tab__text-label {
     color: #cccccc !important;
 }
 
-.mat-mdc-row:nth-child(2n+1){
-    background-color: rgba(0, 0, 0, 0.05);
-}
-.mat-mdc-row:nth-child(even){
-    background-color: rgba(0, 0, 0, 0.09);
+::ng-deep .mat-ripple {
+    border-bottom: 2px solid #383838;
 }
 
-tr.run-row:nth-child(2n+1):hover {
-    background-color: rgba(0, 0, 0, 0.05);
-    cursor: default;
-}
 
-tr.run-row:nth-child(even):hover {
-    background-color: rgba(0, 0, 0, 0.09);
-    cursor: default;
-}
 
-.mat-column-player {
-  min-width: 200px !important;
-}
 
 .mat-button-toggle{
     background-color: #383838;
@@ -307,22 +275,4 @@ tr.run-row:nth-child(even):hover {
 .mat-button-toggle-checked {
     background-color: #b87512;
     color: #ffffff !important;
-}
-
-.run-row td {
-border-bottom-width: 0;
-}
-
-
-.mat-mdc-table {
-    background: none !important;
-}
-
-.mat-mdc-row {
-    height: 42px !important;
-}
-
-.mat-mdc-header-cell {
-    color: #a56d06 !important;
-    border-bottom: 1px solid #b87512;
 }

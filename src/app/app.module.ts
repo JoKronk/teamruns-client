@@ -61,6 +61,7 @@ import { FooterComponent } from './window-components/footer/footer.component';
 import { SnackbarImportComponent } from './snackbars/snackbar-import/snackbar-import.component';
 import { SpawnLoaderComponent } from './run-components/spawn-loader/spawn-loader.component';
 import { ChatComponent } from './run-components/chat/chat.component';
+import { ModComponent } from './installation/mod/mod.component';
 
 @NgModule({
   declarations: [
@@ -98,7 +99,8 @@ import { ChatComponent } from './run-components/chat/chat.component';
     FooterComponent,
     SnackbarImportComponent,
     SpawnLoaderComponent,
-    ChatComponent
+    ChatComponent,
+    ModComponent
   ],
   imports: [
     BrowserModule,
