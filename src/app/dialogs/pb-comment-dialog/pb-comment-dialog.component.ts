@@ -1,11 +1,13 @@
 import { Component, Inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { DbRunUserContent } from 'src/app/common/firestore/db-run-user-content';
 
 @Component({
-  selector: 'app-pb-comment-dialog',
-  templateUrl: './pb-comment-dialog.component.html',
-  styleUrls: ['./pb-comment-dialog.component.scss']
+    selector: 'app-pb-comment-dialog',
+    templateUrl: './pb-comment-dialog.component.html',
+    styleUrls: ['./pb-comment-dialog.component.scss'],
+    imports: [FormsModule]
 })
 export class PbCommentDialogComponent {
 

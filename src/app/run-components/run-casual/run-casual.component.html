@@ -1,17 +1,24 @@
 <mat-sidenav-container fullscreen>
-    <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true">
-  
-      <div *ngIf="(!runHandler.connected || !this.mainLocalPlayer) && runHandler.connectionHandler.localSlave" class="logs">
-        <p *ngFor="let log of runHandler.connectionHandler.localSlave.connectionLogs">{{ log }}</p>
-      </div>
-  
-      <div class="sidenav-container">
+  <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true">
 
-        <!-- SAVES -->
-        <app-save-loader class="sidenav-content" *ngIf="runHandler.lobby?.host?.user?.id === mainLocalPlayer?.user?.id" [hideFiles]="hasLoadedFile" (onLoadSave)="loadSave($event)"></app-save-loader>
-        
-        <!-- BUTTONS 2 -->
-        <div class="sidenav-content sidenav-buttons sidenav-buttons-small" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
+    @if ((!runHandler.connected || !mainLocalPlayer) && runHandler.connectionHandler.localSlave) {
+      <div class="logs">
+        @for (log of runHandler.connectionHandler.localSlave.connectionLogs; track log) {
+          <p>{{ log }}</p>
+        }
+      </div>
+    }
+
+    <div class="sidenav-container">
+
+      <!-- SAVES -->
+      @if (runHandler.lobby?.host?.user?.id === mainLocalPlayer?.user?.id) {
+        <app-save-loader class="sidenav-content" [hideFiles]="hasLoadedFile" (onLoadSave)="loadSave($event)"></app-save-loader>
+      }
+
+      <!-- BUTTONS 2 -->
+      @if (runHandler.connected && mainLocalPlayer && runHandler.run) {
+        <div class="sidenav-content sidenav-buttons sidenav-buttons-small">
           <div>
             <button (click)="openSavesFolder()">Saves Folder</button>
           </div>
@@ -22,72 +29,87 @@
             <button (click)="leave()" class="sidenav-buttons-small-exit">Exit Lobby</button>
           </div>
         </div>
+      }
 
-        <!-- CHAT -->
-        <app-chat class="sidenav-chat" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run" [chatMessages]="runHandler.chatMessages" (onMessage)="handleChatMessage($event)"></app-chat>
+      <!-- CHAT -->
+      @if (runHandler.connected && mainLocalPlayer && runHandler.run) {
+        <app-chat class="sidenav-chat" [chatMessages]="runHandler.chatMessages" (onMessage)="handleChatMessage($event)"></app-chat>
+      }
 
-      </div>
-    </mat-sidenav>
-  
-    <mat-sidenav-content class="run">
-      <!-- HEADER -->
-      <app-header [inRun]="runHandler.run?.timer?.runState !== runState.Waiting" [title]="(runHandler.run?.data?.name ? (runHandler.run?.data?.name + ' | ') : '' ) + runHandler.info"></app-header>
-  
-      <div class="run-body" *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run">
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="run">
+    <!-- HEADER -->
+    <app-header [inRun]="runHandler.run?.timer?.runState !== runState.Waiting" [title]="(runHandler.run?.data?.name ? (runHandler.run?.data?.name + ' | ') : '' ) + runHandler.info"></app-header>
+
+    @if (runHandler.connected && mainLocalPlayer && runHandler.run) {
+      <div class="run-body">
         <!-- TEAMS -->
         <div class="run-info">
           <div class="run-info-teams">
-            <div *ngFor="let team of runHandler.run.teams; let i = index" class="team-cont" [class.team-cont-1row]="runHandler.run.teams.length < 3"[class.team-cont-2row]="runHandler.run.teams.length >= 3">
-              
-              <div class="team-players">
-                <div *ngFor="let player of team.players">
-                  <p [class.team-player-disconnected]="player.state === playerState.Disconnected">
-                    <img *ngIf="player.currentLevel" class="run-info-teams-level" [src]="'./assets/levels/' + player.currentLevel + '.png'">
-                    <span>{{ player.user.name }}</span>
-                    <span class="run-info-teams-cells-cont"><img class="run-info-teams-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>
-                    <span *ngIf="runHandler.lobby?.host?.user?.id === mainLocalPlayer.user.id && player.user.id !== mainLocalPlayer.user.id" class="run-info-teams-kick" (click)="kickPlayer(player.user)">X</span>
-                  </p>
+            @for (team of runHandler.run.teams; track team.id; let i = $index) {
+              <div class="team-cont" [class.team-cont-1row]="runHandler.run.teams.length < 3"[class.team-cont-2row]="runHandler.run.teams.length >= 3">
+                <div class="team-players">
+                  @for (player of team.players; track player.user.id) {
+                    <div>
+                      <p [class.team-player-disconnected]="player.state === playerState.Disconnected">
+                        @if (player.currentLevel) {
+                          <img class="run-info-teams-level" [src]="'./assets/levels/' + player.currentLevel + '.png'">
+                        }
+                        <span>{{ player.user.name }}</span>
+                        <span class="run-info-teams-cells-cont"><img class="run-info-teams-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>
+                        @if (runHandler.lobby?.host?.user?.id === mainLocalPlayer.user.id && player.user.id !== mainLocalPlayer.user.id) {
+                          <span class="run-info-teams-kick" (click)="kickPlayer(player.user)">X</span>
+                        }
+                      </p>
+                    </div>
+                  }
                 </div>
               </div>
-            </div>
+            }
           </div>
           <!-- RUN DETAILS -->
-        <div class="run-info-details">
-          <div class="run-info-details-host">
-            <p>Host</p>
-            <span>{{ runHandler.lobby?.host?.user?.name }}</span>
+          <div class="run-info-details">
+            <div class="run-info-details-host">
+              <p>Host</p>
+              <span>{{ runHandler.lobby?.host?.user?.name }}</span>
+            </div>
+            @if (runHandler.connected && mainLocalPlayer && runHandler.run) {
+              <app-run-spectators [spectators]="runHandler.run.spectators" [isHost]="runHandler.lobby?.host?.user?.id === mainLocalPlayer.user.id" [userId]="mainLocalPlayer.user.id" (onKick)="kickPlayer($event)"></app-run-spectators>
+            }
           </div>
-
-          <app-run-spectators *ngIf="runHandler.connected && this.mainLocalPlayer && runHandler.run" [spectators]="runHandler.run.spectators" [isHost]="runHandler.lobby?.host?.user?.id === mainLocalPlayer.user.id" [userId]="mainLocalPlayer.user.id" (onKick)="kickPlayer($event)"></app-run-spectators>
         </div>
-        </div>
-  
-  
         <!-- RUN STATS -->
         <div class="progress">
           <p class="progress-header">Collectables</p>
           <div class="progress-stats">
-            <div *ngFor="let team of runHandler.run.teams">
-              <span class="progress-stats-icon-cont"><img class="progress-stats-icon" src="./assets/icons/cell_counter.png">{{ team.runState.cellCount }}</span>
-              <span class="progress-stats-icon-cont"><img class="progress-stats-icon" src="./assets/icons/fly_counter.png">{{ team.runState.buzzerCount }}</span>
-              <span class="progress-stats-icon-cont"><img class="progress-stats-icon" src="./assets/icons/orb_counter.png">{{ team.runState.orbCount }}</span>
-            </div>
+            @for (team of runHandler.run.teams; track team.id) {
+              <div>
+                <span class="progress-stats-icon-cont"><img class="progress-stats-icon" src="./assets/icons/cell_counter.png">{{ team.runState.cellCount }}</span>
+                <span class="progress-stats-icon-cont"><img class="progress-stats-icon" src="./assets/icons/fly_counter.png">{{ team.runState.buzzerCount }}</span>
+                <span class="progress-stats-icon-cont"><img class="progress-stats-icon" src="./assets/icons/orb_counter.png">{{ team.runState.orbCount }}</span>
+              </div>
+            }
           </div>
-            <div class="progress-info">
-              <p>Grabbing a power cell or saving before loading a file from the side menu will create a new save file with the name of the lobby as the save name. NOTE! There is currently no overwrite protection.</p>
-              <br />
-              <p>To end a session save your game ingame, this will save the game to your local pc.</p>
-              <p>Note that another player saving will only save the game to their pc. When loading you only have access to your own saves.</p>
-            </div>
+          <div class="progress-info">
+            <p>Grabbing a power cell or saving before loading a file from the side menu will create a new save file with the name of the lobby as the save name. NOTE! There is currently no overwrite protection.</p>
+            <br />
+            <p>To end a session save your game ingame, this will save the game to your local pc.</p>
+            <p>Note that another player saving will only save the game to their pc. When loading you only have access to your own saves.</p>
+          </div>
         </div>
       </div>
-      <div *ngIf="!runHandler.connected || !this.mainLocalPlayer" id="connecting">
+    }
+    @if (!runHandler.connected || !mainLocalPlayer) {
+      <div id="connecting">
         <h1 class="text-in-background">Connecting to Lobby</h1>
         <mat-spinner class="spinner"></mat-spinner>
       </div>
-  
-      <div class="backtext">
-        <h1>theurn</h1>
-      </div>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+    }
+
+    <div class="backtext">
+      <h1>theurn</h1>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

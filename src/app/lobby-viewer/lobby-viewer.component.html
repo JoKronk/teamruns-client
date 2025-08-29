@@ -1,38 +1,50 @@
-<div *ngIf="lobby" class="viewer" [style.opacity]="hide ? '0' : '1'">
+@if (lobby) {
+  <div class="viewer" [style.opacity]="hide ? '0' : '1'">
     <h2>{{ lobby.runData.name }}</h2>
     <span>
-        {{ categoryOptions[lobby.runData.category].displayName }}
-        <span class="subtext" *ngIf="lobby.runData.sameLevel" >(Same Level)</span>
+      {{ categoryOptions[lobby.runData.category].displayName }}
+      @if (lobby.runData.sameLevel) {
+        <span class="subtext" >(Same Level)</span>
+      }
     </span>
     <span>{{ runMode[lobby.runData.mode] }}</span>
-
     <br />
     <span>Host: {{ lobby.host?.user?.name }}</span>
     <span>Version: {{ lobby.runData.buildVersion }}</span>
     <br />
-
-    <div *ngIf="lobby.runData.category === 0">
+    @if (lobby.runData.category === 0) {
+      <div>
         <h3>Settings</h3>
         <span>No LTS: {{ lobby.runData.noLTS }}</span>
         <span>Citadel Skip: {{ citadelOptions[lobby.runData.citadelSkip] }}</span>
         <br />
-        
         <span>Allow Solo Zoomers: {{ lobby.runData.allowSoloHubZoomers }}</span>
-    
+      </div>
+    }
+    <div class="viewer-group">
+      <p>Runners:</p>
+      @for (user of lobby.users; track user.user.id) {
+        <div>
+          @if (user.isRunner) {
+            <span>{{ user.user.name }} @if (user.type === playerType.Recording) {
+              <span class="filler-text">(Recording)</span>
+            }</span>
+          }
+        </div>
+      }
     </div>
     <div class="viewer-group">
-        <p>Runners:</p>
-        <div *ngFor="let user of lobby.users">
-            <span *ngIf="user.isRunner">{{ user.user.name }} <span *ngIf="user.type === playerType.Recording" class="filler-text">(Recording)</span></span>
+      <p>Spectators:</p>
+      @for (user of lobby.users; track user.user.id) {
+        <div>
+          @if (!user.isRunner) {
+            <span>{{ user.user.name }} @if (user.type === playerType.Recording) {
+              <span class="filler-text">(Recording)</span>
+            }</span>
+          }
         </div>
+      }
     </div>
-    
-    <div class="viewer-group">
-        <p>Spectators:</p>
-        <div *ngFor="let user of lobby.users">
-            <span *ngIf="!user.isRunner">{{ user.user.name }} <span *ngIf="user.type === playerType.Recording" class="filler-text">(Recording)</span></span>
-        </div>
-    </div>
-
-</div>
+  </div>
+}
 <h1 class="backtext text-in-background" title="Details">Details</h1>

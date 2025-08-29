@@ -6,11 +6,14 @@ import { UserService } from '../services/user.service';
 import { AccountDialogComponent, AccountReply } from '../dialogs/account-dialog/account-dialog.component';
 import { DbUsersCollection } from '../common/firestore/db-users-collection';
 import { Subscription } from 'rxjs';
+import { FormsModule } from '@angular/forms';
+import { FooterComponent } from '../window-components/footer/footer.component';
 
 @Component({
-  selector: 'app-start-screen',
-  templateUrl: './start-screen.component.html',
-  styleUrls: ['./start-screen.component.scss']
+    selector: 'app-start-screen',
+    templateUrl: './start-screen.component.html',
+    styleUrls: ['./start-screen.component.scss'],
+    imports: [FormsModule, FooterComponent]
 })
 export class StartScreenComponent implements OnDestroy {
 

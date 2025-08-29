@@ -1,14 +1,13 @@
-import { AngularFirestoreDocument } from "@angular/fire/compat/firestore";
 import { Subject } from "rxjs";
 import { environment } from '../../../environments/environment';
 import { CollectionName } from "../firestore/collection-name";
 import { Lobby } from "../firestore/lobby";
 import { DataChannelEvent } from "./data-channel-event";
 import { EventType } from "./event-type";
-import { RTCPeer } from "./rtc-peer";
 import { UserBase } from "../user/user";
 import { UserPositionData } from "../socket/position-data";
 import { PlayerBase } from "../player/player-base";
+import { deleteDoc, doc, DocumentReference } from "@angular/fire/firestore";
 
 export class RTCPeerDataConnection {
 
@@ -20,10 +19,9 @@ export class RTCPeerDataConnection {
     self: UserBase;
     isMaster: boolean;
     isBeingDestroyed: boolean = false;
-    private lobbyDoc: AngularFirestoreDocument<Lobby>;
 
 
-    constructor(eventChannel: Subject<DataChannelEvent>, positionChannel: Subject<UserPositionData> | null, self: UserBase, peer: PlayerBase, lobbyDoc: AngularFirestoreDocument<Lobby>, creatorIsMaster: boolean, connectionLog: string[] | null = null) {
+    constructor(eventChannel: Subject<DataChannelEvent>, positionChannel: Subject<UserPositionData> | null, self: UserBase, peer: PlayerBase, lobbyRef: DocumentReference<Lobby>, creatorIsMaster: boolean, connectionLog: string[] | null = null) {
         let peerIceServers: RTCIceServer[] = [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }];
         peerIceServers.push(environment.turnIceServer);
 
@@ -31,7 +29,6 @@ export class RTCPeerDataConnection {
             iceServers: peerIceServers,
             iceCandidatePoolSize: 10,
         });
-        this.lobbyDoc = lobbyDoc;
         this.self = self;
         this.isMaster = creatorIsMaster;
 
@@ -90,7 +87,7 @@ export class RTCPeerDataConnection {
                 //!TODO: seems safe to delete instantly but I'm not taking any chances before I know for certain
                 setTimeout(() => {
                     if (this.isBeingDestroyed) return;
-                    lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(peer.user.id).delete();
+                    deleteDoc(doc(lobbyRef, CollectionName.peerConnections, peer.user.id));
                 }, 1000);
             }
             
@@ -117,7 +114,7 @@ export class RTCPeerDataConnection {
                         connectionLog.push("Unable to establish connection...");
                     console.log("kicking: ", self.name);
                     eventChannel.next(new DataChannelEvent(self.id, EventType.Kick, self.id));
-                    lobbyDoc.collection(CollectionName.peerConnections).doc<RTCPeer>(peer.user.id).delete();
+                    deleteDoc(doc(lobbyRef, CollectionName.peerConnections, peer.user.id));
                 }
             }, 8000);
         }

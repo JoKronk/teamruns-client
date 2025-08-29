@@ -43,6 +43,7 @@ import { ConnectionHandler } from "../peer/connection-handler";
 import { DbUsersCollection } from "../firestore/db-users-collection";
 import { ChatMessage } from "../peer/chat-message";
 import { UserPositionData } from "../socket/position-data";
+import { onSnapshot, Unsubscribe } from "@angular/fire/firestore";
 
 export class RunHandler {
 
@@ -59,7 +60,7 @@ export class RunHandler {
 
     connectionHandler: ConnectionHandler;
 
-    lobbySubscription: Subscription;
+    lobbyUnsubscription: Unsubscribe;
     userSetupSubscription: Subscription;
     dataChannelSubscription: Subscription;
     pbSubscription: Subscription;
@@ -83,9 +84,9 @@ export class RunHandler {
             //lobby listener
             let userId = this.userService.getMainUserId();
             if (this.connectionHandler.isOnlineInstant) {
-                this.lobbySubscription = this.firestoreService.getLobbyDoc(lobbyId!).snapshotChanges().subscribe(snapshot => {
-                    if (snapshot.payload.metadata.hasPendingWrites || this.isBeingDestroyed) return;
-                    let lobby = snapshot.payload.data();
+                this.lobbyUnsubscription = onSnapshot(this.firestoreService.getLobbyDoc(lobbyId!), (snapshot) => {
+                    if (snapshot.metadata.hasPendingWrites || this.isBeingDestroyed) return;
+                    let lobby = snapshot.data();
                     if (!lobby) return;
 
                     this.lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.allowLateSpectate, lobby.password, lobby.id), lobby);
@@ -864,7 +865,7 @@ export class RunHandler {
         this.resetUser();
 
         //unsubscribes
-        this.lobbySubscription?.unsubscribe();
+        if (this.lobbyUnsubscription) this.lobbyUnsubscription();
         this.userSetupSubscription?.unsubscribe();
         this.dataChannelSubscription?.unsubscribe();
         this.pbSubscription?.unsubscribe();

@@ -19,11 +19,18 @@ import { LocalSave } from 'src/app/common/level/local-save';
 import { Subscription } from 'rxjs';
 import { SyncType } from 'src/app/common/level/sync-type';
 import { RunSetupState } from 'src/app/common/run/run-setup-state';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { SaveLoaderComponent } from '../save-loader/save-loader.component';
+import { ChatComponent } from '../chat/chat.component';
+import { HeaderComponent } from 'src/app/window-components/header/header.component';
+import { RunSpectatorsComponent } from '../run-spectators/run-spectators.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
-  selector: 'app-run-casual',
-  templateUrl: './run-casual.component.html',
-  styleUrls: ['./run-casual.component.scss']
+    selector: 'app-run-casual',
+    templateUrl: './run-casual.component.html',
+  styleUrls: ['./run-casual.component.scss'],
+    imports: [SaveLoaderComponent, ChatComponent, HeaderComponent, RunSpectatorsComponent, MatSidenavModule, MatProgressSpinnerModule]
 })
 export class RunCasualComponent implements OnDestroy {
   

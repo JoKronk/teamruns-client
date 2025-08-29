@@ -1,20 +1,17 @@
 import { Component, OnDestroy } from '@angular/core';
 import { UserService } from '../services/user.service';
 import { FireStoreService } from '../services/fire-store.service';
-import { Subscription } from 'rxjs';
 import { DbUsersCollection } from '../common/firestore/db-users-collection';
 import { Category, CategoryOption } from '../common/run/category';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { DbLeaderboardPb } from '../common/firestore/db-leaderboard-pb';
 import { DbLeaderboard } from '../common/firestore/db-leaderboard';
-import { Chart } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
-Chart.register(zoomPlugin);
 import 'chartjs-adapter-date-fns';
 import { Timer } from '../common/run/timer';
 import { Team } from '../common/run/team';
 import { Task } from '../common/opengoal/task';
-import { animate, state, style, transition, trigger } from '@angular/animations';
 import { PbCommentDialogComponent } from '../dialogs/pb-comment-dialog/pb-comment-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { DbRunUserContent } from '../common/firestore/db-run-user-content';
@@ -22,18 +19,24 @@ import { AccountDialogComponent, AccountReply } from '../dialogs/account-dialog/
 import { DbPb } from '../common/firestore/db-pb';
 import { DbRecordingFile } from '../common/firestore/db-recording-file';
 import { Recording } from '../common/recording/recording';
+import { HeaderComponent } from '../window-components/header/header.component';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { FormsModule } from '@angular/forms';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { RunSplitsComponent } from '../run-components/run-splits/run-splits.component';
+import { CommonModule, DatePipe } from '@angular/common';
+import { MatMenuModule } from '@angular/material/menu';
+import { FooterComponent } from '../window-components/footer/footer.component';
+
+Chart.register(zoomPlugin);
+Chart.register(...registerables);
 
 @Component({
-  selector: 'app-leaderboard',
-  templateUrl: './leaderboard.component.html',
-  styleUrls: ['./leaderboard.component.scss'],
-  animations: [
-    trigger('runExpand', [
-      state('collapsed', style({height: '0px', minHeight: '0'})),
-      state('expanded', style({height: '*'})),
-      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
-    ])
-  ]
+    selector: 'app-leaderboard',
+    templateUrl: './leaderboard.component.html',
+    styleUrls: ['./leaderboard.component.scss'],
+    imports: [FormsModule, CommonModule, HeaderComponent, RunSplitsComponent, FooterComponent, DatePipe, MatTableModule, MatSidenavModule, MatButtonToggleModule, MatMenuModule],
+    standalone: true
 })
 export class LeaderboardComponent implements OnDestroy {
 
@@ -276,8 +279,7 @@ export class LeaderboardComponent implements OnDestroy {
 
   downloadRecording(pbId: string) {
     this._user.drawImportNotif();
-    const downloadSubscription = this.firestoreService.downloadRecording(pbId).subscribe(found => {
-      downloadSubscription.unsubscribe();
+    this.firestoreService.downloadRecording(pbId).then(found => {
       if (!found)
        this._user.sendNotification("Failed to fetch recording.");
     });

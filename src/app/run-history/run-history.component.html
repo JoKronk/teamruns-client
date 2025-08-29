@@ -1,75 +1,89 @@
 
 <div class="background-image"></div>
 <div class="page-container">
-    <div class="page-header">
-        <app-header title="Run History"></app-header>
-    </div>
-    <div class="page-info">
-    </div>
-    <div class="page-table">
-        <table mat-table [dataSource]="dataSource" multiTemplateDataRows>
-            <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef> Name </th>
-                <td mat-cell *matCellDef="let run"> {{run.data.name}} </td>
-            </ng-container>
-            <ng-container matColumnDef="category">
-                <th mat-header-cell *matHeaderCellDef> Category </th>
-                <td mat-cell *matCellDef="let run"> 
-                    <span *ngIf="run.data.mode === 1">Lockout</span>
-                    <span *ngIf="run.data.mode === 0">
-                        {{categoryOptions[run.data.category].displayName}}
-                        <span *ngIf="run.data.requireSameLevel"> (Same Level)</span>
-                    </span>
-                </td>
-            </ng-container>
-            <ng-container matColumnDef="time">
-                <th mat-header-cell *matHeaderCellDef> Time </th>
-                <td mat-cell *matCellDef="let run"> {{run.endTimeFrontend}} </td>
-            </ng-container>
-            <ng-container matColumnDef="version">
-                <th mat-header-cell *matHeaderCellDef> Version </th>
-                <td mat-cell *matCellDef="let run"> {{run.data.buildVersion}} </td>
-            </ng-container>
-            <ng-container matColumnDef="date">
-                <th mat-header-cell *matHeaderCellDef> Date </th>
-                <td mat-cell *matCellDef="let run"> {{run.dateFrontend | date:'dd/MM/yy'}} </td>
-            </ng-container>
-            <ng-container matColumnDef="players">
-                <th mat-header-cell *matHeaderCellDef> Players </th>
-                <td mat-cell class="no-wrap" *matCellDef="let run"> {{run.userIds.size}}
-                    <span *ngIf="run.teams.length !== 1">({{run.teams.length}} teams)</span> </td>
-            </ng-container>
+  <div class="page-header">
+    <app-header title="Run History"></app-header>
+  </div>
+  <div class="page-info">
+  </div>
+  <div class="page-table">
+    <table mat-table [dataSource]="dataSource" multiTemplateDataRows>
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef> Name </th>
+        <td mat-cell *matCellDef="let run"> {{run.data.name}} </td>
+      </ng-container>
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef> Category </th>
+        <td mat-cell *matCellDef="let run">
+          @if (run.data.mode === 1) {
+            <span>Lockout</span>
+          }
+          @if (run.data.mode === 0) {
+            <span>
+              {{categoryOptions[run.data.category].displayName}}
+              @if (run.data.requireSameLevel) {
+                <span> (Same Level)</span>
+              }
+            </span>
+          }
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="time">
+        <th mat-header-cell *matHeaderCellDef> Time </th>
+        <td mat-cell *matCellDef="let run"> {{run.endTimeFrontend}} </td>
+      </ng-container>
+      <ng-container matColumnDef="version">
+        <th mat-header-cell *matHeaderCellDef> Version </th>
+        <td mat-cell *matCellDef="let run"> {{run.data.buildVersion}} </td>
+      </ng-container>
+      <ng-container matColumnDef="date">
+        <th mat-header-cell *matHeaderCellDef> Date </th>
+        <td mat-cell *matCellDef="let run"> {{run.dateFrontend | date:'dd/MM/yy'}} </td>
+      </ng-container>
+      <ng-container matColumnDef="players">
+        <th mat-header-cell *matHeaderCellDef> Players </th>
+        <td mat-cell class="no-wrap" *matCellDef="let run"> {{run.userIds.size}}
+          @if (run.teams.length !== 1) {
+            <span>({{run.teams.length}} teams)</span>
+          } </td>
+        </ng-container>
 
-            <ng-container matColumnDef="expandedRun">
-                <td mat-cell *matCellDef="let run" [attr.colspan]="columns.length">
-                    <div class="team-cont-bg">
-                        <div [@runExpand]="run == expandedRun ? 'expanded' : 'collapsed'">
-                            <div class="team-cont">
-                                <div *ngFor="let team of run.teams" class="team">
-                                    <div class="team-players-cont">
-                                        <div *ngFor="let player of team.players" class="team-players">
-                                            <span>{{player.user.name}} <span *ngIf="player.user.name !== player.currentUsernameFrontend">({{player.currentUsernameFrontend}})</span></span>
-                                            <span class="team-players-cells-cont"><img class="team-players-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>
-                                        </div>
-                                    </div>
-                                    <app-run-splits [dbTeam]="team" class="team-splits"></app-run-splits>
-                                </div>
-                                <div class="backtext">
-                                    <h1>Splits</h1>
-                                </div>
-                            </div>
-                        </div>
+        <ng-container matColumnDef="expandedRun">
+          <td mat-cell *matCellDef="let run" [attr.colspan]="columns.length">
+            <div class="team-cont-bg">
+              <div [class.expanded]="run == expandedRun" class="team-container">
+                <div class="team-cont">
+                  @for (team of run.teams; track $index) {
+                    <div class="team">
+                      <div class="team-players-cont">
+                        @for (player of team.players; track player.user.id) {
+                          <div class="team-players">
+                            <span>{{player.user.name}} @if (player.user.name !== player.currentUsernameFrontend) {
+                              <span>({{player.currentUsernameFrontend}})</span>
+                            }</span>
+                            <span class="team-players-cells-cont"><img class="team-players-cells" src="./assets/icons/cell_counter.png">{{ player.cellsCollected }}</span>
+                          </div>
+                        }
+                      </div>
+                      <app-run-splits [dbTeam]="team" class="team-splits"></app-run-splits>
                     </div>
-                </td>
-            </ng-container>
+                  }
+                  <div class="backtext">
+                    <h1>Splits</h1>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="columns"></tr>
-            <tr mat-row *matRowDef="let run; columns: columns;" class="run-row"
-                [class.run-expanded-row-open]="expandedRun === run"
-                (click)="expandedRun = expandedRun === run ? null : run"></tr>
-            <tr mat-row *matRowDef="let row; columns: ['expandedRun']" class="run-expanded-row"></tr>
-        </table>
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let run; columns: columns;" class="run-row"
+          [class.run-expanded-row-open]="expandedRun?.id === run.id"
+        (click)="expandedRun = expandedRun === run ? null : run"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['expandedRun']" class="run-expanded-row"></tr>
+      </table>
     </div>
 
     <app-footer></app-footer>
-</div>
+  </div>

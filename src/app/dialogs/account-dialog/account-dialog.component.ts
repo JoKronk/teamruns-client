@@ -5,11 +5,13 @@ import { DbUsersCollection } from 'src/app/common/firestore/db-users-collection'
 import { UserBase } from 'src/app/common/user/user';
 import { FireStoreService } from 'src/app/services/fire-store.service';
 import { UserService } from 'src/app/services/user.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-account-dialog',
   templateUrl: './account-dialog.component.html',
-  styleUrls: ['./account-dialog.component.scss']
+  styleUrls: ['./account-dialog.component.scss'],
+  imports: [FormsModule]
 })
 export class AccountDialogComponent {
 

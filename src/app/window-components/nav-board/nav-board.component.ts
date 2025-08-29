@@ -5,11 +5,13 @@ import { UserService } from '../../services/user.service';
 import { Router } from '@angular/router';
 import { SetControllerComponent } from '../../dialogs/set-controller/set-controller.component';
 import { User } from '../../common/user/user';
+import { FooterComponent } from '../footer/footer.component';
 
 @Component({
-  selector: 'app-nav-board',
-  templateUrl: './nav-board.component.html',
-  styleUrls: ['./nav-board.component.scss']
+    selector: 'app-nav-board',
+    templateUrl: './nav-board.component.html',
+  styleUrls: ['./nav-board.component.scss'],
+    imports: [FooterComponent]
 })
 export class NavBoardComponent {
 

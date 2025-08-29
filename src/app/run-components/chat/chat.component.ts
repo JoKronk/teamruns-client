@@ -1,10 +1,13 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ChatMessage } from 'src/app/common/peer/chat-message';
 
 @Component({
-  selector: 'app-chat',
-  templateUrl: './chat.component.html',
-  styleUrls: ['./chat.component.scss']
+    selector: 'app-chat',
+    templateUrl: './chat.component.html',
+  styleUrls: ['./chat.component.scss'],
+    imports: [CommonModule, FormsModule]
 })
 export class ChatComponent {
 

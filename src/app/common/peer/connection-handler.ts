@@ -7,7 +7,7 @@ import { UserPositionData } from "../socket/position-data";
 import { User } from "../user/user";
 import { Lobby } from "../firestore/lobby";
 import { EventType } from "./event-type";
-import { AngularFirestoreDocument } from "@angular/fire/compat/firestore";
+import { DocumentReference } from "@angular/fire/firestore";
 
 export class ConnectionHandler {
     
@@ -39,7 +39,7 @@ export class ConnectionHandler {
         this.localPeers = localPeers;
     }
 
-    setupMaster(lobbyDoc: AngularFirestoreDocument<Lobby>) {
+    setupMaster(lobbyDoc: DocumentReference<Lobby>) {
         console.log("Setting up master!");
         this.localMaster = new RTCPeerMaster(this.mainLocalUser.getUserBaseWithDisplayName(), lobbyDoc);
         this.dataSubscription = this.localMaster.eventChannel.subscribe(event => {
@@ -54,7 +54,7 @@ export class ConnectionHandler {
         });
     }
 
-    setupSlave(lobbyDoc: AngularFirestoreDocument<Lobby>) {
+    setupSlave(lobbyDoc: DocumentReference<Lobby>) {
         console.log("Setting up slave!");
         this.localSlave = new RTCPeerSlave(this.mainLocalUser.generatePlayerBase(), lobbyDoc, this.lobby!.host!);
         this.dataSubscription = this.localSlave.eventChannel.subscribe(event => {

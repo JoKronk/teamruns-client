@@ -9,13 +9,18 @@ import { Lobby } from '../common/firestore/lobby';
 import { RunMode } from '../common/run/run-mode';
 import { InputDialogComponent } from '../dialogs/input-dialog/input-dialog.component';
 import { ConfirmComponent } from '../dialogs/confirm/confirm.component';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { Category } from '../common/run/category';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { LobbyViewerComponent } from '../lobby-viewer/lobby-viewer.component';
+import { HeaderComponent } from '../window-components/header/header.component';
+import { FooterComponent } from '../window-components/footer/footer.component';
 
 @Component({
-  selector: 'app-lobby',
-  templateUrl: './lobby.component.html',
-  styleUrls: ['./lobby.component.scss']
+    selector: 'app-lobby',
+    templateUrl: './lobby.component.html',
+  styleUrls: ['./lobby.component.scss'],
+    imports: [LobbyViewerComponent, HeaderComponent, FooterComponent, MatSidenavModule, MatTableModule]
 })
 export class LobbyComponent implements OnDestroy {
 
@@ -41,38 +46,41 @@ export class LobbyComponent implements OnDestroy {
   constructor(public _user: UserService, private _firestore: FireStoreService, private router: Router, private dialog: MatDialog) {
     
     setTimeout(()=> {
-      this.lobbiesSubscription = this._firestore.getOpenLobbies().subscribe((lobbies) => {
-        const expireDate = new Date();
-        expireDate.setHours(expireDate.getHours() - 4);
-        //remove old lobbies
-        lobbies.filter(x => new Date(x.creationDate) < expireDate).forEach(lobby => {
-          _firestore.deleteLobby(lobby.id);
-        });
-        
-        lobbies = lobbies.filter(x => new Date(x.creationDate) >= expireDate);
-        
-        //(The question marks in user for filtering here is only for backwards compability)
-        lobbies.filter(x => x.users.some(user => user?.user?.id === _user.user.id) || x.host?.user?.id === _user.user.id).forEach(lobby => {
-          lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.allowLateSpectate, lobby.password, lobby.id), lobby);
-          if (lobby.host?.user.id === _user.user.id)
-            lobby.host = null;
+      this.lobbiesSubscription = this._firestore.getOpenLobbies().subscribe({
+        next: (lobbies) => {
+          const expireDate = new Date();
+          expireDate.setHours(expireDate.getHours() - 4);
+          //remove old lobbies
+          lobbies.filter(x => new Date(x.creationDate) < expireDate).forEach(lobby => {
+            _firestore.deleteLobby(lobby.id);
+          });
           
-          lobby.removeUser(_user.user.id);
-          lobby.visible = false;
-          _firestore.updateLobby(lobby);
-        });
-  
-        const version = this.buildVersion.slice(0, -2);
-        this.newLobbies = lobbies.filter(x => !x.inProgress).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
-        this.dataSource = new MatTableDataSource(this.newLobbies);
-        this.inProgressLobbies = lobbies.filter(x => x.inProgress).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
-        this.dataSourceInProgress = new MatTableDataSource(this.inProgressLobbies);
-        this.selectedLobby = this.newLobbies[0];
-        this.loaded = true;
-        this._user.clientInMaintenanceMode = false;
-      }, error => {
-        if (error.message === "Missing or insufficient permissions.")
-          this._user.clientInMaintenanceMode = true;
+          lobbies = lobbies.filter(x => new Date(x.creationDate) >= expireDate);
+          
+          //(The question marks in user for filtering here is only for backwards compability)
+          lobbies.filter(x => x.users.some(user => user?.user?.id === _user.user.id) || x.host?.user?.id === _user.user.id).forEach(lobby => {
+            lobby = Object.assign(new Lobby(lobby.runData, lobby.creatorId, lobby.allowLateSpectate, lobby.password, lobby.id), lobby);
+            if (lobby.host?.user.id === _user.user.id)
+              lobby.host = null;
+            
+            lobby.removeUser(_user.user.id);
+            lobby.visible = false;
+            _firestore.updateLobby(lobby);
+          });
+    
+          const version = this.buildVersion.slice(0, -2);
+          this.newLobbies = lobbies.filter(x => !x.inProgress).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
+          this.dataSource = new MatTableDataSource(this.newLobbies);
+          this.inProgressLobbies = lobbies.filter(x => x.inProgress).sort((x, y) => new Date(y.creationDate).valueOf() - new Date(x.creationDate).valueOf());
+          this.dataSourceInProgress = new MatTableDataSource(this.inProgressLobbies);
+          this.selectedLobby = this.newLobbies[0];
+          this.loaded = true;
+          this._user.clientInMaintenanceMode = false;
+        },
+        error: (error) => {
+          if (error.message === "Missing or insufficient permissions.")
+            this._user.clientInMaintenanceMode = true;
+        }
       });
     }, 500); //quick pause to give the db chance to dehost properly when exiting !TODO: fix by awaiting in runhandler destory
 

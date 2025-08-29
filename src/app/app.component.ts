@@ -1,13 +1,16 @@
 import { Component, HostListener, NgZone } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { UserService } from './services/user.service';
 import pkg from 'app/package.json';
 import { Subscription } from 'rxjs';
+import {MatSidenavModule} from '@angular/material/sidenav';
+import { NavBoardComponent } from './window-components/nav-board/nav-board.component';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss'],
+    imports: [RouterOutlet, MatSidenavModule, NavBoardComponent]
 })
 export class AppComponent {
   title = 'Teamruns';

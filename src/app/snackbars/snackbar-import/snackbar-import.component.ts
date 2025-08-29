@@ -1,11 +1,13 @@
 import { Component, OnDestroy } from '@angular/core';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarRef } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-snackbar-import',
-  templateUrl: './snackbar-import.component.html',
-  styleUrls: ['./snackbar-import.component.scss']
+    selector: 'app-snackbar-import',
+    templateUrl: './snackbar-import.component.html',
+    styleUrls: ['./snackbar-import.component.scss'],
+    imports: [MatProgressBarModule]
 })
 export class SnackbarImportComponent implements OnDestroy{
 

@@ -1,22 +1,28 @@
-<div *ngIf="teamSplits !== undefined" class="container">
-  <div class="team-header">
-    <div class="team-name">
-      <h2>{{ teamSplits.name }}</h2>
+@if (teamSplits !== undefined) {
+  <div class="container">
+    <div class="team-header">
+      <div class="team-name">
+        <h2>{{ teamSplits.name }}</h2>
+      </div>
+      <div class="team-cells">
+        <img src="./assets/icons/cell_counter.png">
+        <span>{{ teamSplits.runState.cellCount }}</span>
+      </div>
+      @if (showOrbCount) {
+        <div class="team-orbs">
+          <img src="./assets/icons/orb_counter.png">
+          <span>{{ teamSplits.runState.orbCount }}</span>
+        </div>
+      }
     </div>
-    <div class="team-cells">
-      <img src="./assets/icons/cell_counter.png">
-      <span>{{ teamSplits.runState.cellCount }}</span>
-    </div>
-    <div *ngIf="showOrbCount" class="team-orbs">
-      <img src="./assets/icons/orb_counter.png">
-      <span>{{ teamSplits.runState.orbCount }}</span>
+    <div class="tasks-container">
+      @for (task of teamSplits.splits; track $index) {
+        <div class="tasks">
+          <img [src]="'./assets/icons/' + task.gameTask + '.png'">
+          <span class="tasks-player"> {{ task.obtainedByName }}</span>
+          <span class="tasks-time"> {{ task.obtainedAt }}</span>
+        </div>
+      }
     </div>
   </div>
-  <div class="tasks-container">
-    <div *ngFor="let task of teamSplits.splits" class="tasks">
-      <img [src]="'./assets/icons/' + task.gameTask + '.png'">
-      <span class="tasks-player"> {{ task.obtainedByName }}</span>
-      <span class="tasks-time"> {{ task.obtainedAt }}</span>
-    </div>
-  </div>
-</div>
+}

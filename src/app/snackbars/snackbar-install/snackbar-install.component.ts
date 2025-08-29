@@ -1,10 +1,12 @@
 import { Component, NgZone, OnDestroy } from '@angular/core';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarRef } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'app-snackbar-install',
-  templateUrl: './snackbar-install.component.html',
-  styleUrls: ['./snackbar-install.component.scss']
+    selector: 'app-snackbar-install',
+    templateUrl: './snackbar-install.component.html',
+  styleUrls: ['./snackbar-install.component.scss'],
+    imports: [MatProgressBarModule]
 })
   
 export class SnackbarInstallComponent implements OnDestroy {

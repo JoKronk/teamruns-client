@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, NgZone, OnDestroy } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { UserService } from '../../services/user.service';
 import { Recording } from '../../common/recording/recording';
 import { SelectableRecording } from 'src/app/common/recording/selectable-recording';
@@ -19,11 +19,21 @@ import { RecordingFile } from 'src/app/common/recording/recording-file';
 import { RecordingPackage } from 'src/app/common/recording/recording-package';
 import { RunSetupState } from 'src/app/common/run/run-setup-state';
 import pkg from 'app/package.json';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { DragDropDirective } from 'src/app/common/directives/drag-drop.directive';
+import { RunTimerComponent } from '../run-timer/run-timer.component';
+import { SpawnLoaderComponent } from '../spawn-loader/spawn-loader.component';
+import { HeaderComponent } from 'src/app/window-components/header/header.component';
+import { FormsModule } from '@angular/forms';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
-  selector: 'app-practice',
-  templateUrl: './practice.component.html',
-  styleUrls: ['./practice.component.scss']
+    selector: 'app-practice',
+    templateUrl: './practice.component.html',
+  styleUrls: ['./practice.component.scss'],
+    imports: [FormsModule, RunTimerComponent, SpawnLoaderComponent,HeaderComponent, DragDropDirective, MatSidenavModule, MatTableModule, MatSliderModule, MatTooltipModule, MatButtonToggleModule]
 })
 export class PracticeComponent implements OnDestroy {
 

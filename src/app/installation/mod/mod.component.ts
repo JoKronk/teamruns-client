@@ -1,14 +1,17 @@
+import { DatePipe } from '@angular/common';
 import { Component } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { ActivatedRoute } from '@angular/router';
 import { ModInfo, ModVersion, SupportedGame } from 'src/app/common/api/mod-release';
 import { ApiService } from 'src/app/services/api.service';
 import { UserService } from 'src/app/services/user.service';
+import { HeaderComponent } from 'src/app/window-components/header/header.component';
 
 @Component({
-  selector: 'app-mod',
-  templateUrl: './mod.component.html',
-  styleUrls: ['./mod.component.scss']
+    selector: 'app-mod',
+    templateUrl: './mod.component.html',
+  styleUrls: ['./mod.component.scss'],
+    imports: [HeaderComponent, DatePipe, MatTableModule]
 })
 export class ModComponent {
   

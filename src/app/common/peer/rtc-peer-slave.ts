@@ -1,5 +1,4 @@
-import { AngularFirestoreDocument } from "@angular/fire/compat/firestore";
-import { Subject, Subscription } from "rxjs";
+import { Subject } from "rxjs";
 import { CollectionName } from "../firestore/collection-name";
 import { Lobby } from "../firestore/lobby";
 import { UserBase } from "../user/user";
@@ -8,14 +7,16 @@ import { RTCPeer } from "./rtc-peer";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
 import { UserPositionData } from "../socket/position-data";
 import { PlayerBase } from "../player/player-base";
+import { deleteDoc, doc, DocumentReference, getDoc, onSnapshot, setDoc, Unsubscribe } from "@angular/fire/firestore";
+import { FireStoreService } from "src/app/services/fire-store.service";
 
 export class RTCPeerSlave {
     private currentMasterSdp: string | undefined;
 
     peerData: RTCPeer;
     peer: RTCPeerDataConnection;
-    peerDoc: AngularFirestoreDocument<RTCPeer>;
-    peerDocSubscription: Subscription;
+    peerDoc: DocumentReference<RTCPeer>;
+    peerDocUnsubscribe: Unsubscribe;
     
     hostId: string;
     connectionLogs: string[] = ["Setting up connection..."];
@@ -23,32 +24,32 @@ export class RTCPeerSlave {
     eventChannel: Subject<DataChannelEvent> = new Subject();
     positionChannel: Subject<UserPositionData> | null = null;
 
-    constructor(player: PlayerBase, doc: AngularFirestoreDocument<Lobby>, host: PlayerBase) {
-        this.peerDoc = doc.collection<RTCPeer>(CollectionName.peerConnections).doc(player.user.id);
+    constructor(player: PlayerBase, lobbyRef: DocumentReference<Lobby>, host: PlayerBase) {
+        this.peerDoc = doc(lobbyRef, CollectionName.peerConnections, player.user.id).withConverter(FireStoreService.convert<RTCPeer>());
         this.peerData = new RTCPeer(player);
         this.hostId = host.user.id;
 
         this.positionChannel = new Subject();
 
-        this.preCreationCleanup(player.user, doc, host);
+        this.preCreationCleanup(player.user, lobbyRef, host);
     }
 
-    private async preCreationCleanup(user: UserBase, lobbyDoc: AngularFirestoreDocument<Lobby>, host: PlayerBase) {
+    private async preCreationCleanup(user: UserBase, lobbyRef: DocumentReference<Lobby>, host: PlayerBase) {
         
         //delete old peer connection if exists
-        let peer = await this.peerDoc.ref.get();
-        if (peer.exists) {
+        const peerSnap = await getDoc(this.peerDoc);
+        if (peerSnap.exists()) {
             this.connectionLogs.push("Detected previous connection, deleting!");
             console.log("slave: Peer connection exists from before, deleting!");
-            await this.peerDoc.delete();
-            this.createPeerConnection(lobbyDoc, user, host);
+            await deleteDoc(this.peerDoc);
+            this.createPeerConnection(lobbyRef, user, host);
         }
         else
-            this.createPeerConnection(lobbyDoc, user, host);
+            this.createPeerConnection(lobbyRef, user, host);
     }
 
-    private async createPeerConnection(lobbyDoc: AngularFirestoreDocument<Lobby>, user: UserBase, host: PlayerBase) {
-        this.peer = new RTCPeerDataConnection(this.eventChannel, this.positionChannel, user, host, lobbyDoc, false, this.connectionLogs);
+    private async createPeerConnection(lobbyRef: DocumentReference<Lobby>, user: UserBase, host: PlayerBase) {
+        this.peer = new RTCPeerDataConnection(this.eventChannel, this.positionChannel, user, host, lobbyRef, false, this.connectionLogs);
 
         //listen for slave candidates to be created, might need to be done before .createOffer() according to some unlisted documentation
         this.peer.connection.onicecandidate = (event) => {
@@ -69,16 +70,16 @@ export class RTCPeerSlave {
         //One solution is to have a seperate doc for -> connections, master candidates, slave candidates
         setTimeout(() => {
             if (this.isBeingDestroyed) return;
-            this.peerDoc.set(JSON.parse(JSON.stringify(this.peerData)));
+            setDoc(this.peerDoc, JSON.parse(JSON.stringify(this.peerData)));
             this.connectionLogs.push("Created connection offer!");
             console.log("slave: Created slave offer!");
         }, 500);
 
         
         //listen for master connection response
-        this.peerDocSubscription = this.peerDoc.snapshotChanges().subscribe((snapshot) => {
-            if (snapshot.payload.metadata.hasPendingWrites) return;
-            const data = snapshot.payload.data();
+        this.peerDocUnsubscribe = onSnapshot(this.peerDoc, (snapshot) => {
+            if (snapshot.metadata.hasPendingWrites) return;
+            const data = snapshot.data();
             if (!data) return;
 
             //check master description creation
@@ -105,8 +106,8 @@ export class RTCPeerSlave {
 
     destroy() {
         this.isBeingDestroyed = true;
-        if (this.peerDocSubscription)
-            this.peerDocSubscription.unsubscribe();
+        if (this.peerDocUnsubscribe)
+            this.peerDocUnsubscribe();
         this.peer.destroy();
     }
 }

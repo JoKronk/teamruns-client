@@ -1,33 +1,41 @@
 <div #blackscreen class="blackscreen"></div>
 
 <div class="login-options">
-    <div class="login-container">
-        <div class="input-container">
-            <p class="login-highlighted">Display Name</p>
-            <input [(ngModel)]="_user.user.displayName" (keyup.enter)="sendToLobby(!_user.user.hasSignedIn)" maxlength="20" autofocus>
-        </div>
-        <div class="input-container-buttons">
-            <button *ngIf="!_user.user.hasSignedIn" (click)="sendToLobby(true)">Play as Guest</button>
-            <button (click)="login(true)">{{_user.user.hasSignedIn ? "Play" : "Login" }}</button>
-            <button *ngIf="_user.user.hasSignedIn" (click)="login(false)">Change User</button>
-        </div>
-        <div class="input-container">
-            <span class="login-text-option" matTooltip="A user is only needed for leaderboard speedruns." matTooltipPosition="after">Do I need a user?</span><br />
-            <span class="login-text-option" matTooltip="For now please contact Dexz on discord or ask in the Teamruns channel." matTooltipPosition="after">Forgot Password</span>
-        </div>
-        <div class="input-container">
-            <br />
-            <span *ngIf="_user.user.hasSignedIn" class="login-text-option" (click)="_user.logout()">Sign Out</span>
-            <span *ngIf="!_user.user.hasSignedIn" class="login-text-option" (click)="register()">Create User</span>
-        </div>
+  <div class="login-container">
+    <div class="input-container">
+      <p class="login-highlighted">Display Name</p>
+      <input [(ngModel)]="_user.user.displayName" (keyup.enter)="sendToLobby(!_user.user.hasSignedIn)" maxlength="20" autofocus>
     </div>
+    <div class="input-container-buttons">
+      @if (!_user.user.hasSignedIn) {
+        <button (click)="sendToLobby(true)">Play as Guest</button>
+      }
+      <button (click)="login(true)">{{_user.user.hasSignedIn ? "Play" : "Login" }}</button>
+      @if (_user.user.hasSignedIn) {
+        <button (click)="login(false)">Change User</button>
+      }
+    </div>
+    <div class="input-container">
+      <span class="login-text-option" matTooltip="A user is only needed for leaderboard speedruns." matTooltipPosition="after">Do I need a user?</span><br />
+      <span class="login-text-option" matTooltip="For now please contact Dexz on discord or ask in the Teamruns channel." matTooltipPosition="after">Forgot Password</span>
+    </div>
+    <div class="input-container">
+      <br />
+      @if (_user.user.hasSignedIn) {
+        <span class="login-text-option" (click)="_user.logout()">Sign Out</span>
+      }
+      @else {
+        <span class="login-text-option" (click)="register()">Create User</span>
+      }
+    </div>
+  </div>
 </div>
 
 <div class="info">
-    <h1>{{ infoText }}</h1>
+  <h1>{{ infoText }}</h1>
 </div>
 
 <video #video autoplay muted loop id="bg-video">
-    <source src="./assets/startup-bg.mp4" type="video/mp4">
+  <source src="./assets/startup-bg.mp4" type="video/mp4">
 </video>
 

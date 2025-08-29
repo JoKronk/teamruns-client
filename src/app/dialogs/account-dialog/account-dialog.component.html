@@ -1,30 +1,31 @@
 <div class="container">
-    <p id="title">{{dialogData.isLogin ? "Login" : "Create User"}}</p>
-    
-    <div *ngIf="!makeOldUserCheck">
-        <div class="option">
-            <p>Username</p>
-            <input [(ngModel)]="username" (keyup.enter)="confirm()" maxlength="20">
-        </div>
-        
-        <div class="option">
-            <p>Password</p>
-            <input [(ngModel)]="pw" type="password" (keyup.enter)="confirm()" maxlength="32">
-        </div>
-        
-        <div class="buttons">
-            <button class="cancel" (click)="close()">Cancel</button>
-            <button (click)="confirm()">{{dialogData.isLogin ? "Confirm" : "Create" }}</button>
-        </div>
+  <p id="title">{{dialogData.isLogin ? "Login" : "Create User"}}</p>
+
+  @if (!makeOldUserCheck) {
+    <div>
+      <div class="option">
+        <p>Username</p>
+        <input [(ngModel)]="username" (keyup.enter)="confirm()" maxlength="20">
+      </div>
+      <div class="option">
+        <p>Password</p>
+        <input [(ngModel)]="pw" type="password" (keyup.enter)="confirm()" maxlength="32">
+      </div>
+      <div class="buttons">
+        <button class="cancel" (click)="close()">Cancel</button>
+        <button (click)="confirm()">{{dialogData.isLogin ? "Confirm" : "Create" }}</button>
+      </div>
     </div>
-    <div *ngIf="makeOldUserCheck">
-        <div class="option">
-            <p>Have you done runs through Teamruns before?</p>
-        </div>
-        
-        <div class="buttons">
-            <button class="cancel" (click)="returningUserConfirm(false)">No</button>
-            <button (click)="returningUserConfirm(true)">Yes</button>
-        </div>
+  }
+  @else {
+    <div>
+      <div class="option">
+        <p>Have you done runs through Teamruns before?</p>
+      </div>
+      <div class="buttons">
+        <button class="cancel" (click)="returningUserConfirm(false)">No</button>
+        <button (click)="returningUserConfirm(true)">Yes</button>
+      </div>
     </div>
+  }
 </div>

@@ -1,6 +1,10 @@
-<div class="timer" *ngIf="timer" [class.timer-no-border]="hideBorder">
-    <p *ngIf="!hideText" class="timer-title text-in-background" title="Timer">Timer</p>
+@if (timer) {
+  <div class="timer" [class.timer-no-border]="hideBorder">
+    @if (!hideText) {
+      <p class="timer-title text-in-background" title="Timer">Timer</p>
+    }
     <time class="timer-clock">
       {{ timer.timeString }}<span class="timer-ms">{{ timer.timeStringMs }}</span>
     </time>
   </div>
+}

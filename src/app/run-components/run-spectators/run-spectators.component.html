@@ -1,12 +1,16 @@
 <div class="container">
-    <p class="title">Spectators</p>
+  <p class="title">Spectators</p>
 
-    <div class="spectators">
-        <div *ngFor="let spectator of spectators">
-            <p>
-                <span class="name" >{{ spectator.user.name }}</span>
-                <span *ngIf="isHost && spectator.user.id !== userId" class="kick" (click)="kickPlayer(spectator.user)">X</span>
-            </p>
-        </div>
-    </div>
+  <div class="spectators">
+    @for (spectator of spectators; track spectator.user.id) {
+      <div>
+        <p>
+          <span class="name" >{{ spectator.user.name }}</span>
+          @if (isHost && spectator.user.id !== userId) {
+            <span class="kick" (click)="kickPlayer(spectator.user)">X</span>
+          }
+        </p>
+      </div>
+    }
+  </div>
 </div>

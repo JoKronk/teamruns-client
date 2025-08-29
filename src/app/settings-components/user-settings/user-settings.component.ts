@@ -5,12 +5,16 @@ import { AccountDialogComponent, AccountReply } from '../../dialogs/account-dial
 import { TaskSplit } from 'src/app/common/opengoal/task-split';
 import { Task } from 'src/app/common/opengoal/task';
 import { Taunts } from 'src/app/common/opengoal/taunts';
-import { NonNullableFormBuilder } from '@angular/forms';
+import { FooterComponent } from 'src/app/window-components/footer/footer.component';
+import { FormsModule } from '@angular/forms';
+import { MatTabsModule } from '@angular/material/tabs';
+import { HeaderComponent } from 'src/app/window-components/header/header.component';
 
 @Component({
-  selector: 'app-user-settings',
-  templateUrl: './user-settings.component.html',
-  styleUrls: ['./user-settings.component.scss']
+    selector: 'app-user-settings',
+    templateUrl: './user-settings.component.html',
+  styleUrls: ['./user-settings.component.scss'],
+    imports: [FormsModule, HeaderComponent, FooterComponent, MatTabsModule]
 })
 export class UserSettingsComponent implements OnDestroy {
 

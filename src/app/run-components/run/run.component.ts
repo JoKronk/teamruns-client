@@ -21,11 +21,21 @@ import { RunImportComponent } from 'src/app/dialogs/run-import/run-import.compon
 import { RecordingPackage } from 'src/app/common/recording/recording-package';
 import { LevelSymbol } from 'src/app/common/opengoal/level';
 import { RunSetupState } from 'src/app/common/run/run-setup-state';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { RunTimerComponent } from '../run-timer/run-timer.component';
+import { ChatComponent } from '../chat/chat.component';
+import { HeaderComponent } from 'src/app/window-components/header/header.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { FormsModule } from '@angular/forms';
+import { RunSpectatorsComponent } from '../run-spectators/run-spectators.component';
+import { RunSplitsComponent } from '../run-splits/run-splits.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
-  selector: 'app-run',
-  templateUrl: './run.component.html',
-  styleUrls: ['./run.component.scss']
+    selector: 'app-run',
+    templateUrl: './run.component.html',
+    styleUrls: ['./run.component.scss'],
+    imports: [FormsModule, RunTimerComponent, ChatComponent, HeaderComponent,RunSpectatorsComponent, RunSplitsComponent, MatSidenavModule, MatTooltipModule, MatProgressSpinnerModule]
 })
 export class RunComponent implements OnDestroy {
   

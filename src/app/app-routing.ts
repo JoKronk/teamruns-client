@@ -1,5 +1,4 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { CloseScreenComponent } from './window-components/close-screen/close-screen.component';
 import { LobbyComponent } from './lobby/lobby.component';
 import { RunComponent } from './run-components/run/run.component';
@@ -12,7 +11,7 @@ import { InstallComponent } from './settings-components/install/install.componen
 import { RunCasualComponent } from './run-components/run-casual/run-casual.component';
 import { ModComponent } from './installation/mod/mod.component';
 
-const routes: Routes = [
+export const routes: Routes = [
   { path: 'lobby', component: LobbyComponent },
   { path: 'run', component: RunComponent },
   { path: 'run-casual', component: RunCasualComponent },
@@ -25,9 +24,3 @@ const routes: Routes = [
   { path: 'close', component: CloseScreenComponent },
   { path: '', component: StartScreenComponent, pathMatch: 'full' }
 ];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
-})
-export class AppRoutingModule { }

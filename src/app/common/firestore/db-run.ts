@@ -143,7 +143,7 @@ export class DbRun {
                                     oldPbSubscription.unsubscribe();
                                     if (oldDbPb) {
                                         oldDbPb.isCurrentPb = false;
-                                        if (!oldDbPb.wasWr && oldDbPb.playbackAvailable) {
+                                        if (!oldDbPb.wasWr && oldDbPb.playbackAvailable && oldDbPb.id) {
                                             oldDbPb.playbackAvailable = false;
                                             firestoreService.deleteRecording(oldDbPb.id);
                                         }

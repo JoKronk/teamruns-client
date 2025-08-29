@@ -1,4 +1,5 @@
 import { Component, Inject, NgZone, OnDestroy } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ConnectionHandler } from 'src/app/common/peer/connection-handler';
 import { Run } from 'src/app/common/run/run';
@@ -8,9 +9,10 @@ import { FireStoreService } from 'src/app/services/fire-store.service';
 import { UserService } from 'src/app/services/user.service';
 
 @Component({
-  selector: 'app-add-player',
-  templateUrl: './add-player.component.html',
-  styleUrls: ['./add-player.component.scss']
+    selector: 'app-add-player',
+    templateUrl: './add-player.component.html',
+  styleUrls: ['./add-player.component.scss'],
+    imports: [FormsModule]
 })
 export class AddPlayerComponent implements OnDestroy {
 

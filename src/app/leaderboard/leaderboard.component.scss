@@ -6,7 +6,7 @@
     z-index: 1;
     width: 100%;
     height: 100%;
-    background-image: url("~/src/assets/lb-bg2.jpg");
+    background-image: url("src/assets/lb-bg2.jpg");
     background-size: cover;
     background-position: center;
     filter: blur(1px);
@@ -53,16 +53,23 @@
     }
     &-table {
         width: 100%;
-        height: 100%;
         background-color: rgba(0,0,0, 0);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-top: 0;
 
         &-container {
             overflow: auto;
             flex-grow: 1;
             margin: 0px 12px 46px;
+            display: flex;
+            flex-direction: column;
         }
         &-inner {
-            height: 100%;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
         }
 
         &-none h4 {
@@ -181,8 +188,26 @@ hr {
     border-radius: 7px;
 }
 
-.content-cont {
+
+.expand-block {
+  display: grid;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  transition: grid-template-rows 225ms;
+
+  &-content {
+    min-height: 0;
+    visibility: hidden;
+    overflow: hidden;
     display: flex;
+  }
+}
+.expand-block.expanded .expand-block-content {
+  visibility: visible;
+}
+
+.expanded {
+  grid-template-rows: 1fr;
 }
 
 .backtext {
@@ -210,20 +235,23 @@ tr.run-expanded-row {
     height: 0;
 }
 
-tr.run-row {
+tr.row {
     transition: 0.2s;
+    &:hover {
+        background-color: rgba(204, 204, 204, 0.1) !important;
+        cursor: pointer;
+    }
+    &:active {
+        background-color: rgba(204, 204, 204, 0.2);
+    }
 }
+
+.row td {
+border-bottom-width: 0;
+}
+
 tr.run-expanded-row-open {
     background-color: rgba(204, 204, 204, 0.1) !important;
-}
-
-tr.run-row:hover {
-    background-color: rgba(204, 204, 204, 0.1) !important;
-    cursor: pointer;
-}
-
-tr.run-row:active {
-    background-color: rgba(204, 204, 204, 0.2);
 }
 
 .mat-mdc-row:not(.run-expanded-row-open):nth-child(2n+1){
@@ -231,10 +259,6 @@ tr.run-row:active {
 }
 .mat-mdc-row:not(.run-expanded-row-open):nth-child(even){
     background-color: rgba(0, 0, 0, 0.23);
-}
-
-.run-row td {
-border-bottom-width: 0;
 }
 
 

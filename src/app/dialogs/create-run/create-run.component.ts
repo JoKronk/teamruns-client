@@ -8,11 +8,14 @@ import { RunMod, RunMode } from 'src/app/common/run/run-mode';
 import { Lobby } from 'src/app/common/firestore/lobby';
 import { UserService } from 'src/app/services/user.service';
 import { Category, CategoryOption } from 'src/app/common/run/category';
+import { FormsModule } from '@angular/forms';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
-  selector: 'app-create-run',
-  templateUrl: './create-run.component.html',
-  styleUrls: ['./create-run.component.scss']
+    selector: 'app-create-run',
+    templateUrl: './create-run.component.html',
+  styleUrls: ['./create-run.component.scss'],
+    imports: [FormsModule, MatTooltipModule]
 })
 export class CreateRunComponent {
 

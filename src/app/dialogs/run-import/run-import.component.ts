@@ -1,6 +1,6 @@
 import { Component, Inject, NgZone, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { DbLeaderboard } from 'src/app/common/firestore/db-leaderboard';
 import { DbLeaderboardPb } from 'src/app/common/firestore/db-leaderboard-pb';
 import { DbUsersCollection } from 'src/app/common/firestore/db-users-collection';
@@ -12,11 +12,15 @@ import { DbRecordingFile } from 'src/app/common/firestore/db-recording-file';
 import { Run } from 'src/app/common/run/run';
 import { SelectableRecording } from 'src/app/common/recording/selectable-recording';
 import { RecordingPackage } from 'src/app/common/recording/recording-package';
+import { FormsModule } from '@angular/forms';
+import { DragDropDirective } from 'src/app/common/directives/drag-drop.directive';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
-  selector: 'app-run-import',
-  templateUrl: './run-import.component.html',
-  styleUrls: ['./run-import.component.scss']
+    selector: 'app-run-import',
+    templateUrl: './run-import.component.html',
+    styleUrls: ['./run-import.component.scss'],
+    imports: [FormsModule, DragDropDirective, MatTableModule, MatProgressSpinnerModule]
 })
 export class RunImportComponent implements OnDestroy {
 
@@ -98,8 +102,7 @@ export class RunImportComponent implements OnDestroy {
 
   selectRun(pb: DbLeaderboardPb) {
     this.phase = 3;
-    const downloadSubscription = this._firestore.downloadRecording(pb.id ?? "").subscribe(found => {
-     downloadSubscription.unsubscribe();
+    this._firestore.downloadRecording(pb.id ?? "").then(found => {
      if (!found)
       this._user.sendNotification("Failed to fetch recording.");
    });

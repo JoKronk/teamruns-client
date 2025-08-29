@@ -1,119 +1,147 @@
 <div class="page-container">
-    <app-header title="User Settings"></app-header>
-    
-    <mat-tab-group class="tab-container" mat-stretch-tabs="false" mat-align-tabs="start" animationDuration="0ms" dynamicHeight>
-        <mat-tab label="General">
-            <div class="tab-content">
-                <div class="page-content general">
-                    <h1 class="backtext text-in-background" title="Settings">Settings</h1>
-                    <span>You can reset the teamruns window with CTRL + SHIFT + B</span>
-                    <div class="general-content">
-                        <p>Recordings</p>
-                        <mat-slide-toggle (change)="_user.writeSettings()" [(ngModel)]="_user.user.saveRecordingsLocally"><span class="pointer">Save finished runs locally</span></mat-slide-toggle>
-                    </div>
-                    <div class="general-content">
-                        <p>Local recordings folder</p>
-                        <button id="select" (click)="openRecordings()">Open</button>
-                    </div>
-                    <br />
-                    <div *ngIf="_user.user.hasSignedIn">
-                        <div class="general-content">
-                            <p>Change Username / Leaderboard Name</p>
-                            <input [(ngModel)]="newUsername" (keyup.enter)="updateUsername()" maxlength="20">
-                            <button [disabled]="!newUsername" (click)="updateUsername()">Update</button>
-                        </div>
-                        <div class="general-content">
-                            <p>Update Password</p>
-                            <input [(ngModel)]="newPw" type="password" (keyup.enter)="updatePassword()" maxlength="32">
-                            <button [disabled]="!newPw" (click)="updatePassword()">Update</button>
-                        </div>
-                    </div>
-                </div>
+  <app-header title="User Settings"></app-header>
+
+  <mat-tab-group class="tab-container" mat-stretch-tabs="false" mat-align-tabs="start" animationDuration="0ms" dynamicHeight>
+    <mat-tab label="General">
+      <div class="tab-content">
+        <div class="page-content general">
+          <h1 class="backtext text-in-background" title="Settings">Settings</h1>
+          <span>You can reset the teamruns window with CTRL + SHIFT + B</span>
+          <div class="general-content">
+            <p>Recordings</p>
+            <mat-slide-toggle (change)="_user.writeSettings()" [(ngModel)]="_user.user.saveRecordingsLocally"><span class="pointer">Save finished runs locally</span></mat-slide-toggle>
+          </div>
+          <div class="general-content">
+            <p>Local recordings folder</p>
+            <button id="select" (click)="openRecordings()">Open</button>
+          </div>
+          <br />
+          @if (_user.user.hasSignedIn) {
+            <div>
+              <div class="general-content">
+                <p>Change Username / Leaderboard Name</p>
+                <input [(ngModel)]="newUsername" (keyup.enter)="updateUsername()" maxlength="20">
+                <button [disabled]="!newUsername" (click)="updateUsername()">Update</button>
+              </div>
+              <div class="general-content">
+                <p>Update Password</p>
+                <input [(ngModel)]="newPw" type="password" (keyup.enter)="updatePassword()" maxlength="32">
+                <button [disabled]="!newPw" (click)="updatePassword()">Update</button>
+              </div>
             </div>
-        </mat-tab>
-        <mat-tab label="Splits">
-            <div class="tab-content">
-                <div class="page-content">
-                    <div class="splits">
-                        <div class="page-inner-content">
-                            <div *ngFor="let split of splits; let i = index">
-                                <p>{{ splitsDefaultNames[i] }}</p>
-                                <mat-slide-toggle [(ngModel)]="split.enabled"></mat-slide-toggle>
-                                <input [(ngModel)]="split.name" maxlength="40">
-                            </div>
-                        </div>
-                        <div class="splits-button">
-                            <button (click)="saveSplits()">Save</button>
-                            <button class="page-inner-content-negative" (click)="resetSplits()">Reset</button>
-                        </div>
-                    </div>
+          }
+        </div>
+      </div>
+    </mat-tab>
+    <mat-tab label="Splits">
+      <div class="tab-content">
+        <div class="page-content">
+          <div class="splits">
+            <div class="page-inner-content">
+              @for (split of splits; track split.gameTask; let i = $index) {
+                <div>
+                  <p>{{ splitsDefaultNames[i] }}</p>
+                  <mat-slide-toggle [(ngModel)]="split.enabled"></mat-slide-toggle>
+                  <input [(ngModel)]="split.name" maxlength="40">
                 </div>
+              }
             </div>
-        </mat-tab>
-        <mat-tab label="Taunts">
-            <div class="tab-content">
-                <div class="page-content">
-                    <div class="taunts">
-                        <span>To find the right 'Taunt Code' you can use <a target="_blank" href="https://docs.google.com/spreadsheets/d/1m_wRx_fyw0UJJNvX9O7tU5GiO8S5-lqZmlsnkb0y6aY/edit?usp=sharing">this sheet</a> for reference.
-                                <br>Leave the 'Display Name' blank if you want an automatically generated name!
-                        </span>
-                        <hr>
-                        <div class="page-inner-content">
-                            <div *ngFor="let ind of tauntsUp" class="page-inner-content taunts-group">
-                                <span>{{taunts[ind].input}}</span>
-                                <p>Taunt Code</p>
-                                <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
-                                <b *ngIf="taunts[ind].valid"></b>
-                                <b *ngIf="!taunts[ind].valid">Invalid name!</b>
-                                <p>Display Name</p>
-                                <input [(ngModel)]="taunts[ind].menu_name" maxlength="20">
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="page-inner-content">
-                            <div *ngFor="let ind of tauntsRight" class="page-inner-content taunts-group">
-                                <span>{{taunts[ind].input}}</span>
-                                <p>Taunt Code</p>
-                                <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
-                                <b *ngIf="taunts[ind].valid"></b>
-                                <b *ngIf="!taunts[ind].valid">Invalid name!</b>
-                                <p>Display Name</p>
-                                <input [(ngModel)]="taunts[ind].menu_name" maxlength="20">
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="page-inner-content">
-                            <div *ngFor="let ind of tauntsDown" class="page-inner-content taunts-group">
-                                <span>{{taunts[ind].input}}</span>
-                                <p>Taunt Code</p>
-                                <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
-                                <b *ngIf="taunts[ind].valid"></b>
-                                <b *ngIf="!taunts[ind].valid">Invalid name!</b>
-                                <p>Display Name</p>
-                                <input [(ngModel)]="taunts[ind].menu_name" maxlength="20">
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="page-inner-content">
-                            <div *ngFor="let ind of tauntsLeft" class="page-inner-content taunts-group">
-                                <span>{{taunts[ind].input}}</span>
-                                <p>Taunt Code</p>
-                                <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
-                                <b *ngIf="taunts[ind].valid"></b>
-                                <b *ngIf="!taunts[ind].valid">Invalid name!</b>
-                                <p>Display Name</p>
-                                <input [(ngModel)]="taunts[ind].menu_name" maxlength="20">
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="taunts-button">
-                            <button (click)="saveTaunts()">Save</button>
-                            <button class="page-inner-content-negative" (click)="resetTaunts()">Reset</button>
-                        </div>
+            <div class="splits-button">
+              <button (click)="saveSplits()">Save</button>
+              <button class="page-inner-content-negative" (click)="resetSplits()">Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+    <mat-tab label="Taunts">
+      <div class="tab-content">
+        <div class="page-content">
+          <div class="taunts">
+            <span>To find the right 'Taunt Code' you can use <a target="_blank" href="https://docs.google.com/spreadsheets/d/1m_wRx_fyw0UJJNvX9O7tU5GiO8S5-lqZmlsnkb0y6aY/edit?usp=sharing">this sheet</a> for reference.
+            <br>Leave the 'Display Name' blank if you want an automatically generated name!
+            </span>
+            <hr>
+              <div class="page-inner-content">
+                @for (ind of tauntsUp; track ind) {
+                  <div class="page-inner-content taunts-group">
+                    <span>{{taunts[ind].input}}</span>
+                    <p>Taunt Code</p>
+                    <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
+                    @if (taunts[ind].valid) {
+                      <b></b>
+                    }
+                    @if (!taunts[ind].valid) {
+                      <b>Invalid name!</b>
+                    }
+                    <p>Display Name</p>
+                    <input [(ngModel)]="taunts[ind].menu_name" maxlength="20">
+                  </div>
+                }
+              </div>
+              <hr>
+                <div class="page-inner-content">
+                  @for (ind of tauntsRight; track ind) {
+                    <div class="page-inner-content taunts-group">
+                      <span>{{taunts[ind].input}}</span>
+                      <p>Taunt Code</p>
+                      <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
+                      @if (taunts[ind].valid) {
+                        <b></b>
+                      }
+                      @if (!taunts[ind].valid) {
+                        <b>Invalid name!</b>
+                      }
+                      <p>Display Name</p>
+                      <input [(ngModel)]="taunts[ind].menu_name" maxlength="20">
                     </div>
+                  }
                 </div>
-            </div>
-        </mat-tab>
-    </mat-tab-group>
-    <app-footer></app-footer>
-</div>
+                <hr>
+                  <div class="page-inner-content">
+                    @for (ind of tauntsDown; track ind) {
+                      <div class="page-inner-content taunts-group">
+                        <span>{{taunts[ind].input}}</span>
+                        <p>Taunt Code</p>
+                        <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
+                        @if (taunts[ind].valid) {
+                          <b></b>
+                        }
+                        @if (!taunts[ind].valid) {
+                          <b>Invalid name!</b>
+                        }
+                        <p>Display Name</p>
+                        <input [(ngModel)]="taunts[ind].menu_name" maxlength="20">
+                      </div>
+                    }
+                  </div>
+                  <hr>
+                    <div class="page-inner-content">
+                      @for (ind of tauntsLeft; track ind) {
+                        <div class="page-inner-content taunts-group">
+                          <span>{{taunts[ind].input}}</span>
+                          <p>Taunt Code</p>
+                          <input [(ngModel)]="taunts[ind].ambient_name" maxlength="8">
+                          @if (taunts[ind].valid) {
+                            <b></b>
+                          }
+                          @if (!taunts[ind].valid) {
+                            <b>Invalid name!</b>
+                          }
+                          <p>Display Name</p>
+                          <input [(ngModel)]="taunts[ind].menu_name" maxlength="20">
+                        </div>
+                      }
+                    </div>
+                    <hr>
+                      <div class="taunts-button">
+                        <button (click)="saveTaunts()">Save</button>
+                        <button class="page-inner-content-negative" (click)="resetTaunts()">Reset</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </mat-tab>
+            </mat-tab-group>
+            <app-footer></app-footer>
+          </div>

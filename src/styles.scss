@@ -7,7 +7,8 @@
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
-@include mat.core();
+@include mat.elevation-classes();
+@include mat.app-background();
 
 $teamrun-orange: (
   50 : #faf2e3,
@@ -77,15 +78,15 @@ $teamrun-grey: (
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
-$teamruns-client-primary: mat.define-palette($teamrun-orange, 500);
-$teamruns-client-accent: mat.define-palette($teamrun-grey, A100);
+$teamruns-client-primary: mat.m2-define-palette($teamrun-orange, 500);
+$teamruns-client-accent: mat.m2-define-palette($teamrun-grey, A100);
 
 // The warn palette is optional (defaults to red).
-$teamruns-client-warn: mat.define-palette(mat.$red-palette);
+$teamruns-client-warn: mat.m2-define-palette(mat.$m2-red-palette);
 
 // Create the theme object. A theme consists of configurations for individual
 // theming systems such as "color" or "typography".
-$teamruns-client-theme: mat.define-light-theme((
+$teamruns-client-theme: mat.m2-define-light-theme((
   color: (
     primary: $teamruns-client-primary,
     accent: $teamruns-client-accent,
@@ -109,12 +110,11 @@ body { margin: 0 !important; font-family: 'Segoe UI', 'OpenSans', Roboto; }
 }
 .mat-sidenav-container {
   overflow: hidden;
-  background-color: #141414; // For light mode use #eeeeee
   margin-top: 57px;
 }
 
 .mat-mdc-snack-bar-container {
-  --mdc-snackbar-container-color: transparent !important;
+  --mat-snackbar-container-color: transparent !important;
 }
 
 .tooltip {

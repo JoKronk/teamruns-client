@@ -1,36 +1,42 @@
 
 <mat-sidenav-container fullscreen>
   <mat-sidenav mode="over" [opened]="_user.viewSettings" (closedStart)="_user.viewSettings = false">
-      <app-nav-board></app-nav-board>
+    <app-nav-board></app-nav-board>
   </mat-sidenav>
 
   <mat-sidenav-content>
-    
+
     <div class="container">
-      <div *ngIf="!_user.isBrowser" id="draggable-header-container">
-        <div id="draggable-header">
-          <div class="logo-container">
-            <div class="logo">
-              <img src="./assets/teamruns-full-logo-w.png" alt="image">
+      @if (!_user.isBrowser) {
+        <div id="draggable-header-container">
+          <div id="draggable-header">
+            <div class="logo-container">
+              <div class="logo">
+                <img src="./assets/teamruns-full-logo-w.png" alt="image">
+              </div>
             </div>
-          </div>
             <div class="version">
               <span class="version-title">Launcher<br />Tooling</span>
               <span class="version-number">
                 v{{ buildVersion }}
-                <span *ngIf="launcherUpdateAvailable" class="version-update" (click)="goToUpdate(0)">> Update Available!</span>
-                <br/>{{ _user.user.gameVersion ?? "not set!" }} 
-                <span *ngIf="toolingUpdateAvailable" class="version-update" (click)="goToUpdate(1)">> Update Available!</span>
+                @if (launcherUpdateAvailable) {
+                  <span class="version-update" (click)="goToUpdate(0)">> Update Available!</span>
+                }
+                <br/>{{ _user.user.gameVersion ?? "not set!" }}
+                @if (toolingUpdateAvailable) {
+                  <span class="version-update" (click)="goToUpdate(1)">> Update Available!</span>
+                }
               </span>
             </div>
+          </div>
+          <div id="draggable-header-buttons">
+            <span (click)="minimize()">&mdash;</span>
+            <span (click)="close()">&#x2715;</span>
+          </div>
         </div>
-        <div id="draggable-header-buttons">
-          <span (click)="minimize()">&mdash;</span>
-          <span (click)="close()">&#x2715;</span>
-        </div>
-      </div>
+      }
       <div class="content">
-        <router-outlet></router-outlet>
+        <router-outlet />
       </div>
     </div>
   </mat-sidenav-content>
