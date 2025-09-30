@@ -5,6 +5,9 @@ import pkg from '@root/package.json';
 import { Subscription } from 'rxjs';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import { NavBoardComponent } from './window-components/nav-board/nav-board.component';
+import { getCurrentWindow } from '@tauri-apps/api/window';
+
+const appWindow = getCurrentWindow();
 
 @Component({
     selector: 'app-root',
@@ -66,11 +69,11 @@ export class AppComponent {
   }
 
   minimize() {
-    (window as any).electron.send('window-minimize');
+    appWindow.minimize();
   }
 
   close() {
-    this.router.navigate(['/close']);
+    appWindow.close();
   }
 
   goToUpdate(tab: number) {

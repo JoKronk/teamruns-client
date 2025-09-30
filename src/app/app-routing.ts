@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { CloseScreenComponent } from './window-components/close-screen/close-screen.component';
 import { LobbyComponent } from './lobby/lobby.component';
 import { RunComponent } from './run-components/run/run.component';
 import { StartScreenComponent } from './start-screen/start-screen.component';
@@ -21,6 +20,5 @@ export const routes: Routes = [
   { path: 'settings', component: UserSettingsComponent },
   { path: 'install', component: InstallComponent },
   { path: 'mod/:game/:id', component: ModComponent },
-  { path: 'close', component: CloseScreenComponent },
   { path: '', component: StartScreenComponent, pathMatch: 'full' }
 ];
