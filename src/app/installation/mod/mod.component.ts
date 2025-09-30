@@ -2,10 +2,10 @@ import { DatePipe } from '@angular/common';
 import { Component } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { ActivatedRoute } from '@angular/router';
-import { ModInfo, ModVersion, SupportedGame } from 'src/app/common/api/mod-release';
-import { ApiService } from 'src/app/services/api.service';
-import { UserService } from 'src/app/services/user.service';
-import { HeaderComponent } from 'src/app/window-components/header/header.component';
+import { ModInfo, ModVersion, SupportedGame } from '@app/common/api/mod-release';
+import { ApiService } from '@app/services/api.service';
+import { UserService } from '@app/services/user.service';
+import { HeaderComponent } from '@app/window-components/header/header.component';
 
 @Component({
     selector: 'app-mod',

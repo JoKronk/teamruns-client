@@ -7,7 +7,7 @@ import { UserPositionData } from "../socket/position-data";
 import { RTCPeer, RTCPeerSlaveConnection } from "./rtc-peer";
 import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
 import { collection, doc, DocumentReference, onSnapshot, setDoc, Unsubscribe } from "@angular/fire/firestore";
-import { FireStoreService } from "src/app/services/fire-store.service";
+import { FireStoreService } from "@app/services/fire-store.service";
 
 export class RTCPeerMaster {
     user: UserBase;

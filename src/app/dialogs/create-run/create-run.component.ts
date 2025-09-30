@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { CitadelOption, RunData } from 'src/app/common/run/run-data';
-import { FireStoreService } from 'src/app/services/fire-store.service';
-import pkg from 'app/package.json';
-import { RunMod, RunMode } from 'src/app/common/run/run-mode';
-import { Lobby } from 'src/app/common/firestore/lobby';
-import { UserService } from 'src/app/services/user.service';
-import { Category, CategoryOption } from 'src/app/common/run/category';
+import { CitadelOption, RunData } from '@app/common/run/run-data';
+import { FireStoreService } from '@app/services/fire-store.service';
+import pkg from '@root/package.json';
+import { RunMod, RunMode } from '@app/common/run/run-mode';
+import { Lobby } from '@app/common/firestore/lobby';
+import { UserService } from '@app/services/user.service';
+import { Category, CategoryOption } from '@app/common/run/category';
 import { FormsModule } from '@angular/forms';
 import { MatTooltipModule } from '@angular/material/tooltip';
 

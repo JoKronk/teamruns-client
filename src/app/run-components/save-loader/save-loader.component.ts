@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, NgZone, OnDestroy, Output } from '@angular/core';
-import { LocalSave } from 'src/app/common/level/local-save';
-import { ConfirmComponent } from 'src/app/dialogs/confirm/confirm.component';
+import { LocalSave } from '@app/common/level/local-save';
+import { ConfirmComponent } from '@app/dialogs/confirm/confirm.component';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({

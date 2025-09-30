@@ -5,9 +5,7 @@
   </mat-sidenav>
 
   <mat-sidenav-content>
-
     <div class="container">
-      @if (!_user.isBrowser) {
         <div id="draggable-header-container">
           <div id="draggable-header">
             <div class="logo-container">
@@ -34,7 +32,6 @@
             <span (click)="close()">&#x2715;</span>
           </div>
         </div>
-      }
       <div class="content">
         <router-outlet />
       </div>

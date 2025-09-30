@@ -1,19 +1,19 @@
 import { Component, Inject, NgZone, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { DbLeaderboard } from 'src/app/common/firestore/db-leaderboard';
-import { DbLeaderboardPb } from 'src/app/common/firestore/db-leaderboard-pb';
-import { DbUsersCollection } from 'src/app/common/firestore/db-users-collection';
-import { RecordingImport } from 'src/app/common/recording/recording-import';
-import { FireStoreService } from 'src/app/services/fire-store.service';
-import { UserService } from 'src/app/services/user.service';
-import { RecordingFile } from 'src/app/common/recording/recording-file';
-import { DbRecordingFile } from 'src/app/common/firestore/db-recording-file';
-import { Run } from 'src/app/common/run/run';
-import { SelectableRecording } from 'src/app/common/recording/selectable-recording';
-import { RecordingPackage } from 'src/app/common/recording/recording-package';
+import { DbLeaderboard } from '@app/common/firestore/db-leaderboard';
+import { DbLeaderboardPb } from '@app/common/firestore/db-leaderboard-pb';
+import { DbUsersCollection } from '@app/common/firestore/db-users-collection';
+import { RecordingImport } from '@app/common/recording/recording-import';
+import { FireStoreService } from '@app/services/fire-store.service';
+import { UserService } from '@app/services/user.service';
+import { RecordingFile } from '@app/common/recording/recording-file';
+import { DbRecordingFile } from '@app/common/firestore/db-recording-file';
+import { Run } from '@app/common/run/run';
+import { SelectableRecording } from '@app/common/recording/selectable-recording';
+import { RecordingPackage } from '@app/common/recording/recording-package';
 import { FormsModule } from '@angular/forms';
-import { DragDropDirective } from 'src/app/common/directives/drag-drop.directive';
+import { DragDropDirective } from '@app/common/directives/drag-drop.directive';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({

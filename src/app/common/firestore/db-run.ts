@@ -1,4 +1,4 @@
-import { FireStoreService } from "src/app/services/fire-store.service";
+import { FireStoreService } from "@app/services/fire-store.service";
 import { CategoryOption } from "../run/category";
 import { Run } from "../run/run";
 import { RunData } from "../run/run-data";

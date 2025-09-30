@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { LocalPlayerData } from 'src/app/common/user/local-player-data';
-import { UserService } from 'src/app/services/user.service';
+import { LocalPlayerData } from '@app/common/user/local-player-data';
+import { UserService } from '@app/services/user.service';
 import { FormsModule } from '@angular/forms';
 
 @Component({

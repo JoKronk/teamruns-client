@@ -1,12 +1,12 @@
 import { Component, Inject, NgZone, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { ConnectionHandler } from 'src/app/common/peer/connection-handler';
-import { Run } from 'src/app/common/run/run';
-import { LocalPlayerData } from 'src/app/common/user/local-player-data';
-import { User } from 'src/app/common/user/user';
-import { FireStoreService } from 'src/app/services/fire-store.service';
-import { UserService } from 'src/app/services/user.service';
+import { ConnectionHandler } from '@app/common/peer/connection-handler';
+import { Run } from '@app/common/run/run';
+import { LocalPlayerData } from '@app/common/user/local-player-data';
+import { User } from '@app/common/user/user';
+import { FireStoreService } from '@app/services/fire-store.service';
+import { UserService } from '@app/services/user.service';
 
 @Component({
     selector: 'app-add-player',

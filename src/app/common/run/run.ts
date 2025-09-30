@@ -9,7 +9,6 @@ import { Timer } from "./timer";
 import { PlayerState } from "../player/player-state";
 import { RunState } from "./run-state";
 import { UserBase } from "../user/user";
-import { UserService } from "src/app/services/user.service";
 import { RunStateHandler } from "../level/run-state-handler";
 import { RemotePlayerInfo } from "../socket/remote-player-info";
 import { CategoryOption } from "./category";

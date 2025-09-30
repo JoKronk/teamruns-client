@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, getAuth, User } from '@angular/fire/auth';
 import { CollectionReference, DocumentData, DocumentReference, Firestore, collection, query, collectionData, doc, getDoc, setDoc, and, where, docData, deleteDoc, getDocs, FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions } from '@angular/fire/firestore';
 import { getStorage, StorageReference, ref, uploadBytes, getDownloadURL, deleteObject } from '@angular/fire/storage';
-import { environment } from 'src/environments/environment';
+import { environment } from '@root/src/environments/environment';
 import { CollectionName } from '../common/firestore/collection-name';
 import { DbRun } from '../common/firestore/db-run';
 import { Lobby } from '../common/firestore/lobby';
@@ -16,7 +16,7 @@ import { AccountReply } from '../dialogs/account-dialog/account-dialog.component
 import { DbLeaderboardPb } from '../common/firestore/db-leaderboard-pb';
 import { DbRecordingFile } from '../common/firestore/db-recording-file';
 import { Observable, catchError, map, of } from 'rxjs';
-import pkg from 'app/package.json';
+import pkg from '@root/package.json';
 
 @Injectable({
   providedIn: 'root'

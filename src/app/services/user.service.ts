@@ -10,7 +10,7 @@ import { SnackbarInstallComponent } from '../snackbars/snackbar-install/snackbar
 import { SnackbarImportComponent } from '../snackbars/snackbar-import/snackbar-import.component';
 import { BehaviorSubject } from 'rxjs';
 import { Run } from '../common/run/run';
-import pkg from 'app/package.json';
+import pkg from '@root/package.json';
 import { DbUserProfile } from '../common/firestore/db-user-profile';
 import { ConnectionHandler } from '../common/peer/connection-handler';
 

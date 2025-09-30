@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { Checkpoint } from 'src/app/common/opengoal/checkpoint';
-import { UserService } from 'src/app/services/user.service';
+import { Checkpoint } from '@app/common/opengoal/checkpoint';
+import { UserService } from '@app/services/user.service';
 
 @Component({
   selector: 'app-spawn-loader',

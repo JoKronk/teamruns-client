@@ -2,7 +2,7 @@ import { InteractionType } from "../opengoal/interaction-type";
 import { Timer } from "../run/timer";
 import { PositionData } from "../socket/position-data";
 import { RecordingFile } from "./recording-file";
-import pkg from 'app/package.json';
+import pkg from '@root/package.json';
 import { DbUsersCollection } from "../firestore/db-users-collection";
 import { DbRecordingFile } from "../firestore/db-recording-file";
 import { RecordingBase } from "./recording-base";

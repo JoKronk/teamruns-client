@@ -1,7 +1,7 @@
 import { Component, HostListener, NgZone } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { UserService } from './services/user.service';
-import pkg from 'app/package.json';
+import pkg from '@root/package.json';
 import { Subscription } from 'rxjs';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import { NavBoardComponent } from './window-components/nav-board/nav-board.component';
@@ -84,8 +84,10 @@ export class AppComponent {
     if (this.installOutdatedListener) this.installOutdatedListener();
   }
   
+  /*
   @HostListener('window:keydown.control.shift.b', ['$event']) onKeydownHandler(event: KeyboardEvent) {
     event.preventDefault();
     (window as any).electron.send('settings-reset-size');
   }
+  */
 }

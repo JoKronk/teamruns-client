@@ -27,7 +27,7 @@ import { OgCommand } from "./og-command";
 import { GameSettings } from "./game-settings";
 import { Team } from "../run/team";
 import { OG } from "../opengoal/og";
-import pkg from 'app/package.json';
+import pkg from '@root/package.json';
 import { LocalSave } from "../level/local-save";
 import { TimerPackage } from "./timer-package";
 import { ShortMemoryInteraction } from "./short-memory-interaction";

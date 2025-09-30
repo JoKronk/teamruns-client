@@ -8,7 +8,7 @@ import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
 import { UserPositionData } from "../socket/position-data";
 import { PlayerBase } from "../player/player-base";
 import { deleteDoc, doc, DocumentReference, getDoc, onSnapshot, setDoc, Unsubscribe } from "@angular/fire/firestore";
-import { FireStoreService } from "src/app/services/fire-store.service";
+import { FireStoreService } from "@app/services/fire-store.service";
 
 export class RTCPeerSlave {
     private currentMasterSdp: string | undefined;

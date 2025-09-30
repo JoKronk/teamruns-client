@@ -2,98 +2,39 @@
   "name": "teamruns-client",
   "version": "0.0.0",
   "description": "OpenGOAL Teamruns client.",
-  "main": "app/main.js",
-  "author": {
-    "name": "Dexz"
-  },
   "scripts": {
     "ng": "ng",
-    "start": "npm-run-all -p electron:serve ng:serve",
-    "ng:serve": "ng serve -c development",
-    "electron:serve": "wait-on tcp:4200 && electron . --serve",
-    "electron": "ng build && electron .",
+    "start": "ng serve",
     "test": "ng test",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "dist": "ng build && electron-builder build --win --publish never",
-    "dist:linux": "ng build && electron-builder build --linux --publish never",
-    "deploy": "ng build && electron-builder build --win --publish always",
-    "deploy:linux": "ng build && electron-builder build --linux --publish always"
-  },
-  "build": {
-    "appId": "teamruns-client",
-    "productName": "Teamruns",
-    "nsis": {
-      "artifactName": "${name}-${version}-installer.${ext}",
-      "allowToChangeInstallationDirectory": true,
-      "oneClick": false,
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico",
-      "uninstallDisplayName": "Teamruns",
-      "shortcutName": "Teamruns"
-    },
-    "win": {
-      "artifactName": "${name}-${version}-portable.${ext}",
-      "target": [
-        "NSIS",
-        "portable"
-      ],
-      "icon": "build/icon.ico"
-    },
-    "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "artifactName": "${name}-${version}-linux.${ext}",
-      "icon": "src/assets/icon.png",
-      "category": "Game"
-    }
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/JoKronk/teamruns-client.git"
+    "tauri": "tauri"
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^20.1.6",
-    "@angular/cdk": "^20.1.5",
-    "@angular/common": "^20.1.6",
-    "@angular/compiler": "^20.1.6",
-    "@angular/core": "^20.1.6",
+    "@angular/cdk": "^20.2.4",
+    "@angular/common": "^20.1.4",
+    "@angular/compiler": "^20.1.4",
+    "@angular/core": "^20.1.4",
     "@angular/fire": "^20.0.1",
-    "@angular/forms": "^20.1.6",
-    "@angular/material": "^20.1.5",
-    "@angular/platform-browser": "^20.1.6",
-    "@angular/platform-browser-dynamic": "^20.1.6",
-    "@angular/router": "^20.1.6",
-    "chart.js": "^4.3.3",
+    "@angular/forms": "^20.1.4",
+    "@angular/material": "^20.2.4",
+    "@angular/platform-browser": "^20.1.4",
+    "@angular/router": "^20.1.4",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "chart.js": "^4.5.0",
     "chartjs-adapter-date-fns": "^3.0.0",
-    "chartjs-plugin-zoom": "^2.0.1",
-    "date-fns": "^2.30.0",
-    "firebase": "^11.10.0",
-    "ng2-charts": "^4.1.1",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.5.0",
-    "zone.js": "^0.15.1"
+    "chartjs-plugin-zoom": "^2.2.0",
+    "rxjs": "~7.8.2",
+    "tslib": "^2.8.1",
+    "zone.js": "~0.15.1"
   },
   "devDependencies": {
-    "@angular/build": "^20.1.5",
-    "@angular/cli": "~20.1.5",
-    "@angular/compiler-cli": "^20.1.6",
-    "@types/jasmine": "~4.3.0",
-    "electron": "^22.2.1",
-    "electron-builder": "^23.6.0",
-    "electron-debug": "^3.2.0",
-    "electron-reload": "^2.0.0-alpha.1",
-    "electron-reloader": "^1.2.3",
-    "jasmine-core": "~4.5.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.1.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.0.0",
-    "npm-run-all": "^4.1.5",
-    "typescript": "~5.8.3",
-    "wait-on": "^7.0.1"
+    "@angular/build": "^20.1.4",
+    "@angular/cli": "^20.1.4",
+    "@angular/compiler-cli": "^20.1.4",
+    "@tauri-apps/cli": "^2",
+    "typescript": "~5.8.3"
   }
 }

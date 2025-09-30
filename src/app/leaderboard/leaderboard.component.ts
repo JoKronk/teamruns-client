@@ -36,7 +36,6 @@ Chart.register(...registerables);
     templateUrl: './leaderboard.component.html',
     styleUrls: ['./leaderboard.component.scss'],
     imports: [FormsModule, CommonModule, HeaderComponent, RunSplitsComponent, FooterComponent, DatePipe, MatTableModule, MatSidenavModule, MatButtonToggleModule, MatMenuModule],
-    standalone: true
 })
 export class LeaderboardComponent implements OnDestroy {
 

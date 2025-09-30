@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { UserService } from '../services/user.service';
-import pkg from 'app/package.json';
+import pkg from '@root/package.json';
 import { FireStoreService } from '../services/fire-store.service';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';

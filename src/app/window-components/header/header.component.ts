@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
-import pkg from 'app/package.json';
+import pkg from '@root/package.json';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmComponent } from '../../dialogs/confirm/confirm.component';
 import { CreateRunComponent } from '../../dialogs/create-run/create-run.component';

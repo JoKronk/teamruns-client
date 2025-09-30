@@ -2,17 +2,17 @@ import { Component, ElementRef, NgZone, OnDestroy, ViewChild } from '@angular/co
 import { UserService } from '../../services/user.service';
 import { DatePipe, Location } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '@app/services/api.service';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { GitRelease } from 'src/app/common/api/git-release';
-import pkg from 'app/package.json';
-import { ModInfo, SupportedGame } from 'src/app/common/api/mod-release';
-import { GameType } from 'src/app/common/opengoal/game-type';
-import { HeaderComponent } from 'src/app/window-components/header/header.component';
+import { GitRelease } from '@app/common/api/git-release';
+import pkg from '@root/package.json';
+import { ModInfo, SupportedGame } from '@app/common/api/mod-release';
+import { GameType } from '@app/common/opengoal/game-type';
+import { HeaderComponent } from '@app/window-components/header/header.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormsModule } from '@angular/forms';
-import { DragDropDirective } from 'src/app/common/directives/drag-drop.directive';
+import { DragDropDirective } from '@app/common/directives/drag-drop.directive';
 import { HttpClientModule } from '@angular/common/http';
 
 @Component({

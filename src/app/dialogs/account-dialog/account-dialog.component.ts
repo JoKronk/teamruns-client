@@ -1,10 +1,10 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { DbUserProfile } from 'src/app/common/firestore/db-user-profile';
-import { DbUsersCollection } from 'src/app/common/firestore/db-users-collection';
-import { UserBase } from 'src/app/common/user/user';
-import { FireStoreService } from 'src/app/services/fire-store.service';
-import { UserService } from 'src/app/services/user.service';
+import { DbUserProfile } from '@app/common/firestore/db-user-profile';
+import { DbUsersCollection } from '@app/common/firestore/db-users-collection';
+import { UserBase } from '@app/common/user/user';
+import { FireStoreService } from '@app/services/fire-store.service';
+import { UserService } from '@app/services/user.service';
 import { FormsModule } from '@angular/forms';
 
 @Component({

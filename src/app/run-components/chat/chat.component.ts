@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ChatMessage } from 'src/app/common/peer/chat-message';
+import { ChatMessage } from '@app/common/peer/chat-message';
 
 @Component({
     selector: 'app-chat',

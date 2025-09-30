@@ -2,13 +2,13 @@ import { Component, NgZone, OnDestroy } from '@angular/core';
 import { UserService } from '../../services/user.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AccountDialogComponent, AccountReply } from '../../dialogs/account-dialog/account-dialog.component';
-import { TaskSplit } from 'src/app/common/opengoal/task-split';
-import { Task } from 'src/app/common/opengoal/task';
-import { Taunts } from 'src/app/common/opengoal/taunts';
-import { FooterComponent } from 'src/app/window-components/footer/footer.component';
+import { TaskSplit } from '@app/common/opengoal/task-split';
+import { Task } from '@app/common/opengoal/task';
+import { Taunts } from '@app/common/opengoal/taunts';
+import { FooterComponent } from '@app/window-components/footer/footer.component';
 import { FormsModule } from '@angular/forms';
 import { MatTabsModule } from '@angular/material/tabs';
-import { HeaderComponent } from 'src/app/window-components/header/header.component';
+import { HeaderComponent } from '@app/window-components/header/header.component';
 
 @Component({
     selector: 'app-user-settings',

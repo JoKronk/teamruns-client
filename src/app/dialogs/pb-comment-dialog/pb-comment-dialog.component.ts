@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { DbRunUserContent } from 'src/app/common/firestore/db-run-user-content';
+import { DbRunUserContent } from '@app/common/firestore/db-run-user-content';
 
 @Component({
     selector: 'app-pb-comment-dialog',
