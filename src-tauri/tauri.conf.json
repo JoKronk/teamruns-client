@@ -13,13 +13,22 @@
     "windows": [
       {
         "title": "teamruns-client",
-        "width": 800,
-        "height": 600,
-        "decorations": false
+        "width": 1000,
+        "height": 750,
+        "center": true,
+        "decorations": false,
+        "fullscreen": false,
+        "transparent": true,
+        "visible": true,
+        "focus": true,
+        "useHttpsScheme": true
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "capabilities": [
+        "desktop-capability"
+      ]
     }
   },
   "bundle": {

@@ -1,10 +1,9 @@
-
 #[tauri::command]
 pub fn taunts_fetch() {
-  println!("I was invoked from JavaScript!");
+    println!("Invoked command not implemented yet!");
 }
 
 #[tauri::command]
 pub fn taunts_write() {
-  println!("I was invoked from JavaScript!");
+    println!("Invoked command not implemented yet!");
 }

@@ -11,6 +11,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "sourceMap": true,
     "skipLibCheck": true,
     "isolatedModules": true,
     "experimentalDecorators": true,

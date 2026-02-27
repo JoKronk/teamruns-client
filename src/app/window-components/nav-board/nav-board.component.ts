@@ -48,7 +48,6 @@ export class NavBoardComponent {
   }
 
   resetWindowSize() {
-    if (this._user.isBrowser) return;
     (window as any).electron.send('settings-reset-size');
   }
 

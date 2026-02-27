@@ -1,20 +1,19 @@
-
 #[tauri::command]
 pub fn recording_download() {
-  println!("I was invoked from JavaScript!");
+    println!("Invoked command not implemented yet!");
 }
 
 #[tauri::command]
 pub fn recording_fetch() {
-  println!("I was invoked from JavaScript!");
+    println!("Invoked command not implemented yet!");
 }
 
 #[tauri::command]
 pub fn recording_write() {
-  println!("I was invoked from JavaScript!");
+    println!("Invoked command not implemented yet!");
 }
 
 #[tauri::command]
 pub fn recording_open() {
-  println!("I was invoked from JavaScript!");
+    println!("Invoked command not implemented yet!");
 }

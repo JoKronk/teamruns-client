@@ -1,15 +1,14 @@
-
 #[tauri::command]
 pub fn save_fetch() {
-  println!("I was invoked from JavaScript!");
+    println!("Invoked command not implemented yet!");
 }
 
 #[tauri::command]
 pub fn save_write() {
-  println!("I was invoked from JavaScript!");
+    println!("Invoked command not implemented yet!");
 }
 
 #[tauri::command]
 pub fn save_open() {
-  println!("I was invoked from JavaScript!");
+    println!("Invoked command not implemented yet!");
 }

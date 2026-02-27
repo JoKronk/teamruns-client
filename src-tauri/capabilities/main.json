@@ -1,0 +1,27 @@
+{
+  "identifier": "desktop-capability",
+  "platforms": [
+    "macOS",
+    "windows",
+    "linux"
+  ],
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "core:window:default",
+    "core:window:allow-close",
+    "core:window:allow-minimize",
+    "core:window:allow-start-dragging",
+    "process:default",
+    "notification:default",
+    "global-shortcut:default",
+    "fs:default",
+    "shell:default",
+    "http:default",
+    "clipboard-manager:default",
+    "dialog:default"
+  ]
+}
