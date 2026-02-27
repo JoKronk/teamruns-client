@@ -3,6 +3,8 @@
 
 use tauri::{Manager, RunEvent};
 use tokio::sync::OnceCell;
+use fern::colors::{Color, ColoredLevelConfig};
+use util::file::create_dir;
 
 mod cache;
 mod commands;
@@ -29,6 +31,68 @@ fn main() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             let _ = TAURI_APP.set(app.handle().clone());
+
+            
+            // Setup Logging
+            let log_path = app.path().app_log_dir().expect("Could not determine log path").join("app");
+            create_dir(&log_path)?;
+
+            // configure colors for the whole line
+            let colors_line = ColoredLevelConfig::new()
+                .error(Color::Red)
+                .warn(Color::Yellow)
+                .info(Color::Cyan)
+                .debug(Color::Green)
+                .trace(Color::White);
+
+            // configure colors for the name of the level.
+            // since almost all of them are the same as the color for the whole line, we
+            // just copy `colors_line` and overwrite our changes
+            let colors_level = colors_line.info(Color::Cyan);
+
+            let log_setup_ok = fern::Dispatch::new()
+                // Perform allocation-free log formatting
+                .format(move |out, message, record| {
+                out.finish(format_args!(
+                    "{color_line}[{date}][{target}][{level}{color_line}] {message}\x1B[0m",
+                    color_line = format_args!(
+                    "\x1B[{}m",
+                    colors_line.get_color(&record.level()).to_fg_str()
+                    ),
+                    date = chrono::Local::now().format("%H:%M:%S"),
+                    target = record.target(),
+                    level = colors_level.color(record.level()),
+                    message = message,
+                ));
+                })
+                // Add blanket level filter -
+                .level(log::LevelFilter::Debug)
+                .filter(|metadata| metadata.target() != "tao::platform_impl::platform::event_loop::runner") // suppress tauri log spam (windows only)
+                // - and per-module overrides
+                // .level_for("opengoal-launcher", log::LevelFilter::Debug)
+                // Output to stdout, files, and other Dispatch configurations
+                .chain(std::io::stdout())
+                .chain(fern::DateBased::new(&log_path, "/%Y-%m-%d.log"))
+                // Apply globally
+                .apply();
+            match log_setup_ok {
+                Ok(_) => {
+                log::info!("Logging Initialized");
+                // Truncate rotated log files to '5'
+                let mut paths: Vec<_> = std::fs::read_dir(&log_path)?.map(|r| r.unwrap()).collect();
+                paths.sort_by_key(|dir| dir.path());
+                paths.reverse();
+                let mut i = 0;
+                for path in paths {
+                    i += 1;
+                    if i > 5 {
+                    log::info!("deleting - {}", path.path().display());
+                    std::fs::remove_file(path.path())?;
+                    }
+                }
+                }
+                Err(err) => log::error!("Could not initialize logging {:?}", err),
+            };
 
             //sets up a config file as globally accessable through tauri::State
             let config = tokio::sync::Mutex::new(config::LauncherConfig::load_config(
@@ -80,9 +144,7 @@ fn main() {
             })
         }
         Err(err) => {
-            println!("ERROR: {:?}", err);
-            //TODO: Look at how the error logging actually works
-            //log::error!("Could not setup tauri application {:?}, exiting", err);
+            log::error!("Could not setup tauri application {:?}, exiting", err);
             std::process::exit(1);
         }
     };
