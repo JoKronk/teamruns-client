@@ -162,9 +162,9 @@
           <div class="mods-section">
             <div class="mods-toggle">
               <span>Toggle local development mode.</span>
-              <mat-slide-toggle [(ngModel)]="_user.user.clientInDevMode" onchange="writeSetting()"></mat-slide-toggle>
+              <mat-slide-toggle [(ngModel)]="_user.launcherConfigs.inDevMode" onchange="writeSetting()"></mat-slide-toggle>
             </div>
-            @if (_user.user.clientInDevMode) {
+            @if (_user.launcherConfigs.inDevMode) {
               <div class="mods-dev">
               </div>
             }

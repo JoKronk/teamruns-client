@@ -22,7 +22,6 @@ export class User extends UserBase {
     displayName: string;
     saveRecordingsLocally: boolean = true;
     hasSignedIn: boolean = false;
-    clientInDevMode: boolean = false;
     
     isLaunching: boolean = false;
     gameLaunched: boolean = false;

@@ -11,6 +11,7 @@ export interface LauncherConfig {
   proceedAfterSuccessfulOperation: boolean;
   requirements: Requirements;
   user: User;
+  inDevMode: boolean;
   version: string;
 }
 

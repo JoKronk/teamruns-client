@@ -101,7 +101,6 @@ pub struct User {
     pub displayName: Option<String>,
     pub saveRecordingsLocally: bool,
     pub hasSignedIn: bool,
-    pub clientInDevMode: bool
 }
 
 impl  User {
@@ -113,7 +112,6 @@ impl  User {
             displayName: None,
             saveRecordingsLocally: true,
             hasSignedIn: false,
-            clientInDevMode: false
         }
     }
 }
@@ -128,6 +126,7 @@ pub struct LauncherConfig {
     pub version: String,
     pub requirements: Requirements,
     pub user: User,
+    pub in_dev_mode: bool,
     pub games: HashMap<SupportedGame, GameConfig>,
     pub installation_dir: Option<PathBuf>,
     pub active_version: Option<String>,
@@ -309,6 +308,9 @@ impl LauncherConfig {
                     let mod_source = val.as_str().map(|s| s.to_string()).unwrap_or("".to_owned());
                     self.mod_sources.retain(|source| source != &mod_source);
                 }
+                "in_dev_mode" => {
+                    self.in_dev_mode = val.as_bool().unwrap_or(false);
+                }
                 _ => {
                     log::error!("Key '{}' not recognized", key);
                     return Err(ConfigError::Configuration("Invalid key".to_owned()));
@@ -354,6 +356,7 @@ impl LauncherConfig {
                 }
                 "auto_update_games" => Ok(Value::Bool(self.auto_update_games)),
                 "delete_previous_versions" => Ok(Value::Bool(self.delete_previous_versions)),
+                "in_dev_mode" => Ok(Value::Bool((self.in_dev_mode))),
                 _ => {
                     log::error!("Key '{}' not recognized", key);
                     Err(ConfigError::Configuration("Invalid key".to_owned()))
@@ -552,6 +555,7 @@ fn migrate_old_config(json_value: serde_json::Value, settings_path: PathBuf) -> 
   new_config.proceed_after_successful_operation = json_value.get("proceedAfterSuccessfulOperation").and_then(|v| v.as_bool()).unwrap_or(true);
   new_config.auto_update_games = json_value.get("autoUpdateGames").and_then(|v| v.as_bool()).unwrap_or(false);
   new_config.delete_previous_versions = json_value.get("deletePreviousVersions").and_then(|v| v.as_bool()).unwrap_or(false);
+  new_config.in_dev_mode = json_value.get("inDevMode").and_then(|v| v.as_bool()).unwrap_or(false);
 
   log::info!("Migration complete. New configuration ready.");
   new_config
