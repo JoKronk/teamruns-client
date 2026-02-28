@@ -150,6 +150,7 @@ impl LauncherConfig {
             version: default_version(),
             requirements: Requirements::default(),
             user: User::default(),
+            in_dev_mode: false,
             games: default_games,
             installation_dir: None,
             active_version: None,
@@ -180,7 +181,7 @@ impl LauncherConfig {
             {
                 Some(json_value) => {
                     // Try to deserialize into LauncherConfig, or migrate if necessary
-                    let mut config: LauncherConfig = serde_json::from_value(json_value.clone()).unwrap();
+                    let mut config: LauncherConfig = serde_json::from_value(json_value.clone()).unwrap_or_else(|_| migrate_old_config(json_value, path.to_path_buf()));
 
                     config.settings_path = Some(path.to_path_buf());
                     return config;
@@ -483,4 +484,75 @@ pub struct ExecutableLocation {
 
 fn default_version() -> String {
     "0.0".to_owned()
+}
+
+fn migrate_old_config(json_value: serde_json::Value, settings_path: PathBuf) -> LauncherConfig {
+  log::warn!("Outdated config detected. Migrating to the latest version.");
+  log::warn!("Creating a backup copy of existing settings before migrating to latest.");
+  let to = settings_path.with_file_name("settings.backup.json");
+  let _ = fs::copy(settings_path.clone(), to);
+  let mut new_config = LauncherConfig::default(Some(settings_path));
+
+  // Migrate requirements
+  if let Some(requirements) = json_value.get("requirements") {
+    new_config.requirements =
+      serde_json::from_value(requirements.clone()).unwrap_or_else(|_| Requirements::default());
+  }
+
+  // Migrate games
+  if let Some(games) = json_value.get("games").and_then(|v| v.as_object()) {
+    for (key, value) in games {
+      if let Ok(supported_game) = serde_json::from_str::<SupportedGame>(
+        &format!("\"{}\"", key.replace(" ", "")).to_lowercase(),
+      ) {
+        // Start with default values
+        let mut game_config = GameConfig::default();
+
+        // Deserialize fields manually
+        if let Some(is_installed) = value.get("isInstalled").and_then(|v| v.as_bool()) {
+          game_config.is_installed = is_installed;
+        }
+        if let Some(version) = value.get("version").and_then(|v| v.as_str()) {
+          game_config.version = Some(version.to_string());
+        }
+        if let Some(features) = value.get("features") {
+          game_config.texture_packs =
+            serde_json::from_value(features.clone()["texturePacks"].take())
+              .unwrap_or_else(|_| vec![]);
+        }
+        if let Some(seconds_played) = value.get("secondsPlayed").and_then(|v| v.as_u64()) {
+          game_config.seconds_played = seconds_played;
+        }
+        if let Some(mods) = value.get("modsInstalledVersion") {
+          game_config.mods_installed_version =
+            serde_json::from_value(mods.clone()).unwrap_or_default();
+        }
+
+        new_config.games.insert(supported_game, game_config);
+      }
+    }
+  }
+
+  // Migrate other fields
+  new_config.installation_dir = json_value.get("installationDir").and_then(|v| v.as_str()).map(PathBuf::from);
+  new_config.active_version = json_value.get("activeVersion").and_then(|v| v.as_str()).map(String::from);
+
+  if let Some(mod_sources) = json_value.get("modSources").and_then(|v| v.as_array()) {
+    new_config.mod_sources = mod_sources.iter().filter_map(|v| v.as_str().map(String::from)).collect();
+  }
+
+  // Migrate user
+  if let Some(user) = json_value.get("user") {
+    new_config.user =
+      serde_json::from_value(user.clone()).unwrap_or_else(|_| User::default());
+  }
+
+  // Default values for fields not in old config
+  new_config.check_for_latest_mod_version = json_value.get("checkForLatestModVersion").and_then(|v| v.as_bool()).unwrap_or(true);
+  new_config.proceed_after_successful_operation = json_value.get("proceedAfterSuccessfulOperation").and_then(|v| v.as_bool()).unwrap_or(true);
+  new_config.auto_update_games = json_value.get("autoUpdateGames").and_then(|v| v.as_bool()).unwrap_or(false);
+  new_config.delete_previous_versions = json_value.get("deletePreviousVersions").and_then(|v| v.as_bool()).unwrap_or(false);
+
+  log::info!("Migration complete. New configuration ready.");
+  new_config
 }
