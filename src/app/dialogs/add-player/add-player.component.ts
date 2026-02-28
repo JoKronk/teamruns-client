@@ -44,7 +44,6 @@ export class AddPlayerComponent implements OnDestroy {
       this.user.name = this.username;
       this.user.displayName = this.username;
       this.user.hasSignedIn = false;
-      this.user.ogFolderpath = this._user.user.ogFolderpath;
       this.startNewLocalGame();
       return;
     }

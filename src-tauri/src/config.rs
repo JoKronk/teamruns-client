@@ -97,7 +97,6 @@ impl Requirements {
 pub struct User {
     pub id: Option<String>,
     pub name: Option<String>,
-    pub ogFolderpath: Option<String>,
     pub gameVersion: Option<String>,
     pub displayName: Option<String>,
     pub saveRecordingsLocally: bool,
@@ -110,7 +109,6 @@ impl  User {
         Self {
             id: None,
             name: None,
-            ogFolderpath: None,
             gameVersion: None,
             displayName: None,
             saveRecordingsLocally: true,

@@ -14,6 +14,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FormsModule } from '@angular/forms';
 import { DragDropDirective } from '@app/common/directives/drag-drop.directive';
 import { HttpClientModule } from '@angular/common/http';
+import { folderPrompt, isoPrompt } from 'src/app/utils/file-dialog';
 
 @Component({
     selector: 'app-install',
@@ -38,15 +39,11 @@ export class InstallComponent implements OnDestroy {
   tab: number = 0;
   gameTab: number = 0;
   
-
-  selectingForIso: boolean;
   clientVersion: string = "v" + pkg.version;
 
   private pathListener: any;
   
   constructor(public _user: UserService, private apiService: ApiService, private location: Location, private route: ActivatedRoute, private zone: NgZone) {
-    this.setupPathListener();
-    
     this.getClientVersions();
     this.getGameVersions();
     this.getMods();
@@ -60,21 +57,6 @@ export class InstallComponent implements OnDestroy {
       const paramGameTab: number = Number(params.get('gameTab'));
       if (paramGameTab)
         this.gameTab = paramGameTab;
-    });
-  }
-
-  setupPathListener() {
-    this.pathListener = (window as any).electron.receive("settings-get-path", (path: string) => {
-      this.zone.run(() => {
-
-        if (this.selectingForIso) 
-          this.installGameVersion(this.storedVersionValue, path);
-        else {
-          this._user.user.ogFolderpath = path;
-          this.pathVerificationStatus = 0;
-          this._user.writeUserDataChangesToLocal();
-        }
-      });
     });
   }
 
@@ -135,9 +117,24 @@ export class InstallComponent implements OnDestroy {
     (window as any).electron.send('update-start');
   }
 
-  selectPath(forIso: boolean = true) {
-    this.selectingForIso = forIso;
-    (window as any).electron.send('settings-select-path', forIso);
+  unused() {
+    this._user.sendNotification("I am yet to do anything");
+    //this.installGameVersion(this.storedVersionValue, path);
+  }
+
+  async selectPath() {
+    let path = await folderPrompt("Install Location");
+    this.zone.run(() => {
+      if (path) {
+      this._user.launcherConfigs.installationDir = path;
+      this.pathVerificationStatus = 0;
+      this._user.writeUserDataChangesToLocal();
+      }
+    });
+  }
+
+  async selectIsoPath() {
+    let path = await isoPrompt();
   }
 
   
