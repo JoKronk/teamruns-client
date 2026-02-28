@@ -92,6 +92,34 @@ impl Requirements {
     }
 }
 
+//TODO: This here temporary and will be transfered to be using LauncherConfig values over time
+#[derive(Debug, Serialize, Deserialize)]
+pub struct User {
+    pub id: Option<String>,
+    pub name: Option<String>,
+    pub ogFolderpath: Option<String>,
+    pub gameVersion: Option<String>,
+    pub displayName: Option<String>,
+    pub saveRecordingsLocally: bool,
+    pub hasSignedIn: bool,
+    pub clientInDevMode: bool
+}
+
+impl  User {
+    fn default() -> Self {
+        Self {
+            id: None,
+            name: None,
+            ogFolderpath: None,
+            gameVersion: None,
+            displayName: None,
+            saveRecordingsLocally: true,
+            hasSignedIn: false,
+            clientInDevMode: false
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LauncherConfig {
@@ -101,6 +129,7 @@ pub struct LauncherConfig {
     #[serde(default = "default_version")]
     pub version: String,
     pub requirements: Requirements,
+    pub user: User,
     pub games: HashMap<SupportedGame, GameConfig>,
     pub installation_dir: Option<PathBuf>,
     pub active_version: Option<String>,
@@ -122,6 +151,7 @@ impl LauncherConfig {
             settings_path: _settings_path,
             version: default_version(),
             requirements: Requirements::default(),
+            user: User::default(),
             games: default_games,
             installation_dir: None,
             active_version: None,
@@ -359,6 +389,15 @@ impl LauncherConfig {
             }
             _ => todo!(),
         }
+
+        self.save_config()?;
+        Ok(())
+    }
+
+    pub fn update_settings(&mut self, new_config: LauncherConfig) -> Result<(), ConfigError> {
+        let settings_path = self.settings_path.clone();
+        *self = new_config;
+        self.settings_path = settings_path;
 
         self.save_config()?;
         Ok(())

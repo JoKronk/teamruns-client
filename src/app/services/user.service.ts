@@ -13,12 +13,15 @@ import { Run } from '../common/run/run';
 import pkg from '@root/package.json';
 import { DbUserProfile } from '../common/firestore/db-user-profile';
 import { ConnectionHandler } from '../common/peer/connection-handler';
+import { invoke } from '@tauri-apps/api/core';
+import { LauncherConfig } from '@app/common/launcher/launcher-config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService implements OnDestroy {
 
+  launcherConfigs: LauncherConfig;
   user: User = new User();
   private UserCopy: User = new User();
   localUsers: LocalPlayerData[] = [];
@@ -26,7 +29,6 @@ export class UserService implements OnDestroy {
   viewSettings: boolean = false;
   offlineSettings: RunData | undefined;
 
-  isBrowser: boolean;
   clientInMaintenanceMode: boolean = false;
   isDownloading: boolean = false;
   updateChecked: boolean = false;
@@ -42,7 +44,6 @@ export class UserService implements OnDestroy {
   
 
   constructor(private _snackbar: MatSnackBar, private zone: NgZone, private router: Router) { 
-    this.isBrowser = !(window as any).electron;
     this.setupReceiver();
     this.readSettings();
   }
@@ -52,7 +53,7 @@ export class UserService implements OnDestroy {
   }
 
   public startGame(user: User, connenctionHandler: ConnectionHandler | undefined, run: Run | undefined): LocalPlayerData | undefined {
-    if (!(window as any).electron || this.isBrowser || this.isDownloading) return undefined;
+    if (this.isDownloading) return undefined;
 
     let localUser = this.localUsers.find(x => x.user.id === user.id);
     const isMainUser: boolean = user.id === this.user.id;
@@ -107,7 +108,7 @@ export class UserService implements OnDestroy {
   }
 
   public drawProgressBar() {
-    if (this.isBrowser || this.isDownloading) return;
+    if (this.isDownloading) return;
 
     this.isDownloading = true; //blocks other snackbars while installing as only one can be open at a time
     this.zone.run(() => {
@@ -121,7 +122,7 @@ export class UserService implements OnDestroy {
   }
 
   public drawImportNotif() {
-    if (this.isBrowser || this.isDownloading) return;
+    if (this.isDownloading) return;
 
     this.zone.run(() => {
       this._snackbar.openFromComponent(SnackbarImportComponent, {
@@ -132,7 +133,7 @@ export class UserService implements OnDestroy {
   }
 
   public sendNotification(message: string, notifDurationMs: number = 5000) {
-    if (this.isBrowser || this.isDownloading) return;
+    if (this.isDownloading) return;
 
     this.zone.run(() => {
       this._snackbar.openFromComponent(SnackbarComponent, {
@@ -170,9 +171,8 @@ export class UserService implements OnDestroy {
   }
 
   private setupReceiver(): void {
-    if (this.isBrowser) return;
-
     //game launch
+    return;
     this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
       let isMainPort: boolean = port === OG.mainPort;
 
@@ -187,14 +187,7 @@ export class UserService implements OnDestroy {
       if (isMainPort)
         this.user.gameLaunched = false;
     });
-    
-    //settings get
-    this.settingsListener = (window as any).electron.receive("settings-get", (data: User) => {
-      this.user.importUserCopy(data);
-      this.UserCopy = data;
-      this.userSetupSubject.next(this.user);
-    });
-    
+
     //backend messages
     this.messageListener = (window as any).electron.receive("backend-message", (message: string) => {
       console.log(message);
@@ -210,21 +203,20 @@ export class UserService implements OnDestroy {
 
   //settings write
   writeSettings(): void {
-    if (this.isBrowser) return;
-    (window as any).electron.send('settings-write', this.user);
+    this.launcherConfigs.user = this.user;
+    invoke("update_settings", { launcherConfig: this.launcherConfigs }).then(v => {
+    });
   }
 
   //settings read
   readSettings(): void {
-    if (this.isBrowser) return;
-    (window as any).electron.send('settings-read');
-  }
-
-  //check for new update
-  checkForUpdate(): void {
-    if (this.isBrowser) return;
-    (window as any).electron.send('update-check');
-    (window as any).electron.send('install-check');
+    invoke("get_settings").then((config) => {
+      this.launcherConfigs = config as LauncherConfig;
+      console.log(this.launcherConfigs);
+      this.user.importUserCopy(this.launcherConfigs.user);
+      this.UserCopy = this.launcherConfigs.user;
+      this.userSetupSubject.next(this.user);
+    });
   }
 
   ngOnDestroy(): void {

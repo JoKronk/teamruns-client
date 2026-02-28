@@ -1,5 +1,6 @@
 import { Component, HostListener, NgZone } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
+import { invoke } from "@tauri-apps/api/core";
 import { UserService } from './services/user.service';
 import pkg from '@root/package.json';
 import { Subscription } from 'rxjs';
@@ -31,38 +32,41 @@ export class AppComponent {
     this.setupUserListener();
   }
 
-  setupUpdateListener() {
-    this.updateListener = (window as any).electron.receive("update-available", () => {
+  checkForUpdate(): void {
+    invoke<string>("update_check_launcher").then((result) => {
+      console.log(result);
+
+      //update-available
       this.zone.run(() => {
         if (!this._user.isDownloading)
           this.launcherUpdateAvailable = true;
       });
-    });
-  }
 
-  setupInstallListeners() {
-    this.installMissingListener = (window as any).electron.receive("install-missing", () => {
+    });
+    
+    invoke("list_downloaded_versions", { versionFolder:"teamruns" }).then((result) => {
+      console.log(result);
+
+      //install-missing
+      this.zone.run(() => {
+        if (!this._user.isDownloading)
+          this.toolingUpdateAvailable = true;
+      });
+
+      //install-outdated
       this.zone.run(() => {
         if (!this._user.isDownloading)
           this.toolingUpdateAvailable = true;
       });
     });
-
-    this.installOutdatedListener = (window as any).electron.receive("install-outdated", () => {
-      this.zone.run(() => {
-        if (!this._user.isDownloading)
-          this.toolingUpdateAvailable = true;
-      });
-    });
   }
+
 
   setupUserListener() {
     this.userSubscription = this._user.userSetupSubject.subscribe(localUser => {
       if (!this._user.updateChecked) {
         this._user.updateChecked = true;
-          this.setupUpdateListener();
-        this.setupInstallListeners();
-        this._user.checkForUpdate();
+        this.checkForUpdate();
       }
 
     });

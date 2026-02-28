@@ -109,6 +109,7 @@ fn main() {
             commands::download::download_file,
             commands::config::reset_to_defaults,
             commands::config::update_setting_value,
+            commands::config::update_settings,
             commands::config::get_setting_value,
             commands::config::get_settings,
             commands::config::settings_write,

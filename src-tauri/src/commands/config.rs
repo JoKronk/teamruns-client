@@ -27,6 +27,18 @@ pub async fn update_setting_value (config: tauri::State<'_, tokio::sync::Mutex<L
 }
 
 #[tauri::command]
+pub async fn update_settings (config: tauri::State<'_, tokio::sync::Mutex<LauncherConfig>>, launcher_config: LauncherConfig) -> Result<(), CommandError> {
+  let mut config_lock = config.lock().await;
+  match &config_lock.update_settings(launcher_config) {
+    Ok(()) => Ok(()),
+    Err(e) => {
+      log::error!("Unable to save config: {:?}", e);
+      Err(CommandError::Configuration("Unable to update setting".to_owned()))
+    }
+  }
+}
+
+#[tauri::command]
 pub async fn get_setting_value (config: tauri::State<'_, tokio::sync::Mutex<LauncherConfig>>, key: String, game_name: Option<SupportedGame>) -> Result<Value, CommandError> {
   let config_lock = config.lock().await;
   match &config_lock.get_setting_value(&key, game_name) {
@@ -42,7 +54,6 @@ pub async fn get_setting_value (config: tauri::State<'_, tokio::sync::Mutex<Laun
 
 #[tauri::command]
 pub async fn get_settings (config: tauri::State<'_, tokio::sync::Mutex<LauncherConfig>>) -> Result<Value, CommandError> {
-  println!("get_settings called");
   let config_lock = config.lock().await;
   Ok(json!(*config_lock))
 }
