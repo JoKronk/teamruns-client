@@ -13,8 +13,8 @@ import { Run } from '../common/run/run';
 import pkg from '@root/package.json';
 import { DbUserProfile } from '../common/firestore/db-user-profile';
 import { ConnectionHandler } from '../common/peer/connection-handler';
-import { invoke } from '@tauri-apps/api/core';
 import { LauncherConfig } from '@app/common/launcher/launcher-config';
+import { getSettings, updateSettings } from '@app/rpc/config';
 
 @Injectable({
   providedIn: 'root'
@@ -204,13 +204,12 @@ export class UserService implements OnDestroy {
   //settings write
   writeSettings(): void {
     this.launcherConfigs.user = this.user;
-    invoke("update_settings", { launcherConfig: this.launcherConfigs }).then(v => {
-    });
+    updateSettings(this.launcherConfigs);
   }
 
   //settings read
   readSettings(): void {
-    invoke("get_settings").then((config) => {
+    getSettings().then((config) => {
       this.launcherConfigs = config as LauncherConfig;
       console.log(this.launcherConfigs);
       this.user.importUserCopy(this.launcherConfigs.user);

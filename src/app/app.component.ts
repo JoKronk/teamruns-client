@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import { NavBoardComponent } from './window-components/nav-board/nav-board.component';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { listDownloadedVersions, updateCheckLauncher } from './rpc/versions';
 
 const appWindow = getCurrentWindow();
 
@@ -33,7 +34,7 @@ export class AppComponent {
   }
 
   checkForUpdate(): void {
-    invoke<string>("update_check_launcher").then((result) => {
+    updateCheckLauncher().then((result) => {
       console.log(result);
 
       //update-available
@@ -44,7 +45,7 @@ export class AppComponent {
 
     });
     
-    invoke("list_downloaded_versions", { versionFolder:"teamruns" }).then((result) => {
+    listDownloadedVersions().then((result) => {
       console.log(result);
 
       //install-missing

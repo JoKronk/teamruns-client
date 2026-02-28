@@ -31,7 +31,7 @@ fn main() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             let _ = TAURI_APP.set(app.handle().clone());
-
+            
             
             // Setup Logging
             let log_path = app.path().app_log_dir().expect("Could not determine log path").join("app");
@@ -106,6 +106,7 @@ fn main() {
             commands::game::start_game,
             commands::game::close_game,
             commands::game::send_command,
+            commands::logging::frontend_log,
             commands::download::download_file,
             commands::config::reset_to_defaults,
             commands::config::update_setting_value,

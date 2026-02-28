@@ -3,6 +3,7 @@ use serde::{Serialize, Serializer};
 pub mod config;
 pub mod download;
 pub mod game;
+pub mod logging;
 pub mod recordings;
 pub mod save;
 pub mod splits;
