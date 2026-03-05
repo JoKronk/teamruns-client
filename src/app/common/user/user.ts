@@ -20,7 +20,6 @@ export class UserBase {
 export class User extends UserBase {
     gameVersion: string = "";
     displayName: string;
-    saveRecordingsLocally: boolean = true;
     hasSignedIn: boolean = false;
     
     isLaunching: boolean = false;
@@ -71,7 +70,6 @@ export class User extends UserBase {
         this.name = user.name;
         this.gameVersion = user.gameVersion;
         this.displayName = user.displayName;
-        this.saveRecordingsLocally = user.saveRecordingsLocally;
         this.hasSignedIn = user.hasSignedIn;
     }
 }

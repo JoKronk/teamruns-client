@@ -89,10 +89,11 @@ export class LobbyComponent implements OnDestroy {
       if (!user) return;
 
       //this should technically be ran on user setup subject
-      if (_user.user.saveRecordingsLocally === undefined) {
+      //!TODO: This is never undefined anymore with the new setup, move this to a proper first startup section
+      if (_user.launcherConfigs.saveRecordingsLocally === undefined) {
         const dialogSubscription = this.dialog.open(ConfirmComponent, { data: { message: "Do you want to save recordings of runs locally?", yesNo: true } }).afterClosed().subscribe(confirmed => {
           dialogSubscription.unsubscribe();
-          this._user.user.saveRecordingsLocally = confirmed === undefined ? false : confirmed;
+          this._user.launcherConfigs.saveRecordingsLocally = confirmed === undefined ? false : confirmed;
           _user.writeSettings();
         });
       }

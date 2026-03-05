@@ -12,6 +12,7 @@ export interface LauncherConfig {
   requirements: Requirements;
   user: User;
   inDevMode: boolean;
+  saveRecordingsLocally: boolean;
   version: string;
 }
 

@@ -681,7 +681,7 @@ export class RunHandler {
         //!TODO: Add support for saving secondary locals recordings if on different team?
         if (!recordings)
             this.userService.sendNotification("Failed to fetch run recordings!");
-        else if (this.userService.user.saveRecordingsLocally && recordings) { 
+        else if (this.userService.launcherConfigs.saveRecordingsLocally && recordings) { 
             let userTeamPlayerIds: string[] = playerTeam.players.flatMap(x => x.user.id) ?? [];
             let userTeamRecordings = recordings.filter(x => userTeamPlayerIds.includes(x.userId));
             if (userTeamRecordings.length === 0)

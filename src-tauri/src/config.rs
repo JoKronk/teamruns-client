@@ -94,13 +94,13 @@ impl Requirements {
 
 //TODO: This here temporary and will be transfered to be using LauncherConfig values over time
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct User {
     pub id: Option<String>,
     pub name: Option<String>,
+    pub display_name: Option<String>,
+    pub has_signed_in: bool,
     pub gameVersion: Option<String>,
-    pub displayName: Option<String>,
-    pub saveRecordingsLocally: bool,
-    pub hasSignedIn: bool,
 }
 
 impl  User {
@@ -108,10 +108,9 @@ impl  User {
         Self {
             id: None,
             name: None,
+            display_name: None,
+            has_signed_in: false,
             gameVersion: None,
-            displayName: None,
-            saveRecordingsLocally: true,
-            hasSignedIn: false,
         }
     }
 }
@@ -127,6 +126,7 @@ pub struct LauncherConfig {
     pub requirements: Requirements,
     pub user: User,
     pub in_dev_mode: bool,
+    pub save_recordings_locally: bool,
     pub games: HashMap<SupportedGame, GameConfig>,
     pub installation_dir: Option<PathBuf>,
     pub active_version: Option<String>,
@@ -150,6 +150,7 @@ impl LauncherConfig {
             requirements: Requirements::default(),
             user: User::default(),
             in_dev_mode: false,
+            save_recordings_locally: true,
             games: default_games,
             installation_dir: None,
             active_version: None,
@@ -311,6 +312,9 @@ impl LauncherConfig {
                 "in_dev_mode" => {
                     self.in_dev_mode = val.as_bool().unwrap_or(false);
                 }
+                "save_recordings_locally" => {
+                    self.save_recordings_locally = val.as_bool().unwrap_or(true);
+                }
                 _ => {
                     log::error!("Key '{}' not recognized", key);
                     return Err(ConfigError::Configuration("Invalid key".to_owned()));
@@ -357,6 +361,7 @@ impl LauncherConfig {
                 "auto_update_games" => Ok(Value::Bool(self.auto_update_games)),
                 "delete_previous_versions" => Ok(Value::Bool(self.delete_previous_versions)),
                 "in_dev_mode" => Ok(Value::Bool((self.in_dev_mode))),
+                "save_recordings_locally" => Ok(Value::Bool((self.save_recordings_locally))),
                 _ => {
                     log::error!("Key '{}' not recognized", key);
                     Err(ConfigError::Configuration("Invalid key".to_owned()))
@@ -556,6 +561,7 @@ fn migrate_old_config(json_value: serde_json::Value, settings_path: PathBuf) -> 
   new_config.auto_update_games = json_value.get("autoUpdateGames").and_then(|v| v.as_bool()).unwrap_or(false);
   new_config.delete_previous_versions = json_value.get("deletePreviousVersions").and_then(|v| v.as_bool()).unwrap_or(false);
   new_config.in_dev_mode = json_value.get("inDevMode").and_then(|v| v.as_bool()).unwrap_or(false);
+  new_config.save_recordings_locally = json_value.get("saveRecordingsLocally").and_then(|v| v.as_bool()).unwrap_or(true);
 
   log::info!("Migration complete. New configuration ready.");
   new_config
