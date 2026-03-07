@@ -79,7 +79,7 @@ $teamrun-grey: (
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
 $teamruns-client-primary: mat.m2-define-palette($teamrun-orange, 500);
-$teamruns-client-accent: mat.m2-define-palette($teamrun-grey, A100);
+$teamruns-client-accent: mat.m2-define-palette($teamrun-grey, A400, A200, A700);
 
 // The warn palette is optional (defaults to red).
 $teamruns-client-warn: mat.m2-define-palette(mat.$m2-red-palette);
