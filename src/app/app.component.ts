@@ -8,6 +8,7 @@ import {MatSidenavModule} from '@angular/material/sidenav';
 import { NavBoardComponent } from './window-components/nav-board/nav-board.component';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { listDownloadedVersions, updateCheckLauncher } from './rpc/versions';
+import { getLatestOfficialRelease } from './utils/github';
 
 const appWindow = getCurrentWindow();
 
@@ -45,20 +46,14 @@ export class AppComponent {
 
     });
     
-    listDownloadedVersions().then((result) => {
-      console.log(result);
-
-      //install-missing
-      this.zone.run(() => {
+    listDownloadedVersions().then((versions) => {
+      getLatestOfficialRelease().then(release => {
+        if (release && versions.includes(release.version)) return;
+        
         if (!this._user.isDownloading)
           this.toolingUpdateAvailable = true;
       });
 
-      //install-outdated
-      this.zone.run(() => {
-        if (!this._user.isDownloading)
-          this.toolingUpdateAvailable = true;
-      });
     });
   }
 

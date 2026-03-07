@@ -1,9 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use fern::colors::{Color, ColoredLevelConfig};
 use tauri::{Manager, RunEvent};
 use tokio::sync::OnceCell;
-use fern::colors::{Color, ColoredLevelConfig};
 use util::file::create_dir;
 
 mod cache;
@@ -12,7 +12,6 @@ mod config;
 mod util;
 
 static TAURI_APP: OnceCell<tauri::AppHandle> = OnceCell::const_new();
-
 
 fn main() {
     unsafe {
@@ -23,6 +22,7 @@ fn main() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_dialog::init())
@@ -32,7 +32,7 @@ fn main() {
         .setup(|app| {
             let _ = TAURI_APP.set(app.handle().clone());
             
-            
+
             // Setup Logging
             let log_path = app.path().app_log_dir().expect("Could not determine log path").join("app");
             create_dir(&log_path)?;
@@ -53,17 +53,17 @@ fn main() {
             let log_setup_ok = fern::Dispatch::new()
                 // Perform allocation-free log formatting
                 .format(move |out, message, record| {
-                out.finish(format_args!(
-                    "{color_line}[{date}][{target}][{level}{color_line}] {message}\x1B[0m",
-                    color_line = format_args!(
-                    "\x1B[{}m",
-                    colors_line.get_color(&record.level()).to_fg_str()
-                    ),
-                    date = chrono::Local::now().format("%H:%M:%S"),
-                    target = record.target(),
-                    level = colors_level.color(record.level()),
-                    message = message,
-                ));
+                    out.finish(format_args!(
+                        "{color_line}[{date}][{target}][{level}{color_line}] {message}\x1B[0m",
+                        color_line = format_args!(
+                            "\x1B[{}m",
+                            colors_line.get_color(&record.level()).to_fg_str()
+                        ),
+                        date = chrono::Local::now().format("%H:%M:%S"),
+                        target = record.target(),
+                        level = colors_level.color(record.level()),
+                        message = message,
+                    ));
                 })
                 // Add blanket level filter -
                 .level(log::LevelFilter::Debug)
@@ -81,15 +81,15 @@ fn main() {
                 // Truncate rotated log files to '5'
                 let mut paths: Vec<_> = std::fs::read_dir(&log_path)?.map(|r| r.unwrap()).collect();
                 paths.sort_by_key(|dir| dir.path());
-                paths.reverse();
-                let mut i = 0;
-                for path in paths {
-                    i += 1;
-                    if i > 5 {
-                    log::info!("deleting - {}", path.path().display());
-                    std::fs::remove_file(path.path())?;
+                    paths.reverse();
+                    let mut i = 0;
+                    for path in paths {
+                        i += 1;
+                        if i > 5 {
+                            log::info!("deleting - {}", path.path().display());
+                            std::fs::remove_file(path.path())?;
+                        }
                     }
-                }
                 }
                 Err(err) => log::error!("Could not initialize logging {:?}", err),
             };
@@ -128,10 +128,10 @@ fn main() {
             commands::save::save_write,
             commands::save::save_open,
             commands::versions::update_check_launcher,
+            commands::versions::update_start,
             commands::versions::list_downloaded_versions,
-            commands::versions::download_game_version, //update-start
-            commands::versions::install_check,
-            commands::versions::install_start
+            commands::versions::download_tooling_version,
+            commands::versions::install_check
         ])
         .build(tauri::generate_context!());
 

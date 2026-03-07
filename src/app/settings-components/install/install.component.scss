@@ -211,6 +211,25 @@ textarea:focus, input:focus{
     }
 }
 
+.game {
+    &-cont {
+        cursor: default;
+    }
+    &-install {
+    color: #383838;
+    font-weight: bold;
+
+    }
+    &-active {
+    color: #a8a8a8 !important;
+    transition: 0.2s;
+    &:hover {
+        cursor: pointer;
+        color: #cccccc !important;
+    }
+    }
+}
+
 table {
     width: 100%;
   }

@@ -11,23 +11,28 @@ import { GameType } from '@app/common/opengoal/game-type';
 import { HeaderComponent } from '@app/window-components/header/header.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatRadioModule } from '@angular/material/radio';
 import { FormsModule } from '@angular/forms';
 import { DragDropDirective } from '@app/common/directives/drag-drop.directive';
 import { HttpClientModule } from '@angular/common/http';
 import { folderPrompt, isoPrompt } from 'src/app/utils/file-dialog';
+import { downloadToolingVersion, listDownloadedVersions } from '@app/rpc/versions';
+import { listGithubReleases } from '@app/utils/github';
+import { configUpdateActiveVersion } from '@app/rpc/config';
 
 @Component({
     selector: 'app-install',
     templateUrl: './install.component.html',
   styleUrls: ['./install.component.scss'],
-  imports: [HttpClientModule, FormsModule, RouterModule, HeaderComponent, DragDropDirective, DatePipe, MatTabsModule, MatTableModule, MatSlideToggleModule],
+  imports: [HttpClientModule, FormsModule, RouterModule, HeaderComponent, DragDropDirective, DatePipe, MatTabsModule, MatTableModule, MatSlideToggleModule, MatRadioModule],
   providers: [ApiService]
 })
 export class InstallComponent implements OnDestroy {
 
   clientReleaseSource: MatTableDataSource<GitRelease> = new MatTableDataSource();
-  gameReleaseSource: MatTableDataSource<GitRelease> = new MatTableDataSource();
-  columns: string[] = ["download", "version", "date", "changes"];
+  toolingReleaseSource: MatTableDataSource<GitRelease> = new MatTableDataSource();
+  clientColumns: string[] = ["download", "version", "date", "changes"];
+  toolingColumns: string[] = ["download", "version", "game", "date", "changes"];
   mods: ModInfo[] = [];
 
   games: GameType[] = GameType.getGames();
@@ -51,7 +56,7 @@ export class InstallComponent implements OnDestroy {
     this.route.queryParamMap.subscribe((params) => {
       
       const paramTab: number = Number(params.get('tab'));
-      if (paramTab)
+      if (paramTab)0
         this.tab = paramTab;
       
       const paramGameTab: number = Number(params.get('gameTab'));
@@ -61,16 +66,21 @@ export class InstallComponent implements OnDestroy {
   }
 
   getClientVersions() {
-    const apiSubscription = this.apiService.getData("https://api.github.com/repos/JoKronk/teamruns-client/releases").subscribe(data => {
-      apiSubscription.unsubscribe();
+    listGithubReleases("https://api.github.com/repos/JoKronk/teamruns-client/releases").then(data => {
       this.clientReleaseSource = new MatTableDataSource(data);
     });
   }
 
   getGameVersions() {
-    const apiSubscription = this.apiService.getData("https://api.github.com/repos/JoKronk/teamruns-jak-project/releases").subscribe(data => {
-      apiSubscription.unsubscribe();
-      this.gameReleaseSource = new MatTableDataSource(data);
+    listGithubReleases("https://api.github.com/repos/JoKronk/teamruns-jak-project/releases").then(data => {
+      listDownloadedVersions().then((versions) => {
+        data.forEach(release => {
+          if (versions.includes(release.version))
+            release.isDownloaded = true;
+        });
+        
+        this.toolingReleaseSource = new MatTableDataSource(data);
+      });
     });
   }
 
@@ -97,15 +107,37 @@ export class InstallComponent implements OnDestroy {
     (window as any).electron.send('download-portable', version.substring(1));
   }
 
-  installGameVersion(version: string, isoPath: string | undefined = undefined) {
+  downloadVersion(version: string, url: string) {
+    downloadToolingVersion(version, url).then(downloaded => {
+      if (!downloaded) return;
+        
+      let release = this.toolingReleaseSource.data.find(x => x.version === version);
+      if (!release) {
+        this._user.sendNotification("Downloaded tooling not found, please try again.");
+        return;
+      }
+      
+      release.isDownloaded = true;
+      this._user.sendNotification("Tooling version installed!");
+    });
+  }
+
+  updateToolingVersion(version: string) {
+    configUpdateActiveVersion(version).then(success => {
+      if (!success) return;
+
+      this._user.launcherConfigs.activeVersion = version;
+    });
+  }
+
+  unused_extractAndInstallIso(version: string, isoPath: string | undefined = undefined) {
+    this.isoInstallView = true;
     if (this.needsIsoInstall && !this.isoInstallView) {
-      this.isoInstallView = true;
       this.storedVersionValue = version;
       return;
     }
-    
+
     this._user.drawProgressBar();
-    (window as any).electron.send('install-start', {url: "https://github.com/JoKronk/teamruns-jak-project", isoPath: isoPath, version: version});
   }
 
   checkForInstall() {
@@ -119,7 +151,6 @@ export class InstallComponent implements OnDestroy {
 
   unused() {
     this._user.sendNotification("I am yet to do anything");
-    //this.installGameVersion(this.storedVersionValue, path);
   }
 
   async selectPath() {
@@ -145,7 +176,6 @@ export class InstallComponent implements OnDestroy {
       this._user.sendNotification("File is not of type ISO");
       return;
     }
-    this.installGameVersion(this.storedVersionValue, isoPath);
   }
 
   ngOnDestroy(): void {

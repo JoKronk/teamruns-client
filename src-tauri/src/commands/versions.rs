@@ -18,6 +18,11 @@ pub fn update_check_launcher() {
 }
 
 #[tauri::command]
+pub fn update_start() {
+    println!("Invoked command not implemented yet!");
+}
+
+#[tauri::command]
 pub async fn list_downloaded_versions(
     config: tauri::State<'_, tokio::sync::Mutex<LauncherConfig>>,
     version_folder: String,
@@ -64,7 +69,7 @@ pub async fn list_downloaded_versions(
 }
 
 #[tauri::command]
-pub async fn download_game_version(
+pub async fn download_tooling_version(
     config: tauri::State<'_, tokio::sync::Mutex<LauncherConfig>>,
     version: String,
     version_folder: String,
@@ -100,10 +105,7 @@ pub async fn download_game_version(
     })?;
 
     if cfg!(windows) {
-        let download_path = install_path
-            .join("versions")
-            .join(&version_folder)
-            .join(format!("{version}.zip"));
+        let download_path = install_path.join("versions").join(&version_folder).join(format!("{version}.zip"));
 
         // Download the file
         download_file(&url, &download_path).await.map_err(|_| {
@@ -137,10 +139,7 @@ pub async fn download_game_version(
         }
         return Ok(());
     } else if cfg!(unix) {
-        let download_path = install_path
-            .join("versions")
-            .join(&version_folder)
-            .join(format!("{version}.tar.gz"));
+        let download_path = install_path.join("versions").join(&version_folder).join(format!("{version}.tar.gz"));
 
         // Download the file
         download_file(&url, &download_path).await.map_err(|_| {
@@ -182,10 +181,5 @@ pub async fn download_game_version(
 
 #[tauri::command]
 pub fn install_check() {
-    println!("Invoked command not implemented yet!");
-}
-
-#[tauri::command]
-pub fn install_start() {
     println!("Invoked command not implemented yet!");
 }

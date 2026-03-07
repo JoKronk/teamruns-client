@@ -1,8 +1,6 @@
 import { invoke, type InvokeArgs } from "@tauri-apps/api/core";
 import { errorLog, exceptionLog } from "./logging";
-import { inject } from "@angular/core";
-import { MatSnackBar } from "@angular/material/snack-bar";
-import { SnackbarComponent } from "@app/snackbars/snackbar/snackbar.component";
+import { InjectNotification } from "@app/utils/snackbar-injection";
 
 /**
  * @param cmd The command to send to the backend
@@ -24,14 +22,7 @@ export async function invoke_rpc<T>(cmd: string, args: InvokeArgs, handleError: 
     else
       exceptionLog(`Error calling '${cmd}'`, e);
     
-    // TODO - this is a dumb hack but whatever for now
-    const snackbar = inject(MatSnackBar);
-    snackbar.openFromComponent(SnackbarComponent, {
-      duration: 5000,
-      data: notifOnError === "_mirror_" ? e : notifOnError,
-      verticalPosition: 'bottom',
-      horizontalPosition: 'right'
-    });
+    InjectNotification(notifOnError === "_mirror_" ? e : notifOnError);
     return handleError(e);
   }
 }

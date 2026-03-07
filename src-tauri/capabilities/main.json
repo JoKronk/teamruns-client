@@ -22,6 +22,7 @@
     "shell:default",
     "http:default",
     "clipboard-manager:default",
-    "dialog:default"
+    "dialog:default",
+    "os:default"
   ]
 }

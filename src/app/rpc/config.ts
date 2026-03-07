@@ -8,3 +8,7 @@ export async function getSettings(): Promise<LauncherConfig | undefined> {
 export async function updateSettings(launcherConfigs: LauncherConfig): Promise<void> {
   return await invoke_rpc("update_settings", { launcherConfig: launcherConfigs }, () => {});
 }
+
+export async function configUpdateActiveVersion(newActiveVersion: String): Promise<boolean> {
+  return invoke_rpc("update_setting_value", { key: "active_version", val: newActiveVersion }, () => false, "Couldn't save active version change.", () => true);
+}

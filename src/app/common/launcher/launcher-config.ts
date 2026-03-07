@@ -1,7 +1,7 @@
 import { User } from "../user/user";
 
 export interface LauncherConfig {
-  activeVersion: any;
+  activeVersion: string | undefined;
   autoUpdateGames: boolean;
   checkForLatestModVersion: boolean;
   deletePreviousVersions: boolean;

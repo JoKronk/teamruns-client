@@ -20,7 +20,7 @@
                 @if (launcherUpdateAvailable) {
                   <span class="version-update" (click)="goToUpdate(0)">> Update Available!</span>
                 }
-                <br/>{{ _user.user.gameVersion ?? "not set!" }}
+                <br/>{{ _user.launcherConfigs?.activeVersion ?? "not set!" }}
                 @if (toolingUpdateAvailable) {
                   <span class="version-update" (click)="goToUpdate(1)">> Update Available!</span>
                 }

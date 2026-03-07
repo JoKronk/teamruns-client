@@ -1,8 +1,10 @@
-export class GitRelease {
-    created_at: string;
+export interface GitRelease {
     draft: boolean;
     name: string;
     prerelease: boolean;
-    published_at: string;
-    tag_name: string;
+    githubLink: string | undefined;
+    date: string;
+    version: string;
+    downloadUrl: string;
+    isDownloaded: boolean;
 }
