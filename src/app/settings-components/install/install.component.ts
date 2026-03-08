@@ -19,12 +19,13 @@ import { folderPrompt, isoPrompt } from 'src/app/utils/file-dialog';
 import { downloadToolingVersion, listDownloadedVersions } from '@app/rpc/versions';
 import { listGithubReleases } from '@app/utils/github';
 import { configUpdateActiveVersion } from '@app/rpc/config';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 @Component({
     selector: 'app-install',
     templateUrl: './install.component.html',
   styleUrls: ['./install.component.scss'],
-  imports: [HttpClientModule, FormsModule, RouterModule, HeaderComponent, DragDropDirective, DatePipe, MatTabsModule, MatTableModule, MatSlideToggleModule, MatRadioModule],
+  imports: [HttpClientModule, FormsModule, RouterModule, HeaderComponent, DragDropDirective, DatePipe, MatTabsModule, MatTableModule, MatSlideToggleModule, MatRadioModule, MatTooltipModule],
   providers: [ApiService]
 })
 export class InstallComponent implements OnDestroy {
