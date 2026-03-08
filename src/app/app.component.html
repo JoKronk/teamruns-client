@@ -18,7 +18,7 @@
               <span class="version-number">
                 v{{ buildVersion }}
                 @if (launcherUpdateAvailable) {
-                  <span class="version-update" (click)="goToUpdate(0)">> Update Available!</span>
+                  <span class="version-update" (click)="goToUpdate(4)">> Update Available!</span>
                 }
                 <br/>{{ _user.launcherConfigs?.activeVersion ?? "not set!" }}
                 @if (toolingUpdateAvailable) {

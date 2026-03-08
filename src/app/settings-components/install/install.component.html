@@ -3,54 +3,42 @@
 
   @if (!isoInstallView) {
     <mat-tab-group class="tab-container" animationDuration="0ms" dynamicHeight [(selectedIndex)]="tab">
-      <mat-tab label="Launcher">
-        <div class="tab-content">
-          <div class="table-container">
-            <table mat-table [dataSource]="clientReleaseSource" multiTemplateDataRows>
-              <ng-container matColumnDef="download">
-                <th mat-header-cell *matHeaderCellDef> </th>
-                <td mat-cell *matCellDef="let release; let index = dataIndex;">
-                  @if (release.name !== clientVersion) {
-                    <svg matTooltip="Download" matTooltipPosition="below" class="download" (click)="installClient(release.tag_name)" version="1.1" viewBox="-0.5 -0.5 113 98">
-                      <g>
-                        <path d="M 21 19.95 L 57 19.95 L 57 0 L 91 35 L 57 70 L 57 50.05 L 21 50.05 L 21 35 Z" transform="rotate(90,56,35)"/>
-                        <path class="download-lower" d="M 6 50 L 6 80 Q 6 90 16 90 L 96 90 Q 106 90 106 80 L 106 50" fill="none" stroke-width="12" stroke-miterlimit="10"/>
-                      </g>
-                    </svg>
+      <mat-tab label="General">
+        <div class="mods">
+          <div class="mods-section">
+            <span>Install unofficial mod</span>
+            <div>
+              <input placeholder="Github URL">
+              <button (click)="unused()">Install</button>
+            </div>
+            <div>
+              <p>OpenGOAL Install Path:</p>
+              <p>{{ _user.launcherConfigs.installationDir ?? "Not set." }}</p>
+              <div class="dev-container">
+                <button class="dev-container-content" (click)="selectPath()">Change</button>
+                @if (_user.user.gameVersion) {
+                  <button class="dev-container-content" (click)="checkForInstall()">Verify path</button>
+                }
+                <svg xmlns="http://www.w3.org/2000/svg" class="dev-container-content-verification" viewBox="0 0 40 40">
+                  @if (pathVerificationStatus === 1) {
+                    <path class="dev-container-content-verification-checkmark" fill="#00ef00" d="M15.45 32.139L8.125 23.344a2.168 2.168 0 1 1 3.326 -2.77l5.336 6.406L28.329 6.989a2.166 2.166 0 0 1 3.753 2.168L18.987 32.139a2.168 2.168 0 0 1 -3.537 0z"/>
                   }
-                  @if (index !== 0 && release.name !== clientVersion) {
-                    <svg matTooltip="Installing outdated launchers may cause compatibility issues!" matTooltipPosition="below" class="warning" fill="red" viewBox="0 0 16 16">
-                      <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
-                    </svg>
+                  @if (pathVerificationStatus === 2) {
+                    <path class="dev-container-content-verification-cross" fill="#ef0000" d="M10.039 6.386 19.997 16.344l9.905 -9.905A2.453 2.453 0 0 1 31.661 5.666a2.666 2.666 0 0 1 2.666 2.666 2.4 2.4 0 0 1 -0.72 1.76L23.57 19.997l10.038 10.038A2.4 2.4 0 0 1 34.328 31.661a2.666 2.666 0 0 1 -2.666 2.666 2.453 2.453 0 0 1 -1.84 -0.72L19.997 23.65l-9.931 9.931A2.453 2.453 0 0 1 8.332 34.328a2.666 2.666 0 0 1 -2.666 -2.666 2.4 2.4 0 0 1 0.72 -1.76L16.424 19.997 6.386 9.959A2.4 2.4 0 0 1 5.666 8.332a2.666 2.666 0 0 1 2.666 -2.666c0.64 0.008 1.253 0.267 1.706 0.72"/>
                   }
-                  @if (release.name == clientVersion) {
-                    <div>
-                      <span class="installed-text">Installed!</span>
-                    </div>
-                  }
-                </td>
-              </ng-container>
-              <ng-container matColumnDef="version">
-                <th mat-header-cell *matHeaderCellDef> Version </th>
-                <td mat-cell *matCellDef="let release"> {{ release.name }}</td>
-              </ng-container>
-              <ng-container matColumnDef="date">
-                <th mat-header-cell *matHeaderCellDef> Date </th>
-                <td mat-cell *matCellDef="let release"> {{ release.published_at | date:'dd/MM/yy' }}</td>
-              </ng-container>
-              <ng-container matColumnDef="changes">
-                <th mat-header-cell *matHeaderCellDef> Changes </th>
-                <td mat-cell *matCellDef="let release">
-                  <a target="_blank" [href]="'https://github.com/JoKronk/teamruns-client/releases/tag/' + release.tag_name">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" class="github">
-                      <path d="M15,3C8.373,3,3,8.373,3,15c0,5.623,3.872,10.328,9.092,11.63C12.036,26.468,12,26.28,12,26.047v-2.051 c-0.487,0-1.303,0-1.508,0c-0.821,0-1.551-0.353-1.905-1.009c-0.393-0.729-0.461-1.844-1.435-2.526 c-0.289-0.227-0.069-0.486,0.264-0.451c0.615,0.174,1.125,0.596,1.605,1.222c0.478,0.627,0.703,0.769,1.596,0.769 c0.433,0,1.081-0.025,1.691-0.121c0.328-0.833,0.895-1.6,1.588-1.962c-3.996-0.411-5.903-2.399-5.903-5.098 c0-1.162,0.495-2.286,1.336-3.233C9.053,10.647,8.706,8.73,9.435,8c1.798,0,2.885,1.166,3.146,1.481C13.477,9.174,14.461,9,15.495,9 c1.036,0,2.024,0.174,2.922,0.483C18.675,9.17,19.763,8,21.565,8c0.732,0.731,0.381,2.656,0.102,3.594 c0.836,0.945,1.328,2.066,1.328,3.226c0,2.697-1.904,4.684-5.894,5.097C18.199,20.49,19,22.1,19,23.313v2.734 c0,0.104-0.023,0.179-0.035,0.268C23.641,24.676,27,20.236,27,15C27,8.373,21.627,3,15,3z"></path>
-                    </svg>
-                  </a>
-                </td>
-              </ng-container>
-              <tr mat-header-row *matHeaderRowDef="clientColumns; sticky: true"></tr>
-              <tr mat-row *matRowDef="let release; columns: clientColumns;" class="row"></tr>
-            </table>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="mods-section">
+            <div class="mods-toggle">
+              <span>Toggle local development mode.</span>
+              <mat-slide-toggle [(ngModel)]="_user.launcherConfigs.inDevMode" onchange="writeSetting()"></mat-slide-toggle>
+            </div>
+            @if (_user.launcherConfigs.inDevMode) {
+              <div class="mods-dev">
+              </div>
+            }
           </div>
         </div>
       </mat-tab>
@@ -144,42 +132,54 @@
           </mat-tab-group>
         </div>
       </mat-tab>
-      <mat-tab label="Settings">
-        <div class="mods">
-          <div class="mods-section">
-            <span>Install unofficial mod</span>
-            <div>
-              <input placeholder="Github URL">
-              <button (click)="unused()">Install</button>
-            </div>
-            <div>
-              <p>OpenGOAL Install Path:</p>
-              <p>{{ _user.launcherConfigs.installationDir ?? "Not set." }}</p>
-              <div class="dev-container">
-                <button class="dev-container-content" (click)="selectPath()">Change</button>
-                @if (_user.user.gameVersion) {
-                  <button class="dev-container-content" (click)="checkForInstall()">Verify path</button>
-                }
-                <svg xmlns="http://www.w3.org/2000/svg" class="dev-container-content-verification" viewBox="0 0 40 40">
-                  @if (pathVerificationStatus === 1) {
-                    <path class="dev-container-content-verification-checkmark" fill="#00ef00" d="M15.45 32.139L8.125 23.344a2.168 2.168 0 1 1 3.326 -2.77l5.336 6.406L28.329 6.989a2.166 2.166 0 0 1 3.753 2.168L18.987 32.139a2.168 2.168 0 0 1 -3.537 0z"/>
+      <mat-tab label="Launcher">
+        <div class="tab-content">
+          <div class="table-container">
+            <table mat-table [dataSource]="clientReleaseSource" multiTemplateDataRows>
+              <ng-container matColumnDef="download">
+                <th mat-header-cell *matHeaderCellDef> </th>
+                <td mat-cell *matCellDef="let release; let index = dataIndex;">
+                  @if (release.name !== clientVersion) {
+                    <svg matTooltip="Download" matTooltipPosition="below" class="download" (click)="installClient(release.tag_name)" version="1.1" viewBox="-0.5 -0.5 113 98">
+                      <g>
+                        <path d="M 21 19.95 L 57 19.95 L 57 0 L 91 35 L 57 70 L 57 50.05 L 21 50.05 L 21 35 Z" transform="rotate(90,56,35)"/>
+                        <path class="download-lower" d="M 6 50 L 6 80 Q 6 90 16 90 L 96 90 Q 106 90 106 80 L 106 50" fill="none" stroke-width="12" stroke-miterlimit="10"/>
+                      </g>
+                    </svg>
                   }
-                  @if (pathVerificationStatus === 2) {
-                    <path class="dev-container-content-verification-cross" fill="#ef0000" d="M10.039 6.386 19.997 16.344l9.905 -9.905A2.453 2.453 0 0 1 31.661 5.666a2.666 2.666 0 0 1 2.666 2.666 2.4 2.4 0 0 1 -0.72 1.76L23.57 19.997l10.038 10.038A2.4 2.4 0 0 1 34.328 31.661a2.666 2.666 0 0 1 -2.666 2.666 2.453 2.453 0 0 1 -1.84 -0.72L19.997 23.65l-9.931 9.931A2.453 2.453 0 0 1 8.332 34.328a2.666 2.666 0 0 1 -2.666 -2.666 2.4 2.4 0 0 1 0.72 -1.76L16.424 19.997 6.386 9.959A2.4 2.4 0 0 1 5.666 8.332a2.666 2.666 0 0 1 2.666 -2.666c0.64 0.008 1.253 0.267 1.706 0.72"/>
+                  @if (index !== 0 && release.name !== clientVersion) {
+                    <svg matTooltip="Installing outdated launchers may cause compatibility issues!" matTooltipPosition="below" class="warning" fill="red" viewBox="0 0 16 16">
+                      <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                    </svg>
                   }
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div class="mods-section">
-            <div class="mods-toggle">
-              <span>Toggle local development mode.</span>
-              <mat-slide-toggle [(ngModel)]="_user.launcherConfigs.inDevMode" onchange="writeSetting()"></mat-slide-toggle>
-            </div>
-            @if (_user.launcherConfigs.inDevMode) {
-              <div class="mods-dev">
-              </div>
-            }
+                  @if (release.name == clientVersion) {
+                    <div>
+                      <span class="installed-text">Installed!</span>
+                    </div>
+                  }
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="version">
+                <th mat-header-cell *matHeaderCellDef> Version </th>
+                <td mat-cell *matCellDef="let release"> {{ release.name }}</td>
+              </ng-container>
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef> Date </th>
+                <td mat-cell *matCellDef="let release"> {{ release.published_at | date:'dd/MM/yy' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="changes">
+                <th mat-header-cell *matHeaderCellDef> Changes </th>
+                <td mat-cell *matCellDef="let release">
+                  <a target="_blank" [href]="'https://github.com/JoKronk/teamruns-client/releases/tag/' + release.tag_name">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" class="github">
+                      <path d="M15,3C8.373,3,3,8.373,3,15c0,5.623,3.872,10.328,9.092,11.63C12.036,26.468,12,26.28,12,26.047v-2.051 c-0.487,0-1.303,0-1.508,0c-0.821,0-1.551-0.353-1.905-1.009c-0.393-0.729-0.461-1.844-1.435-2.526 c-0.289-0.227-0.069-0.486,0.264-0.451c0.615,0.174,1.125,0.596,1.605,1.222c0.478,0.627,0.703,0.769,1.596,0.769 c0.433,0,1.081-0.025,1.691-0.121c0.328-0.833,0.895-1.6,1.588-1.962c-3.996-0.411-5.903-2.399-5.903-5.098 c0-1.162,0.495-2.286,1.336-3.233C9.053,10.647,8.706,8.73,9.435,8c1.798,0,2.885,1.166,3.146,1.481C13.477,9.174,14.461,9,15.495,9 c1.036,0,2.024,0.174,2.922,0.483C18.675,9.17,19.763,8,21.565,8c0.732,0.731,0.381,2.656,0.102,3.594 c0.836,0.945,1.328,2.066,1.328,3.226c0,2.697-1.904,4.684-5.894,5.097C18.199,20.49,19,22.1,19,23.313v2.734 c0,0.104-0.023,0.179-0.035,0.268C23.641,24.676,27,20.236,27,15C27,8.373,21.627,3,15,3z"></path>
+                    </svg>
+                  </a>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="clientColumns; sticky: true"></tr>
+              <tr mat-row *matRowDef="let release; columns: clientColumns;" class="row"></tr>
+            </table>
           </div>
         </div>
       </mat-tab>
