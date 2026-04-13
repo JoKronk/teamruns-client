@@ -146,11 +146,11 @@ export class ConnectionHandler {
             return;
         
         if (this.localMaster?.peers) { //yes this is needed
-            let peer = this.localMaster.peers.find(x => x.player.user.id === userId);
+            let peer = this.localMaster.peers.find(x => x.peer.user.id === userId);
             if (peer) {
                 console.log("Destorying disconnected peer");
-                peer.peer.destroy();
-                this.localMaster!.peers = this.localMaster!.peers.filter(x => x.player.user.id !== userId);
+                peer.destroy();
+                this.localMaster!.peers = this.localMaster!.peers.filter(x => x.peer.user.id !== userId);
             }
         }
     }
@@ -169,7 +169,7 @@ export class ConnectionHandler {
             return false;
 
         for (let peer of this.localMaster.peers) {
-            for (let candidate of peer.masterCandidates) {
+            for (let candidate of peer.connectionDescription.masterCandidates) {
                 if (candidate.type === "host")
                     continue;
                 
@@ -182,7 +182,7 @@ export class ConnectionHandler {
 
     getHostId(): string | undefined {
         if (this.isSlave())
-            return this.localSlave!.hostId;
+            return this.localSlave!.peer.peer.user.id;
         else
             return this.localMaster?.user.id;
     }

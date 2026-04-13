@@ -3,7 +3,7 @@
 
     @if ((!runHandler.connected || !mainLocalPlayer) && runHandler.connectionHandler.localSlave) {
       <div class="logs">
-        @for (log of runHandler.connectionHandler.localSlave.connectionLogs; track log) {
+        @for (log of runHandler.connectionHandler.localSlave.peer.connectionLogs; track log) {
           <p>{{ log }}</p>
         }
       </div>

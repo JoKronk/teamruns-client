@@ -4,10 +4,10 @@ import { Lobby } from "../firestore/lobby";
 import { UserBase } from "../user/user";
 import { DataChannelEvent } from "./data-channel-event";
 import { UserPositionData } from "../socket/position-data";
-import { RTCPeer, RTCPeerSlaveConnection } from "./rtc-peer";
-import { RTCPeerDataConnection } from "./rtc-peer-data-connection";
-import { collection, doc, DocumentReference, onSnapshot, setDoc, Unsubscribe } from "@angular/fire/firestore";
+import { RTCPeer } from "./rtc-peer";
+import { collection, DocumentReference, onSnapshot, Unsubscribe } from "@angular/fire/firestore";
 import { FireStoreService } from "@app/services/fire-store.service";
+import { RTCConnectionDecription } from "./rtc-connection-description";
 
 export class RTCPeerMaster {
     user: UserBase;
@@ -17,7 +17,7 @@ export class RTCPeerMaster {
     positionChannel: Subject<UserPositionData> | null = null;
 
     peersUnsubscription: Unsubscribe;
-    peers: RTCPeerSlaveConnection[] = [];
+    peers: RTCPeer[] = [];
 
     constructor(user: UserBase, public lobbyRef: DocumentReference<Lobby>) {
         this.user = user;
@@ -25,100 +25,47 @@ export class RTCPeerMaster {
         this.positionChannel = new Subject();
 
         //setup user handling
-        this.peersUnsubscription = onSnapshot(collection(lobbyRef, CollectionName.peerConnections).withConverter(FireStoreService.convert<RTCPeer>()), (snapshot) => {
+        this.peersUnsubscription = onSnapshot(collection(lobbyRef, CollectionName.peerConnections).withConverter(FireStoreService.convert<RTCConnectionDecription>()), (snapshot) => {
             const peers = snapshot.docs.map(x => x.data());
-            peers.filter(x => x.player.user.id !== user.id).forEach(peer => {
-                let existingSlave = this.peers.find(x => x.player.user.id === peer.player.user.id);
-                if (!existingSlave)
-                    this.setupNewPeerConnection(peer);
-        
-                else if (peer.slaveCandidates.length != existingSlave.slaveCandidates.length) {
-                    //add all new candidates
-                    peer.slaveCandidates.filter(x => !existingSlave!.slaveCandidates.some(({ candidate: candidate }) => candidate === x.candidate)).forEach(candidate => {
-                        existingSlave!.peer.connection.addIceCandidate(candidate);
-                        console.log("master: Added new slave candidate from db!");
-                    });
-            
-                    existingSlave.slaveCandidates = peer.slaveCandidates;
+            peers.filter(x => x.player.user.id !== user.id).forEach(connectionDescription => {
+                let existingPeer = this.peers.find(x => x.peer.user.id === connectionDescription.player.user.id);
+                if (!existingPeer)
+                    this.peers.push(new RTCPeer(this.eventChannel, this.positionChannel, this.lobbyRef, this.user, connectionDescription.player, true, connectionDescription));
+
+                else if (connectionDescription.slaveCandidates.length != existingPeer.connectionDescription.slaveCandidates.length) {
+                    existingPeer.addPeerCandidates(connectionDescription);
                 }
             });
         });
     }
     
-    async setupNewPeerConnection(peer: RTCPeer) {
-
-        console.log("master: GOT NEW USER, setting up!", peer.player.user.name);
-        let slave = peer as RTCPeerSlaveConnection;
-        this.peers.push(slave);
-
-
-        //setup master connection to peer
-        slave.peer = new RTCPeerDataConnection(this.eventChannel, this.positionChannel, this.user, slave.player, this.lobbyRef, true);
-        
-        slave.peer.connection.onicecandidate = (event) => {
-            if (event.candidate) {
-                slave.masterCandidates.push(event.candidate);
-                console.log("master: Got master candidate!");
-            }
-        };
-
-        await slave.peer.connection.setRemoteDescription(new RTCSessionDescription(slave.slaveDescription));
-        const masterDescription = await slave.peer.connection.createAnswer();
-        await slave.peer.connection.setLocalDescription(masterDescription);
-
-        slave.slaveCandidates.forEach(candidate => {
-            slave.peer.connection.addIceCandidate(candidate);
-        });
-
-        console.log("master: Added new peer, with " + slave.slaveCandidates.length + " existing slave candidates!");
-
-
-        //answer slave
-        peer.masterDescription = masterDescription;
-
-        //!TODO: should setup a better solution for this, check slave side equivalent for further comments on it
-        setTimeout(() => {
-            if (this.isBeingDestroyed) return;
-            console.log("master: Setting connection in db for: ", peer.player.user.name);
-            setDoc(doc(this.lobbyRef, CollectionName.peerConnections, peer.player.user.id), JSON.parse(JSON.stringify(this.getPureRTCPeer(peer)))) //peer gets poluted by slave due to it being binded by reference
-        }, 500);
-    }
-
-    getPureRTCPeer(oldPeer: RTCPeer): RTCPeer {
-        let peer = new RTCPeer(oldPeer.player);
-        peer.masterDescription = oldPeer.masterDescription;
-        peer.masterCandidates = oldPeer.masterCandidates;
-        peer.slaveDescription = oldPeer.slaveDescription;
-        peer.slaveCandidates = oldPeer.slaveCandidates;
-        return peer;
-    }
 
     relayToSlaves(event: DataChannelEvent) {
-        this.peers.forEach(slave => {
-            if (slave.player.user.id !== event.userId)
-                slave.peer.sendEvent(event);
+        this.peers.forEach(peer => {
+            if (peer.peer.user.id !== event.userId)
+                peer.sendEvent(event);
         });
     }
 
     relayPositionToSlaves(target: UserPositionData) {
-        this.peers.forEach(slave => {
-            if (slave.player.user.id !== target.userId)
-                slave.peer.sendPosition(target);
+        this.peers.forEach(peer => {
+            if (peer.peer.user.id !== target.userId)
+                peer.sendPosition(target);
         });
     }
 
     sendEventToSpecificSlave(event: DataChannelEvent, userId: string) {
-        const peer = this.peers.find(x => x.player.user.id === userId);
+        const peer = this.peers.find(x => x.peer.user.id === userId);
         if (!peer) return;
 
-        peer.peer.sendEvent(event);
+        peer.sendEvent(event);
     }
 
     sendPositionToSpecificSlave(positionData: UserPositionData, userId: string) {
-        const peer = this.peers.find(x => x.player.user.id === userId);
+        const peer = this.peers.find(x => x.peer.user.id === userId);
         if (!peer) return;
 
-        peer.peer.sendPosition(positionData);
+        peer.sendPosition(positionData);
     }
 
 
@@ -126,8 +73,8 @@ export class RTCPeerMaster {
         this.isBeingDestroyed = true;
         if (this.peersUnsubscription) this.peersUnsubscription();
         if (this.peers) {
-            this.peers.forEach(pc => {
-                pc.peer.destroy();
+            this.peers.forEach(peerConnection => {
+                peerConnection.destroy();
             });
         }
     }
