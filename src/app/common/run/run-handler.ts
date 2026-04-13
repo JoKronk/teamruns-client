@@ -84,7 +84,7 @@ export class RunHandler {
             //lobby listener
             let userId = this.userService.getMainUserId();
             if (this.connectionHandler.isOnlineInstant) {
-                this.lobbyUnsubscription = onSnapshot(this.firestoreService.getLobbyDoc(lobbyId!), (snapshot) => {
+                this.lobbyUnsubscription = onSnapshot(this.firestoreService.getLobbyDoc(lobbyId!), { includeMetadataChanges: true }, (snapshot) => {
                     if (snapshot.metadata.hasPendingWrites || this.isBeingDestroyed) return;
                     let lobby = snapshot.data();
                     if (!lobby) return;
