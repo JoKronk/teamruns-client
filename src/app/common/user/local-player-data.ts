@@ -6,6 +6,7 @@ import { SocketHandler } from "../socket/socket-handler";
 import { NgZone } from "@angular/core";
 import { SocketHandlerLockout } from "../socket/socket-handler-lockout";
 import { ConnectionHandler } from "../peer/connection-handler";
+import { gameClose } from "@app/rpc/game";
 
 export class LocalPlayerData {
   user: User;
@@ -34,7 +35,7 @@ export class LocalPlayerData {
   }
 
   onDestroy(): void {
-    (window as any).electron.send('og-close-game', this.socketHandler.socketPort);
+    gameClose(this.socketHandler.socketPort);
     this.socketHandler.onDestroy();
   }
 }

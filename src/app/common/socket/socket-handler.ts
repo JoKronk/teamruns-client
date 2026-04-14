@@ -44,6 +44,9 @@ import { RunStateHandler } from "../level/run-state-handler";
 import { NotificationPackage } from "./notification-package";
 import { SyncState } from "../level/sync-state";
 import { Player } from "../player/player";
+import { tauntsFetch } from "@app/rpc/taunts";
+import { splitsFetch } from "@app/rpc/splits";
+import { saveWrite } from "@app/rpc/save";
 
 export class SocketHandler {
 
@@ -78,10 +81,6 @@ export class SocketHandler {
     protected socketPackage: SocketPackage = new SocketPackage();
     public socketConnected: boolean;
     ogSocket: WebSocketSubject<any> = webSocket('ws://localhost:8111');
-    private launchListener: any;
-    private shutdownListener: any;
-    private splitsListener: any;
-    private tauntsListener: any;
     private connectionAttempts: number;
     private timerSubscription: Subscription;
 
@@ -97,6 +96,7 @@ export class SocketHandler {
         if (this.user.name) //if client is fully reloaded in a place where position service is started at same time as use we pick up user on movement instead
             this.checkRegisterPlayer(this.user.getUserBaseWithDisplayName(), MultiplayerState.interactive);
 
+        /*
         this.launchListener = (window as any).electron.receive("og-launched", (port: number) => {
             if (port == this.socketPort) {
                 this.connectionAttempts = 0;
@@ -124,6 +124,7 @@ export class SocketHandler {
             }
 
         });
+        */
         
       this.timerSubscription = this.timer.timerSubject.subscribe(state => {
         switch(state) {
@@ -158,17 +159,14 @@ export class SocketHandler {
                 break;
         }
       });
-        
-      this.splitsListener = (window as any).electron.receive("splits-get", (splits: TaskSplit[] | null) => {
-          this.splits = splits !== null ? splits : TaskSplit.generateDefaultSplitList();
-      });
-
-      this.tauntsListener = (window as any).electron.receive("taunts-get", (taunts: Taunts[] | null) => {
-        this.taunts = taunts !== null ? taunts : Taunts.generateDefaultTauntList();
-    });
       
-    (window as any).electron.send('splits-fetch');
-    (window as any).electron.send('taunts-fetch');
+
+      splitsFetch().then((splits: TaskSplit[] | null) => {
+        this.splits = splits !== null ? splits : TaskSplit.generateDefaultSplitList();
+      });
+      tauntsFetch().then((taunts: Taunts[] | null) => {
+        this.taunts = taunts !== null ? taunts : Taunts.generateDefaultTauntList();
+      });
     }
 
     private connectToOpengoal() {
@@ -263,7 +261,7 @@ export class SocketHandler {
                 if (save.cellCount !== 0 || save.orbCount !== 0 || save.buzzerCount !== 0) {
                     save.name = this.run.data.name;
                     save.users = this.localTeam?.players.flatMap(x => x.user) ?? [];
-                    (window as any).electron.send('save-write', save);
+                    saveWrite(save);
                 }
             }
 
@@ -1033,10 +1031,6 @@ export class SocketHandler {
         this.timer.reset();
         this.stopDrawPlayers();
         this.timer.onDestroy();
-        this.launchListener();
-        this.shutdownListener();
-        this.splitsListener();
-        this.tauntsListener();
         this.ogSocket.complete();
     }
 }

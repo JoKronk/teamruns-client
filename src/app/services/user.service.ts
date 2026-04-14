@@ -211,7 +211,6 @@ export class UserService implements OnDestroy {
   readSettings(): void {
     getSettings().then((config) => {
       this.launcherConfigs = config as LauncherConfig;
-      console.log(this.launcherConfigs);
       this.user.importUserCopy(this.launcherConfigs.user);
       this.UserCopy = this.launcherConfigs.user;
       this.userSetupSubject.next(this.user);

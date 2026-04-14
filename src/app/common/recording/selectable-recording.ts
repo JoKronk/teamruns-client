@@ -1,6 +1,5 @@
 import { DbRecordingFile } from "../firestore/db-recording-file";
 import { DbUsersCollection } from "../firestore/db-users-collection";
-import { RecordingBase } from "./recording-base";
 import { Recording } from "./recording";
 import { RecordingFile } from "./recording-file";
 
