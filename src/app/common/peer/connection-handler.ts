@@ -41,7 +41,7 @@ export class ConnectionHandler {
 
     setupMaster(lobbyDoc: DocumentReference<Lobby>) {
         console.log("Setting up master!");
-        this.localMaster = new RTCPeerMaster(this.mainLocalUser.getUserBaseWithDisplayName(), lobbyDoc);
+        this.localMaster = new RTCPeerMaster(this.mainLocalUser.generatePlayerBase(), lobbyDoc);
         this.dataSubscription = this.localMaster.eventChannel.subscribe(event => {
             if (!this.localMaster?.isBeingDestroyed)
                 this.dataChannelEventSubject.next(event);
@@ -184,7 +184,7 @@ export class ConnectionHandler {
         if (this.isSlave())
             return this.localSlave!.peer.peer.user.id;
         else
-            return this.localMaster?.user.id;
+            return this.localMaster?.host.user.id;
     }
 
     destory() {

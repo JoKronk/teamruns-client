@@ -8,9 +8,9 @@ import { RTCPeer } from "./rtc-peer";
 import { collection, DocumentReference, onSnapshot, Unsubscribe } from "@angular/fire/firestore";
 import { FireStoreService } from "@app/services/fire-store.service";
 import { RTCConnectionDecription } from "./rtc-connection-description";
+import { PlayerBase } from "../player/player-base";
 
 export class RTCPeerMaster {
-    user: UserBase;
     isBeingDestroyed: boolean = false;
 
     eventChannel: Subject<DataChannelEvent> = new Subject();
@@ -19,18 +19,16 @@ export class RTCPeerMaster {
     peersUnsubscription: Unsubscribe;
     peers: RTCPeer[] = [];
 
-    constructor(user: UserBase, public lobbyRef: DocumentReference<Lobby>) {
-        this.user = user;
-
+    constructor(public host: PlayerBase, public lobbyRef: DocumentReference<Lobby>) {
         this.positionChannel = new Subject();
 
         //setup user handling
         this.peersUnsubscription = onSnapshot(collection(lobbyRef, CollectionName.peerConnections).withConverter(FireStoreService.convert<RTCConnectionDecription>()), (snapshot) => {
             const connections = snapshot.docs.map(x => x.data());
-            connections.filter(x => x.peer.user.id !== user.id).forEach(connectionDescription => {
+            connections.filter(x => x.peer.user.id !== host.user.id).forEach(connectionDescription => {
                 const existingPeer = this.peers.find(x => x.peer.user.id === connectionDescription.peer.user.id);
                 if (!existingPeer)
-                    this.peers.push(new RTCPeer(this.eventChannel, this.positionChannel, this.lobbyRef, this.user, connectionDescription.peer, true, connectionDescription));
+                    this.peers.push(new RTCPeer(this.eventChannel, this.positionChannel, this.lobbyRef, host, connectionDescription.peer, true, connectionDescription));
 
                 else if (connectionDescription.peerCandidates.length != existingPeer.connectionDescription.peerCandidates.length) {
                     existingPeer.addPeerCandidates(connectionDescription);

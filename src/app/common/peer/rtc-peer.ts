@@ -26,7 +26,7 @@ export class RTCPeer {
     private eventChannelId: string;
     private positionChannelId: string;
 
-    private self: UserBase;
+    private self: PlayerBase;
     peer: PlayerBase;
     private isHost: boolean;
     private hasPushedIceCandidates = false;
@@ -35,10 +35,10 @@ export class RTCPeer {
     peerDocSubscription: Unsubscribe | null = null;
 
 
-    constructor(public eventChannel: Subject<DataChannelEvent>, public positionChannel: Subject<UserPositionData> | null, public lobbyRef: DocumentReference<Lobby>, self: UserBase, peer: PlayerBase, isHost: boolean, connectionDescription: RTCConnectionDecription | null = null) {
-        console.log("is peer", peer instanceof PlayerBase)
+    constructor(public eventChannel: Subject<DataChannelEvent>, public positionChannel: Subject<UserPositionData> | null, public lobbyRef: DocumentReference<Lobby>, self: PlayerBase, peer: PlayerBase, isHost: boolean, connectionDescription: RTCConnectionDecription | null = null) {
+
         if (connectionDescription == null)
-        this.connectionDescription = new RTCConnectionDecription(isHost ? new PlayerBase(self, PlayerType.User) : peer); //!TODO: FIX SO THAT WE KNOW IF HOST IS USER OR GUEST USER
+        this.connectionDescription = new RTCConnectionDecription(isHost ? peer : self);
         else
             this.connectionDescription = RTCConnectionDecription.copy(connectionDescription);
 
@@ -58,7 +58,7 @@ export class RTCPeer {
 
         //initial setup for connection
         this.setupIceServersForConnection();
-        this.createDataChannelsForConnection(this.isHost ? this.peer.user.id : self.id, positionChannel !== null);
+        this.createDataChannelsForConnection(this.isHost ? this.peer.user.id : this.self.user.id, positionChannel !== null);
 
         //setup listeners
         this.setupEventChannelListener();
@@ -88,7 +88,7 @@ export class RTCPeer {
         if (this.isHost)
             return doc(this.lobbyRef, CollectionName.peerConnections, this.peer.user.id).withConverter(FireStoreService.convert<RTCConnectionDecription>())
         else
-            return doc(this.lobbyRef, CollectionName.peerConnections, this.self.id).withConverter(FireStoreService.convert<RTCConnectionDecription>())
+            return doc(this.lobbyRef, CollectionName.peerConnections, this.self.user.id).withConverter(FireStoreService.convert<RTCConnectionDecription>())
     }
     
     logProgress(log: string, customConsoleLog: string | any[] | null = null) {
@@ -140,11 +140,11 @@ export class RTCPeer {
     private setupEventChannelListener() {
         this.eventChannelToPeer.onopen = () => {
             this.logProgress("Peer event channel connected!");
-            this.eventChannel.next(new DataChannelEvent(this.self.id, EventType.Connect, this.peer));
+            this.eventChannel.next(new DataChannelEvent(this.self.user.id, EventType.Connect, this.peer));
         }
         this.eventChannelToPeer.onclose = () => {
             this.logProgress("Peer event channel closed!");
-            this.eventChannel.next(new DataChannelEvent(this.self.id, EventType.Disconnect, this.peer.user));
+            this.eventChannel.next(new DataChannelEvent(this.self.user.id, EventType.Disconnect, this.peer.user));
         }
         this.eventChannelToPeer.onerror = (error) => {
             this.logError("Event channel error", error);
@@ -156,11 +156,11 @@ export class RTCPeer {
     private setupPositionChannelListener() {
         this.positionChannelToPeer.onopen = () => {
             this.logProgress("Peer position channel connected!");
-            this.eventChannel.next(new DataChannelEvent(this.self.id, EventType.PositionChannelOpen, null));
+            this.eventChannel.next(new DataChannelEvent(this.self.user.id, EventType.PositionChannelOpen, null));
         }
         this.positionChannelToPeer.onclose = () => {
             this.logProgress("Peer position channel closed!");
-            this.eventChannel.next(new DataChannelEvent(this.self.id, EventType.PositionChannelClosed, null));
+            this.eventChannel.next(new DataChannelEvent(this.self.user.id, EventType.PositionChannelClosed, null));
         }
         this.positionChannelToPeer.onerror = (error) => {
             this.logError("Position channel error", error);
@@ -308,7 +308,7 @@ export class RTCPeer {
         if (this.isBeingDestroyed || this.hasConnected) return;
 
         this.logProgress("Unable to establish connection...", ["kicking: ", self.name]);
-        this.eventChannel.next(new DataChannelEvent(this.self.id, EventType.Kick, this.self.id)); //send a fabricated kick request for self from peer
+        this.eventChannel.next(new DataChannelEvent(this.self.user.id, EventType.Kick, this.self.user.id)); //send a fabricated kick request for self from peer
         deleteDoc(this.getPeerDoc());
         
     }

@@ -14,7 +14,7 @@ export class RTCPeerSlave {
     positionChannel: Subject<UserPositionData> | null = new Subject();
 
     constructor(player: PlayerBase, lobbyRef: DocumentReference<Lobby>, host: PlayerBase) {
-        this.peer = new RTCPeer(this.eventChannel, this.positionChannel, lobbyRef, player.user, host, false);
+        this.peer = new RTCPeer(this.eventChannel, this.positionChannel, lobbyRef, player, host, false);
     }
 
     destroy() {
