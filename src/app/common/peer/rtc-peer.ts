@@ -20,9 +20,8 @@ export class RTCPeer {
     eventChannelToPeer: RTCDataChannel;
     positionChannelToPeer: RTCDataChannel;
     hasConnected: boolean = false;
-    connectionLogs: string[] | null = null;
-
-    private connectionLog: string[] | null = null;
+    connectionLog: string[] | null = null;
+    
     private eventChannelId: string;
     private positionChannelId: string;
 
@@ -96,7 +95,10 @@ export class RTCPeer {
             this.connectionLog.push(log);
         
         if (customConsoleLog !== undefined) {
-            console.log(customConsoleLog ?? log);
+            if (Array.isArray(customConsoleLog))
+                console.log(...customConsoleLog);
+            else
+                console.log(customConsoleLog ?? log);
         }
     }
 

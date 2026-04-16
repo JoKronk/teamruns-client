@@ -185,7 +185,7 @@ export class LeaderboardComponent implements OnDestroy {
               callbacks: {
                 label: function (context) {
                   let wr = wrs.find(x => x.endTimeMs === context.parsed.y);
-                  return wr?.players.flatMap(x => userCollection!.users.find(y => y.id === x.user.id)?.name).join(", ") + " · " + Timer.msToTimeTextFormat(context.parsed.y);
+                  return wr?.players.flatMap(x => userCollection!.users.find(y => y.id === x.user.id)?.name).join(", ") + " · " + Timer.msToTimeTextFormat(context.parsed.y!);
                 }
               }
             },

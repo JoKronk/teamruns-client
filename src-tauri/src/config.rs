@@ -360,8 +360,8 @@ impl LauncherConfig {
                 }
                 "auto_update_games" => Ok(Value::Bool(self.auto_update_games)),
                 "delete_previous_versions" => Ok(Value::Bool(self.delete_previous_versions)),
-                "in_dev_mode" => Ok(Value::Bool((self.in_dev_mode))),
-                "save_recordings_locally" => Ok(Value::Bool((self.save_recordings_locally))),
+                "in_dev_mode" => Ok(Value::Bool(self.in_dev_mode)),
+                "save_recordings_locally" => Ok(Value::Bool(self.save_recordings_locally)),
                 _ => {
                     log::error!("Key '{}' not recognized", key);
                     Err(ConfigError::Configuration("Invalid key".to_owned()))
