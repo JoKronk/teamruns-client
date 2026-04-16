@@ -9,6 +9,8 @@ import { FooterComponent } from '@app/window-components/footer/footer.component'
 import { FormsModule } from '@angular/forms';
 import { MatTabsModule } from '@angular/material/tabs';
 import { HeaderComponent } from '@app/window-components/header/header.component';
+import { tauntsFetch } from '@app/rpc/taunts';
+import { splitsFetch } from '@app/rpc/splits';
 
 @Component({
     selector: 'app-user-settings',
@@ -40,10 +42,8 @@ export class UserSettingsComponent implements OnDestroy {
   private tauntsListener: any;
 
   constructor(public _user: UserService, private dialog: MatDialog, private zone: NgZone) {
-    this.setupSplitsListener();
-    this.setupTauntsListener();
-    (window as any).electron.send('splits-fetch');
-    (window as any).electron.send('taunts-fetch');
+    this.getSplits();
+    this.getTaunts();
   }
 
   openRecordings() {
@@ -100,8 +100,8 @@ export class UserSettingsComponent implements OnDestroy {
     this._user.sendNotification("Splits saved!");
   }
 
-  setupSplitsListener() {
-    this.splitsListener = (window as any).electron.receive("splits-get", (splits: TaskSplit[] | null) => {
+  getSplits() {
+    splitsFetch().then((splits: TaskSplit[] | null) => {
       this.zone.run(() => {
         this.setSplits(splits !== null ? splits : TaskSplit.generateDefaultSplitList());
       });
@@ -145,8 +145,8 @@ export class UserSettingsComponent implements OnDestroy {
     }
   }
 
-  setupTauntsListener() {
-    this.tauntsListener = (window as any).electron.receive("taunts-get", (taunts: Taunts[] | null) => {
+  getTaunts() {
+    tauntsFetch().then((taunts: Taunts[] | null) => {
       this.zone.run(() => {
         this.setTaunts(taunts !== null ? taunts : Taunts.generateDefaultTauntList());
       });
