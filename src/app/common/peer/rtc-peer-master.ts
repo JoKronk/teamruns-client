@@ -26,13 +26,13 @@ export class RTCPeerMaster {
 
         //setup user handling
         this.peersUnsubscription = onSnapshot(collection(lobbyRef, CollectionName.peerConnections).withConverter(FireStoreService.convert<RTCConnectionDecription>()), (snapshot) => {
-            const peers = snapshot.docs.map(x => x.data());
-            peers.filter(x => x.player.user.id !== user.id).forEach(connectionDescription => {
-                let existingPeer = this.peers.find(x => x.peer.user.id === connectionDescription.player.user.id);
+            const connections = snapshot.docs.map(x => x.data());
+            connections.filter(x => x.peer.user.id !== user.id).forEach(connectionDescription => {
+                const existingPeer = this.peers.find(x => x.peer.user.id === connectionDescription.peer.user.id);
                 if (!existingPeer)
-                    this.peers.push(new RTCPeer(this.eventChannel, this.positionChannel, this.lobbyRef, this.user, connectionDescription.player, true, connectionDescription));
+                    this.peers.push(new RTCPeer(this.eventChannel, this.positionChannel, this.lobbyRef, this.user, connectionDescription.peer, true, connectionDescription));
 
-                else if (connectionDescription.slaveCandidates.length != existingPeer.connectionDescription.slaveCandidates.length) {
+                else if (connectionDescription.peerCandidates.length != existingPeer.connectionDescription.peerCandidates.length) {
                     existingPeer.addPeerCandidates(connectionDescription);
                 }
             });

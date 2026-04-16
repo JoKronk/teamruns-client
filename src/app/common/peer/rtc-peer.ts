@@ -52,21 +52,20 @@ export class RTCPeer {
             this.checkDeleteOldPeer();
         }
         else
-            this.logProgress("Got new user!", ("Host: Got new user " + this.peer.user.name + " with " + this.connectionDescription.slaveCandidates.length + " candidates. Starting setup!"));
+            this.logProgress("Got new user!", ("Host: Got new user " + this.peer.user.name + " with " + this.connectionDescription.peerCandidates.length + " candidates. Starting setup!"));
 
 
 
-        //initial creations for connection
+        //initial setup for connection
         this.setupIceServersForConnection();
         this.createDataChannelsForConnection(this.isHost ? this.peer.user.id : self.id, positionChannel !== null);
 
         //setup listeners
         this.setupEventChannelListener();
-        if (positionChannel)
-            this.setupPositionChannelListener();
+        if (positionChannel) this.setupPositionChannelListener();
+        this.setupConnectionListener();
 
         this.setupIceCandidatesListener();
-        this.setupConnectionListener();
 
         //start connection establishment process
         if (!this.isHost) {
@@ -77,7 +76,7 @@ export class RTCPeer {
             this.createAnswer();
         
 
-        //check if user never connected -> if so assume stuck or blocked by leftover user data from improper disconnect
+        //check if user never connected -> if so assume stuck or blocked somehow by leftover user data from improper disconnect
         if (this.isHost) {
             setTimeout(() => {
                 this.checkKickOnConnectionFailure();
@@ -101,6 +100,11 @@ export class RTCPeer {
         }
     }
 
+    //!TODO: Do more with this
+    private logError(msg: string, error: any) {
+        console.log(msg, error);
+    }
+
     // --- SETUP FUNCTIONS ---
 
     private async checkDeleteOldPeer() {
@@ -113,25 +117,24 @@ export class RTCPeer {
     }
 
     private setupIceServersForConnection() {
-        let peerIceServers: RTCIceServer[] = [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }];
-        peerIceServers.push(environment.turnIceServer);
+        let peerIceServers: RTCIceServer[] = [environment.stunServers, environment.turnIceServers];
 
         this.connection = new RTCPeerConnection({
             iceServers: peerIceServers,
             iceCandidatePoolSize: 10,
         });
-        this.logProgress("Ice connections configured");
+        this.logProgress("ICE servers configured");
     }
 
-    private createDataChannelsForConnection(connectionId: string, hasPositionChannel: boolean) {
-        this.eventChannelId = "dc-" + connectionId;
-        this.positionChannelId = "pos-" + connectionId;
+    private createDataChannelsForConnection(peerId: string, hasPositionChannel: boolean) {
+        this.eventChannelId = "dc-" + peerId;
+        this.positionChannelId = "pos-" + peerId;
         this.eventChannelToPeer = this.connection.createDataChannel(this.eventChannelId);
-        
+
         if (hasPositionChannel)
-            this.positionChannelToPeer = this.connection.createDataChannel(this.positionChannelId, {ordered: false});
+        this.positionChannelToPeer = this.connection.createDataChannel(this.positionChannelId, {ordered: false});
         
-        this.logProgress("Peer event channels created", ["Created event channels for id: ", connectionId]);
+        this.logProgress("Peer event channels created", ["Created event channels for id: ", peerId]);
     }
 
     private setupEventChannelListener() {
@@ -144,7 +147,7 @@ export class RTCPeer {
             this.eventChannel.next(new DataChannelEvent(this.self.id, EventType.Disconnect, this.peer.user));
         }
         this.eventChannelToPeer.onerror = (error) => {
-            console.log("Event channel error", error);
+            this.logError("Event channel error", error);
         }
         this.logProgress("Event channel listener created");
         this.logProgress("Waiting for event channel connection with host...", undefined);
@@ -160,7 +163,7 @@ export class RTCPeer {
             this.eventChannel.next(new DataChannelEvent(this.self.id, EventType.PositionChannelClosed, null));
         }
         this.positionChannelToPeer.onerror = (error) => {
-            console.log("Position channel error", error);
+            this.logError("Position channel error", error);
         }
         this.logProgress("Position channel listener created");
         this.logProgress("Waiting for position channel connection with host...", undefined);
@@ -171,9 +174,9 @@ export class RTCPeer {
             //on cadidate
             if (event.candidate) {
                 if (this.isHost)
-                    this.connectionDescription.masterCandidates.push(event.candidate);
+                    this.connectionDescription.hostCandidates.push(event.candidate);
                 else
-                    this.connectionDescription.slaveCandidates.push(event.candidate);
+                    this.connectionDescription.peerCandidates.push(event.candidate);
                 this.logProgress("Got ICE candidate");
 
                 this.hasPushedIceCandidates = false;
@@ -199,28 +202,25 @@ export class RTCPeer {
             });
         }
         else {
-            setDoc(this.getPeerDoc(), JSON.parse(JSON.stringify(this.connectionDescription))).then(() => {
+            setDoc(this.getPeerDoc(), JSON.parse(JSON.stringify(RTCConnectionDecription.copy(this.connectionDescription)))).then(() => {
                 this.logProgress("SDP offer given!", "Peer: SDP offer given!");
             });
         }
     }
 
     private setupConnectionListener() {
-        //setup remote peer data listeners
         this.connection.ondatachannel = ((dc) => {
-            this.logProgress("Host data channel connected!", ['%cGot data channel', 'color: #00ff00', dc])
-
             const channel = dc.channel;
 
             if (this.isHost) {
-                //should be safe to delete instantly but we playing it safe
+                //should be safe to delete instantly but we're playing it safe
                 setTimeout(() => {
                     if (this.isBeingDestroyed) return;
                     deleteDoc(doc(this.lobbyRef, CollectionName.peerConnections, this.peer.user.id));
                 }, 1000);
             }
 
-            //define data channel data handling
+            //event channel data handling
             if (channel.label === this.eventChannelId) {
                 this.hasConnected = true;
 
@@ -229,7 +229,7 @@ export class RTCPeer {
                 }
             }
 
-            //define position channel data handling
+            //position channel data handling
             else if (channel.label === this.positionChannelId && this.positionChannel) {
                 channel.onmessage = (target) => {
                     this.positionChannel!.next(JSON.parse(target.data));
@@ -240,9 +240,9 @@ export class RTCPeer {
 
     private async createOffer() {
         //create session description offer for connecting client, this automatically should start the ice candidates fetching
-        this.connectionDescription.slaveDescription = await this.connection.createOffer();
+        this.connectionDescription.peerOffer = await this.connection.createOffer();
         this.logProgress("Creating SDP offer", "Peer: Creating SDP offer");
-        await this.connection.setLocalDescription(this.connectionDescription.slaveDescription);
+        await this.connection.setLocalDescription(this.connectionDescription.peerOffer);
         this.logProgress("Starting ICE candidates collecting process");
 
         this.waitCheckIceCandidatesPush();
@@ -250,13 +250,13 @@ export class RTCPeer {
 
     private async createAnswer() {
 
-        await this.connection.setRemoteDescription(new RTCSessionDescription(this.connectionDescription.slaveDescription));
-        this.connectionDescription.masterDescription = await this.connection.createAnswer();
+        await this.connection.setRemoteDescription(new RTCSessionDescription(this.connectionDescription.peerOffer));
+        this.connectionDescription.hostAnswer = await this.connection.createAnswer();
         this.logProgress("Creating SDP answer", "Host: Creating SDP answer");
-        await this.connection.setLocalDescription(this.connectionDescription.masterDescription);
+        await this.connection.setLocalDescription(this.connectionDescription.hostAnswer);
         this.logProgress("Starting ICE candidates collecting process");
 
-        this.connectionDescription.slaveCandidates.forEach(candidate => {
+        this.connectionDescription.peerCandidates.forEach(candidate => {
             this.connection.addIceCandidate(candidate);
         });
 
@@ -278,30 +278,30 @@ export class RTCPeer {
             if (!data) return;
 
             //check master description creation
-            if (data.masterDescription && (!this.connection.currentRemoteDescription || this.connectionDescription.masterDescription?.sdp !== data.masterDescription.sdp)) {
-                this.connectionDescription.masterDescription = data.masterDescription;
+            if (data.hostAnswer && (!this.connection.currentRemoteDescription || this.connectionDescription.hostAnswer?.sdp !== data.hostAnswer.sdp)) {
+                this.connectionDescription.hostAnswer = data.hostAnswer;
                 this.logProgress("Got SDP answer from host!");
-                this.connection.setRemoteDescription(new RTCSessionDescription(this.connectionDescription.masterDescription));
+                this.connection.setRemoteDescription(new RTCSessionDescription(this.connectionDescription.hostAnswer));
             }
 
             //check ice candidate add
-            if (data.masterDescription && data.masterCandidates.length != this.connectionDescription.masterCandidates.length) { 
+            if (data.hostAnswer && data.hostCandidates.length != this.connectionDescription.hostCandidates.length) { 
                 //add all new candidates
-                data.masterCandidates.filter(x => !this.connectionDescription.masterCandidates.some(({ candidate: candidate }) => candidate === x.candidate)).forEach(candidate => {
+                data.hostCandidates.filter(x => !this.connectionDescription.hostCandidates.some(({ candidate: candidate }) => candidate === x.candidate)).forEach(candidate => {
                     this.connection.addIceCandidate(candidate);
                     console.log("Peer: Added new host candidate!");
                 });
-                this.connectionDescription.masterCandidates = data.masterCandidates;
+                this.connectionDescription.hostCandidates = data.hostCandidates;
             }
         });
     }
 
     addPeerCandidates(connectionDescription: RTCConnectionDecription) {
-        connectionDescription.slaveCandidates.filter(x => !this.connectionDescription.slaveCandidates.some(({ candidate: candidate }) => candidate === x.candidate)).forEach(candidate => {
+        connectionDescription.peerCandidates.filter(x => !this.connectionDescription.peerCandidates.some(({ candidate: candidate }) => candidate === x.candidate)).forEach(candidate => {
             this.connection.addIceCandidate(candidate);
             console.log("Host: Added new peer candidate!");
         });
-        this.connectionDescription.slaveCandidates = connectionDescription.slaveCandidates;
+        this.connectionDescription.peerCandidates = connectionDescription.peerCandidates;
     }
 
     private checkKickOnConnectionFailure() {

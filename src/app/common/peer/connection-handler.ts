@@ -169,7 +169,7 @@ export class ConnectionHandler {
             return false;
 
         for (let peer of this.localMaster.peers) {
-            for (let candidate of peer.connectionDescription.masterCandidates) {
+            for (let candidate of peer.connectionDescription.hostCandidates) {
                 if (candidate.type === "host")
                     continue;
                 
