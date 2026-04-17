@@ -128,7 +128,7 @@ export class RunHandler {
         if (!this.lobby) return;
 
         console.log("Got Lobby Change!");
-        //become master if needed (for example host disconnect or no host at start)
+        //become host if needed (for example host disconnect or no host at start)
         if (this.shouldBecomeHost(userId)) {
             let player = this.run?.getPlayer(userId);
             if (!player) return;
@@ -137,7 +137,7 @@ export class RunHandler {
             if (this.connectionHandler.isOnlineInstant)
                 await this.firestoreService.deleteLobbySubCollections(this.lobby.id);
 
-            if (this.connectionHandler.isSlave())
+            if (this.connectionHandler.isPeer())
                 this.run?.removePlayer(this.connectionHandler.getHostId());
 
             this.resetUser();
@@ -156,21 +156,21 @@ export class RunHandler {
             if (this.connectionHandler.isOnlineInstant) {
                 this.lobby.visible = true;
                 await this.updateFirestoreLobby();
-                this.connectionHandler.setupMaster(this.firestoreService.getLobbyDoc(this.lobby!.id));
+                this.connectionHandler.setupAsHost(this.firestoreService.getLobbyDoc(this.lobby!.id));
             }
             this.markConnected();
         }
 
 
-        //slave checks on lobby change
-        if (this.connectionHandler.isOnlineInstant && !this.connectionHandler.isMaster()) {
-            //kill current slave connection if new host
+        //peer checks on lobby change
+        if (this.connectionHandler.isOnlineInstant && !this.connectionHandler.isHost()) {
+            //kill current peer connection if new host
             if (this.connectionHandler.getHostId() !== this.lobby.host?.user.id)
                 this.resetUser();
 
-            //become slave if not already and master exists
-            if (!this.connectionHandler.isSlave() && this.lobby.host)
-                this.connectionHandler.setupSlave(this.firestoreService.getLobbyDoc(this.lobby!.id));
+            //become peer if not already and host exists
+            if (!this.connectionHandler.isPeer() && this.lobby.host)
+                this.connectionHandler.setupAsPeer(this.firestoreService.getLobbyDoc(this.lobby!.id));
         }
     }
 
@@ -180,7 +180,6 @@ export class RunHandler {
         this.userService.resetLocalPlayersToNewMain(localMain);
         this.connectionHandler.reLinkLocalPeers(this.userService.localUsers);
 
-        this.run.data.gameVersion = localMain.user.gameVersion;
         this.run.spectators.push(new Player(localMain.user.getUserBaseWithDisplayName(), localMain.user.getPlayerType()));
         localMain.socketHandler.startDrawPlayers();
 
@@ -223,14 +222,14 @@ export class RunHandler {
 
     shouldBecomeHost(userId: string): boolean {
         if (!this.lobby) return false;
-        if ((!this.lobby.host && (!this.lobby.backupHost || this.lobby.backupHost.id === this.userService.getMainUserId())) || (this.lobby.host?.user.id === userId && !this.connectionHandler.isMaster()))
+        if ((!this.lobby.host && (!this.lobby.backupHost || this.lobby.backupHost.id === this.userService.getMainUserId())) || (this.lobby.host?.user.id === userId && !this.connectionHandler.isHost()))
             return true;
         else
             return false;
     }
 
     dehost() { //used only for testing atm, cannot currently be used if host is in a team as he's removed from the team on dehost
-        if (!this.connectionHandler.isMaster() || !this.lobby) return;
+        if (!this.connectionHandler.isHost() || !this.lobby) return;
         console.log("dehosting");
         this.connectionHandler.destory();
         this.lobby.host = null;
@@ -267,11 +266,11 @@ export class RunHandler {
         const syncRun = Object.assign(new Run(this.run.data), JSON.parse(JSON.stringify(this.run, (key, value) => { return key === "timerSubject" ? undefined : value; }))).reconstructRun();
         for (let team of syncRun.teams)
             team.runState.resetHandler();
-        this.connectionHandler.respondToSlave(new DataChannelEvent(this.userService.getMainUserId(), EventType.RunSync, new SyncResponse(new SyncRequest("", SyncRequestReason.InitConnect), syncRun)), userId);
+        this.connectionHandler.respondToPeer(new DataChannelEvent(this.userService.getMainUserId(), EventType.RunSync, new SyncResponse(new SyncRequest("", SyncRequestReason.InitConnect), syncRun)), userId);
         let users = this.run!.getAllPlayers().flatMap(x => x.user);
         setTimeout(() => {
             for (let interaction of this.run!.teams.flatMap(x => x.runState.levels).flatMap(x => x.interactions))
-                this.connectionHandler.respondToSlave(UserPositionData.fromUserInteractionData(interaction, users.find(x => x.id === interaction.userId) ?? this.userService.user, true), userId);
+                this.connectionHandler.respondToPeer(UserPositionData.fromUserInteractionData(interaction, users.find(x => x.id === interaction.userId) ?? this.userService.user, true), userId);
         }, 1000); 
     }
 
@@ -286,18 +285,18 @@ export class RunHandler {
         if (!this.run) return;
         const userId = this.userService.getMainUserId();
 
-        //send updates from master to all slaves | this should be here and not moved up to sendEvent as it's not the only method triggering this
-        if (this.connectionHandler.isMaster() && this.connectionHandler.isOnlineInstant && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
-            this.connectionHandler.relayToSlaves(event);
+        //send updates from host to all peers | this should be here and not moved up to sendEvent as it's not the only method triggering this
+        if (this.connectionHandler.isHost() && this.connectionHandler.isOnlineInstant && event.type !== EventType.RequestRunSync && event.type !== EventType.RunSync)
+            this.connectionHandler.relayToPeers(event);
 
         switch (event.type) {
 
-            case EventType.Connect: //rtc stuff on connection is setup individually in rtc-peer-master/slave
+            case EventType.Connect: //rtc stuff on connection is setup individually in rtc-host/peer
                 const newUser: PlayerBase = event.value as PlayerBase;
                 console.log(newUser.user.name + " connected!");
                 this.sendChatMessage(new ChatMessage(newUser.user.name + " connected!", undefined, "#cecece"));
 
-                if (this.connectionHandler.isMaster()) {
+                if (this.connectionHandler.isHost()) {
                     //handle run
                     const isRunner: boolean = (this.run.getPlayerTeam(newUser.user.id) !== undefined);
                     if (isRunner)
@@ -346,7 +345,7 @@ export class RunHandler {
                 this.updateAllPlayerInfo();
 
                 //host logic
-                if (this.connectionHandler.isMaster()) {
+                if (this.connectionHandler.isHost()) {
                     this.connectionHandler.destoryPeer(disconnectedUser.id);
 
                     let updateDb = false;
@@ -411,7 +410,7 @@ export class RunHandler {
 
 
             case EventType.RequestRunSync:
-                if (this.connectionHandler.isMaster()) {
+                if (this.connectionHandler.isHost()) {
                     this.loadRunToRemotePlayer(event.userId);
                     console.log("Got run sync request, responding!");
                 }
@@ -478,7 +477,7 @@ export class RunHandler {
                         this.checkSaveRecordingsLocally(recordings, playerTeam);
 
                         //pb upload
-                        if (this.connectionHandler.isMaster() && RunMod.isAddedToRunHistory(this.run.data.mode)) {
+                        if (this.connectionHandler.isHost() && RunMod.isAddedToRunHistory(this.run.data.mode)) {
                             let dbRun: DbRun = DbRun.convertToFromRun(this.run, this.lobby);
                         
                             // add run to history if any player is signed in
@@ -562,7 +561,7 @@ export class RunHandler {
                     this.updateAllPlayerInfo();
                 });
 
-                if (!this.connectionHandler.isMaster()) break;
+                if (!this.connectionHandler.isHost()) break;
                 const user: LobbyUser | undefined = this.lobby?.getUser(event.userId);
                 if (!user || user.isRunner) break;
 
@@ -604,7 +603,7 @@ export class RunHandler {
                 });
 
                 //check if everyone is ready, send start call if so
-                if (this.connectionHandler.isMaster() && event.value === PlayerState.Ready && this.run!.everyoneIsReady()) {
+                if (this.connectionHandler.isHost() && event.value === PlayerState.Ready && this.run!.everyoneIsReady()) {
                     if (this.run.data.mode !== RunMode.Casual)
                         this.updateLobbyInProgress();
 
@@ -837,7 +836,7 @@ export class RunHandler {
     }
 
     isHost(): boolean {
-        return !this.connectionHandler.isOnlineInstant || (this.connectionHandler.isMaster() && this.lobby?.host?.user.id === this.userService.getMainUserId());
+        return !this.connectionHandler.isOnlineInstant || (this.connectionHandler.isHost() && this.lobby?.host?.user.id === this.userService.getMainUserId());
     }
 
 

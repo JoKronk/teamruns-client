@@ -6,7 +6,7 @@ import { environment } from '@root/src/environments/environment';
 import { CollectionName } from '../common/firestore/collection-name';
 import { DbRun } from '../common/firestore/db-run';
 import { Lobby } from '../common/firestore/lobby';
-import { RTCPeer } from '../common/peer/rtc-peer';
+import { RTCConnection } from '../common/peer/rtc-connection';
 import { DbUsersCollection } from '../common/firestore/db-users-collection';
 import { CategoryOption } from '../common/run/category';
 import { DbLeaderboard } from '../common/firestore/db-leaderboard';
@@ -218,7 +218,7 @@ export class FireStoreService {
   async deleteLobbySubCollections(id: string) {
     await this.checkAuthenticated();
 
-    const peerSubcollection = collection(this.getDocRef<Lobby>(this.lobbies, id), CollectionName.peerConnections).withConverter(FireStoreService.convert<RTCPeer>());
+    const peerSubcollection = collection(this.getDocRef<Lobby>(this.lobbies, id), CollectionName.peerConnections).withConverter(FireStoreService.convert<RTCConnection>());
     (await getDocs(peerSubcollection)).forEach(async (conSnapshot) => {
       deleteDoc(doc(peerSubcollection, conSnapshot.id)) // I suppose this should be the correct way of deleting these?
     });

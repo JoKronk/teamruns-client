@@ -1,9 +1,9 @@
 <mat-sidenav-container fullscreen>
   <mat-sidenav mode="side" position="end" class="sidenav" [opened]="true">
 
-    @if ((!runHandler.connected || !mainLocalPlayer) && runHandler.connectionHandler.localSlave) {
+    @if ((!runHandler.connected || !mainLocalPlayer) && runHandler.connectionHandler.peer) {
       <div class="logs">
-        @for (log of runHandler.connectionHandler.localSlave.peer.connectionLog; track log) {
+        @for (log of runHandler.connectionHandler.peer.connection.connectionLog; track log) {
           <p>{{ log }}</p>
         }
       </div>

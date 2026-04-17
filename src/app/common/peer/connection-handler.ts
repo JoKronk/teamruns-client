@@ -1,7 +1,7 @@
 import { Subject, Subscription } from "rxjs";
 import { LocalPlayerData } from "../user/local-player-data";
-import { RTCPeerMaster } from "./rtc-peer-master";
-import { RTCPeerSlave } from "./rtc-peer-slave";
+import { RTCHost } from "./rtc-host";
+import { RTCPeer } from "./rtc-peer";
 import { DataChannelEvent } from "./data-channel-event";
 import { UserPositionData } from "../socket/position-data";
 import { User } from "../user/user";
@@ -11,8 +11,8 @@ import { DocumentReference } from "@angular/fire/firestore";
 
 export class ConnectionHandler {
     
-    private localMaster: RTCPeerMaster | undefined;
-    localSlave: RTCPeerSlave | undefined; //not private yet as connection logs are read from here !TODO: Change/update
+    private host: RTCHost | undefined;
+    peer: RTCPeer | undefined; //not private yet as connection logs are read from here !TODO: Change/update
 
     localPeers: LocalPlayerData[];
     private mainLocalUser: User;
@@ -27,8 +27,8 @@ export class ConnectionHandler {
         this.localPeers = localPeers;
         this.mainLocalUser = mainLocalUser;
         this.isOnlineInstant = isOnlineInstant;
-        this.localMaster = undefined;
-        this.localSlave = undefined;
+        this.host = undefined;
+        this.peer = undefined;
     }
 
     onLobbyUpdate(lobby: Lobby) {
@@ -39,32 +39,32 @@ export class ConnectionHandler {
         this.localPeers = localPeers;
     }
 
-    setupMaster(lobbyDoc: DocumentReference<Lobby>) {
-        console.log("Setting up master!");
-        this.localMaster = new RTCPeerMaster(this.mainLocalUser.generatePlayerBase(), lobbyDoc);
-        this.dataSubscription = this.localMaster.eventChannel.subscribe(event => {
-            if (!this.localMaster?.isBeingDestroyed)
+    setupAsHost(lobbyDoc: DocumentReference<Lobby>) {
+        console.log("Setting up host!");
+        this.host = new RTCHost(this.mainLocalUser.generatePlayerBase(), lobbyDoc);
+        this.dataSubscription = this.host.eventChannel.subscribe(event => {
+            if (!this.host?.isBeingDestroyed)
                 this.dataChannelEventSubject.next(event);
         });
 
-        if (!this.localMaster.positionChannel) return;
-        this.positionSubscription = this.localMaster.positionChannel.subscribe(target => {
-            if (!this.localMaster?.isBeingDestroyed)
+        if (!this.host.positionChannel) return;
+        this.positionSubscription = this.host.positionChannel.subscribe(target => {
+            if (!this.host?.isBeingDestroyed)
                 this.onPostionChannelUpdate(target, true);
         });
     }
 
-    setupSlave(lobbyDoc: DocumentReference<Lobby>) {
-        console.log("Setting up slave!");
-        this.localSlave = new RTCPeerSlave(this.mainLocalUser.generatePlayerBase(), lobbyDoc, this.lobby!.host!);
-        this.dataSubscription = this.localSlave.eventChannel.subscribe(event => {
-            if (!this.localSlave?.isBeingDestroyed)
+    setupAsPeer(lobbyDoc: DocumentReference<Lobby>) {
+        console.log("Setting up peer!");
+        this.peer = new RTCPeer(this.mainLocalUser.generatePlayerBase(), lobbyDoc, this.lobby!.host!);
+        this.dataSubscription = this.peer.eventChannel.subscribe(event => {
+            if (!this.peer?.isBeingDestroyed)
                 this.dataChannelEventSubject.next(event);
         });
 
-        if (!this.localSlave.positionChannel) return;
-        this.positionSubscription = this.localSlave.positionChannel.subscribe(target => {
-            if (!this.localSlave?.isBeingDestroyed)
+        if (!this.peer.positionChannel) return;
+        this.positionSubscription = this.peer.positionChannel.subscribe(target => {
+            if (!this.peer?.isBeingDestroyed)
                 this.onPostionChannelUpdate(target, false);
         });
     }
@@ -79,12 +79,12 @@ export class ConnectionHandler {
     }
 
     private sendEventCommonLogic(event: DataChannelEvent) {
-        if (this.localSlave) {
+        if (this.peer) {
             if (this.isOnlineInstant)
-                this.localSlave.peer.sendEvent(event);
+                this.peer.connection.sendEvent(event);
             this.dataChannelEventSubject.next(event); //to run on a potentially safer but slower mode disable this and send back the event from master/host
         }
-        else if (this.localMaster && this.lobby?.host?.user.id === this.mainLocalUser.id && !this.localMaster.isBeingDestroyed)
+        else if (this.host && this.lobby?.host?.user.id === this.mainLocalUser.id && !this.host.isBeingDestroyed)
             this.dataChannelEventSubject.next(event);
 
         else if (!this.isOnlineInstant)
@@ -104,19 +104,19 @@ export class ConnectionHandler {
     private sendPositionToRemote(positionData: UserPositionData) {
         if (!this.isOnlineInstant) return;
 
-        if (this.localSlave) {
-            this.localSlave.peer.sendPosition(positionData);
+        if (this.peer) {
+            this.peer.connection.sendPosition(positionData);
         }
-        else if (this.localMaster && this.lobby?.host?.user.id === this.mainLocalUser.id && !this.localMaster.isBeingDestroyed)
-            this.localMaster?.relayPositionToSlaves(positionData);
+        else if (this.host && this.lobby?.host?.user.id === this.mainLocalUser.id && !this.host.isBeingDestroyed)
+            this.host?.relayPositionToConnections(positionData);
     }
 
 
 
     onPostionChannelUpdate(positionData: UserPositionData, isMaster: boolean) {
-        //send updates from master to all slaves
+        //send updates from host to all peers
         if (isMaster && this.isOnlineInstant)
-            this.localMaster?.relayPositionToSlaves(positionData);
+            this.host?.relayPositionToConnections(positionData);
 
         for (let localPlayer of this.localPeers) {
             if (positionData.userId !== localPlayer.user.id)
@@ -124,51 +124,51 @@ export class ConnectionHandler {
         }
     }
 
-    relayToSlaves(event: DataChannelEvent) {
-        if (!this.isMaster())
+    relayToPeers(event: DataChannelEvent) {
+        if (!this.isHost())
             return;
 
-        this.localMaster?.relayToSlaves(event);
+        this.host?.relayToConnections(event);
     }
 
-    respondToSlave(data: DataChannelEvent | UserPositionData, userId: string) {
-        if (!this.isMaster())
+    respondToPeer(data: DataChannelEvent | UserPositionData, userId: string) {
+        if (!this.isHost())
             return;
 
         if (data instanceof DataChannelEvent)
-            this.localMaster?.sendEventToSpecificSlave(data, userId);
+            this.host?.sendEventToSpecificConnection(data, userId);
         else
-            this.localMaster?.sendPositionToSpecificSlave(data, userId);
+            this.host?.sendPositionToSpecificConnection(data, userId);
     }
 
     destoryPeer(userId: string) {
-        if (!this.isMaster())
+        if (!this.isHost())
             return;
         
-        if (this.localMaster?.peers) { //yes this is needed
-            let peer = this.localMaster.peers.find(x => x.peer.user.id === userId);
+        if (this.host?.connections) { //yes this is needed
+            let peer = this.host.connections.find(x => x.peer.user.id === userId);
             if (peer) {
                 console.log("Destorying disconnected peer");
                 peer.destroy();
-                this.localMaster!.peers = this.localMaster!.peers.filter(x => x.peer.user.id !== userId);
+                this.host!.connections = this.host!.connections.filter(x => x.peer.user.id !== userId);
             }
         }
     }
 
 
-    isMaster(): boolean {
-        return !this.isOnlineInstant || this.localMaster !== undefined;
+    isHost(): boolean {
+        return !this.isOnlineInstant || this.host !== undefined;
     }
 
-    isSlave(): boolean {
-        return this.localSlave !== undefined;
+    isPeer(): boolean {
+        return this.peer !== undefined;
     }
 
     isPotentialTurnServerHost(): boolean {
-        if (this.localMaster === undefined || this.localMaster.peers.length <= 1)
+        if (this.host === undefined || this.host.connections.length <= 1)
             return false;
 
-        for (let peer of this.localMaster.peers) {
+        for (let peer of this.host.connections) {
             for (let candidate of peer.connectionDescription.hostCandidates) {
                 if (candidate.type === "host")
                     continue;
@@ -181,23 +181,23 @@ export class ConnectionHandler {
     }
 
     getHostId(): string | undefined {
-        if (this.isSlave())
-            return this.localSlave!.peer.peer.user.id;
+        if (this.isPeer())
+            return this.peer!.connection.peer.user.id;
         else
-            return this.localMaster?.host.user.id;
+            return this.host?.host.user.id;
     }
 
     destory() {
         this.dataSubscription?.unsubscribe();
         this.positionSubscription?.unsubscribe();
 
-        if (this.localSlave) {
-            this.localSlave.destroy();
-            this.localSlave = undefined;
+        if (this.peer) {
+            this.peer.destroy();
+            this.peer = undefined;
         }
-        if (this.localMaster) {
-            this.localMaster.destroy();
-            this.localMaster = undefined;
+        if (this.host) {
+            this.host.destroy();
+            this.host = undefined;
         }
     }
     
