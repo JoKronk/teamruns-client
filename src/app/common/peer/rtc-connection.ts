@@ -57,7 +57,7 @@ export class RTCConnection {
         this.setupIceServersForConnection();
         this.createDataChannelsForConnection(this.isHost ? this.peer.user.id : this.self.user.id, positionChannel !== null);
 
-        
+
         //setup listeners
         this.setupEventChannelListener();
         if (positionChannel) 
@@ -84,7 +84,7 @@ export class RTCConnection {
         }
     }
 
-    getPeerDoc(): DocumentReference<RTCConnectionDecription> {
+    private getPeerDoc(): DocumentReference<RTCConnectionDecription> {
         if (this.isHost)
             return doc(this.lobbyRef, CollectionName.peerConnections, this.peer.user.id).withConverter(FireStoreService.convert<RTCConnectionDecription>())
         else
@@ -219,7 +219,7 @@ export class RTCConnection {
                 //should be safe to delete instantly but we're playing it safe
                 setTimeout(() => {
                     if (this.isBeingDestroyed) return;
-                    deleteDoc(doc(this.lobbyRef, CollectionName.peerConnections, this.peer.user.id));
+                    deleteDoc(this.getPeerDoc());
                 }, 1000);
             }
 
@@ -290,9 +290,9 @@ export class RTCConnection {
             //check ice candidate add
             if (data.hostAnswer && data.hostCandidates.length != this.connectionDescription.hostCandidates.length) { 
                 //add all new candidates
-                data.hostCandidates.filter(x => !this.connectionDescription.hostCandidates.some(({ candidate: candidate }) => candidate === x.candidate)).forEach(candidate => {
+                data.hostCandidates.filter(x => !this.connectionDescription.hostCandidates.some(({ candidate }) => candidate === x.candidate)).forEach(candidate => {
                     this.connection.addIceCandidate(candidate);
-                    console.log("Peer: Added new host candidate!");
+                    this.logProgress("Added new host candidate!");
                 });
                 this.connectionDescription.hostCandidates = data.hostCandidates;
             }
@@ -300,9 +300,9 @@ export class RTCConnection {
     }
 
     addPeerCandidates(connectionDescription: RTCConnectionDecription) {
-        connectionDescription.peerCandidates.filter(x => !this.connectionDescription.peerCandidates.some(({ candidate: candidate }) => candidate === x.candidate)).forEach(candidate => {
+        connectionDescription.peerCandidates.filter(x => !this.connectionDescription.peerCandidates.some(({ candidate }) => candidate === x.candidate)).forEach(candidate => {
             this.connection.addIceCandidate(candidate);
-            console.log("Host: Added new peer candidate!");
+            this.logProgress("Added new peer candidate!");
         });
         this.connectionDescription.peerCandidates = connectionDescription.peerCandidates;
     }

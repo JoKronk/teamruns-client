@@ -4,7 +4,7 @@ import { Lobby } from "../firestore/lobby";
 import { DataChannelEvent } from "./data-channel-event";
 import { UserPositionData } from "../socket/position-data";
 import { RTCConnection } from "./rtc-connection";
-import { collection, DocumentReference, onSnapshot, Unsubscribe } from "@angular/fire/firestore";
+import { collection, CollectionReference, DocumentReference, onSnapshot, Unsubscribe } from "@angular/fire/firestore";
 import { FireStoreService } from "@app/services/fire-store.service";
 import { RTCConnectionDecription } from "./rtc-connection-description";
 import { PlayerBase } from "../player/player-base";
@@ -22,18 +22,22 @@ export class RTCHost {
         this.positionChannel = new Subject();
 
         //setup user handling
-        this.peersUnsubscription = onSnapshot(collection(lobbyRef, CollectionName.peerConnections).withConverter(FireStoreService.convert<RTCConnectionDecription>()), (snapshot) => {
+        this.peersUnsubscription = onSnapshot(this.getPeerCollection(), (snapshot) => {
             const connections = snapshot.docs.map(x => x.data());
             connections.filter(x => x.peer.user.id !== host.user.id).forEach(connectionDescription => {
                 const existingConnection = this.connections.find(x => x.peer.user.id === connectionDescription.peer.user.id);
                 if (!existingConnection)
-                    this.connections.push(new RTCConnection(this.eventChannel, this.positionChannel, this.lobbyRef, host, connectionDescription.peer, true, connectionDescription));
+                    this.connections.push(new RTCConnection(this.eventChannel, this.positionChannel, lobbyRef, host, connectionDescription.peer, true, connectionDescription));
 
                 else if (connectionDescription.peerCandidates.length != existingConnection.connectionDescription.peerCandidates.length) {
                     existingConnection.addPeerCandidates(connectionDescription);
                 }
             });
         });
+    }
+
+    private getPeerCollection(): CollectionReference<RTCConnectionDecription> {
+            return collection(this.lobbyRef, CollectionName.peerConnections).withConverter(FireStoreService.convert<RTCConnectionDecription>())
     }
     
 
